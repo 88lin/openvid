@@ -15,6 +15,7 @@ export interface ExportSettings {
     audioTracks?: Array<{
         audioUrl: string;
         startTime: number;
+        trimStart: number;
         duration: number;
         volume: number;
         loop: boolean;

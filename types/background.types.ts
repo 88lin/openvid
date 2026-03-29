@@ -1,7 +1,3 @@
-/**
- * Tipos para configuración de fondos (colores y gradientes)
- */
-
 export type GradientType = "linear" | "radial" | "conic";
 export type GradientDirection =
     | "to-t" | "to-tr" | "to-r" | "to-br"
@@ -29,9 +25,6 @@ export interface SolidColor {
 export type BackgroundColorConfig = { type: "gradient"; config: GradientConfig }
     | { type: "solid"; config: SolidColor }
 
-/**
- * Colores sólidos predefinidos (48 colores únicos)
- */
 export const PRESET_SOLID_COLORS = [
     "#8D8D8D", "#ef4444", "#f59e0b", "#10b981",
     "#3b82f6", "#8b5cf6", "#ec4899", "#ffffff",
@@ -46,6 +39,7 @@ export const PRESET_SOLID_COLORS = [
     "#fcd34d", "#c026d3", "#0891b2", "#dc2626",
     "#059669", "#7c3aed", "#ea580c", "#db2777",
 ];
+
 const SHARED_PALETTES: ColorStop[][] = [
     [{ color: "#FFFBFD", position: 0 }, { color: "#FFE5F5", position: 33 }, { color: "#F769EA", position: 66 }, { color: "#4A1C9B", position: 100 }],
     [{ color: "#1D0127", position: 0 }, { color: "#6602C6", position: 33 }, { color: "#AD24E2", position: 66 }, { color: "#FDFBFF", position: 100 }],
@@ -70,12 +64,43 @@ const SHARED_PALETTES: ColorStop[][] = [
     [{ color: "#8f8f8f", position: 0 }, { color: "#444444", position: 50 }, { color: "#111111", position: 100 }],
     [{ color: "#f093fb", position: 0 }, { color: "#d66efd", position: 50 }, { color: "#f5576c", position: 100 }],
     [{ color: "#43e97b", position: 0 }, { color: "#3af2b0", position: 50 }, { color: "#38f9d7", position: 100 }],
-    [{ color: "#fa709a", position: 0 }, { color: "#fb9067", position: 40 }, { color: "#fec440", position: 80 }, { color: "#fee140", position: 100 }]
+    [{ color: "#fa709a", position: 0 }, { color: "#fb9067", position: 40 }, { color: "#fec440", position: 80 }, { color: "#fee140", position: 100 }],
+    [{ color: "#ff7e5f", position: 0 }, { color: "#feb47b", position: 100 }],
+    [{ color: "#FF4E50", position: 0 }, { color: "#F9D423", position: 100 }],
+    [{ color: "#f12711", position: 0 }, { color: "#f5af19", position: 100 }],
+    [{ color: "#ff9966", position: 0 }, { color: "#ff5e62", position: 100 }],
+
+    [{ color: "#2b5876", position: 0 }, { color: "#4e4376", position: 100 }],
+    [{ color: "#1CB5E0", position: 0 }, { color: "#000851", position: 100 }],
+    [{ color: "#36D1DC", position: 0 }, { color: "#5B86E5", position: 100 }],
+    [{ color: "#134E5E", position: 0 }, { color: "#71B280", position: 100 }],
+
+    [{ color: "#00b09b", position: 0 }, { color: "#96c93d", position: 100 }],
+    [{ color: "#11998e", position: 0 }, { color: "#38ef7d", position: 100 }],
+    [{ color: "#348F50", position: 0 }, { color: "#56B4D3", position: 100 }],
+    [{ color: "#DCE35B", position: 0 }, { color: "#45B649", position: 100 }],
+
+    [{ color: "#0f0c29", position: 0 }, { color: "#302b63", position: 50 }, { color: "#24243e", position: 100 }],
+    [{ color: "#232526", position: 0 }, { color: "#414345", position: 100 }],
+    [{ color: "#141E30", position: 0 }, { color: "#243B55", position: 100 }],
+    [{ color: "#4B79A1", position: 0 }, { color: "#283E51", position: 100 }],
+
+    [{ color: "#ffafbd", position: 0 }, { color: "#ffc3a0", position: 100 }],
+    [{ color: "#e0c3fc", position: 0 }, { color: "#8ec5fc", position: 100 }],
+    [{ color: "#a1c4fd", position: 0 }, { color: "#c2e9fb", position: 100 }],
+    [{ color: "#fdcbf1", position: 0 }, { color: "#fdcbf1", position: 1 }, { color: "#e6dee9", position: 100 }],
+
+    [{ color: "#ff00cc", position: 0 }, { color: "#333399", position: 100 }],
+    [{ color: "#ff9a9e", position: 0 }, { color: "#fecfef", position: 99 }, { color: "#fecfef", position: 100 }],
+    [{ color: "#F00000", position: 0 }, { color: "#DC281E", position: 50 }, { color: "#000000", position: 100 }],
+    [{ color: "#00F2FE", position: 0 }, { color: "#4FACFE", position: 100 }],
+
+    [{ color: "#ff0844", position: 0 }, { color: "#ffb199", position: 100 }],
+    [{ color: "#c31432", position: 0 }, { color: "#240b36", position: 100 }],
+    [{ color: "#f857a6", position: 0 }, { color: "#ff5858", position: 100 }],
+    [{ color: "#654ea3", position: 0 }, { color: "#eaafc8", position: 100 }]
 ];
 
-/**
- * 2. Mapeo para Linear y Radial (Simples)
- */
 export const PRESET_LINEAR_GRADIENTS: GradientConfig[] = SHARED_PALETTES.map(stops => ({
     type: "linear", direction: "to-br", stops
 }));
@@ -96,7 +121,21 @@ const CONIC_METADATA = [
     { angle: 0, originX: 25, originY: 75 }, { angle: 0, originX: 75, originY: 75 },
     { angle: 0, originX: 50, originY: 35 }, { angle: 0, originX: 50, originY: 65 },
     { angle: 0, originX: 35, originY: 50 }, { angle: 0, originX: 65, originY: 50 },
-    { angle: 0, originX: 50, originY: 50 }, { angle: 0, originX: 50, originY: 50 }
+    { angle: 0, originX: 50, originY: 50 }, { angle: 0, originX: 50, originY: 50 },
+    { angle: 90, originX: 50, originY: 100 }, { angle: 135, originX: 0, originY: 0 },
+    { angle: 45, originX: 100, originY: 100 }, { angle: 180, originX: 50, originY: 50 },
+    { angle: 180, originX: 50, originY: 0 }, { angle: 225, originX: 100, originY: 0 },
+    { angle: 0, originX: 0, originY: 50 }, { angle: 90, originX: 50, originY: 50 },
+    { angle: 120, originX: 20, originY: 80 }, { angle: 60, originX: 80, originY: 20 },
+    { angle: 0, originX: 50, originY: 50 }, { angle: 300, originX: 10, originY: 10 },
+    { angle: 270, originX: 50, originY: 50 }, { angle: 180, originX: 0, originY: 100 },
+    { angle: 0, originX: 100, originY: 0 }, { angle: 45, originX: 50, originY: 50 },
+    { angle: 90, originX: 50, originY: 50 }, { angle: 135, originX: 25, originY: 75 },
+    { angle: 315, originX: 75, originY: 25 }, { angle: 0, originX: 50, originY: 50 },
+    { angle: 180, originX: 50, originY: 110 }, { angle: 45, originX: -10, originY: -10 },
+    { angle: 90, originX: 100, originY: 50 }, { angle: 270, originX: 0, originY: 50 },
+    { angle: 45, originX: 50, originY: 50 }, { angle: 135, originX: 50, originY: 50 },
+    { angle: 225, originX: 50, originY: 50 }, { angle: 315, originX: 50, originY: 50 }
 ];
 
 export const PRESET_CONIC_GRADIENTS: GradientConfig[] = CONIC_METADATA.map((meta, i) => ({

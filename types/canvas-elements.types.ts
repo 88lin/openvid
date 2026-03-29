@@ -3,32 +3,32 @@ export type CanvasElementType = "svg" | "image" | "text";
 export interface CanvasElementBase {
     id: string;
     type: CanvasElementType;
-    x: number; // Position in percentage (0-100)
-    y: number; // Position in percentage (0-100)
-    width: number; // Size in percentage
-    height: number; // Size in percentage
-    rotation: number; // Rotation in degrees
-    opacity: number; // 0-100
-    zIndex: number; // Stacking order
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    rotation: number;
+    opacity: number;
+    zIndex: number;
 }
 
 export interface SvgElement extends CanvasElementBase {
     type: "svg";
     category: string; // e.g., "shapes", "arrows", "decorative"
-    svgId: string; // ID that maps to inline SVG component
-    color?: string; // Fill color (optional)
+    svgId: string;
+    color?: string;
 }
     
 export interface ImageElement extends CanvasElementBase {
     type: "image";
-    category: string; // e.g., "stickers", "superposiciones", "desenfoques"
-    imagePath: string; // Path to image file in public folder
+    category: string;
+    imagePath: string;
 }
 
 export interface TextElement extends CanvasElementBase {
     type: "text";
     content: string;
-    fontSize: number; // Base size (will be scaled)
+    fontSize: number;
     fontFamily: string;
     fontWeight: "normal" | "medium" | "bold";
     color: string;

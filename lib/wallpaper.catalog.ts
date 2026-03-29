@@ -34,28 +34,28 @@ const CATEGORY_CONFIGS: CategoryConfig[] = [
         label: 'Escritorio',
         icon: 'heroicons:computer-desktop-solid',
         primary: true,
-        count: 4,
+        count: 66,
     },
     {
         id: 'gradient',
         label: 'Gradientes',
         icon: 'solar:mirror-left-bold',
         primary: true,
-        count: 0,
+        count: 90,
     },
     {
         id: 'pattern',
         label: 'Patrones',
         icon: 'solar:palette-round-bold',
         primary: false,
-        count: 0,
+        count: 49,
     },
     {
         id: 'minimal',
         label: 'Minimal',
         icon: 'solar:sun-2-bold',
         primary: false,
-        count: 0,
+        count: 65,
     },
 ];
 

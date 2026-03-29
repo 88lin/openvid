@@ -26,7 +26,6 @@ export interface ControlPanelProps {
     onImageSelect: (url: string) => void;
     onImageRemove: (url: string) => void;
     onBackgroundColorChange: (config: BackgroundColorConfig) => void;
-    // Zoom props
     zoomFragments?: ZoomFragment[];
     selectedZoomFragment?: ZoomFragment | null;
     onSelectZoomFragment?: (fragmentId: string | null) => void;
@@ -38,19 +37,16 @@ export interface ControlPanelProps {
     currentTime?: number;
     getThumbnailForTime?: (time: number) => VideoThumbnail | null;
     videoDimensions?: { width: number; height: number } | null;
-    // Mockup props
     mockupId?: string;
     mockupConfig?: MockupConfig;
     onMockupChange?: (mockupId: string) => void;
     onMockupConfigChange?: (config: Partial<MockupConfig>) => void;
-    // Canvas elements props
     onAddCanvasElement?: (element: CanvasElement) => void;
     selectedCanvasElement?: CanvasElement | null;
     onUpdateCanvasElement?: (id: string, updates: Partial<CanvasElement>) => void;
     onDeleteCanvasElement?: (id: string) => void;
     onBringToFront?: (id: string) => void;
     onSendToBack?: (id: string) => void;
-    // Audio props
     uploadedAudios?: UploadedAudio[];
     audioTracks?: AudioTrack[];
     muteOriginalAudio?: boolean;
