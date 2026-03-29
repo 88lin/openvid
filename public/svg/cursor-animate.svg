@@ -139,38 +139,28 @@
   </linearGradient>
 </defs>
 
-<!-- Área de selección (fija en x=85, y=85) -->
 <g class="selection-area">
-  <!-- Relleno de selección -->
   <rect class="selection-fill" x="85" y="85" width="0" height="0" 
         fill="#4A9EFF" opacity="0"/>
   
-  <!-- Borde de selección -->
   <rect class="selection-box" x="85" y="85" width="0" height="0" 
         fill="none" stroke="#4A9EFF" stroke-width="2" 
         stroke-dasharray="5 3" opacity="0"/>
   
-  <!-- Puntos de esquina -->
   <circle class="corner-dot" cx="85" cy="85" r="3" fill="#4A9EFF" opacity="0"/>
   <circle class="corner-dot" cx="120" cy="85" r="3" fill="#4A9EFF" opacity="0"/>
   <circle class="corner-dot" cx="120" cy="120" r="3" fill="#4A9EFF" opacity="0"/>
   <circle class="corner-dot" cx="85" cy="120" r="3" fill="#4A9EFF" opacity="0"/>
 </g>
 
-<!-- Cursor personalizado (se mueve con el grupo) -->
 <g class="cursor-group">
   <g class="cursor-pointer">
-    <!-- Sombra del cursor -->
-    <path d="M 87 87 L 87 107 L 92 102 L 97 112 L 100 111 L 95 101 L 102 101 Z" 
-          fill="rgba(0,0,0,0.3)"/>
-    
-    <!-- Cuerpo principal del cursor -->
-    <path d="M 85 85 L 85 105 L 90 100 L 95 110 L 98 109 L 93 99 L 100 99 Z" 
-          fill="url(#cursorGrad)" stroke="#333" stroke-width="0.5"/>
-    
-    <!-- Borde interno para darle profundidad -->
-    <path d="M 85 85 L 85 105 L 90 100 L 95 110 L 98 109 L 93 99 L 100 99 Z" 
-          fill="none" stroke="white" stroke-width="0.3" opacity="0.6"/>
+    <g transform="translate(80.6, 80.6)">
+      <path d="m16.574 19.2l-3.938-3.938l-1.203 1.202c-1.23 1.232-1.846 1.847-2.508 1.702s-.963-.963-1.565-2.596l-2.007-5.45C4.152 6.861 3.55 5.232 4.39 4.392s2.47-.24 5.73.962l5.45 2.006c1.633.602 2.45.903 2.596 1.565s-.47 1.277-1.702 2.508l-1.202 1.203l3.938 3.938c.408.408.612.612.706.84c.125.303.125.643 0 .947c-.094.227-.298.431-.706.839s-.612.612-.84.706a1.24 1.24 0 0 1-.947 0c-.227-.094-.43-.298-.839-.706" 
+            fill="url(#cursorGrad)" 
+            stroke="#333" 
+            stroke-width="0.5"/>
+    </g>
   </g>
 </g>
 </svg>
