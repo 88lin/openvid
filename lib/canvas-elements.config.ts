@@ -16,7 +16,7 @@ function generateImageItems(
 
         return {
             id: id,
-            name: `${prefix.charAt(0).toUpperCase() + prefix.slice(1)} ${num}`, // Ej: "Sticker 01"
+            name: `${prefix.charAt(0).toUpperCase() + prefix.slice(1)} ${num}`,
             imagePath: `/elements/images/${folder}/${id}.${extension}`,
         };
     });
@@ -30,17 +30,32 @@ export const PINNED_SVG_ITEMS = [
     { id: "arrow-right", name: "Derecha", icon: "ph:arrow-right-bold" },
     { id: "star", name: "Estrella", icon: "ph:star-bold" },
     { id: "heart", name: "Corazón", icon: "ph:heart-bold" },
-    { id: "hexagon", name: "Hexágono", icon: "ph:hexagon-bold" },
-    { id: "lightning", name: "Rayo", icon: "ph:lightning-bold" },
-    { id: "arrow-left", name: "Izquierda", icon: "ph:arrow-left-bold" },
-    { id: "diamond", name: "Rombo", icon: "ph:diamond-bold" },
+    { id: "splash", name: "Salpicadura" },
+    { id: "scribble", name: "Garabato" },
+    { id: "blob", name: "Blob", icon: "tabler:blob-filled" },
+    { id: "blob-outline", name: "Blob outline", icon: "tabler:blob" },
     { id: "chat", name: "Bocadillo", icon: "ph:chat-circle-bold" },
 ];
 
 // Elementos de imagen destacados que se muestran directamente (11 slots)
 export const PINNED_IMAGE_ITEMS = [
-    { id: "overlay-01", name: "Lighta curve", imagePath: "/elements/images/overlays/overlay-01.webp" },
-    // Add more pinned images here (up to 11 total)
+    { id: "overlay-01", name: "Overlay 1", imagePath: "/elements/images/overlays/overlay-01.webp" },
+    { id: "overlay-11", name: "Overlay 11", imagePath: "/elements/images/overlays/overlay-11.webp" },
+    { id: "overlay-06", name: "Overlay 6", imagePath: "/elements/images/overlays/overlay-06.webp" },
+    { id: "overlay-04", name: "Overlay 4", imagePath: "/elements/images/overlays/overlay-04.webp" },
+    { id: "overlay-07", name: "Overlay 7", imagePath: "/elements/images/overlays/overlay-07.webp" },
+    { id: "overlay-09", name: "Overlay 9", imagePath: "/elements/images/overlays/overlay-09.webp" },
+    { id: "overlay-14", name: "Overlay 14", imagePath: "/elements/images/overlays/overlay-14.webp" },
+    { id: "asset-06", name: "Asset 6", imagePath: "/elements/images/assets/asset-06.webp" },
+    { id: "asset-07", name: "Asset 7", imagePath: "/elements/images/assets/asset-07.webp" },
+    { id: "sticker-01", name: "Sticker 1", imagePath: "/elements/images/stickers/sticker-01.webp" },
+    { id: "sticker-04", name: "Sticker 4", imagePath: "/elements/images/stickers/sticker-04.webp" },
+    { id: "sticker-03", name: "Sticker 3", imagePath: "/elements/images/stickers/sticker-03.webp" },
+    { id: "sticker-05", name: "Sticker 5", imagePath: "/elements/images/stickers/sticker-05.webp" },
+    { id: "sticker-11", name: "Sticker 11", imagePath: "/elements/images/stickers/sticker-11.webp" },
+    { id: "sticker-60", name: "Sticker 60", imagePath: "/elements/images/stickers/sticker-60.webp" },
+    { id: "sticker-62", name: "Sticker 62", imagePath: "/elements/images/stickers/sticker-62.webp" },
+    { id: "sticker-69", name: "Sticker 69", imagePath: "/elements/images/stickers/sticker-69.webp" },
 ];
 
 export const SVG_CATEGORIES: SvgCategory[] = [
@@ -55,7 +70,7 @@ export const SVG_CATEGORIES: SvgCategory[] = [
             { id: "diamond", name: "Rombo", icon: "ph:diamond-bold" },
             { id: "square", name: "Cuadrado", icon: "ph:square-bold" },
             { id: "blob", name: "Blob", icon: "tabler:blob-filled" },
-            { id: "blob-outline", name: "Blob outline", icon: "tabler:blob"  },
+            { id: "blob-outline", name: "Blob outline", icon: "tabler:blob" },
         ]
     },
     {
@@ -81,32 +96,31 @@ export const SVG_CATEGORIES: SvgCategory[] = [
             { id: "chat", name: "Bocadillo", icon: "ph:chat-circle-bold" },
             { id: "seal", name: "Sello", icon: "ph:seal-bold" },
             { id: "drop", name: "Gota", icon: "ph:drop-bold" },
-            { id: "splash", name: "Salpicadura"},
+            { id: "splash", name: "Salpicadura" },
         ]
     }
 ];
 
 export const IMAGE_CATEGORIES: ImageCategory[] = [
     {
-        id: "stickers",
-        title: "Stickers",
-        items: [
-            // Si también tienes stickers numerados (sticker-01 a sticker-15):
-            ...generateImageItems("stickers", "sticker", 1)
-        ]
-    },
-    {
         id: "overlays",
         title: "Superposiciones",
         items: [
-            ...generateImageItems("overlays", "overlay", 1)
+            ...generateImageItems("overlays", "overlay", 14)
         ]
     },
     {
         id: "assets",
         title: "Recursos",
         items: [
-            ...generateImageItems("assets", "asset", 0)
+            ...generateImageItems("assets", "asset", 7)
         ]
-    }
+    },
+    {
+        id: "stickers",
+        title: "Stickers",
+        items: [
+            ...generateImageItems("stickers", "sticker", 74)
+        ]
+    },
 ];

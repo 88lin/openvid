@@ -138,9 +138,13 @@ export function useVideoExport(
             exportCanvas.width = targetWidth;
             exportCanvas.height = targetHeight;
 
-            // Guardar posición actual del video
+            // Guardar posición actual del video y estado de audio
             const originalTime = video.currentTime;
             const wasPlaying = !video.paused;
+            const originalMuted = video.muted;
+
+            // Mutear el video durante la exportación para evitar audio entrecortado
+            video.muted = true;
 
             // Determine trim range (use full video if no trim specified)
             const trimStart = settings.trim?.start ?? 0;
@@ -197,6 +201,7 @@ export function useVideoExport(
             exportCanvas.width = originalWidth;
             exportCanvas.height = originalHeight;
             video.currentTime = originalTime;
+            video.muted = originalMuted;
 
             // Restaurar estado de reproducción
             if (wasPlaying) {
@@ -668,16 +673,17 @@ async function exportWithMediabunnyAndAudio(
     }
 
     // Add audio tracks to mix
-    for (const audioTrackFile of audioTracks) {
-        const { track } = audioTrackFile;
-        const trackVolume = track.volume * (settings.masterVolume ?? 1);
-        const delayMs = Math.round(track.startTime * 1000);
+  for (const audioTrackFile of audioTracks) {
+    const { track } = audioTrackFile;
+    const trackVolume = track.volume * (settings.masterVolume ?? 1);
+    const delayMs = Math.round(track.startTime * 1000);
+    const audioTrimStart = track.trimStart ?? 0;          // ← nuevo
+    const audioTrimEnd = audioTrimStart + track.duration; // ← nuevo
 
-        // Apply delay, duration limit, and volume
-        filterComplex += `[${inputIndex}:a]adelay=${delayMs}|${delayMs},volume=${trackVolume}[a${inputIndex}];`;
-        audioInputs.push(`[a${inputIndex}]`);
-        inputIndex++;
-    }
+    filterComplex += `[${inputIndex}:a]atrim=${audioTrimStart}:${audioTrimEnd},asetpts=PTS-STARTPTS,adelay=${delayMs}|${delayMs},volume=${trackVolume}[a${inputIndex}];`;
+    audioInputs.push(`[a${inputIndex}]`);
+    inputIndex++;
+}
 
     // Mix all audio streams
     const totalAudioInputs = (hasSourceAudio ? 1 : 0) + audioTracks.length;

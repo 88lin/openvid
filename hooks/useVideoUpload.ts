@@ -10,6 +10,7 @@ interface UploadedVideoData {
     fileName: string;
     width: number;
     height: number;
+    timestamp: number; // uploadedAt timestamp for comparison
 }
 
 interface UseVideoUploadReturn {
@@ -54,7 +55,7 @@ export function useVideoUpload(): UseVideoUploadReturn {
             const cachedVideo = await saveUploadedVideo(file);
 
             const url = URL.createObjectURL(cachedVideo.blob);
-            const videoId = `uploaded-${Date.now()}`;
+            const videoId = `uploaded-${cachedVideo.uploadedAt}`;
 
             return {
                 url,
@@ -64,6 +65,7 @@ export function useVideoUpload(): UseVideoUploadReturn {
                 fileName: cachedVideo.fileName,
                 width: cachedVideo.width,
                 height: cachedVideo.height,
+                timestamp: cachedVideo.uploadedAt,
             };
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : "Error al subir el video";
@@ -94,6 +96,7 @@ export function useVideoUpload(): UseVideoUploadReturn {
                 fileName: cachedVideo.fileName,
                 width: cachedVideo.width,
                 height: cachedVideo.height,
+                timestamp: cachedVideo.uploadedAt,
             };
         } catch (error) {
             console.error("Error loading uploaded video:", error);

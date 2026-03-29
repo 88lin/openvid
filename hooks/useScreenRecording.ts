@@ -5,21 +5,17 @@ import { useRouter } from "next/navigation";
 import type { RecordingState, RecordingResult, VideoData } from "@/types";
 import { clearAllThumbnailCache } from "@/lib/thumbnail-cache";
 
-// Re-export tipos para compatibilidad
 export type { RecordingState, RecordingResult, VideoData };
 
-/**
- * Generate a unique video ID
- */
 function generateVideoId(): string {
   return `vid_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 }
 
 async function getDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    const dbName = "FreeshotDB";
+    const dbName = "openvidDB";
     const storeName = "videos";
-    const version = 1;
+    const version = 2;
 
     const request = indexedDB.open(dbName, version);
 
@@ -30,12 +26,28 @@ async function getDB(): Promise<IDBDatabase> {
       }
     };
 
-    request.onsuccess = () => resolve(request.result);
+    request.onsuccess = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains(storeName)) {
+        db.close();
+        const retryRequest = indexedDB.open(dbName, version + 1);
+        retryRequest.onupgradeneeded = (e) => {
+          const retryDb = (e.target as IDBOpenDBRequest).result;
+          if (!retryDb.objectStoreNames.contains(storeName)) {
+            retryDb.createObjectStore(storeName);
+          }
+        };
+        retryRequest.onsuccess = () => resolve(retryRequest.result);
+        retryRequest.onerror = () => reject(retryRequest.error);
+      } else {
+        resolve(db);
+      }
+    };
     request.onerror = () => reject(request.error);
   });
 }
+
 async function saveVideoToIndexedDB(blob: Blob, duration: number): Promise<string> {
-  // Clear old thumbnail cache before saving new video
   try {
     await clearAllThumbnailCache();
   } catch (e) {
@@ -43,7 +55,7 @@ async function saveVideoToIndexedDB(blob: Blob, duration: number): Promise<strin
   }
 
   const videoId = generateVideoId();
-  const db = await getDB(); // Pedimos la conexión a la base de datos
+  const db = await getDB();
 
   return new Promise((resolve, reject) => {
     const storeName = "videos";
@@ -71,13 +83,11 @@ async function saveVideoToIndexedDB(blob: Blob, duration: number): Promise<strin
   });
 }
 
-// 3. Refactorización de loadVideoFromIndexedDB
-export async function loadVideoFromIndexedDB(): Promise<{ blob: Blob; duration: number; url: string; videoId: string } | null> {
+export async function loadVideoFromIndexedDB(): Promise<{ blob: Blob; duration: number; url: string; videoId: string; timestamp: number } | null> {
   try {
-    const db = await getDB(); // Pedimos la conexión a la base de datos
+    const db = await getDB();
     const storeName = "videos";
 
-    // Verificación de seguridad por si acaso
     if (!db.objectStoreNames.contains(storeName)) {
       db.close();
       return null;
@@ -91,12 +101,12 @@ export async function loadVideoFromIndexedDB(): Promise<{ blob: Blob; duration: 
       getRequest.onsuccess = () => {
         db.close();
         const data = getRequest.result;
-        
+
         if (data) {
           const url = URL.createObjectURL(data.blob);
-          // Generate videoId if not exists (for backwards compatibility)
           const videoId = data.videoId || `vid_${data.timestamp || Date.now()}`;
-          resolve({ blob: data.blob, duration: data.duration, url, videoId });
+          const timestamp = data.timestamp || Date.now();
+          resolve({ blob: data.blob, duration: data.duration, url, videoId, timestamp });
         } else {
           resolve(null);
         }
@@ -109,11 +119,10 @@ export async function loadVideoFromIndexedDB(): Promise<{ blob: Blob; duration: 
     });
   } catch (error) {
     console.error("Error al cargar video desde la base de datos:", error);
-    return null; // Devolvemos null de forma segura si la DB falla al abrirse
+    return null; 
   }
 }
 
-// Función para eliminar el video grabado de IndexedDB
 export async function deleteRecordedVideo(): Promise<void> {
   try {
     const db = await getDB();
@@ -143,14 +152,6 @@ export async function deleteRecordedVideo(): Promise<void> {
   }
 }
 
-// Favicons como data URLs para cambio dinámico
-const favicons = {
-  idle: `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><circle cx="16" cy="16" r="14" fill="%230E0E12" stroke="%233B82F6" stroke-width="2"/><circle cx="16" cy="16" r="6" fill="%233B82F6"/></svg>`,
-  countdown: `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><circle cx="16" cy="16" r="14" fill="%230E0E12" stroke="%23FBBF24" stroke-width="2"/><circle cx="16" cy="16" r="6" fill="%23FBBF24"/></svg>`,
-  recording: `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><circle cx="16" cy="16" r="14" fill="%230E0E12" stroke="%23EF4444" stroke-width="2"/><circle cx="16" cy="16" r="6" fill="%23EF4444"><animate attributeName="opacity" values="1;0.4;1" dur="1s" repeatCount="indefinite"/></circle></svg>`,
-  processing: `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><circle cx="16" cy="16" r="14" fill="%230E0E12" stroke="%2322C55E" stroke-width="2"/><circle cx="16" cy="16" r="6" fill="%2222C55E"/></svg>`,
-};
-
 const titles = {
   idle: "openvid - Crea tomas cinemáticas",
   countdown: (count: number) => `Grabando en ${count}...`,
@@ -170,7 +171,6 @@ export function useScreenRecording() {
   const chunksRef = useRef<Blob[]>([]);
   const startTimeRef = useRef<number>(0);
   const originalTitleRef = useRef<string>("");
-  const faviconLinkRef = useRef<HTMLLinkElement | null>(null);
   const stateRef = useRef<RecordingState>("idle");
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -178,29 +178,14 @@ export function useScreenRecording() {
     stateRef.current = state;
   }, [state]);
 
-  const setFavicon = useCallback((type: keyof typeof favicons) => {
-    if (typeof document === "undefined") return;
-
-    if (!faviconLinkRef.current) {
-      faviconLinkRef.current = document.querySelector('link[rel="icon"]');
-      if (!faviconLinkRef.current) {
-        faviconLinkRef.current = document.createElement("link");
-        faviconLinkRef.current.rel = "icon";
-        document.head.appendChild(faviconLinkRef.current);
-      }
-    }
-    faviconLinkRef.current.href = favicons[type];
-  }, []);
-
   const setTitle = useCallback((title: string) => {
     if (typeof document === "undefined") return;
     document.title = title;
   }, []);
 
   const restoreOriginals = useCallback(() => {
-    setFavicon("idle");
     setTitle(originalTitleRef.current || titles.idle);
-  }, [setFavicon, setTitle]);
+  }, [setTitle]);
 
   useEffect(() => {
     if (typeof document !== "undefined") {
@@ -212,17 +197,14 @@ export function useScreenRecording() {
     if (state === "idle") {
       restoreOriginals();
     } else if (state === "countdown") {
-      setFavicon("countdown");
       setTitle(titles.countdown(countdown));
     } else if (state === "recording") {
-      setFavicon("recording");
       const timeStr = recordingTime.toString().padStart(2, '0');
       setTitle(`Grabando ${timeStr}s`);
     } else if (state === "processing") {
-      setFavicon("processing");
       setTitle(titles.processing);
     }
-  }, [state, countdown, recordingTime, setFavicon, setTitle, restoreOriginals]);
+  }, [state, countdown, recordingTime, setTitle, restoreOriginals]);
 
   useEffect(() => {
     if (state === "recording") {
@@ -253,7 +235,6 @@ export function useScreenRecording() {
     }
   }, []);
 
-  // Iniciar la grabación real
   const startRecording = useCallback((stream: MediaStream) => {
     try {
       chunksRef.current = [];
@@ -318,7 +299,6 @@ export function useScreenRecording() {
 
         try {
           await saveVideoToIndexedDB(blob, duration);
-
           router.push("/editor");
         } catch (error) {
           console.error("Error al guardar video:", error);
