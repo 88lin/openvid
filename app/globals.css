@@ -166,6 +166,28 @@
   }
 }
 
+@theme {
+  --ease-elegant: cubic-bezier(0.16, 1, 0.3, 1);
+   --gradient-radial-primary: radial-gradient(circle at center, #00A3FF 0%, #0057FF 100%);
+  @keyframes reveal {
+    from {
+      opacity: 0;
+      transform: translateY(20px) scale(0.98);
+      filter: blur(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      filter: blur(0);
+    }
+  }
+}
+
+@utility animate-reveal {
+  animation: reveal 0.8s var(--ease-elegant) forwards;
+  opacity: 0;
+}
+
 button {
   cursor: pointer;
 }
