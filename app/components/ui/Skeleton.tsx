@@ -400,3 +400,68 @@ export function TimelineSkeleton() {
         </div>
     );
 }
+
+
+export function AudioMenuSkeleton() {
+    return (
+        <div className="p-4 flex flex-col gap-5">
+
+            {/* Header "Audio" */}
+            <div className="flex items-center gap-2">
+                <Skeleton width={20} height={20} variant="circle" />
+                <Skeleton height={14} width={50} />
+            </div>
+
+            {/* Audio original toggle */}
+            <div className="bg-[#09090B] border border-white/5 squircle-element p-3">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <Skeleton width={18} height={18} variant="circle" />
+                        <Skeleton height={12} width={90} />
+                    </div>
+                    <Skeleton height={20} width={56} variant="square" />
+                </div>
+            </div>
+
+            {/* Volumen maestro slider */}
+            <div className="flex items-center gap-3">
+                <Skeleton width={16} height={16} variant="circle" />
+                <Skeleton height={10} width={100} />
+                <Skeleton height={6} className="flex-1" variant="default" />
+                <Skeleton height={10} width={24} />
+            </div>
+
+            {/* Botón subir audio */}
+            <div className="flex flex-col items-center gap-2">
+                <Skeleton height={32} variant="square" className="w-full" />
+                <Skeleton height={10} width={160} />
+            </div>
+
+            {/* Pistas skeleton (2 tracks como placeholder) */}
+            <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                    <Skeleton width={14} height={14} variant="circle" />
+                    <Skeleton height={10} width={140} />
+                </div>
+                {Array.from({ length: 2 }).map((_, i) => (
+                    <div
+                        key={i}
+                        className="bg-[#09090B] border border-white/5 squircle-element p-3 flex flex-col gap-2"
+                    >
+                        <div className="flex items-start justify-between gap-2">
+                            <div className="flex flex-col gap-1.5 flex-1 min-w-0">
+                                <Skeleton height={12} width="65%" />
+                                <Skeleton height={9} width="80%" />
+                            </div>
+                            <div className="flex items-center gap-1 shrink-0">
+                                <Skeleton width={28} height={28} variant="square" />
+                                <Skeleton width={28} height={28} variant="square" />
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+        </div>
+    );
+}

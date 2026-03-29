@@ -11,9 +11,10 @@ interface SliderControlProps {
     max?: number;
     step?: number; // Step for decimal values (default: 1)
     onChange?: (value: number) => void;
+    onChangeEnd?: () => void; // Called when dragging ends
 }
 
-export function SliderControl({ icon, label, value, min = 0, max = 100, step = 1, onChange }: SliderControlProps) {
+export function SliderControl({ icon, label, value, min = 0, max = 100, step = 1, onChange, onChangeEnd }: SliderControlProps) {
     const [isDragging, setIsDragging] = useState(false);
     const sliderRef = useRef<HTMLDivElement>(null);
 
@@ -46,6 +47,7 @@ export function SliderControl({ icon, label, value, min = 0, max = 100, step = 1
 
         const handleMouseUp = () => {
             setIsDragging(false);
+            onChangeEnd?.(); // Notify parent that dragging ended
         };
 
         document.addEventListener('mousemove', handleMouseMove);
@@ -55,7 +57,7 @@ export function SliderControl({ icon, label, value, min = 0, max = 100, step = 1
             document.removeEventListener('mousemove', handleMouseMove);
             document.removeEventListener('mouseup', handleMouseUp);
         };
-    }, [isDragging, min, max, step, onChange]);
+    }, [isDragging, min, max, step, onChange, onChangeEnd]);
 
     const displayPercentage = Math.round(((value - min) / (max - min)) * 100);
 

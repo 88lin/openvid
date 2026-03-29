@@ -162,7 +162,6 @@ export default function PlaceholderEditor({ onVideoUpload, isUploading = false }
                         {onVideoUpload && (
                             <Button
                                 variant="outline"
-                                onClick={handleUploadClick}
                                 disabled={isUploading}
                                 className="border-zinc-700 hover:bg-zinc-800 hover:text-white"
                             >

@@ -53,10 +53,11 @@ export function Timeline({
     const [isHoveringZoomRow, setIsHoveringZoomRow] = useState(false);
     const [ghostX, setGhostX] = useState(0);
     const validDuration = Number.isFinite(videoDuration) && videoDuration > 0 ? videoDuration : 0;
+
+    // Store pending trim values during drag to avoid excessive parent updates
+    const pendingTrimRef = useRef<{ start: number; end: number } | null>(null);
     // Trimmed duration for display
-    const trimmedDuration = useMemo(() => {
-        return trimRange.end - trimRange.start;
-    }, [trimRange]);
+
 
     const TRACK_PADDING = 16;
 
@@ -69,7 +70,29 @@ export function Timeline({
     const playheadX = useMotionValue(0);
     const trimStartX = useMotionValue(0);
     const trimEndX = useMotionValue(0);
+    const contentWidthMotion = useMotionValue(0);
+    const validDurationMotion = useMotionValue(0);
 
+    useEffect(() => {
+        contentWidthMotion.set(contentWidth);
+    }, [contentWidth, contentWidthMotion]);
+
+    useEffect(() => {
+        validDurationMotion.set(validDuration);
+    }, [validDuration, validDurationMotion]);
+    const calculateDuration = useCallback(([start, end, cw, vd]: number[]) => {
+        if (cw === 0 || vd === 0) return 0;
+        return ((end - start) / cw) * vd;
+    }, []);
+    const trimmedDurationLabel = useTransform(
+        [trimStartX, trimEndX, contentWidthMotion, validDurationMotion] as const,
+        ([start, end, cw, vd]: number[]) => {
+            const prefix = videoUrl ? 'Media Clip' : 'No Media';
+            if (cw === 0 || vd === 0) return `${prefix} · 0:00`;
+            const secs = ((end - start) / cw) * vd;
+            return `${prefix} · ${formatTime(secs)}`;
+        }
+    );
     // Calculate trim handle positions
     const trimStartPosition = useMemo(() => {
         if (validDuration === 0 || contentWidth === 0) return 0;
@@ -201,14 +224,10 @@ export function Timeline({
         const newX = Math.max(0, Math.min(trimEndX.get() - (MIN_TRIM_DURATION / validDuration) * contentWidth, trimStartX.get() + info.delta.x));
         trimStartX.set(newX);
 
+        // Store pending value without triggering parent update
         const newStartTime = (newX / contentWidth) * validDuration;
-        onTrimChange({ ...trimRange, start: Math.max(0, newStartTime) });
-
-        // If playhead is before new start, move it
-        if (currentTime < newStartTime) {
-            onSeek(newStartTime);
-        }
-    }, [contentWidth, validDuration, trimStartX, trimEndX, trimRange, onTrimChange, currentTime, onSeek]);
+        pendingTrimRef.current = { start: Math.max(0, newStartTime), end: trimRange.end };
+    }, [contentWidth, validDuration, trimStartX, trimEndX, trimRange.end]);
 
     const handleTrimEndDrag = useCallback((_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
         if (contentWidth === 0 || validDuration === 0) return;
@@ -216,22 +235,33 @@ export function Timeline({
         const newX = Math.min(contentWidth, Math.max(trimStartX.get() + (MIN_TRIM_DURATION / validDuration) * contentWidth, trimEndX.get() + info.delta.x));
         trimEndX.set(newX);
 
+        // Store pending value without triggering parent update
         const newEndTime = (newX / contentWidth) * validDuration;
-        onTrimChange({ ...trimRange, end: Math.min(validDuration, newEndTime) });
-
-        // If playhead is after new end, move it
-        if (currentTime > newEndTime) {
-            onSeek(newEndTime);
-        }
-    }, [contentWidth, validDuration, trimStartX, trimEndX, trimRange, onTrimChange, currentTime, onSeek]);
+        pendingTrimRef.current = { start: trimRange.start, end: Math.min(validDuration, newEndTime) };
+    }, [contentWidth, validDuration, trimStartX, trimEndX, trimRange.start]);
 
     const handleTrimDragStart = useCallback((handle: 'start' | 'end') => {
         setIsDraggingTrim(handle);
+        pendingTrimRef.current = null;
     }, []);
 
     const handleTrimDragEnd = useCallback(() => {
         setIsDraggingTrim(null);
-    }, []);
+
+        // Apply pending trim change
+        if (pendingTrimRef.current) {
+            onTrimChange(pendingTrimRef.current);
+
+            // Adjust playhead if needed
+            if (currentTime < pendingTrimRef.current.start) {
+                onSeek(pendingTrimRef.current.start);
+            } else if (currentTime > pendingTrimRef.current.end) {
+                onSeek(pendingTrimRef.current.end);
+            }
+
+            pendingTrimRef.current = null;
+        }
+    }, [onTrimChange, currentTime, onSeek]);
 
     // Auto-scroll when playhead near edge
     useEffect(() => {
@@ -248,17 +278,28 @@ export function Timeline({
         }
     }, [playheadPosition, isDragging]);
 
-    const clipLeft = trimStartPosition;
-    const clipWidth = trimEndPosition - trimStartPosition;
+    const calculateProgressWidth = useCallback(([px, start, end]: number[]) => {
+        const width = end - start;
+        if (width <= 0) return 0;
+        const clampedX = Math.max(start, Math.min(px, end));
+        return Math.max(0, clampedX - start);
+    }, []);
 
-    // Derive progress width directly from playheadX motion value for perfect sync
     const progressWidth = useTransform(
-        playheadX,
-        (x) => {
-            if (clipWidth <= 0) return 0;
-            const clampedX = Math.max(trimStartPosition, Math.min(x, trimEndPosition));
-            return Math.max(0, clampedX - trimStartPosition);
-        }
+        [playheadX, trimStartX, trimEndX] as const,
+        calculateProgressWidth
+    );
+
+    const clipLeftMotion = useTransform(trimStartX, (x) => x);
+    const clipWidthMotion = useTransform(
+        [trimStartX, trimEndX] as const,
+        ([start, end]: number[]) => Math.max(end - start, 20)
+    );
+    const trimOverlayLeftWidth = useTransform(trimStartX, (x) => x);
+    const trimOverlayRightLeft = useTransform(trimEndX, (x) => x);
+    const trimOverlayRightWidth = useTransform(
+        [trimEndX, contentWidthMotion] as const,
+        ([end, cw]: number[]) => cw - end
     );
 
     return (
@@ -276,7 +317,6 @@ export function Timeline({
                         style={{ scrollBehavior: 'smooth' }}
                     >
                         <div style={{ width: contentWidth > 0 ? contentWidth : '100%' }} className="relative flex flex-col h-full">
-
 
                             {/* Playhead */}
                             <motion.div
@@ -336,22 +376,22 @@ export function Timeline({
                                         style={{ width: contentWidth > 0 ? contentWidth : '100%' }}
                                     >
                                         {trimRange.start > 0 && (
-                                            <div
+                                            <motion.div
                                                 className="absolute left-0 top-0 bottom-0 bg-black/60 rounded-l-md z-10"
-                                                style={{ width: trimStartPosition }}
+                                                style={{ width: trimOverlayLeftWidth }}
                                             />
                                         )}
                                         {trimRange.end < validDuration && (
-                                            <div
+                                            <motion.div
                                                 className="absolute right-0 top-0 bottom-0 bg-black/60 rounded-r-md z-10"
-                                                style={{ width: contentWidth - trimEndPosition }}
+                                                style={{ left: trimOverlayRightLeft, width: trimOverlayRightWidth }}
                                             />
                                         )}
 
                                         {/* Active clip region */}
-                                        <div
+                                        <motion.div
                                             className="absolute top-0 bottom-0 rounded-md border border-[#34A853]/40 bg-[#182e20] overflow-hidden"
-                                            style={{ left: clipLeft, width: Math.max(clipWidth, 20) }}
+                                            style={{ left: clipLeftMotion, width: clipWidthMotion }}
                                         >
                                             <div className="absolute inset-0 flex items-center overflow-hidden">
                                                 <div className="flex h-full w-full">
@@ -375,11 +415,10 @@ export function Timeline({
                                                     boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2)'
                                                 }}
                                             />
-                                            <span className="flex items-center justify-center gap-2 text-emerald-400 text-[11px] font-medium ml-3 relative z-10 drop-shadow-sm h-full">
-                                                {videoUrl ? 'Media Clip' : 'No Media'} · {formatTime(trimmedDuration)}
-                                            </span>
-                                        </div>
-
+                                            <motion.span className="flex items-center justify-center gap-2 text-emerald-400 text-[11px] font-medium ml-3 relative z-10 drop-shadow-sm h-full">
+                                                {trimmedDurationLabel}
+                                            </motion.span>
+                                        </motion.div>
                                         {/* Trim Start Handle */}
                                         <motion.div
                                             className="absolute top-0 bottom-0 w-3 cursor-ew-resize z-20 group/trim flex items-center justify-center"
@@ -522,12 +561,11 @@ export function Timeline({
 
                                 {/* Audio track - only show if there are audio tracks */}
                                 {audioTracks.length > 0 && (
-                                    <div className="flex-1 flex items-center border-t border-white/5 relative">
+                                    <div className="h-5 shrink-0 flex items-center border-t border-white/5 relative">
                                         <div
                                             className="h-full flex items-center relative"
                                             style={{ width: contentWidth > 0 ? contentWidth : '100%' }}
                                         >
-                                            {/* Audio fragments with drag/resize */}
                                             {audioTracks.map((track) => {
                                                 const audio = uploadedAudios?.find(a => a.id === track.audioId);
                                                 return (

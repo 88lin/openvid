@@ -9,6 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { SVG_COMPONENTS } from "@/components/canvas-svg";
+import { TooltipAction } from "@/components/ui/tooltip-action";
 
 export function ElementsMenu({
     onAddElement,
@@ -20,12 +21,10 @@ export function ElementsMenu({
 }: ElementsMenuProps) {
     const [mode, setMode] = useState<"text" | "elements">("elements");
 
-    // SVG/Shape settings
     const [shapeSize, setShapeSize] = useState(15);
     const [shapeColor, setShapeColor] = useState("#FFFFFF");
     const [shapeOpacity, setShapeOpacity] = useState(100);
 
-    // Text settings
     const [textContent, setTextContent] = useState("Texto");
     const [textFontSize, setTextFontSize] = useState(32);
     const [textColor, setTextColor] = useState("#FFFFFF");
@@ -33,28 +32,22 @@ export function ElementsMenu({
     const [textFontFamily, setTextFontFamily] = useState("Inter");
     const [textFontWeight, setTextFontWeight] = useState<"normal" | "medium" | "bold">("normal");
 
-    // Image settings
     const [imageOpacity, setImageOpacity] = useState(100);
     const [imageSize, setImageSize] = useState(25);
 
-    // Popover states
     const [selectedSvgCategory, setSelectedSvgCategory] = useState<string>("all");
     const [selectedImageCategory, setSelectedImageCategory] = useState<string>("all");
 
-    // Track if we're syncing to avoid infinite loops
     const isSyncing = useRef(false);
     const lastSelectedId = useRef<string | null>(null);
 
-    // Sync form FROM selected element (auto-fill when clicking element)
     useEffect(() => {
-        // Only sync if the selected element ID has changed
         const currentId = selectedElement?.id || null;
         if (lastSelectedId.current === currentId) return;
 
         lastSelectedId.current = currentId;
         isSyncing.current = true;
 
-        // Use startTransition to batch state updates
         startTransition(() => {
             if (selectedElement) {
                 if (selectedElement.type === "svg") {
@@ -76,7 +69,6 @@ export function ElementsMenu({
                     setMode("text");
                 }
             } else {
-                // Reset to defaults when no selection
                 setShapeSize(15);
                 setShapeColor("#FFFFFF");
                 setShapeOpacity(100);
@@ -94,7 +86,6 @@ export function ElementsMenu({
         });
     }, [selectedElement]);
 
-    // Sync element FROM form changes (real-time preview for SVG)
     useEffect(() => {
         if (!isSyncing.current && selectedElement?.type === "svg" && onUpdateElement) {
             onUpdateElement(selectedElement.id, {
@@ -106,7 +97,6 @@ export function ElementsMenu({
         }
     }, [shapeSize, shapeColor, shapeOpacity, selectedElement?.id, selectedElement?.type, onUpdateElement]);
 
-    // Sync element FROM form changes (real-time preview for image)
     useEffect(() => {
         if (!isSyncing.current && selectedElement?.type === "image" && onUpdateElement) {
             onUpdateElement(selectedElement.id, {
@@ -117,7 +107,6 @@ export function ElementsMenu({
         }
     }, [imageSize, imageOpacity, selectedElement?.id, selectedElement?.type, onUpdateElement]);
 
-    // Sync element FROM form changes (real-time preview for text)
     useEffect(() => {
         if (!isSyncing.current && selectedElement?.type === "text" && onUpdateElement) {
             onUpdateElement(selectedElement.id, {
@@ -131,17 +120,14 @@ export function ElementsMenu({
         }
     }, [textContent, textFontSize, textColor, textOpacity, textFontFamily, textFontWeight, selectedElement?.id, selectedElement?.type, onUpdateElement]);
 
-    // Filter SVG items by category
     const filteredSvgItems = selectedSvgCategory === "all"
         ? SVG_CATEGORIES.flatMap(cat => cat.items.map(item => ({ ...item, category: cat.id })))
         : SVG_CATEGORIES.find(cat => cat.id === selectedSvgCategory)?.items.map(item => ({ ...item, category: selectedSvgCategory })) || [];
 
-    // Filter image items by category
     const filteredImageItems = selectedImageCategory === "all"
         ? IMAGE_CATEGORIES.flatMap(cat => cat.items.map(item => ({ ...item, category: cat.id })))
         : IMAGE_CATEGORIES.find(cat => cat.id === selectedImageCategory)?.items.map(item => ({ ...item, category: selectedImageCategory })) || [];
 
-    // Handler to add SVG element
     const handleAddSvg = useCallback((item: { id: string; name: string; icon?: string }, categoryId?: string) => {
         const timestamp = Date.now();
         const newElement: SvgElement = {
@@ -235,44 +221,43 @@ export function ElementsMenu({
                         </div>
                         <div className="grid grid-cols-6 gap-2">
                             {PINNED_SVG_ITEMS.map((item) => (
-                                <button
-                                    key={item.id}
-                                    title={item.name}
-                                    onClick={() => handleAddSvg(item)}
-                                    className="aspect-square bg-white/3 hover:bg-white/8 border border-white/[0.07] hover:border-white/20 squircle-element flex items-center justify-center transition-all active:scale-90 group"
-                                >
-                                    {item.icon ? (
-                                        <Icon
-                                            icon={item.icon}
-                                            width="18"
-                                            className="text-white/50 group-hover:text-white transition-colors"
-                                        />
-                                    ) : (
-                                        // Renderizar el SVG component directamente como preview
-                                        (() => {
-                                            const SvgComponent = SVG_COMPONENTS[item.id];
-                                            return SvgComponent
-                                                ? <SvgComponent color="currentColor" className="w-4 h-4 text-white/50 group-hover:text-white transition-colors" />
-                                                : <span className="text-[9px] text-white/40">{item.name}</span>;
-                                        })()
-                                    )}
-                                </button>
+                                <TooltipAction label={item.name} key={item.id}>
+                                    <button
+                                        onClick={() => handleAddSvg(item)}
+                                        className="aspect-square bg-white/3 hover:bg-white/8 border border-white/[0.07] hover:border-white/20 squircle-element flex items-center justify-center transition-all active:scale-90 group"
+                                    >
+                                        {item.icon ? (
+                                            <Icon
+                                                icon={item.icon}
+                                                width="18"
+                                                className="text-white/50 group-hover:text-white transition-colors"
+                                            />
+                                        ) : (
+                                            (() => {
+                                                const SvgComponent = SVG_COMPONENTS[item.id];
+                                                return SvgComponent
+                                                    ? <SvgComponent color="currentColor" className="w-4 h-4 text-white/50 group-hover:text-white transition-colors" />
+                                                    : <span className="text-[9px] text-white/40">{item.name}</span>;
+                                            })()
+                                        )}
+                                    </button>
+                                </TooltipAction>
                             ))}
 
                             <Popover>
-                                <PopoverTrigger asChild>
-                                    <button
-                                        className="aspect-square squircle-element border border-dashed border-white/30 bg-white/5 flex items-center justify-center hover:bg-white/10 transition group"
-                                        title="Ver todas las figuras"
-                                    >
-                                        <Icon
-                                            icon="ph:plus-bold"
-                                            width="16"
-                                            className="text-blue-400 group-hover:text-blue-300 transition-colors"
-                                        />
-                                    </button>
-                                </PopoverTrigger>
-
+                                <TooltipAction label="Ver todas las figuras">
+                                    <PopoverTrigger asChild>
+                                        <button
+                                            className="aspect-square squircle-element border border-dashed border-white/30 bg-white/5 flex items-center justify-center hover:bg-white/10 transition group"
+                                        >
+                                            <Icon
+                                                icon="ph:plus-bold"
+                                                width="16"
+                                                className="text-blue-400 group-hover:text-blue-300 transition-colors"
+                                            />
+                                        </button>
+                                    </PopoverTrigger>
+                                </TooltipAction>
                                 <PopoverContent
                                     side="right"
                                     align="start"
@@ -310,27 +295,27 @@ export function ElementsMenu({
 
                                         <div className="p-3 grid grid-cols-6 gap-2 overflow-y-auto custom-scrollbar">
                                             {filteredSvgItems.map((item) => (
-                                                <button
-                                                    key={`${item.category}-${item.id}`}
-                                                    title={item.name}
-                                                    onClick={() => handleAddSvg(item, item.category)}
-                                                    className="aspect-square bg-white/3 hover:bg-white/8 border border-white/[0.07] hover:border-white/20 squircle-element flex items-center justify-center transition-all active:scale-90 group"
-                                                >
-                                                    {item.icon ? (
-                                                        <Icon
-                                                            icon={item.icon}
-                                                            width="18"
-                                                            className="text-white/50 group-hover:text-white transition-colors"
-                                                        />
-                                                    ) : (
-                                                        (() => {
-                                                            const SvgComponent = SVG_COMPONENTS[item.id];
-                                                            return SvgComponent
-                                                                ? <SvgComponent color="currentColor" className="w-4 h-4 text-white/50 scale-200 group-hover:text-white transition-colors" />
-                                                                : <span className="text-[9px] text-white/40">{item.name}</span>;
-                                                        })()
-                                                    )}
-                                                </button>
+                                                <TooltipAction label={item.name} key={`${item.category}-${item.id}`}>
+                                                    <button
+                                                        onClick={() => handleAddSvg(item, item.category)}
+                                                        className="aspect-square bg-white/3 hover:bg-white/8 border border-white/[0.07] hover:border-white/20 squircle-element flex items-center justify-center transition-all active:scale-90 group"
+                                                    >
+                                                        {item.icon ? (
+                                                            <Icon
+                                                                icon={item.icon}
+                                                                width="18"
+                                                                className="text-white/50 group-hover:text-white transition-colors"
+                                                            />
+                                                        ) : (
+                                                            (() => {
+                                                                const SvgComponent = SVG_COMPONENTS[item.id];
+                                                                return SvgComponent
+                                                                    ? <SvgComponent color="currentColor" className="w-4 h-4 text-white/50 scale-200 group-hover:text-white transition-colors" />
+                                                                    : <span className="text-[9px] text-white/40">{item.name}</span>;
+                                                            })()
+                                                        )}
+                                                    </button>
+                                                </TooltipAction>
                                             ))}
                                         </div>
                                     </div>
@@ -345,18 +330,18 @@ export function ElementsMenu({
                         </div>
                         <div className="grid grid-cols-6 gap-1.5">
                             {PINNED_IMAGE_ITEMS.map((item) => (
-                                <button
-                                    key={item.id}
-                                    title={item.name}
-                                    onClick={() => handleAddImage(item)}
-                                    className="aspect-square bg-white/3 hover:bg-white/8 border border-white/[0.07] hover:border-white/20 squircle-element flex items-center justify-center transition-all active:scale-90 overflow-hidden group"
-                                >
-                                    <img
-                                        src={getImagePreviewPath(item)}
-                                        alt={item.name}
-                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform"
-                                    />
-                                </button>
+                                <TooltipAction label={item.name} key={item.id}>
+                                    <button
+                                        onClick={() => handleAddImage(item)}
+                                        className="aspect-square bg-white/3 hover:bg-white/8 border border-white/[0.07] hover:border-white/20 squircle-element flex items-center justify-center transition-all active:scale-90 overflow-hidden group"
+                                    >
+                                        <ProgressiveImg
+                                            src={getImagePreviewPath(item)}
+                                            alt={item.name}
+                                            className="w-full h-full object-cover group-hover:scale-110"
+                                        />
+                                    </button>
+                                </TooltipAction>
                             ))}
 
                             {Array.from({ length: Math.max(0, 11 - PINNED_IMAGE_ITEMS.length) }).map((_, i) => (
@@ -364,23 +349,24 @@ export function ElementsMenu({
                             ))}
 
                             <Popover>
-                                <PopoverTrigger asChild>
-                                    <button
-                                        className="aspect-square squircle-element border border-dashed border-white/30 bg-white/5 flex items-center justify-center hover:bg-white/10 transition group"
-                                        title="Ver todas las imágenes"
-                                    >
-                                        <Icon
-                                            icon="ph:plus-bold"
-                                            width="16"
-                                            className="text-blue-400 group-hover:text-blue-300 transition-colors"
-                                        />
-                                    </button>
-                                </PopoverTrigger>
+                                <TooltipAction label="Ver todas las imágenes">
+                                    <PopoverTrigger asChild>
+                                        <button
+                                            className="aspect-square squircle-element border border-dashed border-white/30 bg-white/5 flex items-center justify-center hover:bg-white/10 transition group"
+                                        >
+                                            <Icon
+                                                icon="ph:plus-bold"
+                                                width="16"
+                                                className="text-blue-400 group-hover:text-blue-300 transition-colors"
+                                            />
+                                        </button>
+                                    </PopoverTrigger>
+                                </TooltipAction>
                                 <PopoverContent
                                     side="right"
                                     align="start"
                                     sideOffset={12}
-                                    className="w-124 p-0 border-0 shadow-2xl"
+                                    className="w-130 p-0 border-0 shadow-2xl"
                                 >
                                     <div className="flex flex-col bg-[#111113] border border-white/10 rounded-xl overflow-hidden shadow-2xl max-h-125">
                                         <div className="flex items-center gap-2 px-4 py-3 border-b border-white/10 bg-white/2 flex-wrap">
@@ -412,26 +398,23 @@ export function ElementsMenu({
                                         </div>
 
                                         <div className="p-3 grid grid-cols-8 gap-2 overflow-y-auto custom-scrollbar">
-                                            {filteredImageItems.length === 0 ? (
-                                                <div className="col-span-4 text-xs text-white/30 italic py-8 text-center">
-                                                    No hay imágenes disponibles
+                                            {filteredImageItems.map((item) => (
+                                                <div key={`${item.category}-${item.id}`} className="w-full" style={{ paddingBottom: "100%", position: "relative" }}>
+                                                    <TooltipAction label={item.name}>
+                                                        <button
+                                                            title={item.name}
+                                                            onClick={() => handleAddImage(item, item.category)}
+                                                            className="absolute inset-0 bg-white/3 hover:bg-white/8 border border-white/[0.07] hover:border-white/20 squircle-element transition-all active:scale-90 overflow-hidden group"
+                                                        >
+                                                            <ProgressiveImg
+                                                                src={getImagePreviewPath(item)}
+                                                                alt={item.name}
+                                                                className="w-full h-full object-contain group-hover:scale-110"
+                                                            />
+                                                        </button>
+                                                    </TooltipAction>
                                                 </div>
-                                            ) : (
-                                                filteredImageItems.map((item) => (
-                                                    <button
-                                                        key={`${item.category}-${item.id}`}
-                                                        title={item.name}
-                                                        onClick={() => handleAddImage(item, item.category)}
-                                                        className="aspect-square bg-white/3 hover:bg-white/8 border border-white/[0.07] hover:border-white/20 squircle-element flex items-center justify-center transition-all active:scale-90 overflow-hidden group"
-                                                    >
-                                                        <img
-                                                            src={getImagePreviewPath(item)}
-                                                            alt={item.name}
-                                                            className="w-full h-full object-contain group-hover:scale-110 transition-transform"
-                                                        />
-                                                    </button>
-                                                ))
-                                            )}
+                                            ))}
                                         </div>
                                     </div>
                                 </PopoverContent>
@@ -447,14 +430,14 @@ export function ElementsMenu({
                                     <div className="flex gap-2">
                                         <div className="grid grid-cols-5 gap-2 flex-1">
                                             {PRESET_COLORS.map((color) => (
-                                                <button
-                                                    key={color}
-                                                    onClick={() => setShapeColor(color)}
-                                                    className={`aspect-square squircle-element cursor-pointer transition-all border border-white/20 ${shapeColor === color ? "ring-2 ring-white/90 border-white/40 shadow-md shadow-black/50" : "border-white/10 hover:border-white/30 hover:ring-1 ring-white/20"
-                                                        }`}
-                                                    style={{ backgroundColor: color }}
-                                                    title={color}
-                                                />
+                                                <TooltipAction label={color} key={color}>
+                                                    <button
+                                                        onClick={() => setShapeColor(color)}
+                                                        className={`aspect-square squircle-element cursor-pointer transition-all border border-white/20 ${shapeColor === color ? "ring-2 ring-white/90 border-white/40 shadow-md shadow-black/50" : "border-white/10 hover:border-white/30 hover:ring-1 ring-white/20"
+                                                            }`}
+                                                        style={{ backgroundColor: color }}
+                                                    />
+                                                </TooltipAction>
                                             ))}
                                         </div>
                                         <label className="relative cursor-pointer">
@@ -482,7 +465,7 @@ export function ElementsMenu({
                                     value={selectedElement.type === "svg" ? shapeSize : imageSize}
                                     onChange={selectedElement.type === "svg" ? setShapeSize : setImageSize}
                                     min={5}
-                                    max={60}
+                                    max={100}
                                 />
                                 <SliderControl
                                     icon="mdi:opacity"
@@ -493,7 +476,21 @@ export function ElementsMenu({
                             </div>
 
                             <div className="space-y-2">
-                                <div className="text-[10px] uppercase tracking-widest text-white/40 font-semibold">Jerarquía</div>
+                                <div className="flex items-center justify-between">
+                                    <div className="text-[10px] uppercase tracking-widest text-white/40 font-semibold">
+                                        Jerarquía
+                                    </div>
+
+                                    <TooltipAction label="Eliminar">
+                                        <button
+                                            onClick={() => onDeleteElement?.(selectedElement.id)}
+                                            className="p-1.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-md text-red-400 hover:text-red-300 transition-all active:scale-95"
+                                        >
+                                            <Icon icon="ph:trash-bold" width="14" />
+                                        </button>
+                                    </TooltipAction>
+                                </div>
+
                                 <div className="grid grid-cols-2 gap-2">
                                     <button
                                         onClick={() => onBringToFront?.(selectedElement.id)}
@@ -510,17 +507,6 @@ export function ElementsMenu({
                                         Enviar atrás
                                     </button>
                                 </div>
-                            </div>
-
-                            <div className="space-y-2">
-                                <div className="text-[10px] uppercase tracking-widest text-white/40 font-semibold">Acciones</div>
-                                <button
-                                    onClick={() => onDeleteElement?.(selectedElement.id)}
-                                    className="flex items-center justify-center gap-2 px-3 py-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-lg text-xs text-red-400 hover:text-red-300 transition-all"
-                                >
-                                    <Icon icon="ph:trash-bold" width="16" />
-                                    Eliminar
-                                </button>
                             </div>
                         </>
                     )}
@@ -622,14 +608,14 @@ export function ElementsMenu({
                         <div className="flex gap-2">
                             <div className="grid grid-cols-5 gap-2 flex-1">
                                 {PRESET_COLORS.map((color) => (
-                                    <button
-                                        key={color}
-                                        onClick={() => setTextColor(color)}
-                                        className={`aspect-square squircle-element cursor-pointer transition-all border border-white/20 ${textColor === color ? "ring-2 ring-white/90 border-white/40 shadow-md shadow-black/50" : "border-white/10 hover:border-white/30 hover:ring-1 ring-white/20"
-                                            }`}
-                                        style={{ backgroundColor: color }}
-                                        title={color}
-                                    />
+                                    <TooltipAction label={color} key={color}>
+                                        <button
+                                            onClick={() => setTextColor(color)}
+                                            className={`aspect-square squircle-element cursor-pointer transition-all border border-white/20 ${textColor === color ? "ring-2 ring-white/90 border-white/40 shadow-md shadow-black/50" : "border-white/10 hover:border-white/30 hover:ring-1 ring-white/20"
+                                                }`}
+                                            style={{ backgroundColor: color }}
+                                        />
+                                    </TooltipAction>
                                 ))}
                             </div>
                             <label className="relative cursor-pointer">
@@ -700,39 +686,63 @@ export function ElementsMenu({
                     {selectedElement && selectedElement.type === "text" && (
                         <>
                             <div className="space-y-2">
-                                <div className="text-[10px] uppercase tracking-widest text-white/40 font-semibold">Jerarquía</div>
+                                <div className="flex items-center justify-between">
+                                    <div className="text-[10px] uppercase tracking-widest text-white/40 font-semibold">
+                                        Jerarquía
+                                    </div>
+
+                                    <TooltipAction label="Eliminar">
+                                        <button
+                                            onClick={() => onDeleteElement?.(selectedElement.id)}
+                                            className="p-1.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-md text-red-400 hover:text-red-300 transition-all active:scale-95"
+                                        >
+                                            <Icon icon="ph:trash-bold" width="14" />
+                                        </button>
+                                    </TooltipAction>
+                                </div>
+
                                 <div className="grid grid-cols-2 gap-2">
                                     <Button variant="outline" className="text-xs"
                                         onClick={() => onBringToFront?.(selectedElement.id)}
-
                                     >
                                         <Icon icon="ph:bring-to-front-bold" width="16" />
                                         Traer al frente
                                     </Button>
                                     <Button variant="outline" className="text-xs"
                                         onClick={() => onSendToBack?.(selectedElement.id)}
-
                                     >
                                         <Icon icon="ph:send-to-back-bold" width="16" />
                                         Enviar atrás
                                     </Button>
                                 </div>
                             </div>
-
-                            <div className="space-y-2">
-                                <div className="text-[10px] uppercase tracking-widest text-white/40 font-semibold">Acciones</div>
-                                <button
-                                    onClick={() => onDeleteElement?.(selectedElement.id)}
-                                    className="flex items-center justify-center gap-2 px-3 py-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-lg text-xs text-red-400 hover:text-red-300 transition-all"
-                                >
-                                    <Icon icon="ph:trash-bold" width="16" />
-                                    Eliminar
-                                </button>
-                            </div>
                         </>
                     )}
                 </div>
             )}
         </div>
+    );
+}
+function ProgressiveImg({
+    src,
+    alt,
+    className,
+}: {
+    src: string;
+    alt: string;
+    className?: string;
+}) {
+    const [isLoaded, setIsLoaded] = useState(false);
+
+    return (
+        <img
+            src={src}
+            alt={alt}
+            decoding="async"
+            loading="lazy"
+            onLoad={() => setIsLoaded(true)}
+            className={`transition-all duration-500 ease-out ${isLoaded ? "opacity-100 blur-none scale-100" : "opacity-0 blur-sm scale-95"
+                } ${className ?? ""}`}
+        />
     );
 }

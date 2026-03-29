@@ -10,6 +10,7 @@ import type {
 } from "@/types";
 import { gradientToCss, PRESET_SOLID_COLORS, PRESET_LINEAR_GRADIENTS, PRESET_RADIAL_GRADIENTS, PRESET_CONIC_GRADIENTS } from "@/types";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { TooltipAction } from "@/components/ui/tooltip-action";
 
 interface BackgroundColorEditorProps {
     value: BackgroundColorConfig | null;
@@ -383,7 +384,6 @@ export function BackgroundColorEditor({ value, onChange }: BackgroundColorEditor
 
     return (
         <div className="space-y-6">
-            {/* Mode toggle */}
             <div className="flex bg-[#09090B] squircle-element p-1 text-xs font-medium">
                 <button
                     className={`flex-1 py-1.5 rounded transition ${mode === "gradient" ? "bg-white/10 text-white" : "text-white/60 hover:text-white"}`}
@@ -399,7 +399,6 @@ export function BackgroundColorEditor({ value, onChange }: BackgroundColorEditor
                 </button>
             </div>
 
-            {/* ── Solid mode ── */}
             {mode === "solid" && (
                 <div className="space-y-4">
                     <div>
@@ -414,18 +413,19 @@ export function BackgroundColorEditor({ value, onChange }: BackgroundColorEditor
                                 />
                             ))}
                             <Popover>
-                                <PopoverTrigger asChild>
-                                    <button
-                                        className="aspect-square squircle-element border border-dashed border-white/30 bg-white/5 flex items-center justify-center hover:bg-white/10 transition group"
-                                        title="Ver más colores"
-                                    >
-                                        <Icon
-                                            icon="ph:plus-bold"
-                                            width="16"
-                                            className="text-blue-400 group-hover:text-blue-300 transition-colors"
-                                        />
-                                    </button>
-                                </PopoverTrigger>
+                                <TooltipAction label="Ver más colores">
+                                    <PopoverTrigger asChild>
+                                        <button
+                                            className="aspect-square squircle-element border border-dashed border-white/30 bg-white/5 flex items-center justify-center hover:bg-white/10 transition group"
+                                        >
+                                            <Icon
+                                                icon="ph:plus-bold"
+                                                width="16"
+                                                className="text-blue-400 group-hover:text-blue-300 transition-colors"
+                                            />
+                                        </button>
+                                    </PopoverTrigger>
+                                </TooltipAction>
                                 <PopoverContent side="right" align="start" sideOffset={12} className="w-72 p-0 border-0 shadow-2xl">
                                     <div className="flex flex-col bg-[#111113] border border-white/10 rounded-xl overflow-hidden shadow-2xl">
                                         <div className="flex items-center gap-2 px-4 py-3 border-b border-white/10 bg-white/2">
@@ -433,11 +433,11 @@ export function BackgroundColorEditor({ value, onChange }: BackgroundColorEditor
                                             <span className="text-[10px] font-medium uppercase tracking-[0.15em] text-white/50">Más colores</span>
                                             <span className="ml-auto text-[10px] text-white/60">{PRESET_SOLID_COLORS.length} total</span>
                                         </div>
-                                        <div className="p-3 grid grid-cols-5 gap-2 max-h-80 overflow-y-auto custom-scrollbar">
+                                        <div className="p-3 grid grid-cols-6 gap-2 max-h-80 overflow-y-auto custom-scrollbar">
                                             {PRESET_SOLID_COLORS.slice(23).map((color, idx) => (
                                                 <button
                                                     key={`extra-${idx}-${color}`}
-                                                    className={`aspect-square rounded-lg cursor-pointer hover:ring-2 transition border shadow-sm ${value?.type === "solid" && value.config.color === color ? "ring-2 ring-white/90 shadow-lg shadow-white" : "border-white/10 ring-white/60"}`}
+                                                    className={`aspect-square squircle-element cursor-pointer hover:ring-2 transition border shadow-sm ${value?.type === "solid" && value.config.color === color ? "ring-2 ring-white/90 shadow-lg shadow-white" : "border-white/10 ring-white/60"}`}
                                                     style={{ backgroundColor: color }}
                                                     onClick={() => handleSolidColorSelect(color)}
                                                 />
@@ -467,7 +467,6 @@ export function BackgroundColorEditor({ value, onChange }: BackgroundColorEditor
                 </div>
             )}
 
-            {/* ── Gradient mode ── */}
             {mode === "gradient" && (
                 <div className="space-y-4">
                     <div>
@@ -486,18 +485,19 @@ export function BackgroundColorEditor({ value, onChange }: BackgroundColorEditor
                                 );
                             })}
                             <Popover>
-                                <PopoverTrigger asChild>
-                                    <button
-                                        className="aspect-square squircle-element border border-dashed border-white/30 bg-white/5 flex items-center justify-center hover:bg-white/10 transition group"
-                                        title="Ver más gradientes"
-                                    >
-                                        <Icon
-                                            icon="ph:plus-bold"
-                                            width="16"
-                                            className="text-blue-400 group-hover:text-blue-300 transition-colors"
-                                        />
-                                    </button>
-                                </PopoverTrigger>
+                                <TooltipAction label="Ver más gradientes">
+                                    <PopoverTrigger asChild>
+                                        <button
+                                            className="aspect-square squircle-element border border-dashed border-white/30 bg-white/5 flex items-center justify-center hover:bg-white/10 transition group"
+                                        >
+                                            <Icon
+                                                icon="ph:plus-bold"
+                                                width="16"
+                                                className="text-blue-400 group-hover:text-blue-300 transition-colors"
+                                            />
+                                        </button>
+                                    </PopoverTrigger>
+                                </TooltipAction>
                                 <PopoverContent side="right" align="start" sideOffset={12} className="w-72 p-0 border-0 shadow-2xl">
                                     <div className="flex flex-col bg-[#111113] border border-white/10 rounded-xl overflow-hidden shadow-2xl">
                                         <div className="flex items-center gap-2 px-4 py-3 border-b border-white/10 bg-white/2">
@@ -505,7 +505,7 @@ export function BackgroundColorEditor({ value, onChange }: BackgroundColorEditor
                                             <span className="text-[10px] font-medium uppercase tracking-[0.15em] text-white/50">Más gradientes {currentGradient.type}</span>
                                             <span className="ml-auto text-[10px] text-white/60">{currentPresetGradients.length} total</span>
                                         </div>
-                                        <div className="p-3 grid grid-cols-4 gap-2 max-h-80 overflow-y-auto custom-scrollbar">
+                                        <div className="p-3 grid grid-cols-6 gap-2 max-h-80 overflow-y-auto custom-scrollbar">
                                             {currentPresetGradients.slice(23).map((gradient, i) => {
                                                 const gradientCss = gradientToCss(gradient);
                                                 const isSelected = value?.type === "gradient" && gradientCss === gradientToCss(value.config);
@@ -514,7 +514,7 @@ export function BackgroundColorEditor({ value, onChange }: BackgroundColorEditor
                                                         key={`extra-gradient-${i}`}
                                                         onClick={() => handleGradientSelect(gradient)}
                                                         style={{ background: gradientCss }}
-                                                        className={`aspect-square rounded-lg cursor-pointer transition-all duration-200 border shadow-sm hover:scale-105 active:scale-95 ${isSelected ? "ring-2 ring-white/90 shadow-lg shadow-white" : "border-white/10 ring-white/60"}`}
+                                                        className={`aspect-square squircle-element cursor-pointer transition-all duration-200 border shadow-sm hover:scale-105 active:scale-95 ${isSelected ? "ring-2 ring-white/90 shadow-lg shadow-white" : "border-white/10 ring-white/60"}`}
                                                     />
                                                 );
                                             })}
@@ -528,7 +528,6 @@ export function BackgroundColorEditor({ value, onChange }: BackgroundColorEditor
                     <div className="space-y-4">
                         <div className="text-[10px] uppercase tracking-widest text-white/60 font-bold">Personalizar</div>
 
-                        {/* Gradient type */}
                         <div className="space-y-2">
                             <div className="text-[10px] text-white/60 font-medium">Tipo</div>
                             <div className="flex gap-2">
@@ -545,7 +544,6 @@ export function BackgroundColorEditor({ value, onChange }: BackgroundColorEditor
                             </div>
                         </div>
 
-                        {/* Angle */}
                         {(currentGradient.type === "linear" || currentGradient.type === "conic") && (
                             <div className="space-y-2">
                                 <div className="flex justify-between items-center text-[10px] text-white/60 font-medium">
@@ -559,7 +557,6 @@ export function BackgroundColorEditor({ value, onChange }: BackgroundColorEditor
                             </div>
                         )}
 
-                        {/* Conic origin */}
                         {currentGradient.type === "conic" && (
                             <div className="space-y-3">
                                 {(["X", "Y"] as const).map((axis) => {
@@ -584,7 +581,6 @@ export function BackgroundColorEditor({ value, onChange }: BackgroundColorEditor
                             </div>
                         )}
 
-                        {/* Color stops */}
                         <div className="space-y-2">
                             <div className="flex justify-between items-center">
                                 <div className="text-[10px] text-white/60 font-medium">Colores ({currentGradient.stops.length})</div>
@@ -604,7 +600,6 @@ export function BackgroundColorEditor({ value, onChange }: BackgroundColorEditor
                             />
                         </div>
 
-                        {/* Preview */}
                         <div className="pt-2">
                             <div className="w-full h-20 squircle-element border border-white/10" style={{ background: gradientToCss(currentGradient) }} />
                         </div>

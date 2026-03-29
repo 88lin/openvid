@@ -14,16 +14,8 @@ import { MockupWrapper } from "./mockups/MockupWrapper";
 import { DEFAULT_MOCKUP_CONFIG } from "@/types/mockup.types";
 import { calculateSmoothZoom } from "@/lib/canvas.utils";
 import { SVG_COMPONENTS, getSvgDataUrl } from "@/components/canvas-svg";
+import { VIDEO_Z_INDEX, BOTTOM_ONLY_RADIUS_MOCKUPS, SELF_SHADOWING_MOCKUPS } from "@/lib/constants";
 export type { VideoCanvasHandle, VideoCanvasProps };
-
-// Mockups con header → solo esquinas INFERIORES del video redondeadas
-const BOTTOM_ONLY_RADIUS_MOCKUPS = ["macos", "macos-glass", "macos-ghost", "macos-ghost-glass", "vscode", "macos-dark-ide", "macos-ghost-ide", "brave", "brave-glass", "browser-tab-glass", "chrome", "chrome-glass"];
-
-// Mockups glass → manejan su propia sombra, no necesitan el rect sólido previo
-const SELF_SHADOWING_MOCKUPS = ["macos-glass", "macos-ghost-glass", "glass-ui-container", "macos-container-glass", "brave-glass", "browser-tab-glass", "chrome-glass"];
-
-// Z-index del video: elementos con zIndex < VIDEO_Z_INDEX se renderizan detrás del video
-export const VIDEO_Z_INDEX = 1000;
 
 export const VideoCanvas = forwardRef<VideoCanvasHandle, VideoCanvasProps>(function VideoCanvas({
     videoRef,
@@ -294,7 +286,7 @@ export const VideoCanvas = forwardRef<VideoCanvasHandle, VideoCanvasProps>(funct
                 let deltaAngle = currentAngle - startAngle;
                 if (deltaAngle > 180) deltaAngle -= 360;
                 if (deltaAngle < -180) deltaAngle += 360;
-                
+
                 const newRotation = elementDragStart.current.initialRotation + deltaAngle;
 
                 onElementUpdate(selectedElementId, { rotation: newRotation });
@@ -340,7 +332,7 @@ export const VideoCanvas = forwardRef<VideoCanvasHandle, VideoCanvasProps>(funct
         canvasHeight: number,
         behindVideo: boolean
     ) => {
-        const filteredElements = elements.filter(el => 
+        const filteredElements = elements.filter(el =>
             behindVideo ? el.zIndex < VIDEO_Z_INDEX : el.zIndex >= VIDEO_Z_INDEX
         );
         const sortedElements = [...filteredElements].sort((a, b) => a.zIndex - b.zIndex);
@@ -639,7 +631,7 @@ export const VideoCanvas = forwardRef<VideoCanvasHandle, VideoCanvasProps>(funct
     }));
 
     return (
-        <div className="flex-1 flex items-center justify-center min-h-0 min-w-0 overflow-hidden bg-[#09090B] p-4 sm:p-1">
+        <div className="flex-1 flex items-center justify-center min-h-0 min-w-0 overflow-hidden bg-[#09090B] p-2 sm:p-4 lg:p-1">
             {/* Canvas oculto para exportación */}
             <canvas
                 ref={exportCanvasRef}
@@ -650,10 +642,15 @@ export const VideoCanvas = forwardRef<VideoCanvasHandle, VideoCanvasProps>(funct
 
             {/* Preview visual - contenedor con tamaño dinámico según aspect ratio */}
             <div
-                className="relative h-full max-h-full max-w-full shrink-0 overflow-hidden border border-white/20 rounded-xl transition-all duration-300"
+                className="relative h-full max-h-full w-full max-w-full shrink-0 overflow-hidden border border-white/20 rounded-xl transition-all duration-300"
                 style={{
                     aspectRatio: getAspectRatioStyle(aspectRatio, customAspectRatio ?? undefined),
                     maxWidth: getMaxWidth(aspectRatio, customAspectRatio ?? undefined),
+                }}
+                onClick={(e) => {
+                    if (!(e.target as HTMLElement).closest('[data-canvas-element]') && onElementSelect) {
+                        onElementSelect(null);
+                    }
                 }}
             >
                 {/* Zoom container - applies zoom to entire composition (background + video) */}
@@ -815,6 +812,7 @@ export const VideoCanvas = forwardRef<VideoCanvasHandle, VideoCanvasProps>(funct
                                                 <img
                                                     src={currentThumbnail.dataUrl}
                                                     alt="Preview"
+                                                    crossOrigin="anonymous"
                                                     className="absolute inset-0 w-full h-full object-contain"
                                                 />
                                             )}
@@ -833,7 +831,7 @@ export const VideoCanvas = forwardRef<VideoCanvasHandle, VideoCanvasProps>(funct
 
                     {/* Capa 3: Canvas elements ABOVE video (zIndex >= VIDEO_Z_INDEX) */}
                     <CanvasElementsLayer
-                    canvasContainerRef={canvasContainerRef}
+                        canvasContainerRef={canvasContainerRef}
                         canvasElements={canvasElements}
                         selectedElementId={selectedElementId}
                         hoveredElementId={hoveredElementId}
@@ -853,9 +851,9 @@ export const VideoCanvas = forwardRef<VideoCanvasHandle, VideoCanvasProps>(funct
     );
 });
 
-{/* Canvas Elements Layer Component - renders elements either behind or above video */}
+{/* Canvas Elements Layer Component - renders elements either behind or above video */ }
 function CanvasElementsLayer({
-      canvasContainerRef, 
+    canvasContainerRef,
     canvasElements,
     selectedElementId,
     hoveredElementId,
@@ -869,7 +867,7 @@ function CanvasElementsLayer({
     elementDragStart,
     layerZIndex,
 }: {
-     canvasContainerRef?: React.RefObject<HTMLDivElement | null>;
+    canvasContainerRef?: React.RefObject<HTMLDivElement | null>;
     canvasElements: CanvasElement[];
     selectedElementId: string | null;
     hoveredElementId: string | null;
@@ -895,7 +893,7 @@ function CanvasElementsLayer({
 
     return (
         <div
-        ref={canvasContainerRef}  
+            ref={canvasContainerRef}
             className="absolute inset-0"
             onClick={(e) => {
                 // Deselect element if clicking on background (not on an element)
@@ -907,35 +905,70 @@ function CanvasElementsLayer({
         >
             {/* Sort elements by zIndex for proper layering */}
             {[...filteredElements].sort((a, b) => a.zIndex - b.zIndex).map((element) => {
-                                const isSelected = selectedElementId === element.id;
-                                const isHovered = hoveredElementId === element.id;
+                const isSelected = selectedElementId === element.id;
+                const isHovered = hoveredElementId === element.id;
 
-                                if (element.type === "svg") {
-                                    return (
+                if (element.type === "svg") {
+                    return (
+                        <div
+                            key={element.id}
+                            data-canvas-element
+                            className="absolute pointer-events-auto cursor-move"
+                            style={{
+                                left: `${element.x}%`,
+                                top: `${element.y}%`,
+                                width: `${element.width}%`,
+                                height: `${element.height}%`,
+                                transform: `translate(-50%, -50%) rotate(${element.rotation}deg)`,
+                                zIndex: element.zIndex,
+                                transition: isDraggingElement ? 'none' : 'transform 0.1s ease-out',
+                            }}
+                            onMouseEnter={() => setHoveredElementId(element.id)}
+                            onMouseLeave={() => setHoveredElementId(null)}
+                            onMouseDown={(e) => {
+                                if (!onElementSelect) return;
+                                // Only start dragging if not clicking on rotation handle
+                                if ((e.target as HTMLElement).closest('[data-element-rotation]')) return;
+
+                                e.preventDefault();
+                                e.stopPropagation();
+                                onElementSelect(element.id);
+                                setIsDraggingElement(true);
+                                elementDragStart.current = {
+                                    x: e.clientX,
+                                    y: e.clientY,
+                                    initialX: element.x,
+                                    initialY: element.y,
+                                    initialRotation: element.rotation,
+                                };
+                            }}
+                        >
+                            {/* SVG element - render inline with color */}
+                            {(() => {
+                                const SvgComponent = SVG_COMPONENTS[element.svgId];
+                                if (!SvgComponent) return null;
+                                return (
+                                    <div className="w-full h-full" style={{ opacity: element.opacity }}>
+                                        <SvgComponent color={element.color} className="w-full h-full" />
+                                    </div>
+                                );
+                            })()}
+
+                            {/* Selection border and rotation handle */}
+                            {(isSelected || isHovered) && (
+                                <>
+                                    <div
+                                        className={`absolute -inset-px border pointer-events-none ${isSelected ? 'border-blue-500' : 'border-white/50'}`}
+                                        style={{ borderRadius: '2px' }}
+                                    />
+                                    {isSelected && onElementUpdate && (
                                         <div
-                                            key={element.id}
-                                            className="absolute pointer-events-auto cursor-move"
-                                            style={{
-                                                left: `${element.x}%`,
-                                                top: `${element.y}%`,
-                                                width: `${element.width}%`,
-                                                height: `${element.height}%`,
-                                                transform: `translate(-50%, -50%) rotate(${element.rotation}deg)`,
-                                                opacity: element.opacity,
-                                                zIndex: element.zIndex,
-                                                transition: isDraggingElement ? 'none' : 'transform 0.1s ease-out',
-                                            }}
-                                            onMouseEnter={() => setHoveredElementId(element.id)}
-                                            onMouseLeave={() => setHoveredElementId(null)}
+                                            data-element-rotation
+                                            className="absolute -top-5 left-1/2 -translate-x-1/2 z-20 cursor-default"
                                             onMouseDown={(e) => {
-                                                if (!onElementSelect) return;
-                                                // Only start dragging if not clicking on rotation handle
-                                                if ((e.target as HTMLElement).closest('[data-element-rotation]')) return;
-
                                                 e.preventDefault();
                                                 e.stopPropagation();
-                                                onElementSelect(element.id);
-                                                setIsDraggingElement(true);
+                                                setIsDraggingElementRotation(true);
                                                 elementDragStart.current = {
                                                     x: e.clientX,
                                                     y: e.clientY,
@@ -945,223 +978,194 @@ function CanvasElementsLayer({
                                                 };
                                             }}
                                         >
-                                            {/* SVG element - render inline with color */}
-                                            {(() => {
-                                                const SvgComponent = SVG_COMPONENTS[element.svgId];
-                                                if (!SvgComponent) return null;
-                                                return <SvgComponent color={element.color} className="w-full h-full" />;
-                                            })()}
-
-                                            {/* Selection border and rotation handle */}
-                                            {(isSelected || isHovered) && (
-                                                <>
-                                                    <div
-                                                        className={`absolute -inset-px border pointer-events-none ${isSelected ? 'border-blue-500' : 'border-white/50'}`}
-                                                        style={{ borderRadius: '2px' }}
-                                                    />
-                                                    {isSelected && onElementUpdate && (
-                                                        <div
-                                                            data-element-rotation
-                                                            className="absolute -top-5 left-1/2 -translate-x-1/2 z-20 cursor-default"
-                                                            onMouseDown={(e) => {
-                                                                e.preventDefault();
-                                                                e.stopPropagation();
-                                                                setIsDraggingElementRotation(true);
-                                                                elementDragStart.current = {
-                                                                    x: e.clientX,
-                                                                    y: e.clientY,
-                                                                    initialX: element.x,
-                                                                    initialY: element.y,
-                                                                    initialRotation: element.rotation,
-                                                                };
-                                                            }}
-                                                        >
-                                                            <div className="p-0.5 border border-blue-500 hover:border-blue-400 rounded shadow-sm bg-[#111]">
-                                                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" className="text-blue-500">
-                                                                    <path fill="currentColor" d="M17.707 3.293a1 1 0 1 0-1.414 1.414l2.294 2.294H11.5a4.5 4.5 0 0 0-4.5 4.5v7.086l-2.293-2.293a1 1 0 1 0-1.414 1.415l4 4a1 1 0 0 0 1.415 0l4-4a1 1 0 0 0-1.415-1.415L9 18.587v-7.086a2.5 2.5 0 0 1 2.5-2.5h7.086l-2.293 2.293a1 1 0 1 0 1.414 1.414l4-4a1 1 0 0 0 0-1.414z" />
-                                                                </svg>
-                                                            </div>
-                                                            <div className="absolute top-full left-1/2 -translate-x-1/2 flex flex-col items-center">
-                                                                <div className="w-px h-1 bg-blue-500" />
-                                                                <div className="w-1 h-1 rounded-full bg-blue-500" />
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                </>
-                                            )}
-                                        </div>
-                                    );
-                                }
-
-                                if (element.type === "image") {
-                                    return (
-                                        <div
-                                            key={element.id}
-                                            className="absolute pointer-events-auto cursor-move"
-                                            style={{
-                                                left: `${element.x}%`,
-                                                top: `${element.y}%`,
-                                                width: `${element.width}%`,
-                                                height: `${element.height}%`,
-                                                transform: `translate(-50%, -50%) rotate(${element.rotation}deg)`,
-                                                opacity: element.opacity,
-                                                zIndex: element.zIndex,
-                                                transition: isDraggingElement ? 'none' : 'transform 0.1s ease-out',
-                                            }}
-                                            onMouseEnter={() => setHoveredElementId(element.id)}
-                                            onMouseLeave={() => setHoveredElementId(null)}
-                                            onMouseDown={(e) => {
-                                                if (!onElementSelect) return;
-                                                if ((e.target as HTMLElement).closest('[data-element-rotation]')) return;
-
-                                                e.preventDefault();
-                                                e.stopPropagation();
-                                                onElementSelect(element.id);
-                                                setIsDraggingElement(true);
-                                                elementDragStart.current = {
-                                                    x: e.clientX,
-                                                    y: e.clientY,
-                                                    initialX: element.x,
-                                                    initialY: element.y,
-                                                    initialRotation: element.rotation,
-                                                };
-                                            }}
-                                        >
-                                            <img
-                                                src={element.imagePath}
-                                                alt="Image element"
-                                                className="w-full h-full object-cover rounded"
-                                                style={{ pointerEvents: 'none' }}
-                                            />
-
-                                            {(isSelected || isHovered) && (
-                                                <>
-                                                    <div
-                                                        className={`absolute -inset-px border pointer-events-none ${isSelected ? 'border-blue-500' : 'border-white/50'}`}
-                                                        style={{ borderRadius: '2px' }}
-                                                    />
-                                                    {isSelected && onElementUpdate && (
-                                                        <div
-                                                            data-element-rotation
-                                                            className="absolute -top-5 left-1/2 -translate-x-1/2 z-20 cursor-default"
-                                                            onMouseDown={(e) => {
-                                                                e.preventDefault();
-                                                                e.stopPropagation();
-                                                                setIsDraggingElementRotation(true);
-                                                                elementDragStart.current = {
-                                                                    x: e.clientX,
-                                                                    y: e.clientY,
-                                                                    initialX: element.x,
-                                                                    initialY: element.y,
-                                                                    initialRotation: element.rotation,
-                                                                };
-                                                            }}
-                                                        >
-                                                            <div className="p-0.5 border border-blue-500 hover:border-blue-400 rounded shadow-sm bg-[#111]">
-                                                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" className="text-blue-500">
-                                                                    <path fill="currentColor" d="M17.707 3.293a1 1 0 1 0-1.414 1.414l2.294 2.294H11.5a4.5 4.5 0 0 0-4.5 4.5v7.086l-2.293-2.293a1 1 0 1 0-1.414 1.415l4 4a1 1 0 0 0 1.415 0l4-4a1 1 0 0 0-1.415-1.415L9 18.587v-7.086a2.5 2.5 0 0 1 2.5-2.5h7.086l-2.293 2.293a1 1 0 1 0 1.414 1.414l4-4a1 1 0 0 0 0-1.414z" />
-                                                                </svg>
-                                                            </div>
-                                                            <div className="absolute top-full left-1/2 -translate-x-1/2 flex flex-col items-center">
-                                                                <div className="w-px h-1 bg-blue-500" />
-                                                                <div className="w-1 h-1 rounded-full bg-blue-500" />
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                </>
-                                            )}
-                                        </div>
-                                    );
-                                }
-
-                                if (element.type === "text") {
-                                    return (
-                                        <div
-                                            key={element.id}
-                                            className="absolute pointer-events-auto cursor-move select-none"
-                                            style={{
-                                                left: `${element.x}%`,
-                                                top: `${element.y}%`,
-                                                transform: `translate(-50%, -50%) rotate(${element.rotation}deg)`,
-                                                opacity: element.opacity,
-                                                zIndex: element.zIndex,
-                                                transition: isDraggingElement ? 'none' : 'transform 0.1s ease-out',
-                                            }}
-                                            onMouseEnter={() => setHoveredElementId(element.id)}
-                                            onMouseLeave={() => setHoveredElementId(null)}
-                                            onMouseDown={(e) => {
-                                                if (!onElementSelect) return;
-                                                if ((e.target as HTMLElement).closest('[data-element-rotation]')) return;
-
-                                                e.preventDefault();
-                                                e.stopPropagation();
-                                                onElementSelect(element.id);
-                                                setIsDraggingElement(true);
-                                                elementDragStart.current = {
-                                                    x: e.clientX,
-                                                    y: e.clientY,
-                                                    initialX: element.x,
-                                                    initialY: element.y,
-                                                    initialRotation: element.rotation,
-                                                };
-                                            }}
-                                        >
-                                            <div
-                                                className="whitespace-nowrap"
-                                                style={{
-                                                    fontSize: `${element.fontSize}px`,
-                                                    fontFamily: element.fontFamily,
-                                                    fontWeight: element.fontWeight === 'normal' ? 400 : element.fontWeight === 'medium' ? 500 : 700,
-                                                    textAlign: 'center',
-                                                    color: element.color,
-                                                    pointerEvents: 'none',
-                                                }}
-                                            >
-                                                {element.content}
+                                            <div className="p-0.5 border border-blue-500 hover:border-blue-400 rounded shadow-sm bg-[#111]">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" className="text-blue-500">
+                                                    <path fill="currentColor" d="M17.707 3.293a1 1 0 1 0-1.414 1.414l2.294 2.294H11.5a4.5 4.5 0 0 0-4.5 4.5v7.086l-2.293-2.293a1 1 0 1 0-1.414 1.415l4 4a1 1 0 0 0 1.415 0l4-4a1 1 0 0 0-1.415-1.415L9 18.587v-7.086a2.5 2.5 0 0 1 2.5-2.5h7.086l-2.293 2.293a1 1 0 1 0 1.414 1.414l4-4a1 1 0 0 0 0-1.414z" />
+                                                </svg>
                                             </div>
-
-                                            {(isSelected || isHovered) && (
-                                                <>
-                                                    <div
-                                                        className={`absolute -inset-x-2 -inset-y-1 border pointer-events-none ${isSelected ? 'border-blue-500' : 'border-white/50'}`}
-                                                        style={{ borderRadius: '2px' }}
-                                                    />
-                                                    {isSelected && onElementUpdate && (
-                                                        <div
-                                                            data-element-rotation
-                                                            className="absolute -top-5 left-1/2 -translate-x-1/2 z-20 cursor-default"
-                                                            onMouseDown={(e) => {
-                                                                e.preventDefault();
-                                                                e.stopPropagation();
-                                                                setIsDraggingElementRotation(true);
-                                                                elementDragStart.current = {
-                                                                    x: e.clientX,
-                                                                    y: e.clientY,
-                                                                    initialX: element.x,
-                                                                    initialY: element.y,
-                                                                    initialRotation: element.rotation,
-                                                                };
-                                                            }}
-                                                        >
-                                                            <div className="p-0.5 border border-blue-500 hover:border-blue-400 rounded shadow-sm bg-[#111]">
-                                                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" className="text-blue-500">
-                                                                    <path fill="currentColor" d="M17.707 3.293a1 1 0 1 0-1.414 1.414l2.294 2.294H11.5a4.5 4.5 0 0 0-4.5 4.5v7.086l-2.293-2.293a1 1 0 1 0-1.414 1.415l4 4a1 1 0 0 0 1.415 0l4-4a1 1 0 0 0-1.415-1.415L9 18.587v-7.086a2.5 2.5 0 0 1 2.5-2.5h7.086l-2.293 2.293a1 1 0 1 0 1.414 1.414l4-4a1 1 0 0 0 0-1.414z" />
-                                                                </svg>
-                                                            </div>
-                                                            <div className="absolute top-full left-1/2 -translate-x-1/2 flex flex-col items-center">
-                                                                <div className="w-px h-1 bg-blue-500" />
-                                                                <div className="w-1 h-1 rounded-full bg-blue-500" />
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                </>
-                                            )}
+                                            <div className="absolute top-full left-1/2 -translate-x-1/2 flex flex-col items-center">
+                                                <div className="w-px h-1 bg-blue-500" />
+                                                <div className="w-1 h-1 rounded-full bg-blue-500" />
+                                            </div>
                                         </div>
-                                    );
-                                }
+                                    )}
+                                </>
+                            )}
+                        </div>
+                    );
+                }
 
-                                return null;
-                            })}
+                if (element.type === "image") {
+                    return (
+                        <div
+                            key={element.id}
+                            data-canvas-element
+                            className="absolute pointer-events-auto cursor-move"
+                            style={{
+                                left: `${element.x}%`,
+                                top: `${element.y}%`,
+                                width: `${element.width}%`,
+                                height: `${element.height}%`,
+                                transform: `translate(-50%, -50%) rotate(${element.rotation}deg)`,
+                                zIndex: element.zIndex,
+                                transition: isDraggingElement ? 'none' : 'transform 0.1s ease-out',
+                            }}
+                            onMouseEnter={() => setHoveredElementId(element.id)}
+                            onMouseLeave={() => setHoveredElementId(null)}
+                            onMouseDown={(e) => {
+                                if (!onElementSelect) return;
+                                if ((e.target as HTMLElement).closest('[data-element-rotation]')) return;
+
+                                e.preventDefault();
+                                e.stopPropagation();
+                                onElementSelect(element.id);
+                                setIsDraggingElement(true);
+                                elementDragStart.current = {
+                                    x: e.clientX,
+                                    y: e.clientY,
+                                    initialX: element.x,
+                                    initialY: element.y,
+                                    initialRotation: element.rotation,
+                                };
+                            }}
+                        >
+                            <img
+                                src={element.imagePath}
+                                alt="Image element"
+                                crossOrigin="anonymous"
+                                className="w-full h-full object-contain rounded"
+                                style={{ pointerEvents: 'none', opacity: element.opacity }}
+                            />
+
+                            {(isSelected || isHovered) && (
+                                <>
+                                    <div
+                                        className={`absolute -inset-px border pointer-events-none ${isSelected ? 'border-blue-500' : 'border-white/50'}`}
+                                        style={{ borderRadius: '2px' }}
+                                    />
+                                    {isSelected && onElementUpdate && (
+                                        <div
+                                            data-element-rotation
+                                            className="absolute -top-5 left-1/2 -translate-x-1/2 z-20 cursor-default"
+                                            onMouseDown={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                setIsDraggingElementRotation(true);
+                                                elementDragStart.current = {
+                                                    x: e.clientX,
+                                                    y: e.clientY,
+                                                    initialX: element.x,
+                                                    initialY: element.y,
+                                                    initialRotation: element.rotation,
+                                                };
+                                            }}
+                                        >
+                                            <div className="p-0.5 border border-blue-500 hover:border-blue-400 rounded shadow-sm bg-[#111]">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" className="text-blue-500">
+                                                    <path fill="currentColor" d="M17.707 3.293a1 1 0 1 0-1.414 1.414l2.294 2.294H11.5a4.5 4.5 0 0 0-4.5 4.5v7.086l-2.293-2.293a1 1 0 1 0-1.414 1.415l4 4a1 1 0 0 0 1.415 0l4-4a1 1 0 0 0-1.415-1.415L9 18.587v-7.086a2.5 2.5 0 0 1 2.5-2.5h7.086l-2.293 2.293a1 1 0 1 0 1.414 1.414l4-4a1 1 0 0 0 0-1.414z" />
+                                                </svg>
+                                            </div>
+                                            <div className="absolute top-full left-1/2 -translate-x-1/2 flex flex-col items-center">
+                                                <div className="w-px h-1 bg-blue-500" />
+                                                <div className="w-1 h-1 rounded-full bg-blue-500" />
+                                            </div>
+                                        </div>
+                                    )}
+                                </>
+                            )}
+                        </div>
+                    );
+                }
+
+                if (element.type === "text") {
+                    return (
+                        <div
+                            key={element.id}
+                            data-canvas-element
+                            className="absolute pointer-events-auto cursor-move select-none"
+                            style={{
+                                left: `${element.x}%`,
+                                top: `${element.y}%`,
+                                transform: `translate(-50%, -50%) rotate(${element.rotation}deg)`,
+                                zIndex: element.zIndex,
+                                transition: isDraggingElement ? 'none' : 'transform 0.1s ease-out',
+                            }}
+                            onMouseEnter={() => setHoveredElementId(element.id)}
+                            onMouseLeave={() => setHoveredElementId(null)}
+                            onMouseDown={(e) => {
+                                if (!onElementSelect) return;
+                                if ((e.target as HTMLElement).closest('[data-element-rotation]')) return;
+
+                                e.preventDefault();
+                                e.stopPropagation();
+                                onElementSelect(element.id);
+                                setIsDraggingElement(true);
+                                elementDragStart.current = {
+                                    x: e.clientX,
+                                    y: e.clientY,
+                                    initialX: element.x,
+                                    initialY: element.y,
+                                    initialRotation: element.rotation,
+                                };
+                            }}
+                        >
+                            <div
+                                className="whitespace-nowrap"
+                                style={{
+                                    fontSize: `${element.fontSize}px`,
+                                    fontFamily: element.fontFamily,
+                                    fontWeight: element.fontWeight === 'normal' ? 400 : element.fontWeight === 'medium' ? 500 : 700,
+                                    textAlign: 'center',
+                                    color: element.color,
+                                    pointerEvents: 'none',
+                                    opacity: element.opacity,
+                                }}
+                            >
+                                {element.content}
+                            </div>
+
+                            {(isSelected || isHovered) && (
+                                <>
+                                    <div
+                                        className={`absolute -inset-x-2 -inset-y-1 border pointer-events-none ${isSelected ? 'border-blue-500' : 'border-white/50'}`}
+                                        style={{ borderRadius: '2px' }}
+                                    />
+                                    {isSelected && onElementUpdate && (
+                                        <div
+                                            data-element-rotation
+                                            className="absolute -top-5 left-1/2 -translate-x-1/2 z-20 cursor-default"
+                                            onMouseDown={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                setIsDraggingElementRotation(true);
+                                                elementDragStart.current = {
+                                                    x: e.clientX,
+                                                    y: e.clientY,
+                                                    initialX: element.x,
+                                                    initialY: element.y,
+                                                    initialRotation: element.rotation,
+                                                };
+                                            }}
+                                        >
+                                            <div className="p-0.5 border border-blue-500 hover:border-blue-400 rounded shadow-sm bg-[#111]">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" className="text-blue-500">
+                                                    <path fill="currentColor" d="M17.707 3.293a1 1 0 1 0-1.414 1.414l2.294 2.294H11.5a4.5 4.5 0 0 0-4.5 4.5v7.086l-2.293-2.293a1 1 0 1 0-1.414 1.415l4 4a1 1 0 0 0 1.415 0l4-4a1 1 0 0 0-1.415-1.415L9 18.587v-7.086a2.5 2.5 0 0 1 2.5-2.5h7.086l-2.293 2.293a1 1 0 1 0 1.414 1.414l4-4a1 1 0 0 0 0-1.414z" />
+                                                </svg>
+                                            </div>
+                                            <div className="absolute top-full left-1/2 -translate-x-1/2 flex flex-col items-center">
+                                                <div className="w-px h-1 bg-blue-500" />
+                                                <div className="w-1 h-1 rounded-full bg-blue-500" />
+                                            </div>
+                                        </div>
+                                    )}
+                                </>
+                            )}
+                        </div>
+                    );
+                }
+
+                return null;
+            })}
         </div>
     );
 }

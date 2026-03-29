@@ -106,13 +106,12 @@ export function ExportDropdown({ onExport, exportProgress, hasTransparentBackgro
                             </span>
                         </button>
 
-                        {/* BOTÓN 1080p */}
                         <button
-                            className={`group flex flex-col items-start gap-1.5 p-4 transition-all text-left border-b border-white/10 ${isTransparent ? "hover:bg-cyan-500/5" : "hover:bg-white/5"}`}
+                            className={`group flex flex-col items-start gap-1.5 p-4 transition-all text-left border-b border-white/10  ${isTransparent ? "hover:bg-cyan-500/10" : "hover:bg-cyan-500/10"}`}
                             onClick={() => handleExport("1080p")}
                         >
                             <div className="flex items-center justify-between w-full">
-                                <span className="text-sm font-medium transition-colors text-white group-hover:text-white/80">
+                                <span className="text-sm font-medium transition-colors text-white group-hover:text-blue-400">
                                     {isTransparent ? (
                                         <>1080p WebM · <span className="text-cyan-400 group-hover:text-cyan-300">sin fondo</span></>
                                     ) : (
@@ -134,7 +133,6 @@ export function ExportDropdown({ onExport, exportProgress, hasTransparentBackgro
 
                         </button>
 
-                        {/* BOTÓN 720p */}
                         <button
                             className={`group flex flex-col items-start gap-1.5 p-4 transition-all text-left border-b border-white/10 ${isTransparent ? "hover:bg-cyan-500/5" : "hover:bg-white/5"}`}
                             onClick={() => handleExport("720p")}

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { AspectRatioSelect } from "../AspectRatioSelect";
 import { formatTime } from "@/lib/video.utils";
 import type { PlayerControlsProps } from "@/types/player-control.types";
+import { TooltipAction } from "@/components/ui/tooltip-action";
 
 const MIN_ZOOM = 1;
 const MAX_ZOOM = 10;
@@ -96,30 +97,31 @@ export function PlayerControls({
             role="toolbar"
             aria-label="Controles de reproducción"
         >
-            {/* ── Left: fullscreen + zoom ── */}
             <div className="flex items-center gap-3 text-xs">
-                <button
-                    onClick={onToggleFullscreen}
-                    className="text-zinc-500 hover:text-white transition-colors"
-                    title={`${isFullscreen ? "Salir de pantalla completa" : "Pantalla completa"} (F)`}
-                    aria-label={isFullscreen ? "Salir de pantalla completa" : "Pantalla completa"}
-                    aria-pressed={isFullscreen}
-                >
-                    <Icon icon={isFullscreen ? "typcn:arrow-minimise" : "typcn:arrow-maximise"} width="17" />
-                </button>
+                <TooltipAction label={`${isFullscreen ? "Salir de pantalla completa" : "Pantalla completa"} (F)`}>
+                    <button
+                        onClick={onToggleFullscreen}
+                        className="text-zinc-500 hover:text-white transition-colors"
+                        aria-label={isFullscreen ? "Salir de pantalla completa" : "Pantalla completa"}
+                        aria-pressed={isFullscreen}
+                    >
+                        <Icon icon={isFullscreen ? "typcn:arrow-minimise" : "typcn:arrow-maximise"} width="17" />
+                    </button>
+                </TooltipAction>
 
                 <div className="h-4 w-px bg-white/10" />
 
                 <div className="flex items-center gap-2" role="group" aria-label="Zoom del timeline">
-                    <button
-                        onClick={handleZoomOut}
-                        disabled={zoomLevel <= MIN_ZOOM}
-                        className="text-zinc-500 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        title="Alejar timeline (↓)"
-                        aria-label="Reducir zoom del timeline"
-                    >
-                        <Icon icon="mdi:magnify-minus-outline" width="16" />
-                    </button>
+                    <TooltipAction label="Alejar timeline (↓)">
+                        <button
+                            onClick={handleZoomOut}
+                            disabled={zoomLevel <= MIN_ZOOM}
+                            className="text-zinc-500 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            aria-label="Reducir zoom del timeline"
+                        >
+                            <Icon icon="mdi:magnify-minus-outline" width="16" />
+                        </button>
+                    </TooltipAction>
 
                     <div className="w-16 h-0.75 bg-white/10 rounded-full relative group cursor-pointer">
                         <div
@@ -144,17 +146,16 @@ export function PlayerControls({
                             aria-valuenow={Math.round(zoomLevel)}
                         />
                     </div>
-
-                    <button
-                        onClick={handleZoomIn}
-                        disabled={zoomLevel >= MAX_ZOOM}
-                        className="text-zinc-500 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        title="Acercar timeline (↑)"
-                        aria-label="Aumentar zoom del timeline"
-                    >
-                        <Icon icon="mdi:magnify-plus-outline" width="16" />
-                    </button>
-
+                    <TooltipAction label="Acercar timeline (↑)">
+                        <button
+                            onClick={handleZoomIn}
+                            disabled={zoomLevel >= MAX_ZOOM}
+                            className="text-zinc-500 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            aria-label="Aumentar zoom del timeline"
+                        >
+                            <Icon icon="mdi:magnify-plus-outline" width="16" />
+                        </button>
+                    </TooltipAction>
                     <span className="text-[10px] font-mono text-zinc-500 min-w-5" aria-live="polite" aria-atomic="true">
                         {Math.round(zoomLevel)}×
                     </span>
@@ -170,33 +171,35 @@ export function PlayerControls({
                 </span>
 
                 <div className="flex items-center gap-2.5">
-                    <button
-                        className="text-zinc-500 hover:text-white transition-colors"
-                        onClick={onSkipBackward}
-                        title="Retroceder 5s (← o J)"
-                        aria-label="Retroceder 5 segundos"
-                    >
-                        <Icon icon="mdi:rewind-5" width="20" />
-                    </button>
+                    <TooltipAction label="Retroceder 5s (← o J)">
+                        <button
+                            className="text-zinc-500 hover:text-white transition-colors"
+                            onClick={onSkipBackward}
+                            aria-label="Retroceder 5 segundos"
+                        >
+                            <Icon icon="mdi:rewind-5" width="20" />
+                        </button>
+                    </TooltipAction>
+                    <TooltipAction label={`${isPlaying ? "Pausar" : "Reproducir"} (Espacio o K)`}>
+                        <button
+                            onClick={onTogglePlayPause}
+                            className="w-9 h-9 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/10 text-white transition border border-white/10"
+                            aria-label={isPlaying ? "Pausar" : "Reproducir"}
+                            aria-pressed={isPlaying}
+                        >
+                            <Icon icon={isPlaying ? "mdi:pause" : "mdi:play"} width="20" />
+                        </button>
+                    </TooltipAction>
+                    <TooltipAction label="Avanzar 5s (→ o L)">
+                        <button
+                            className="text-zinc-500 hover:text-white transition-colors"
+                            onClick={onSkipForward}
+                            aria-label="Avanzar 5 segundos"
+                        >
+                            <Icon icon="mdi:fast-forward-5" width="20" />
+                        </button>
+                    </TooltipAction>
 
-                    <button
-                        onClick={onTogglePlayPause}
-                        className="w-9 h-9 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/10 text-white transition border border-white/10"
-                        title={`${isPlaying ? "Pausar" : "Reproducir"} (Espacio o K)`}
-                        aria-label={isPlaying ? "Pausar" : "Reproducir"}
-                        aria-pressed={isPlaying}
-                    >
-                        <Icon icon={isPlaying ? "mdi:pause" : "mdi:play"} width="20" />
-                    </button>
-
-                    <button
-                        className="text-zinc-500 hover:text-white transition-colors"
-                        onClick={onSkipForward}
-                        title="Avanzar 5s (→ o L)"
-                        aria-label="Avanzar 5 segundos"
-                    >
-                        <Icon icon="mdi:fast-forward-5" width="20" />
-                    </button>
                 </div>
 
                 <span
@@ -208,18 +211,20 @@ export function PlayerControls({
             </div>
 
             <div className="flex items-center gap-2">
-                <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-1.5 px-3 py-1.5 text-xs"
-                    onClick={onOpenCropper}
-                    aria-label="Abrir recortador de video"
-                    title="Abrir recortador de video"
-                >
-                    <Icon icon="mdi:crop" width="14" /> Recortar
-                </Button>
-                <AspectRatioSelect 
-                    value={aspectRatio} 
+                <TooltipAction label="Abrir recortador de video">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-1.5 px-3 py-1.5 text-xs"
+                        onClick={onOpenCropper}
+                        aria-label="Abrir recortador de video"
+                    >
+                        <Icon icon="mdi:crop" width="14" /> Recortar
+                    </Button>
+                </TooltipAction>
+
+                <AspectRatioSelect
+                    value={aspectRatio}
                     onChange={onAspectRatioChange}
                     customDimensions={customAspectRatio}
                     onCustomDimensionsChange={onCustomAspectRatioChange}

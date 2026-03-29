@@ -6,6 +6,7 @@ import { SliderControl } from "../SliderControl";
 import type { ZoomFragment } from "@/types/zoom.types";
 import { formatZoomTime, zoomLevelToFactor, speedToTransitionMs } from "@/types/zoom.types";
 import type { VideoThumbnail } from "@/types/editor.types";
+import { TooltipAction } from "@/components/ui/tooltip-action";
 
 interface ZoomFragmentEditorProps {
     fragment: ZoomFragment;
@@ -83,14 +84,15 @@ export function ZoomFragmentEditor({
                 <div className="flex items-center gap-2 min-w-0">
                     <span className="text-md font-medium text-white truncate">Fragmento de zoom</span>
                 </div>
-                <button
-                    onClick={onDelete}
-                    className="ml-auto flex items-center gap-1.5 text-[10px] text-red-400/70 hover:text-red-400 px-2 py-1 rounded-md transition-colors shrink-0"
-                    title="Eliminar fragmento (Delete)"
-                >
-                    <Icon icon="ph:trash-bold" width="12" />
-                    Eliminar
-                </button>
+                <TooltipAction label="Eliminar fragmento (Delete)">
+                    <button
+                        onClick={onDelete}
+                        className="ml-auto flex items-center gap-1.5 text-[10px] text-red-400/70 hover:text-red-400 px-2 py-1 rounded-md transition-colors shrink-0"
+                    >
+                        <Icon icon="ph:trash-bold" width="12" />
+                        Eliminar
+                    </button>
+                </TooltipAction>
             </div>
 
             <div className="flex-1 overflow-y-auto custom-scrollbar px-4 py-4 space-y-5">
@@ -123,7 +125,7 @@ export function ZoomFragmentEditor({
                         ) : null}
 
                         <div
-                            className="absolute border border-dashed border-blue-500/50 bg-gradient-to-b from-blue-500/30 to-transparent squircle-element pointer-events-none"
+                            className="absolute border border-dashed border-blue-500/50 bg-linear-to-b from-blue-500/30 to-transparent squircle-element pointer-events-none"
                             style={{
                                 width: `${100 / zoomLevelToFactor(fragment.zoomLevel)}%`,
                                 height: `${100 / zoomLevelToFactor(fragment.zoomLevel)}%`,

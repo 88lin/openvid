@@ -6,6 +6,7 @@ import {
 } from "@/components/ui/popover";
 import { Icon } from "@iconify/react";
 import type { AspectRatio } from "@/types";
+import { TooltipAction } from "@/components/ui/tooltip-action";
 
 interface AspectRatioSelectProps {
     value: AspectRatio;
@@ -65,16 +66,17 @@ export function AspectRatioSelect({ value, onChange, customDimensions, onCustomD
 
     return (
         <Popover open={isOpen} onOpenChange={handleOpenChange}>
-            <PopoverTrigger asChild>
-                <button
-                    className="flex items-center gap-2 h-8 px-3 text-xs font-medium border border-input bg-background rounded-md hover:bg-accent hover:text-accent-foreground transition-colors w-full sm:w-auto"
-                    title="Seleccionar proporción de aspecto"
-                >
-                    <Icon icon="mynaui:layout" width="16" className="shrink-0" />
-                    <span className="truncate">{displayLabel}</span>
-                    <Icon icon="lucide:chevron-down" width="14" className="ml-auto opacity-50 shrink-0" />
-                </button>
-            </PopoverTrigger>
+            <TooltipAction label="Seleccionar proporción de aspecto">
+                <PopoverTrigger asChild>
+                    <button
+                        className="flex items-center gap-2 h-8 px-3 text-xs font-medium border border-input bg-background rounded-md hover:bg-accent hover:text-accent-foreground transition-colors w-full sm:w-auto"
+                    >
+                        <Icon icon="mynaui:layout" width="16" className="shrink-0" />
+                        <span className="truncate">{displayLabel}</span>
+                        <Icon icon="lucide:chevron-down" width="14" className="ml-auto opacity-50 shrink-0" />
+                    </button>
+                </PopoverTrigger>
+            </TooltipAction>
 
             <PopoverContent className="w-64 p-2" align="start">
                 <div className="flex flex-col gap-1">

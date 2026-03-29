@@ -8,8 +8,9 @@ import type { ControlPanelProps } from "@/types/control-panel.types";
 import Link from "next/link";
 import Image from "next/image";
 import { lazy, Suspense } from "react";
-import { ElementsMenuSkeleton, ZoomGlobalConfigSkeleton, MockupMenuSkeleton, WallpaperSkeleton, BackgroundColorSkeleton, ImageBackgroundSkeleton, ZoomFragmentEditorSkeleton } from "../Skeleton";
+import { ElementsMenuSkeleton, ZoomGlobalConfigSkeleton, MockupMenuSkeleton, WallpaperSkeleton, BackgroundColorSkeleton, ImageBackgroundSkeleton, ZoomFragmentEditorSkeleton, AudioMenuSkeleton } from "../Skeleton";
 import { ElementsMenu } from "./ElementsMenu";
+import { TooltipAction } from "@/components/ui/tooltip-action";
 
 // Lazy load heavy components - only load when needed
 const ImageRecentBackgroundGrid = lazy(() => import("../ImageRecentBackgroundGrid").then(mod => ({ default: mod.ImageRecentBackgroundGrid })));
@@ -87,42 +88,35 @@ export function ControlPanel({
     videoHasAudioTrack = true,
 }: ExtendedControlPanelProps) {
     return (
-        <div className="relative w-[320px] h-screen bg-[#141417] border-r border-white/10 flex flex-col shrink-0">
+        <div className="relative w-full sm:w-[320px] h-screen bg-[#141417] border-r border-white/10 flex flex-col shrink-0">
             <header className="flex items-center justify-between h-13 p-2 border-b border-white/10 shrink-0">
-                <Link href="/" className="flex items-center gap-2 group">
+                <Link href="/" onClick={() => { window.location.href = "/"; }} className="flex items-center gap-2 group">
                     <Image src="/svg/logo-openvid.svg" alt="Logo" width={30} height={30} />
-                    <span className="hidden sm:flex text-white font-semibold text-sm transition-colors group-hover:text-neutral-200">
-                        Free
-                        <span className="relative inline-block px-1 ml-0.5">
-                            <span className="absolute inset-0 bg-blue-500/20 border border-dashed border-blue-400/50 rounded-sm -rotate-1" />
-
-                            <span className="relative">Shot</span>
-
-                            <div className="absolute -bottom-1 -right-1 size-2 bg-sky-500 border border-white rounded-full shadow-lg" />
-                        </span>
-                    </span>
+                    <Image src="/svg/openvid.svg" alt="Logo" width={70} height={50} />
                 </Link>
-                <motion.button
-                    onClick={onTogglePanel}
-                    className="p-2 rounded-lg text-white/60 hover:text-white hover:bg-white/5 transition-all duration-200" title="Cerrar panel de control"
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                >
-                    <motion.div
-                        animate={{ rotate: isOpen ? 0 : 180 }}
-                        transition={{ duration: 0.3, ease: "easeInOut" }}
+                <TooltipAction label="Cerrar panel de control" side="right">
+                    <motion.button
+                        onClick={onTogglePanel}
+                        className="p-2 rounded-lg text-white/60 hover:text-white hover:bg-white/5 transition-all duration-200" 
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
                     >
-                        <Icon icon="lucide:sidebar-close" width="20" />
-                    </motion.div>
-                </motion.button>
+                        <motion.div
+                            animate={{ rotate: isOpen ? 0 : 180 }}
+                            transition={{ duration: 0.3, ease: "easeInOut" }}
+                        >
+                            <Icon icon="lucide:sidebar-close" width="20" />
+                        </motion.div>
+                    </motion.button>
+                </TooltipAction>
             </header>
 
             <div className="flex-1 overflow-y-auto custom-scrollbar">
                 {activeTool === "screenshot" && (
                     <>
-                        <div className="p-4 border-b border-white/10">
+                        <div className="p-4">
                             <div className="flex items-center gap-2 text-white font-medium mb-4">
-                                <Icon icon="gravity-ui:picture" width="20" />
+                                <Icon icon="solar:gallery-wide-linear" width="20" />
                                 <span>Fondo</span>
                             </div>
 
@@ -157,6 +151,7 @@ export function ControlPanel({
                                                 selectedIndex={selectedWallpaper}
                                                 onSelect={onWallpaperSelect}
                                                 onUnsplashSelect={(url) => {
+                                                    onWallpaperSelect?.(-2); // Deselect catalog wallpapers
                                                     onImageSelect?.(url);
                                                 }}
                                             />
@@ -166,6 +161,7 @@ export function ControlPanel({
                                             selectedIndex={selectedWallpaper}
                                             onSelect={onWallpaperSelect}
                                             onUnsplashSelect={(url) => {
+                                                onWallpaperSelect?.(-2); // Deselect catalog wallpapers
                                                 onImageSelect?.(url);
                                             }}
                                         />
@@ -247,16 +243,14 @@ export function ControlPanel({
                 )}
 
                 {activeTool === "audio" && (
-                    <Suspense fallback={<ElementsMenuSkeleton />}>
+                    <Suspense fallback={<AudioMenuSkeleton />}>
                         <AudioMenu
-                            uploadedAudios={uploadedAudios}
                             audioTracks={audioTracks}
+                            uploadedAudios={uploadedAudios || []}
                             muteOriginalAudio={muteOriginalAudio}
                             masterVolume={masterVolume}
                             videoDuration={videoDuration}
                             onAudioUpload={onAudioUpload || (() => { })}
-                            onAudioDelete={onAudioDelete || (() => { })}
-                            onAddAudioTrack={onAddAudioTrack || (() => { })}
                             onUpdateAudioTrack={onUpdateAudioTrack || (() => { })}
                             onDeleteAudioTrack={onDeleteAudioTrack || (() => { })}
                             onToggleMuteOriginalAudio={onToggleMuteOriginalAudio || (() => { })}

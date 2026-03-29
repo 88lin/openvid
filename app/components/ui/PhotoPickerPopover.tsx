@@ -3,91 +3,19 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Icon } from "@iconify/react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { env } from "@/app/config/env";
+import { fetchPhotosWithCache, fetchDiscoveryPhotos, type UnifiedPhoto } from "@/lib/photo-providers";
+import { TooltipAction } from "@/components/ui/tooltip-action";
 
 const SUGGESTION_BADGES = [
     "blur gradient", "dark wallpaper", "minimal abstract", "neon city",
-    "nature landscape", "geometric pattern", "bokeh light", "ocean wave",
-    "forest mist", "sunset sky", "concrete texture", "aurora borealis",
+    "nature landscape", "aurora borealis", "gradient wallpaper"
 ];
 
-const DISCOVERY_QUERIES = [
-    "blur gradient", "mesh gradient", "dark minimal wallpaper", "neon city night",
-    "abstract wave dark", "geometric dark background", "bokeh light",
-    "deep space stars", "forest mist", "ocean sunset", "smoke abstract",
-    "aurora sky", "city lights night", "minimal texture dark",
-];
-
-interface UnsplashPhoto {
-    id: string;
-    urls: { regular: string; small: string };
-    alt_description: string | null;
-    user: { name: string };
-    color: string;
-    width: number;
-    height: number;
-}
-
-interface UnsplashPickerPopoverProps {
+interface PhotoPickerPopoverProps {
     onSelect: (imageUrl: string) => void;
 }
 
-const searchCache = new Map<string, UnsplashPhoto[]>();
-const discoveryCache: { photos: UnsplashPhoto[]; timestamp: number } = {
-    photos: [],
-    timestamp: 0,
-};
-const DISCOVERY_TTL = 5 * 60 * 1000; // 5 min — re-fetch only if stale
-
-// In-flight deduplication: avoids double-fetching the same key concurrently
-const inFlight = new Map<string, Promise<UnsplashPhoto[]>>();
-
-async function fetchUnsplash(query: string, page = 1, perPage = 20): Promise<UnsplashPhoto[]> {
-    const cacheKey = `${query}::${page}::${perPage}`;
-
-    if (searchCache.has(cacheKey)) return searchCache.get(cacheKey)!;
-
-    if (inFlight.has(cacheKey)) return inFlight.get(cacheKey)!;
-
-    const promise = (async () => {
-        const url = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&page=${page}&per_page=${perPage}&orientation=landscape`;
-        try {
-            const res = await fetch(url, {
-                headers: { Authorization: `Client-ID ${env.unsplash.accessKey}` },
-            });
-            if (!res.ok) return [];
-            const data = await res.json();
-            const results: UnsplashPhoto[] = data.results ?? [];
-            searchCache.set(cacheKey, results);
-            return results;
-        } catch {
-            return [];
-        } finally {
-            inFlight.delete(cacheKey);
-        }
-    })();
-
-    inFlight.set(cacheKey, promise);
-    return promise;
-}
-
-async function fetchDiscovery(): Promise<UnsplashPhoto[]> {
-    if (
-        discoveryCache.photos.length > 0 &&
-        Date.now() - discoveryCache.timestamp < DISCOVERY_TTL
-    ) {
-        return [...discoveryCache.photos].sort(() => Math.random() - 0.5);
-    }
-
-    const query = DISCOVERY_QUERIES[Math.floor(Math.random() * DISCOVERY_QUERIES.length)];
-    const results = await fetchUnsplash(query, 1, 20);
-
-    discoveryCache.photos = results;
-    discoveryCache.timestamp = Date.now();
-    return [...results].sort(() => Math.random() - 0.5);
-}
-
-function ProgressiveImage({ photo }: { photo: UnsplashPhoto }) {
+function ProgressiveImage({ photo }: { photo: UnifiedPhoto }) {
     const [isLoaded, setIsLoaded] = useState(false);
 
     return (
@@ -100,17 +28,17 @@ function ProgressiveImage({ photo }: { photo: UnsplashPhoto }) {
         >
             <img
                 src={photo.urls.small}
-                alt={photo.alt_description ?? ""}
+                alt={photo.alt}
                 decoding="async"
                 loading="lazy"
+                crossOrigin="anonymous"
                 onLoad={() => setIsLoaded(true)}
-                className={`w-full h-full object-cover transition-all duration-500 ease-out group-hover:scale-105 ${
-                    isLoaded ? "opacity-100 blur-none" : "opacity-0 blur-sm"
-                }`}
+                className={`w-full h-full object-cover transition-all duration-500 ease-out group-hover:scale-105 ${isLoaded ? "opacity-100 blur-none" : "opacity-0 blur-sm"
+                    }`}
             />
             <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/0 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-2 pointer-events-none">
                 <span className="text-[10px] text-white truncate font-medium drop-shadow-md">
-                    {photo.user.name}
+                    {photo.photographer}
                 </span>
             </div>
         </div>
@@ -122,7 +50,7 @@ function MasonryGrid({
     onSelect,
     loading,
 }: {
-    photos: UnsplashPhoto[];
+    photos: UnifiedPhoto[];
     onSelect: (url: string) => void;
     loading: boolean;
 }) {
@@ -168,7 +96,7 @@ function MasonryGrid({
                         <button
                             key={photo.id}
                             onClick={() => onSelect(photo.urls.regular)}
-                            className="w-full relative text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-white/50 rounded-lg block"
+                            className="w-full relative text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-white/80 rounded-lg block"
                         >
                             <ProgressiveImage photo={photo} />
                         </button>
@@ -179,11 +107,11 @@ function MasonryGrid({
     );
 }
 
-export function UnsplashPickerPopover({ onSelect }: UnsplashPickerPopoverProps) {
+export function PhotoPickerPopover({ onSelect }: PhotoPickerPopoverProps) {
     const [open, setOpen] = useState(false);
     const [inputValue, setInputValue] = useState("");
     const [activeQuery, setActiveQuery] = useState("");
-    const [photos, setPhotos] = useState<UnsplashPhoto[]>([]);
+    const [photos, setPhotos] = useState<UnifiedPhoto[]>([]);
     const [loading, setLoading] = useState(false);
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
@@ -203,12 +131,8 @@ export function UnsplashPickerPopover({ onSelect }: UnsplashPickerPopoverProps) 
             setIsSearchMode(false);
             setPage(1);
             setHasMore(true);
-            if (discoveryCache.photos.length > 0) {
-                setPhotos([...discoveryCache.photos].sort(() => Math.random() - 0.5));
-            } else {
-                setLoading(true);
-            }
-            fetchDiscovery().then((results) => {
+            setLoading(true);
+            fetchDiscoveryPhotos().then((results) => {
                 setPhotos(results);
                 setLoading(false);
             });
@@ -218,24 +142,16 @@ export function UnsplashPickerPopover({ onSelect }: UnsplashPickerPopoverProps) 
 
     useEffect(() => {
         if (!activeQuery) return;
-        const cacheKey = `${activeQuery}::1::20`;
-        const cached = searchCache.get(cacheKey);
 
         const t = setTimeout(() => {
             setIsSearchMode(true);
             setPage(1);
-            if (cached) {
-                setPhotos(cached);
-                setHasMore(cached.length === 20);
+            setLoading(true);
+            fetchPhotosWithCache(activeQuery, 1, 20).then((results) => {
+                setPhotos(results);
+                setHasMore(results.length === 20);
                 setLoading(false);
-            } else {
-                setLoading(true);
-                fetchUnsplash(activeQuery, 1).then((results) => {
-                    setPhotos(results);
-                    setHasMore(results.length === 20);
-                    setLoading(false);
-                });
-            }
+            });
         }, 0);
         return () => clearTimeout(t);
     }, [activeQuery]);
@@ -247,7 +163,7 @@ export function UnsplashPickerPopover({ onSelect }: UnsplashPickerPopoverProps) 
             const nextPage = page + 1;
             setPage(nextPage);
             setLoading(true);
-            fetchUnsplash(activeQuery, nextPage).then((results) => {
+            fetchPhotosWithCache(activeQuery, nextPage, 20).then((results) => {
                 setPhotos((prev) => {
                     const seen = new Set(prev.map((p) => p.id));
                     return [...prev, ...results.filter((p) => !seen.has(p.id))];
@@ -280,35 +196,36 @@ export function UnsplashPickerPopover({ onSelect }: UnsplashPickerPopoverProps) 
         setInputValue("");
         setActiveQuery("");
         setIsSearchMode(false);
-        if (discoveryCache.photos.length > 0) {
-            setPhotos([...discoveryCache.photos].sort(() => Math.random() - 0.5));
-        }
+        setLoading(true);
+        fetchDiscoveryPhotos().then((results) => {
+            setPhotos(results);
+            setLoading(false);
+        });
     };
 
     const handleSelect = (url: string) => {
         onSelect(url);
-        setOpen(false);
     };
 
     return (
         <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger asChild>
-                <button
-                    className="aspect-square squircle-element border border-white/10 bg-white flex items-center justify-center hover:bg-white/80 transition group"
-                    title="Buscar en Unsplash"
-                >
-                    <Icon icon="ri:unsplash-fill" className="text-black" width="18" />
-                </button>
-            </PopoverTrigger>
+            <TooltipAction label="Buscar fondos (Unsplash + Pexels + Pixabay)">
+                <PopoverTrigger asChild>
+                    <button
+                        className="aspect-square squircle-element bg-gray-100 border border-white/10 bg-linear-to-br from-indigo-500 via-purple-500 to-pink-500 bg-[url('/svg/ppu.svg')] bg-cover bg-center flex items-center justify-center hover:opacity-80 transition group relative overflow-hidden"
+                    >
+                    </button>
+                </PopoverTrigger>
+            </TooltipAction>
 
             <PopoverContent side="right" align="start" sideOffset={12} className="w-115 p-0 border-0 shadow-2xl">
                 <div className="flex flex-col bg-black border border-white/10 rounded-xl overflow-hidden shadow-2xl max-h-150">
 
                     <div className="px-4 py-3 border-b border-white/10 bg-white/5 shrink-0">
                         <div className="flex items-center gap-2">
-                            <Icon icon="ri:unsplash-fill" width="13" className="text-white/50" />
+                            <Icon icon="ph:images-bold" width="13" className="text-white/50" />
                             <span className="text-[10px] font-medium uppercase tracking-[0.15em] text-white/50">
-                                Unsplash
+                                Fondos
                             </span>
                             <span className="ml-auto text-[10px] text-white/30">
                                 {isSearchMode ? `"${activeQuery}"` : "Descubriendo"}
@@ -341,11 +258,10 @@ export function UnsplashPickerPopover({ onSelect }: UnsplashPickerPopoverProps) 
                                 <button
                                     key={badge}
                                     onClick={() => handleBadgeClick(badge)}
-                                    className={`px-2.5 py-0.5 rounded-full text-[11px] transition-all border ${
-                                        activeQuery === badge
-                                            ? "bg-white/15 border-white/30 text-white/90"
-                                            : "bg-white/5 border-white/10 text-white/50 hover:text-white/70 hover:border-white/20"
-                                    }`}
+                                    className={`px-2.5 py-0.5 rounded-full text-[11px] transition-all border ${activeQuery === badge
+                                        ? "bg-white/15 border-white/30 text-white/90"
+                                        : "bg-white/5 border-white/10 text-white/50 hover:text-white/70 hover:border-white/20"
+                                        }`}
                                 >
                                     {badge}
                                 </button>
@@ -383,6 +299,24 @@ export function UnsplashPickerPopover({ onSelect }: UnsplashPickerPopoverProps) 
                                 className="underline hover:text-white/50 transition-colors"
                             >
                                 Unsplash
+                            </a>
+                            {", "}
+                            <a
+                                href="https://www.pexels.com"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="underline hover:text-white/50 transition-colors"
+                            >
+                                Pexels
+                            </a>
+                            {" y "}
+                            <a
+                                href="https://pixabay.com"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="underline hover:text-white/50 transition-colors"
+                            >
+                                Pixabay
                             </a>
                         </span>
                     </div>

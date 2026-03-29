@@ -3,7 +3,8 @@
 import { Icon } from "@iconify/react";
 import { SidebarTool } from "../SidebarTool";
 import type { ToolsSidebarProps } from "@/types/tool-sidebar.types";
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import { TooltipAction } from "@/components/ui/tooltip-action";
 
 interface ExtendedToolsSidebarProps extends ToolsSidebarProps {
     onVideoUpload?: (file: File) => void;
@@ -17,12 +18,12 @@ export function ToolsSidebar({
     isUploading = false
 }: ExtendedToolsSidebarProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [isDragging, setIsDragging] = useState(false);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file && onVideoUpload) {
             onVideoUpload(file);
-            // Reset input para permitir subir el mismo archivo nuevamente
             e.target.value = '';
         }
     };
@@ -30,6 +31,33 @@ export function ToolsSidebar({
     const handleUploadClick = () => {
         fileInputRef.current?.click();
     };
+
+    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!isDragging) setIsDragging(true); // Activamos el estado visual
+    };
+
+    const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false); // Desactivamos el estado visual al salir
+    };
+
+    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false); // Desactivamos el estado visual al soltar
+
+        if (isUploading) return;
+
+        const file = e.dataTransfer.files?.[0];
+
+        if (file && file.type.startsWith("video/") && onVideoUpload) {
+            onVideoUpload(file);
+        }
+    };
+
     return (
         <div className="relative shrink-0 bg-[#141417]" style={{ width: '90px' }}>
             <div className="h-13 border-b border-white/10 w-full" />
@@ -44,7 +72,7 @@ export function ToolsSidebar({
             >
                 <div className="flex flex-col gap-4 w-full overflow-y-auto p-2">
                     <SidebarTool
-                        icon="gravity-ui:picture"
+                        icon="solar:gallery-wide-linear"
                         label="Fondo"
                         isActive={activeTool === "screenshot"}
                         onClick={() => onToolChange("screenshot")}
@@ -86,33 +114,51 @@ export function ToolsSidebar({
                     />
 
                     <SidebarTool
-                        icon="hugeicons:browser"
+                        icon="hugeicons:ai-browser"
                         label="Mockup"
                         isActive={activeTool === "mockup"}
                         onClick={() => onToolChange("mockup")}
                     />
 
                 </div>
-                <div className="w-full p-2 relative flex flex-col items-center shrink-0 group">
+                <div
+                    className="w-full p-2 relative flex flex-col items-center shrink-0 group"
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                >
                     <div className="absolute -top-0.5 left-0 w-full border-t border-white/10" />
-                    <button
-                        onClick={handleUploadClick}
-                        disabled={isUploading}
-                        className="w-full flex flex-col items-center text-center justify-center gap-1.5 p-2 rounded-xl cursor-pointer hover:bg-blue-500/20 text-white/60 hover:text-blue-400 transition-all group disabled:opacity-50 disabled:cursor-not-allowed"
-                        title={isUploading ? "Subiendo video..." : "Subir video personalizado"}
-                    >
-                        {isUploading ? (
-                            <>
-                                <Icon icon="svg-spinners:ring-resize" className="transition-transform duration-300" width="24" height="24" />
-                                <span className="text-xs font-medium">Subiendo...</span>
-                            </>
-                        ) : (
-                            <>
-                                <Icon icon="mage:video-upload" className="transition-transform duration-300 group-hover:scale-105" width="24" height="24" />
-                                <span className="text-xs font-medium">Subir video</span>
-                            </>
-                        )}
-                    </button>
+                    <TooltipAction label={isUploading ? "Subiendo video..." : "Subir video personalizado"}>
+                        <button
+                            onClick={handleUploadClick}
+                            disabled={isUploading}
+                            className={`w-full flex flex-col items-center text-center justify-center gap-1.5 p-2 rounded-xl cursor-pointer transition-all group disabled:opacity-50 disabled:cursor-not-allowed border-2 
+                            ${isDragging
+                                    ? "bg-blue-500/20 text-blue-400 border-dashed border-blue-400/50 scale-105"
+                                    : "border-transparent text-white/60 hover:bg-blue-500/20 hover:text-blue-400"
+                                }
+                        `}
+                        >
+                            {isUploading ? (
+                                <>
+                                    <Icon icon="svg-spinners:ring-resize" className="transition-transform duration-300" width="24" height="24" />
+                                    <span className="text-xs font-medium">Subiendo...</span>
+                                </>
+                            ) : (
+                                <>
+                                    <Icon
+                                        icon="mage:video-upload"
+                                        className={`transition-transform duration-300 ${!isDragging && "group-hover:scale-105"}`}
+                                        width="24"
+                                        height="24"
+                                    />
+                                    <span className="text-xs font-medium">
+                                        {isDragging ? "Suelta aquí" : "Subir video"}
+                                    </span>
+                                </>
+                            )}
+                        </button>
+                    </TooltipAction>
                     <input
                         ref={fileInputRef}
                         type="file"

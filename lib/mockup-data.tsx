@@ -276,54 +276,54 @@ export const MOCKUPS: Mockup[] = [
             <IphoneSlimPreview />
         ),
     },
-    {
-        id: "iphone-base",
-        name: "iPhone Base",
-        category: "mobile",
-        preview: (
-            <IphoneBasePreview />
-        ),
-    },
-    {
-        id: "glass-curve",
-        name: "Glass Curve",
-        category: "mobile",
-        preview: (
-            <GlassCurvePreview />
-        ),
-    },
-    {
-        id: "glass-base",
-        name: "Glass Base",
-        category: "mobile",
-        preview: (
-            <GlassBasePreview />
-        ),
-    },
-    {
-        id: "glass-full",
-        name: "Glass Full",
-        category: "mobile",
-        preview: (
-            <GlassFullPreview />
-        ),
-    },
-    {
-        id: "hard-shell",
-        name: "Hard Shell",
-        category: "mobile",
-        preview: (
-            <HardShellPreview />
-        ),
-    },
-    {
-        id: "s24-ultra",
-        name: "S24 Ultra",
-        category: "mobile",
-        preview: (
-            <S24UltraPreview />
-        ),
-    },
+    // {
+    //     id: "iphone-base",
+    //     name: "iPhone Base",
+    //     category: "mobile",
+    //     preview: (
+    //         <IphoneBasePreview />
+    //     ),
+    // },
+    // {
+    //     id: "glass-curve",
+    //     name: "Glass Curve",
+    //     category: "mobile",
+    //     preview: (
+    //         <GlassCurvePreview />
+    //     ),
+    // },
+    // {
+    //     id: "glass-base",
+    //     name: "Glass Base",
+    //     category: "mobile",
+    //     preview: (
+    //         <GlassBasePreview />
+    //     ),
+    // },
+    // {
+    //     id: "glass-full",
+    //     name: "Glass Full",
+    //     category: "mobile",
+    //     preview: (
+    //         <GlassFullPreview />
+    //     ),
+    // },
+    // {
+    //     id: "hard-shell",
+    //     name: "Hard Shell",
+    //     category: "mobile",
+    //     preview: (
+    //         <HardShellPreview />
+    //     ),
+    // },
+    // {
+    //     id: "s24-ultra",
+    //     name: "S24 Ultra",
+    //     category: "mobile",
+    //     preview: (
+    //         <S24UltraPreview />
+    //     ),
+    // },
 
     // IDE Mockups
     {
@@ -399,7 +399,7 @@ export const MOCKUPS: Mockup[] = [
 
 export const MOCKUP_CATEGORIES = [
     { id: "all" as const, label: "Todos", icon: "ph:grid-four-bold" },
-    { id: "browser" as const, label: "Browser", icon: "hugeicons:browser", bgUrl: "/images/mockups/bg-browser.avif" },
+    { id: "browser" as const, label: "Browser", icon: "hugeicons:ai-browser", bgUrl: "/images/mockups/bg-browser.avif" },
     { id: "mobile" as const, label: "Mobile", icon: "ph:device-mobile-bold", bgUrl: "/images/mockups/bg-mobile.avif" },
     { id: "ide" as const, label: "IDE", icon: "ph:code-bold", bgUrl: "/images/mockups/bg-ide.avif" },
 ];
