@@ -17,6 +17,10 @@ import { ChromeMockup } from "./ChromeMockup";
 import { ChromeGlassMockup } from "./ChromeGlassMockup";
 import { MacosGhostIdeMockup } from "./MacosGhostIdeMockup";
 import { MacosDarkIdeMockup } from "./MacosDarkIdeMockup";
+import { GlassCurveMockup } from "./GlassCurveMockup";
+import { GlassFullMockup } from "./GlassFullMockup";
+import { HardShellMockup } from "./HardShellMockup";
+import { S24UltraMockup } from "./S24UltraMockup";
 
 interface MockupWrapperProps {
     mockupId: string;
@@ -185,6 +189,54 @@ export function MockupWrapper({
                 >
                     {children}
                 </IPhoneSlimMockup>
+            );
+
+        case "glass-curve":
+            return (
+                <GlassCurveMockup
+                    config={config}
+                    roundedCorners={roundedCorners}
+                    shadows={shadows}
+                    className={className}
+                >
+                    {children}
+                </GlassCurveMockup>
+            );
+
+        case "glass-full":
+            return (
+                <GlassFullMockup
+                    config={config}
+                    roundedCorners={roundedCorners}
+                    shadows={shadows}
+                    className={className}
+                >
+                    {children}
+                </GlassFullMockup>
+            );
+
+        case "hard-shell":
+            return (
+                <HardShellMockup
+                    config={config}
+                    roundedCorners={roundedCorners}
+                    shadows={shadows}
+                    className={className}
+                >
+                    {children}
+                </HardShellMockup>
+            );
+
+        case "s24-ultra":
+            return (
+                <S24UltraMockup
+                    config={config}
+                    roundedCorners={roundedCorners}
+                    shadows={shadows}
+                    className={className}
+                >
+                    {children}
+                </S24UltraMockup>
             );
 
         case "vscode":

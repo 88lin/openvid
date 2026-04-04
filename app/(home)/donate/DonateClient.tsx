@@ -14,7 +14,6 @@ export default function DonateClient({
   methods: Method[];
   defaultMethod: string;
 }) {
-  // Inicializamos el estado con el método que nos indica el servidor
   const [selected, setSelected] = useState<string | null>(defaultMethod);
   const [copied, setCopied] = useState<string | null>(null);
   const [qrModalSrc, setQrModalSrc] = useState<string | null>(null);

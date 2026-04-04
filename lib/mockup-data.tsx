@@ -1,5 +1,5 @@
 import { Mockup, DEFAULT_MOCKUP_FEATURES } from "@/types/mockup.types";
-import { BraveGlassPreview, BravePreview, BrowserTabGlassPreview, ChromeGlassPreview, ChromePreview, GlassBasePreview, GlassCurvePreview, GlassFullPreview, GlassUIContainerPreview, HardShellPreview, IphoneBasePreview, IphoneSlimPreview, MacosContainerGlassPreview, MacosDarkPreview, MacosGhostGlassPreview, MacosGhostIdePreview, MacosGhostPreview, MacosGlassPreview, MacosPreview, NonePreview, S24UltraPreview, VSCodePreview } from "./mockup-previews";
+import { BraveGlassPreview, BravePreview, BrowserTabGlassPreview, ChromeGlassPreview, ChromePreview, GlassCurvePreview, GlassFullPreview, GlassUIContainerPreview, HardShellPreview, IphoneSlimPreview, MacosContainerGlassPreview, MacosDarkPreview, MacosGhostGlassPreview, MacosGhostIdePreview, MacosGhostPreview, MacosGlassPreview, MacosPreview, NonePreview, S24UltraPreview, VSCodePreview } from "./mockup-previews";
 
 export const MOCKUPS: Mockup[] = [
     {
@@ -261,7 +261,29 @@ export const MOCKUPS: Mockup[] = [
         features: {
             hasDarkMode: true,
             hasFrameColor: true,
-            hasUrl: false, // No tiene URL
+            hasUrl: false,
+            hasHeaderScale: true,
+            hasCornerRadius: true,
+            hasHeaderOpacity: true,
+        },
+        defaultConfig: {
+            darkMode: true,
+            frameColor: "#262626",
+            headerScale: 60,
+            cornerRadius: 28,
+        },
+        preview: (
+            <IphoneSlimPreview />
+        ),
+    },
+    {
+        id: "glass-curve",
+        name: "Glass Curve",
+        category: "mobile",
+        features: {
+            hasDarkMode: true,
+            hasFrameColor: true,
+            hasUrl: false,
             hasHeaderScale: true,
             hasCornerRadius: true,
             hasHeaderOpacity: true,
@@ -271,59 +293,81 @@ export const MOCKUPS: Mockup[] = [
             frameColor: "#262626",
             headerScale: 60,
             cornerRadius: 28,
+            headerOpacity: 30,
         },
         preview: (
-            <IphoneSlimPreview />
+            <GlassCurvePreview />
         ),
     },
-    // {
-    //     id: "iphone-base",
-    //     name: "iPhone Base",
-    //     category: "mobile",
-    //     preview: (
-    //         <IphoneBasePreview />
-    //     ),
-    // },
-    // {
-    //     id: "glass-curve",
-    //     name: "Glass Curve",
-    //     category: "mobile",
-    //     preview: (
-    //         <GlassCurvePreview />
-    //     ),
-    // },
-    // {
-    //     id: "glass-base",
-    //     name: "Glass Base",
-    //     category: "mobile",
-    //     preview: (
-    //         <GlassBasePreview />
-    //     ),
-    // },
-    // {
-    //     id: "glass-full",
-    //     name: "Glass Full",
-    //     category: "mobile",
-    //     preview: (
-    //         <GlassFullPreview />
-    //     ),
-    // },
-    // {
-    //     id: "hard-shell",
-    //     name: "Hard Shell",
-    //     category: "mobile",
-    //     preview: (
-    //         <HardShellPreview />
-    //     ),
-    // },
-    // {
-    //     id: "s24-ultra",
-    //     name: "S24 Ultra",
-    //     category: "mobile",
-    //     preview: (
-    //         <S24UltraPreview />
-    //     ),
-    // },
+    {
+        id: "glass-full",
+        name: "Glass Full",
+        category: "mobile",
+        features: {
+            hasDarkMode: true,
+            hasFrameColor: true,
+            hasUrl: false,
+            hasHeaderScale: true,
+            hasCornerRadius: true,
+            hasHeaderOpacity: true,
+        },
+        defaultConfig: {
+            darkMode: false,
+            frameColor: "#262626",
+            headerScale: 60,
+            cornerRadius: 28,
+            headerOpacity: 30,
+        },
+        preview: (
+            <GlassFullPreview />
+        ),
+    },
+    {
+        id: "hard-shell",
+        name: "Hard Shell",
+        category: "mobile",
+        features: {
+            hasDarkMode: true,
+            hasFrameColor: true,
+            hasUrl: false,
+            hasHeaderScale: true,
+            hasCornerRadius: true,
+            hasHeaderOpacity: true,
+        },
+        defaultConfig: {
+            darkMode: false,
+            frameColor: "#262626",
+            headerScale: 60,
+            cornerRadius: 28,
+            headerOpacity: 30,
+        },
+        preview: (
+            <HardShellPreview />
+        ),
+    },
+    {
+        id: "s24-ultra",
+        name: "S24 Ultra",
+        category: "mobile",
+        features: {
+            hasDarkMode: true,
+            hasFrameColor: true,
+            hasUrl: false,
+            hasHeaderScale: true,
+            hasCornerRadius: true,
+            hasHeaderOpacity: true,
+        },
+        defaultConfig: {
+            darkMode: true,
+            frameColor: "#262626",
+            headerScale: 60,
+            cornerRadius: 28,
+            headerOpacity: 30,
+        },
+        preview: (
+            <S24UltraPreview />
+        ),
+    },
 
     // IDE Mockups
     {
@@ -353,7 +397,7 @@ export const MOCKUPS: Mockup[] = [
         id: "macos-dark-ide",
         name: "Macos dark",
         category: "ide",
-         features: {
+        features: {
             hasDarkMode: true,
             hasFrameColor: true,
             hasUrl: true,
@@ -376,7 +420,7 @@ export const MOCKUPS: Mockup[] = [
         id: "macos-ghost-ide",
         name: "Macos Ghost",
         category: "ide",
-         features: {
+        features: {
             hasDarkMode: true,
             hasFrameColor: true,
             hasUrl: true,

@@ -1,4 +1,4 @@
-// ── Browser Previews ──────────────────────────────────────────────────────
+// ── Browser Previews 
 export function NonePreview() {
     return (
         <div className="absolute top-4 left-4 w-[160%] h-[160%] bg-[#f9f9f9] rounded-tl-lg shadow-[0_0_30px_rgba(0,0,0,0.5)] border-t border-l border-white/20 flex flex-col overflow-hidden">
@@ -332,7 +332,7 @@ export function ChromeGlassPreview() {
     );
 }
 
-// ── Mobile Previews ───────────────────────────────────────────────────────
+// ── Mobile Previews ─
 
 
 export function IphoneSlimPreview() {
@@ -364,24 +364,6 @@ export function IphoneSlimPreview() {
     );
 }
 
-export function IphoneBasePreview() {
-    return (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 w-[75px] h-[150px] bg-neutral-800 rounded-xl p-[2.5px] shadow-2xl border border-neutral-700 flex flex-col z-20">
-            <div className="absolute -left-[1px] top-6 w-[1.5px] h-3 bg-neutral-700 rounded-l-sm border-y border-l border-neutral-800"></div>
-            <div className="absolute -left-[1px] top-10 w-[1.5px] h-6 bg-neutral-700 rounded-l-sm border-y border-l border-neutral-800"></div>
-            <div className="absolute -right-[1px] top-12 w-[1.5px] h-8 bg-neutral-700 rounded-r-sm border-y border-r border-neutral-800"></div>
-            <div className="relative w-full h-full bg-white rounded-lg overflow-hidden flex flex-col border border-black shadow-inner">
-                <div className="absolute top-1 left-1/2 -translate-x-1/2 w-6 h-1 bg-black rounded-full z-20 flex items-center justify-between px-0.5">
-                    <div className="w-0.5 h-0.5 bg-neutral-500 rounded-full"></div>
-                    <div className="w-0.5 h-0.5 bg-indigo-500 rounded-full blur-[0.2px]"></div>
-                </div>
-                <div className="w-full h-full bg-neutral-50 relative"></div>
-                <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-black/10 rounded-full z-10"></div>
-            </div>
-        </div>
-    );
-}
-
 export function GlassCurvePreview() {
     return (
         <div className="absolute top-4 left-1/2 -translate-x-1/2 w-[75px] h-[150px] bg-white/40 backdrop-blur-xl rounded-t-xl p-[3px] shadow-2xl border border-white/70 overflow-hidden z-20">
@@ -394,59 +376,51 @@ export function GlassCurvePreview() {
         </div>
     );
 }
-
-export function GlassBasePreview() {
-    return (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 w-[75px] h-[150px] bg-white/40 backdrop-blur-xl rounded-xl p-[2.5px] shadow-2xl border border-white/70 flex flex-col z-20">
-            <div className="absolute -left-[1px] top-6 w-[1px] h-3 bg-white/50 rounded-l-sm border-y border-l border-white/30"></div>
-            <div className="absolute -left-[1px] top-10 w-[1px] h-6 bg-white/50 rounded-l-sm border-y border-l border-white/30"></div>
-            <div className="absolute -right-[1px] top-12 w-[1px] h-8 bg-white/50 rounded-r-sm border-y border-r border-white/30"></div>
-            <div className="relative w-full h-full bg-[#f9f9f9] rounded-lg overflow-hidden shadow-inner border border-black/5 flex flex-col">
-                <div className="absolute top-1 left-1/2 -translate-x-1/2 w-6 h-1 bg-black/10 rounded-full z-20 flex items-center justify-between px-0.5">
-                    <div className="w-0.5 h-0.5 bg-neutral-400 rounded-full"></div>
-                    <div className="w-0.5 h-0.5 bg-indigo-400/50 rounded-full blur-[0.2px]"></div>
-                </div>
-                <div className="w-full h-full bg-neutral-50"></div>
-                <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-black/5 rounded-full z-10"></div>
-            </div>
-        </div>
-    );
-}
-
 export function GlassFullPreview() {
-    return (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 w-[75px] h-[150px] bg-white/40 backdrop-blur-xl rounded-xl p-[2.5px] shadow-2xl border border-white/70 flex flex-col z-20">
-            <div className="absolute -left-[1px] top-6 w-[1px] h-3 bg-white/50 rounded-l-sm border-y border-l border-white/30 shadow-sm"></div>
-            <div className="absolute -left-[1px] top-10 w-[1px] h-6 bg-white/50 rounded-l-sm border-y border-l border-white/30 shadow-sm"></div>
-            <div className="absolute -right-[1px] top-12 w-[1px] h-8 bg-white/50 rounded-r-sm border-y border-r border-white/30 shadow-sm"></div>
-            <div className="relative w-full h-full bg-[#f9f9f9] rounded-lg overflow-hidden shadow-inner border border-black/5 flex flex-col">
-                <div className="absolute top-1 left-1/2 -translate-x-1/2 w-6 h-1.5 bg-black/5 rounded-full z-20 flex items-center justify-between px-0.5">
-                    <div className="w-0.5 h-0.5 bg-neutral-400 rounded-full"></div>
-                    <div className="w-0.5 h-0.5 bg-indigo-400/50 rounded-full blur-[0.2px]"></div>
-                </div>
-                <div className="absolute top-0 w-full h-3 flex items-center justify-between px-2 z-20">
-                    <span className="text-[4px] font-bold text-black/40 scale-75 origin-left">9:41</span>
-                    <div className="flex items-center gap-0.5 scale-[0.4] origin-right opacity-40">
-                        <div className="flex items-end gap-[0.5px] h-2">
-                            <div className="w-[1.5px] h-full bg-black rounded-full"></div>
-                        </div>
-                        <div className="w-4 h-2 border border-black rounded-[1px] relative">
-                            <div className="h-full w-[80%] bg-black rounded-[0.5px]"></div>
-                        </div>
-                    </div>
-                </div>
-                <div className="w-full h-full bg-neutral-50"></div>
-                <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-black/5 rounded-full z-10"></div>
-            </div>
+  return (
+    <div className="absolute top-4 left-1/2 -translate-x-1/2 w-[75px] h-[150px] bg-white/40 backdrop-blur-xl rounded-xl p-[2.5px] shadow-2xl border border-white/70 flex flex-col z-20">
+      
+      {/* Botones de Volumen (Izquierda) */}
+      <div className="absolute -left-[2px] top-7 w-[2px] h-3 bg-white/60 rounded-l-sm border-y border-l border-white/40 shadow-sm z-10"></div>
+      <div className="absolute -left-[2px] top-11 w-[2px] h-6 bg-white/60 rounded-l-sm border-y border-l border-white/40 shadow-sm z-10"></div>
+      
+      {/* Botón de Encendido (Derecha) */}
+      <div className="absolute -right-[2px] top-14 w-[2px] h-9 bg-white/60 rounded-r-sm border-y border-r border-white/40 shadow-sm z-10"></div>
+
+      {/* Cuerpo Interno */}
+      <div className="relative w-full h-full bg-[#f9f9f9] rounded-[9px] overflow-hidden shadow-inner border border-black/5 flex flex-col">
+        
+        {/* Notch / Sensores */}
+        <div className="absolute top-1 left-1/2 -translate-x-1/2 w-6 h-1.5 bg-black/5 rounded-full z-20 flex items-center justify-between px-0.5">
+          <div className="w-0.5 h-0.5 bg-neutral-400 rounded-full"></div>
+          <div className="w-0.5 h-0.5 bg-indigo-400/50 rounded-full blur-[0.2px]"></div>
         </div>
-    );
+
+        {/* Status Bar */}
+        <div className="absolute top-0 w-full h-3 flex items-center justify-between px-2 z-20">
+          <span className="text-[4px] font-bold text-black/40 scale-75 origin-left">9:41</span>
+          <div className="flex items-center gap-0.5 scale-[0.4] origin-right opacity-40">
+            <div className="w-4 h-2 border border-black rounded-[1px] relative">
+              <div className="h-full w-[80%] bg-black rounded-[0.5px]"></div>
+            </div>
+          </div>
+        </div>
+
+        {/* Pantalla */}
+        <div className="w-full h-full bg-neutral-50"></div>
+
+        {/* Home Indicator */}
+        <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-black/5 rounded-full z-10"></div>
+      </div>
+    </div>
+  );
 }
 
 export function HardShellPreview() {
     return (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 w-[75px] h-[155px] bg-zinc-200 rounded-md p-[2.5px] shadow-2xl border border-zinc-400 flex items-center justify-center z-20">
-            <div className="absolute -right-[1px] top-6 w-[1.5px] h-3 bg-zinc-400 rounded-r-sm border border-zinc-500"></div>
-            <div className="absolute -right-[1px] top-11 w-[1.5px] h-2 bg-zinc-400 rounded-r-sm border border-zinc-500"></div>
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 w-[75px] h-[155px] text-black bg-zinc-200 rounded-md p-[2.5px] shadow-2xl border border-zinc-400 flex items-center justify-center z-20">
+            <div className="absolute -right-[2px] top-6 w-[1.5px] h-3 bg-slate-50 rounded-r-sm border border-zinc-300"></div>
+            <div className="absolute -right-[2px] top-11 w-[1.5px] h-2 bg-slate-50 rounded-r-sm border border-zinc-300"></div>
             <div className="relative w-full h-full bg-black rounded-[4px] p-[1.5px] overflow-hidden flex items-center justify-center">
                 <div className="relative w-full h-full bg-slate-50 rounded-[2px] flex flex-col overflow-hidden">
                     <div className="absolute top-1 left-1/2 -translate-x-1/2 size-1 bg-black rounded-full z-20"></div>
@@ -464,7 +438,7 @@ export function HardShellPreview() {
 
 export function S24UltraPreview() {
     return (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 w-[75px] h-[150px] bg-neutral-900 rounded-lg p-[2.5px] shadow-2xl border border-neutral-700 flex flex-col z-20">
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 w-[75px] h-[150px] text-black bg-neutral-900 rounded-lg p-[2.5px] shadow-2xl border border-neutral-700 flex flex-col z-20">
             <div className="absolute -right-[1px] top-6 w-[1px] h-3 bg-neutral-500 rounded-r-sm border border-neutral-800"></div>
             <div className="absolute -right-[1px] top-11 w-[1px] h-5 bg-neutral-500 rounded-r-sm border border-neutral-800"></div>
             <div className="relative w-full h-full bg-white rounded-md overflow-hidden flex flex-col border border-black shadow-inner">
@@ -485,7 +459,7 @@ export function S24UltraPreview() {
     );
 }
 
-// ── IDE Previews ──────────────────────────────────────────────────────────
+// ── IDE Previews ────
 
 export function VSCodePreview() {
     return (

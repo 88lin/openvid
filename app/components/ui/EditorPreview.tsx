@@ -36,7 +36,7 @@ export default function EditorPreview() {
                 ></div>
                 
                 <img 
-                  src="/images/pages/openvid.webp"
+                  src="/images/pages/openvid2.webp"
                   alt="openvid Editor Preview" 
                   className="w-full h-auto object-cover rounded-xl"
                   loading="lazy"

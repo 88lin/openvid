@@ -17,7 +17,7 @@ export function IPhoneSlimMockup({
     roundedCorners
 }: IPhoneSlimMockupProps) {
     const isDark = config.darkMode;
-    const frameColor = config.frameColor;
+    const frameColor = isDark ? config.frameColor : "#e5e5e5";
     const cornerRadius = roundedCorners ?? config.cornerRadius;
     const headerOpacity = config.headerOpacity ?? 100;
     

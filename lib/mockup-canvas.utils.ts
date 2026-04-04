@@ -17,6 +17,10 @@ import { drawChromeMockup } from "./mockup-canvas/chrome";
 import { drawChromeGlassMockup } from "./mockup-canvas/chrome-glass";
 import { drawMacosDarkIdeMockup } from "./mockup-canvas/macos-dark-ide";
 import { drawMacosGhostIdeMockup } from "./mockup-canvas/macos-ghost-ide";
+import { drawGlassCurveMockup } from "./mockup-canvas/glass-curve";
+import { drawGlassFullMockup } from "./mockup-canvas/glass-full";
+import { drawHardShellMockup } from "./mockup-canvas/hard-shell";
+import { drawS24UltraMockup } from "./mockup-canvas/s24-ultra";
 
 interface MockupCanvasContext {
     ctx: CanvasRenderingContext2D;
@@ -38,58 +42,103 @@ export function drawMockupToCanvas(
     width: number,
     height: number,
     cornerRadius: number,
-    shadowBlur: number = 0
+    shadowBlur: number = 0,
+    canvasWidth: number = 1920
 ): MockupDrawResult {
+    
+    //Importante: todos los cálculos dentro de los mockups se hacen en un espacio de 1280x720 para mantener proporciones, luego se escala al tamaño real del canvas. Esto asegura que el diseño del mockup se mantenga consistente sin importar el tamaño del canvas o sin importar la resolución de exportacion.
+    const scale = canvasWidth / 1280;
+
+    ctx.save();
+    ctx.scale(scale, scale);
+
     const context: MockupCanvasContext = {
         ctx,
-        x,
-        y,
-        width,
-        height,
+        x: x / scale,
+        y: y / scale,
+        width: width / scale,
+        height: height / scale,
         config,
-        cornerRadius,
-        shadowBlur,
+        cornerRadius: cornerRadius / scale,
+        shadowBlur: shadowBlur / scale,
     };
+
+    let rawResult: MockupDrawResult;
 
     switch (mockupId) {
         case "macos":
-            return drawMacosMockup(context);
+            rawResult = drawMacosMockup(context);
+            break;
         case "macos-glass":
-            return drawMacosGlassMockup(context);
+            rawResult = drawMacosGlassMockup(context);
+            break;
         case "glass-ui-container":
-            return drawGlassUIContainerMockup(context);
+            rawResult = drawGlassUIContainerMockup(context);
+            break;
         case "macos-ghost":
-            return drawMacosGhostMockup(context);
+            rawResult = drawMacosGhostMockup(context);
+            break;
         case "macos-ghost-glass":
-            return drawMacosGhostGlassMockup(context);
+            rawResult = drawMacosGhostGlassMockup(context);
+            break;
         case "macos-container-glass":
-            return drawMacosContainerGlassMockup(context);
+            rawResult = drawMacosContainerGlassMockup(context);
+            break;
         case "brave":
-            return drawBraveMockup(context);
+            rawResult = drawBraveMockup(context);
+            break;
         case "brave-glass":
-            return drawBraveGlassMockup(context);
+            rawResult = drawBraveGlassMockup(context);
+            break;
         case "browser-tab-glass":
-            return drawBrowserTabGlassMockup(context);
+            rawResult = drawBrowserTabGlassMockup(context);
+            break;
         case "chrome":
-            return drawChromeMockup(context);
+            rawResult = drawChromeMockup(context);
+            break;
         case "chrome-glass":
-            return drawChromeGlassMockup(context);
+            rawResult = drawChromeGlassMockup(context);
+            break;
         case "vscode":
-            return drawVSCodeMockup(context);
+            rawResult = drawVSCodeMockup(context);
+            break;
         case "macos-dark-ide":
-            return drawMacosDarkIdeMockup(context);
+            rawResult = drawMacosDarkIdeMockup(context);
+            break;
         case "macos-ghost-ide":
-            return drawMacosGhostIdeMockup(context);
+            rawResult = drawMacosGhostIdeMockup(context);
+            break;
         case "iphone-slim":
-            return drawIPhoneSlimMockup(context);
+            rawResult = drawIPhoneSlimMockup(context);
+            break;
+        case "glass-curve":
+            rawResult = drawGlassCurveMockup(context);
+            break;
+        case "glass-full":
+            rawResult = drawGlassFullMockup(context);
+            break;
+        case "hard-shell":
+            rawResult = drawHardShellMockup(context);
+            break;
+        case "s24-ultra":
+            rawResult = drawS24UltraMockup(context);
+            break;
         default:
-            // Sin mockup, el contenido ocupa todo el espacio
-            return {
-                contentX: x,
-                contentY: y,
-                contentWidth: width,
-                contentHeight: height,
+            rawResult = {
+                contentX: x / scale,
+                contentY: y / scale,
+                contentWidth: width / scale,
+                contentHeight: height / scale,
             };
     }
+
+    ctx.restore();
+
+    return {
+        contentX: rawResult.contentX * scale,
+        contentY: rawResult.contentY * scale,
+        contentWidth: rawResult.contentWidth * scale,
+        contentHeight: rawResult.contentHeight * scale,
+    };
 }
 

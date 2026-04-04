@@ -281,22 +281,33 @@ async function exportWithFFmpegWebM(
     for (let i = 0; i < totalFrames; i++) {
         if (cancellation.cancelled) throw new Error("Exportación cancelada");
 
-        video.currentTime = Math.min(trimStart + i / fps, trimStart + duration - 0.001);
-        await waitForVideoFrame(video);
+        // Video is already at the correct position (pre-seek or end of prev iteration)
         await canvasHandle.drawFrame();
 
+        // Trigger next seek immediately after canvas capture to overlap with encode
+        const nextI = i + 1;
+        if (nextI < totalFrames) {
+            video.currentTime = Math.min(trimStart + nextI / fps, trimStart + duration - 0.001);
+        }
+
+        // Encode current frame while next seek is in flight
         const blob = await new Promise<Blob>((resolve, reject) =>
             canvas.toBlob(b => b ? resolve(b) : reject(), "image/png")
         );
         const data = new Uint8Array(await blob.arrayBuffer());
         await ffmpeg.writeFile(`frame${String(i).padStart(5, "0")}.png`, data);
 
-        if (i % 5 === 0 || i === totalFrames - 1) {
+        if (i % 10 === 0 || i === totalFrames - 1) {
             setProgress({
                 status: "encoding",
                 progress: 8 + Math.round((i / totalFrames) * 60),
-                message: `Capturando frame ${i + 1}/${totalFrames}...`,
+                message: `[Paso 1/2] Guardando frame ${i + 1} de ${totalFrames}...`,
             });
+        }
+
+        // Await next frame — partially decoded by now
+        if (nextI < totalFrames) {
+            await waitForVideoFrame(video);
         }
     }
 
@@ -307,12 +318,12 @@ async function exportWithFFmpegWebM(
             setProgress({
                 status: "finalizing",
                 progress: Math.min(encodingProgress, 90),
-                message: `Codificando WebM... ${Math.round(progress * 100)}%`,
+                message: `[Paso 2/2] Codificando VP8 con transparencia...`,
             });
         }
     });
 
-    setProgress({ status: "finalizing", progress: 70, message: "Codificando WebM con transparencia..." });
+    setProgress({ status: "finalizing", progress: 70, message: "[Paso 2/2] Iniciando codificación VP8..." });
 
     try {
         await ffmpeg.exec([
@@ -396,32 +407,36 @@ async function exportWithMediabunny(
     video.currentTime = trimStart;
     await waitForVideoFrame(video);
 
-    // Procesar frames con verificación de cancelación
+    // Procesar frames con seek pipelinizado (seek N+1 overlaps encode N)
     for (let frameIndex = 0; frameIndex < totalFrames; frameIndex++) {
-        // Verificar cancelación antes de cada frame
         if (cancellation.cancelled) {
             throw new Error("Exportación cancelada");
         }
 
-        const outputTime = frameIndex / fps; // Time in the output video
-        const sourceTime = trimStart + outputTime; // Time in the source video
+        const outputTime = frameIndex / fps;
 
-        video.currentTime = Math.min(sourceTime, trimStart + duration - 0.001);
-
-        await waitForVideoFrame(video);
-
+        // Video is already at the correct position (pre-seek or end of prev iteration)
         await canvasHandle.drawFrame();
-
         await videoSource.add(outputTime, frameDuration);
 
-        // Actualizar progreso cada 5 frames para mejor rendimiento
-        if (frameIndex % 5 === 0 || frameIndex === totalFrames - 1) {
+        // Trigger next seek immediately (overlaps JS overhead)
+        const nextIndex = frameIndex + 1;
+        if (nextIndex < totalFrames) {
+            video.currentTime = Math.min(trimStart + nextIndex / fps, trimStart + duration - 0.001);
+        }
+
+        if (frameIndex % 10 === 0 || frameIndex === totalFrames - 1) {
             const progress = 10 + Math.round((frameIndex / totalFrames) * 80);
             setProgress({
                 status: "encoding",
                 progress,
                 message: `Codificando ${frameIndex + 1}/${totalFrames} frames (${fps}fps)...`,
             });
+        }
+
+        // Await next frame — partially decoded by now
+        if (nextIndex < totalFrames) {
+            await waitForVideoFrame(video);
         }
     }
 
@@ -535,20 +550,29 @@ async function exportWithMediabunnyAndAudio(
         }
 
         const outputTime = frameIndex / fps;
-        const sourceTime = trimStart + outputTime;
 
-        video.currentTime = Math.min(sourceTime, trimStart + duration - 0.001);
-        await waitForVideoFrame(video);
+        // Video is already at the correct position (pre-seek or end of prev iteration)
         await canvasHandle.drawFrame();
         await videoSource.add(outputTime, frameDuration);
 
-        if (frameIndex % 5 === 0 || frameIndex === totalFrames - 1) {
+        // Trigger next seek immediately (overlaps JS overhead)
+        const nextFrame = frameIndex + 1;
+        if (nextFrame < totalFrames) {
+            video.currentTime = Math.min(trimStart + nextFrame / fps, trimStart + duration - 0.001);
+        }
+
+        if (frameIndex % 10 === 0 || frameIndex === totalFrames - 1) {
             const progress = 5 + Math.round((frameIndex / totalFrames) * 50);
             setProgress({
                 status: "encoding",
                 progress,
                 message: `Codificando video ${frameIndex + 1}/${totalFrames}...`,
             });
+        }
+
+        // Await next frame — partially decoded by now
+        if (nextFrame < totalFrames) {
+            await waitForVideoFrame(video);
         }
     }
 
@@ -623,20 +647,25 @@ async function exportWithMediabunnyAndAudio(
 
     // Write audio track files
     const audioTracks: { index: number; filename: string; track: NonNullable<typeof settings.audioTracks>[0] }[] = [];
-    if (settings.audioTracks) {
-        for (let i = 0; i < settings.audioTracks.length; i++) {
-            const track = settings.audioTracks[i];
-            if (!track.audioUrl) continue;
-
-            try {
-                const response = await fetch(track.audioUrl);
-                const audioData = new Uint8Array(await response.arrayBuffer());
-                const filename = `audio${i}.mp3`;
-                await ffmpeg.writeFile(filename, audioData);
-                audioTracks.push({ index: i, filename, track });
-            } catch (e) {
-                console.warn(`Could not load audio track ${i}:`, e);
-            }
+    if (settings.audioTracks && settings.audioTracks.length > 0) {
+        // Fetch all audio tracks in parallel, then write to FFmpeg WASM memory sequentially
+        const fetchResults = await Promise.all(
+            settings.audioTracks.map(async (track, i) => {
+                if (!track.audioUrl) return null;
+                try {
+                    const response = await fetch(track.audioUrl);
+                    const audioData = new Uint8Array(await response.arrayBuffer());
+                    return { index: i, filename: `audio${i}.mp3`, track, audioData };
+                } catch (e) {
+                    console.warn(`Could not load audio track ${i}:`, e);
+                    return null;
+                }
+            })
+        );
+        for (const result of fetchResults) {
+            if (!result) continue;
+            await ffmpeg.writeFile(result.filename, result.audioData);
+            audioTracks.push({ index: result.index, filename: result.filename, track: result.track });
         }
     }
 
@@ -811,22 +840,32 @@ async function exportWithFFmpegGif(
         for (let i = 0; i < totalFrames; i++) {
             if (cancellation.cancelled) throw new Error("Exportación cancelada");
 
-            const sourceTime = trimStart + i / fps;
-            video.currentTime = Math.min(sourceTime, trimStart + duration - 0.001);
-            await waitForVideoFrame(video);
+            // Video is already at the correct position (pre-seek or end of prev iteration)
             await canvasHandle.drawFrame();
 
+            // Trigger next seek immediately after canvas capture to overlap with encode
+            const nextI = i + 1;
+            if (nextI < totalFrames) {
+                video.currentTime = Math.min(trimStart + nextI / fps, trimStart + duration - 0.001);
+            }
+
+            // Encode current frame while next seek is in flight
             const blob = await canvasToBlobFast(canvas);
             const data = await blobToUint8Array(blob);
             await ffmpeg.writeFile(`frame${String(i).padStart(5, "0")}.jpg`, data);
 
-            if (i % 5 === 0 || i === totalFrames - 1) {
+            if (i % 10 === 0 || i === totalFrames - 1) {
                 const progress = 8 + Math.round((i / totalFrames) * 50);
                 setProgress({
                     status: "encoding",
                     progress,
                     message: `Capturando frame ${i + 1}/${totalFrames}...`,
                 });
+            }
+
+            // Await next frame — partially decoded by now
+            if (nextI < totalFrames) {
+                await waitForVideoFrame(video);
             }
         }
 

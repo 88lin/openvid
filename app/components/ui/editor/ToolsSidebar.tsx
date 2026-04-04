@@ -74,7 +74,7 @@ export function ToolsSidebar({
             >
                 <div className="flex flex-col gap-4 w-full overflow-y-auto px-2 custom-scrollbar mask-y-from-85% mask-y-to-99%">
                     
-                    <div className="shrink-0 h-4" aria-hidden="true" />
+                    <div className="shrink-0 h-12" aria-hidden="true" />
 
                     <SidebarTool
                         icon="solar:gallery-wide-linear"
@@ -134,7 +134,7 @@ export function ToolsSidebar({
                         onClick={() => onToolChange("zoom")}
                     />
 
-                    <div className="shrink-0 h-4" aria-hidden="true" />
+                    <div className="shrink-0 h-12" aria-hidden="true" />
                 </div>
                 
                 <div

@@ -54,12 +54,20 @@ export function ExportOverlay({ exportProgress, onCancel, isTransparentExport }:
                     <div className="flex flex-col gap-2 border-l-2 border-white/10 pl-5 py-1">
                         <p className="text-lg font-medium tracking-tight leading-none shimmer-text">
                             {exportProgress.status === "preparing" && "Preparando entorno de renderizado"}
-                            {exportProgress.status === "encoding" && "Codificando secuencia de video"}
-                            {exportProgress.status === "finalizing" && "Empaquetando archivos finales"}
+                            {exportProgress.status === "encoding" && (
+                                exportProgress.message.startsWith("[Paso 1/2]")
+                                    ? "Capturando frames PNG (Paso 1 de 2)"
+                                    : "Codificando secuencia de video"
+                            )}
+                            {exportProgress.status === "finalizing" && (
+                                exportProgress.message.startsWith("[Paso 2/2]")
+                                    ? "Codificando video WebM (Paso 2 de 2)"
+                                    : "Empaquetando archivos finales"
+                            )}
                         </p>
 
                         <p className="text-sm text-white/40 font-mono italic mt-0.5 tracking-wide">
-                            {exportProgress.message}
+                            {exportProgress.message.replace(/^\[Paso \d\/\d\] /, "")}
                         </p>
                     </div>
 

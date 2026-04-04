@@ -258,7 +258,7 @@ button {
   
   animation: heroImageAppear 1ms linear, heroImageFadeIn 1s ease-out;
   animation-timeline: scroll(root), auto;
-  animation-range: 0% 12%;
+  animation-range: 0% 5%;
 }
 
 @keyframes heroImageAppear {

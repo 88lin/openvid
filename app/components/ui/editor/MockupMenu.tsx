@@ -40,13 +40,6 @@ export function MockupMenu({
 
     const handleMockupSelect = (id: string) => {
         onMockupChange?.(id);
-
-        // Reset opacity to default when changing mockup to ensure slider works immediately
-        if (id !== mockupId) {
-            setTimeout(() => {
-                onMockupConfigChange?.({ headerOpacity: 100 });
-            }, 0);
-        }
     };
 
     const handleCategoryChange = (cat: MockupCategory) => {

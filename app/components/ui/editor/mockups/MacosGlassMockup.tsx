@@ -63,7 +63,6 @@ export function MacosGlassMockup({
                 borderLeft: "1px solid rgba(255,255,255,0.6)",
             }}
         >
-            {/* Header del navegador - usa frameColor como color de fondo */}
             <div
                 className="flex items-center justify-between select-none shrink-0"
                 style={{
@@ -75,12 +74,10 @@ export function MacosGlassMockup({
                     borderTopRightRadius: `${cornerRadius}px`,
                 }}
             >
-                {/* Grupo izquierdo: botones de ventana + navegación */}
                 <div
                     className="flex items-center"
                     style={{ gap: `${baseGap * headerScale}px` }}
                 >
-                    {/* Botones de ventana macOS */}
                     <div className="flex" style={{ gap: `${buttonGroupGap}px` }}>
                         <div
                             className="rounded-full bg-[#FF5F56] border border-[#E0443E]"
@@ -96,7 +93,6 @@ export function MacosGlassMockup({
                         />
                     </div>
 
-                    {/* Controles de navegación */}
                     <div
                         className="flex items-center"
                         style={{ gap: `${navGap}px`, color: textColor }}
@@ -117,7 +113,6 @@ export function MacosGlassMockup({
                     </div>
                 </div>
 
-                {/* Barra de URL central */}
                 <div
                     className="flex-1 max-w-xl"
                     style={{ margin: `0 ${urlBarMargin}px` }}
@@ -162,7 +157,6 @@ export function MacosGlassMockup({
                     </div>
                 </div>
 
-                {/* Grupo derecho: acciones */}
                 <div
                     className="flex items-center"
                     style={{ gap: `${rightGroupGap}px`, color: textColor }}
@@ -174,7 +168,6 @@ export function MacosGlassMockup({
                 </div>
             </div>
 
-            {/* Contenido del navegador - donde va el video */}
             <div
                 className="flex-1 relative overflow-hidden"
                 style={{ 

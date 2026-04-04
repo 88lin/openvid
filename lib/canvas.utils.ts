@@ -271,3 +271,46 @@ export function calculateSmoothZoom(
 
     return DEFAULT_STATE;
 }
+
+export type Corner = "top-left" | "top-right" | "bottom-right" | "bottom-left";
+
+export function getNearestCorner(e: React.MouseEvent<HTMLElement>, rotationDeg = 0): Corner {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+
+    const dx = e.clientX - cx;
+    const dy = e.clientY - cy;
+
+    const rad = (-rotationDeg * Math.PI) / 180;
+    const localX = dx * Math.cos(rad) - dy * Math.sin(rad);
+    const localY = dx * Math.sin(rad) + dy * Math.cos(rad);
+
+    const isRight = localX > 0;
+    const isBottom = localY > 0;
+    if (!isRight && !isBottom) return "top-left";
+    if (isRight && !isBottom) return "top-right";
+    if (isRight && isBottom) return "bottom-right";
+    return "bottom-left";
+}
+
+export function getCornerStyle(corner: Corner, offset = -10): React.CSSProperties {
+    const base: React.CSSProperties = { position: "absolute", zIndex: 20 };
+    switch (corner) {
+        case "top-left":
+            return { ...base, top: offset, left: offset, cursor: "nw-resize" };
+        case "top-right":
+            return { ...base, top: offset, right: offset, cursor: "ne-resize" };
+        case "bottom-right":
+            return { ...base, bottom: offset, right: offset, cursor: "se-resize" };
+        case "bottom-left":
+            return { ...base, bottom: offset, left: offset, cursor: "sw-resize" };
+    }
+}
+
+export const CORNER_ICON_ROTATION: Record<Corner, number> = {
+    "top-right": 0,    // posición natural del SVG
+    "bottom-right": 90,   // gira 90° a la derecha
+    "bottom-left": 180,  // gira 180°
+    "top-left": 270,  // gira 270°
+};

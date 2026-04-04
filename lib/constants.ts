@@ -51,10 +51,10 @@ export const TIMELINE_ZOOM_SCALE: Record<number, number> = {
 };
 
 // Mockups con header → solo esquinas INFERIORES del video redondeadas
-export const BOTTOM_ONLY_RADIUS_MOCKUPS = ["macos", "macos-glass", "macos-ghost", "macos-ghost-glass", "vscode", "macos-dark-ide", "macos-ghost-ide", "brave", "brave-glass", "browser-tab-glass", "chrome", "chrome-glass"];
+export const BOTTOM_ONLY_RADIUS_MOCKUPS = ["macos", "macos-glass", "macos-ghost", "macos-ghost-glass", "vscode", "macos-dark-ide", "macos-ghost-ide", "brave", "brave-glass", "browser-tab-glass", "chrome", "chrome-glass", "s24-ultra", "glass-curve", "glass-full"];
 
 // Mockups glass → manejan su propia sombra, no necesitan el rect sólido previo
-export const SELF_SHADOWING_MOCKUPS = ["macos-glass", "macos-ghost-glass", "glass-ui-container", "macos-container-glass", "brave-glass", "browser-tab-glass", "chrome-glass"];
+export const SELF_SHADOWING_MOCKUPS = ["macos-glass", "macos-ghost-glass", "glass-ui-container", "macos-container-glass", "brave-glass", "browser-tab-glass", "chrome-glass", "iphone-slim", "glass-curve", "glass-full", "s24-ultra", "hard-shell"];
 
 // Z-index del video: elementos con zIndex < VIDEO_Z_INDEX se renderizan detrás del video
 export const VIDEO_Z_INDEX = 1000;

@@ -1,3 +1,4 @@
+import DemoVideo from "../components/ui/DemoVideo";
 import DonationCard from "../components/ui/DonationCard";
 import EditorPreview from "../components/ui/EditorPreview";
 import Hero from "../components/ui/Hero";
@@ -23,6 +24,12 @@ export default function Home() {
       <section className="py-16 w-full mb-20">
         <div className="max-w-xl mx-auto px-6">
           <DonationCard />
+        </div>
+      </section>
+
+      <section className="w-full py-16">
+        <div className="max-w-6xl mx-auto px-6">
+          <DemoVideo/>
         </div>
       </section>
     </div>
