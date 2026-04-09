@@ -347,16 +347,16 @@ export function getNearestCorner(e: React.MouseEvent<HTMLElement>, rotationDeg =
 }
 
 export function getCornerStyle(corner: Corner, offset = -10): React.CSSProperties {
-    const base: React.CSSProperties = { position: "absolute", zIndex: 20 };
+    const base: React.CSSProperties = { position: "absolute", zIndex: 20, cursor: "grab" };
     switch (corner) {
         case "top-left":
-            return { ...base, top: offset, left: offset, cursor: "nw-resize" };
+            return { ...base, top: offset, left: offset };
         case "top-right":
-            return { ...base, top: offset, right: offset, cursor: "ne-resize" };
+            return { ...base, top: offset, right: offset };
         case "bottom-right":
-            return { ...base, bottom: offset, right: offset, cursor: "se-resize" };
+            return { ...base, bottom: offset, right: offset };
         case "bottom-left":
-            return { ...base, bottom: offset, left: offset, cursor: "sw-resize" };
+            return { ...base, bottom: offset, left: offset };
     }
 }
 

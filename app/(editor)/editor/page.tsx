@@ -1255,6 +1255,8 @@ export default function Editor() {
                         onToolChange={setActiveTool}
                         onVideoUpload={handleVideoUpload}
                         isUploading={isUploading}
+                        selectedZoomFragmentId={selectedZoomFragmentId}
+                        selectedAudioTrackId={selectedAudioTrackId}
                     />
                 </div>
 

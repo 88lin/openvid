@@ -1,10 +1,8 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-// Importamos AnimatePresence y motion de Framer Motion para la animación profesional
 import { AnimatePresence, motion, Variants } from "framer-motion";
 
-// Lista de características extraídas de tu contexto
 const features = [
     "Grabación de pantalla",
     "Zooms suaves",
@@ -18,11 +16,9 @@ const features = [
 
 export default function DemoVideo() {
     const videoRef = useRef<HTMLVideoElement>(null);
-    // Estado para controlar qué característica se muestra
     const [featureIndex, setFeatureIndex] = useState(0);
 
     useEffect(() => {
-        // Intersection Observer para play/pause del video (tu lógica existente)
         const observer = new IntersectionObserver(
             (entries) => {
                 entries.forEach((entry) => {
@@ -40,19 +36,16 @@ export default function DemoVideo() {
             observer.observe(videoRef.current);
         }
 
-        // Lógica para cambiar la característica cada 3 segundos
         const featureInterval = setInterval(() => {
             setFeatureIndex((prevIndex) => (prevIndex + 1) % features.length);
         }, 3000);
 
         return () => {
             observer.disconnect();
-            clearInterval(featureInterval); // Limpieza del intervalo
+            clearInterval(featureInterval);
         };
     }, []);
 
-    // Definición de la animación (el "hack" profesional)
-    // Agrega ": Variants" justo aquí
     const tickerVariants: Variants = {
         enter: {
             y: 20,

@@ -3,13 +3,16 @@
 import { Icon } from "@iconify/react";
 import { SidebarTool } from "../SidebarTool";
 import type { ToolsSidebarProps } from "@/types/tool-sidebar.types";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { TooltipAction } from "@/components/ui/tooltip-action";
+import { useRecording } from "@/hooks/RecordingContext";
 
 interface ExtendedToolsSidebarProps extends ToolsSidebarProps {
     onVideoUpload?: (file: File) => void;
     isUploading?: boolean;
     isCursorEnabled?: boolean;
+    selectedZoomFragmentId?: string | null;
+    selectedAudioTrackId?: string | null;
 }
 
 export function ToolsSidebar({
@@ -17,10 +20,28 @@ export function ToolsSidebar({
     onToolChange,
     onVideoUpload,
     isUploading = false,
-    isCursorEnabled = false 
+    isCursorEnabled = false,
+    selectedZoomFragmentId,
+    selectedAudioTrackId,
 }: ExtendedToolsSidebarProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const zoomToolRef = useRef<HTMLButtonElement>(null);
+    const audioToolRef = useRef<HTMLButtonElement>(null);
     const [isDragging, setIsDragging] = useState(false);
+    const { startCountdown, isIdle, isRecording, isCountdown, isProcessing } = useRecording();
+    const [showMobileAlert, setShowMobileAlert] = useState(false);
+
+    useEffect(() => {
+        if (selectedZoomFragmentId && zoomToolRef.current) {
+            zoomToolRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }, [selectedZoomFragmentId]);
+
+    useEffect(() => {
+        if (selectedAudioTrackId && audioToolRef.current) {
+            audioToolRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }, [selectedAudioTrackId]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -60,20 +81,62 @@ export function ToolsSidebar({
         }
     };
 
+    const handleStartRecording = () => {
+        const isMobile = typeof window !== "undefined" &&
+            (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768);
+
+        if (isMobile) {
+            setShowMobileAlert(true);
+            setTimeout(() => setShowMobileAlert(false), 5000);
+        } else {
+            startCountdown();
+        }
+    };
+
+    const getRecordButtonContent = () => {
+        if (isCountdown) {
+            return {
+                icon: "svg-spinners:ring-resize",
+                text: "Preparando...",
+                className: "text-orange-400"
+            };
+        }
+        if (isRecording) {
+            return {
+                icon: "fluent:record-20-filled",
+                text: "Grabando...",
+                className: "text-red-400 animate-pulse"
+            };
+        }
+        if (isProcessing) {
+            return {
+                icon: "svg-spinners:ring-resize",
+                text: "Procesando...",
+                className: "text-blue-400"
+            };
+        }
+        return {
+            icon: "fluent:screenshot-record-16-regular",
+            text: "Grabar",
+            className: "group-hover:text-red-400"
+        };
+    };
+
+    const recordButtonContent = getRecordButtonContent();
+
     return (
         <div className="relative shrink-0 bg-[#141417]" style={{ width: '90px' }}>
             <div className="h-13 border-b border-white/10 w-full" />
             <aside
-                className="h-full absolute top-1/2 left-12 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center gap-4 squircle-element border shadow-md shadow-white/20 border-white/10 z-40"
+                className="h-full absolute top-1/2 left-12 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center gap-4 squircle-element border shadow-md shadow-white/20 border-white/10 z-40 max-h-150 3xl:max-h-[800px]"
                 style={{
                     height: 'calc(100% - 2rem)',
-                    maxHeight: '600px',
                     minWidth: '70px',
                     background: 'radial-gradient(circle at 50% 30%, #2a2a2a 0%, #131313 64%)',
                 }}
             >
                 <div className="flex flex-col gap-4 w-full overflow-y-auto px-2 custom-scrollbar mask-y-from-85% mask-y-to-99%">
-                    
+
                     <div className="shrink-0 h-12" aria-hidden="true" />
 
                     <SidebarTool
@@ -88,16 +151,6 @@ export function ToolsSidebar({
                         isActive={activeTool === "mockup"}
                         onClick={() => onToolChange("mockup")}
                     />
-
-                    <SidebarTool
-                        icon="solar:cursor-bold-duotone"
-                        label="Cursor"
-                        isActive={activeTool === "cursor"}
-                        onClick={() => onToolChange("cursor")}
-                        badge={!isCursorEnabled ? "Pronto" : undefined}
-                        disabled={!isCursorEnabled}
-                    />
-
                     <SidebarTool
                         label="Elementos"
                         isActive={activeTool === "elements"}
@@ -126,24 +179,64 @@ export function ToolsSidebar({
                         label="Audio"
                         isActive={activeTool === "audio"}
                         onClick={() => onToolChange("audio")}
+                        ref={audioToolRef}
                     />
                     <SidebarTool
                         icon="iconamoon:zoom-in-bold"
                         label="Zoom"
                         isActive={activeTool === "zoom"}
                         onClick={() => onToolChange("zoom")}
+                        ref={zoomToolRef}
+                    />
+                    <SidebarTool
+                        icon="solar:cursor-bold-duotone"
+                        label="Cursor"
+                        isActive={activeTool === "cursor"}
+                        onClick={() => onToolChange("cursor")}
+                        badge={!isCursorEnabled ? "Pronto" : undefined}
+                        disabled={!isCursorEnabled}
                     />
 
                     <div className="shrink-0 h-12" aria-hidden="true" />
                 </div>
-                
+
                 <div
-                    className="w-full p-2 relative flex flex-col items-center shrink-0 group"
+                    className="w-full p-2 relative flex flex-col items-center gap-1 shrink-0 group"
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
                 >
                     <div className="absolute -top-0.5 left-0 w-full border-t border-white/10" />
+
+                    {showMobileAlert && (
+                        <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-64 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-xs text-red-300 z-50">
+                            La captura de pantalla no está soportada en móviles. Usa tu computadora.
+                        </div>
+                    )}
+
+                    <TooltipAction label={isIdle ? "Grabar pantalla" : "Grabación en proceso..."}>
+                        <button
+                            onClick={handleStartRecording}
+                            disabled={!isIdle}
+                            className={`w-full flex flex-col items-center text-center justify-center gap-1.5 p-2 rounded-xl cursor-pointer transition-all group border-2 border-transparent disabled:cursor-not-allowed
+                                ${!isIdle 
+                                    ? "opacity-70" 
+                                    : "hover:bg-red-500/10"
+                                }
+                            `}
+                        >
+                            <Icon 
+                                icon={recordButtonContent.icon} 
+                                width="24" 
+                                height="24" 
+                                className={`transition-colors ${recordButtonContent.className}`}
+                            />
+                            <span className={`text-xs font-medium transition-colors ${!isIdle ? recordButtonContent.className : "text-white/60 group-hover:text-red-400"}`}>
+                                {recordButtonContent.text}
+                            </span>
+                        </button>
+                    </TooltipAction>
+
                     <TooltipAction label={isUploading ? "Subiendo video..." : "Subir video personalizado"}>
                         <button
                             onClick={handleUploadClick}
@@ -169,7 +262,7 @@ export function ToolsSidebar({
                                         height="24"
                                     />
                                     <span className="text-xs font-medium">
-                                        {isDragging ? "Suelta aquí" : "Subir video"}
+                                        {isDragging ? "Suelta aquí" : "Subir"}
                                     </span>
                                 </>
                             )}

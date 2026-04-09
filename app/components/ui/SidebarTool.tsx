@@ -1,7 +1,7 @@
 "use client";
 
 import { Icon } from "@iconify/react";
-import { ReactNode } from "react";
+import { ReactNode, forwardRef } from "react";
 
 interface SidebarToolProps {
     icon: string | ReactNode;
@@ -12,16 +12,18 @@ interface SidebarToolProps {
     disabled?: boolean;
 }
 
-export function SidebarTool({ icon, label, isActive, onClick, badge, disabled }: SidebarToolProps) {
-    return (
-        <button
-            onClick={disabled ? undefined : onClick}
-            disabled={disabled}
-            className={`relative flex flex-col items-center gap-1.5 transition-all duration-200 group w-full 
+export const SidebarTool = forwardRef<HTMLButtonElement, SidebarToolProps>(
+    ({ icon, label, isActive, onClick, badge, disabled }, ref) => {
+        return (
+            <button
+                ref={ref}
+                onClick={disabled ? undefined : onClick}
+                disabled={disabled}
+                className={`relative flex flex-col items-center gap-1.5 transition-all duration-200 group w-full 
                 ${disabled ? "opacity-40 cursor-not-allowed" : "cursor-pointer"}
                 ${isActive ? "text-white" : "text-white/60 hover:text-white"}`
-            }
-        >
+                }
+            >
             {badge && (
                 <div className="absolute -top-1 -right-0.5 z-10 px-1.5 py-0.5 bg-linear-to-r from-gray-500 to-gray-500 rounded-full border border-white/20 shadow-lg pointer-events-none">
                     <span className="text-[8px] font-bold text-white tracking-widest uppercase block drop-shadow-sm leading-none">
@@ -65,4 +67,6 @@ export function SidebarTool({ icon, label, isActive, onClick, badge, disabled }:
             )}
         </button>
     );
-}
+});
+
+SidebarTool.displayName = "SidebarTool";

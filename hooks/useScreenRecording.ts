@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import type { RecordingState, RecordingResult, VideoData } from "@/types";
 // import type { CursorKeyframe, CursorRecordingData, CursorState } from "@/types/cursor.types";
 // import { EMPTY_CURSOR_DATA, supportsCursorCapture } from "@/types/cursor.types";
@@ -218,6 +218,7 @@ export function useScreenRecording() {
   const [recordingTime, setRecordingTime] = useState<number>(0);
 
   const router = useRouter();
+  const pathname = usePathname();
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -380,7 +381,12 @@ export function useScreenRecording() {
 
         try {
           await saveVideoToIndexedDB(blob, duration, /* cursorData */);
-          router.push("/editor");
+          
+          if (pathname === "/editor") {
+            window.location.reload();
+          } else {
+            router.push("/editor");
+          }
         } catch (error) {
           console.error("Error al guardar video:", error);
           setError("Error al procesar el video");
@@ -403,7 +409,7 @@ export function useScreenRecording() {
       setState("idle");
       restoreOriginals();
     }
-  }, [router, restoreOriginals]);
+  }, [router, pathname, restoreOriginals]);
 
   const startCountdown = useCallback(async () => {
     try {

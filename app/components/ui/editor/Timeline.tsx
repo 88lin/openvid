@@ -46,7 +46,6 @@ export function Timeline({
     const [isDraggingZoomFragment, setIsDraggingZoomFragment] = useState(false);
     const [isOverFragment, setIsOverFragment] = useState(false);
 
-    // Use requestAnimationFrame for smooth scrubbing synced with display refresh
     const pendingSeekRef = useRef<number | null>(null);
     const rafIdRef = useRef<number | null>(null);
     const isSeekingRef = useRef<boolean>(false);
@@ -54,10 +53,7 @@ export function Timeline({
     const [ghostX, setGhostX] = useState(0);
     const validDuration = Number.isFinite(videoDuration) && videoDuration > 0 ? videoDuration : 0;
 
-    // Store pending trim values during drag to avoid excessive parent updates
     const pendingTrimRef = useRef<{ start: number; end: number } | null>(null);
-    // Trimmed duration for display
-
 
     const TRACK_PADDING = 16;
 
@@ -80,10 +76,7 @@ export function Timeline({
     useEffect(() => {
         validDurationMotion.set(validDuration);
     }, [validDuration, validDurationMotion]);
-    const calculateDuration = useCallback(([start, end, cw, vd]: number[]) => {
-        if (cw === 0 || vd === 0) return 0;
-        return ((end - start) / cw) * vd;
-    }, []);
+  
     const trimmedDurationLabel = useTransform(
         [trimStartX, trimEndX, contentWidthMotion, validDurationMotion] as const,
         ([start, end, cw, vd]: number[]) => {

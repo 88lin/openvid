@@ -5,6 +5,7 @@ import { motion, useMotionValue } from "framer-motion";
 import type { AudioTrack, UploadedAudio } from "@/types/audio.types";
 
 const MIN_FRAGMENT_DURATION = 0.1;
+const MIN_VISUAL_WIDTH_PX = 50;
 
 interface AudioFragmentTrackItemProps {
     track: AudioTrack;
@@ -50,17 +51,19 @@ export function AudioFragmentTrackItem({
 
     const initialLeft = timeToPixels(track.startTime);
     const initialWidth = timeToPixels(track.duration);
+    
+    const visualWidth = Math.max(initialWidth, MIN_VISUAL_WIDTH_PX);
 
     useEffect(() => {
         if (!isDragging && !isResizing) {
             fragmentX.set(initialLeft);
-            fragmentWidth.set(initialWidth);
+            fragmentWidth.set(visualWidth);
         }
-    }, [initialLeft, initialWidth, isDragging, isResizing, fragmentX, fragmentWidth]);
+    }, [initialLeft, visualWidth, isDragging, isResizing, fragmentX, fragmentWidth]);
 
     const boundaries = useMemo(() => {
         const sorted = [...otherTracks]
-            .filter(t => t.id !== track.id) // defensive: excluye el propio track
+            .filter(t => t.id !== track.id)
             .sort((a, b) => a.startTime - b.startTime);
 
         let minStart = 0;
@@ -184,7 +187,6 @@ export function AudioFragmentTrackItem({
     }, [fragmentX, fragmentWidth, pixelsToTime, audio, videoDuration, onUpdate, onDragStateChange]);
 
     const isInteracting = isDragging || isResizing !== null;
-    const exceedsVideoDuration = track.startTime + track.duration > videoDuration;
     const [isHovered, setIsHovered] = useState(false);
 
     return (
