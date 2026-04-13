@@ -19,10 +19,8 @@ interface AudioMenuProps {
     onDeleteAudioTrack: (trackId: string) => void;
     onToggleMuteOriginalAudio: () => void;
     onMasterVolumeChange: (volume: number) => void;
-    videoHasAudioTrack?: boolean;
 }
 
-// Dentro de AudioMenu, antes del return principal
 function TrackVolumeSlider({ track, onUpdateAudioTrack }: {
     track: AudioTrack;
     onUpdateAudioTrack: (id: string, updates: Partial<AudioTrack>) => void;
@@ -63,7 +61,6 @@ export function AudioMenu({
     onDeleteAudioTrack,
     onToggleMuteOriginalAudio,
     onMasterVolumeChange,
-    videoHasAudioTrack = false
 }: AudioMenuProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [selectedTrackId, setSelectedTrackId] = useState<string | null>(null);
@@ -158,11 +155,7 @@ export function AudioMenu({
             <div className="bg-[#09090B] border border-white/5 squircle-element p-3">
                 <button
                     onClick={onToggleMuteOriginalAudio}
-                    disabled={!videoHasAudioTrack}
-                    className={`w-full flex items-center justify-between text-sm transition-colors ${!videoHasAudioTrack
-                        ? "opacity-40 cursor-not-allowed text-white/40"
-                        : "text-white/80 hover:text-white"
-                        }`}>
+                    className="w-full flex items-center justify-between text-sm transition-colors text-white/80 hover:text-white">
                     <div className="flex items-center gap-2">
                         <Icon
                             icon={muteOriginalAudio ? "mdi:volume-off" : "mdi:volume-high"}

@@ -9,11 +9,12 @@ interface SidebarToolProps {
     isActive?: boolean;
     onClick?: () => void;
     badge?: string;
+    badgeCount?: number;
     disabled?: boolean;
 }
 
 export const SidebarTool = forwardRef<HTMLButtonElement, SidebarToolProps>(
-    ({ icon, label, isActive, onClick, badge, disabled }, ref) => {
+    ({ icon, label, isActive, onClick, badge, badgeCount, disabled }, ref) => {
         return (
             <button
                 ref={ref}
@@ -24,6 +25,14 @@ export const SidebarTool = forwardRef<HTMLButtonElement, SidebarToolProps>(
                 ${isActive ? "text-white" : "text-white/60 hover:text-white"}`
                 }
             >
+            {badgeCount !== undefined && badgeCount > 0 && (
+                <div className="absolute -top-1 right-1 z-10 min-w-4 h-4 px-1 flex items-center justify-center bg-emerald-500 rounded-full border border-emerald-400 shadow-lg pointer-events-none animate-in zoom-in-50 duration-200">
+                    <span className="text-[9px] font-bold text-white leading-none">
+                        {badgeCount > 9 ? "9+" : badgeCount}
+                    </span>
+                </div>
+            )}
+
             {badge && (
                 <div className="absolute -top-1 -right-0.5 z-10 px-1.5 py-0.5 bg-linear-to-r from-gray-500 to-gray-500 rounded-full border border-white/20 shadow-lg pointer-events-none">
                     <span className="text-[8px] font-bold text-white tracking-widest uppercase block drop-shadow-sm leading-none">

@@ -23,6 +23,7 @@ const OptionsGrid = lazy(() => import("../WalpaperSections").then(mod => ({ defa
 const WallpaperCatalogGrid = lazy(() => import("../WalpaperSections").then(mod => ({ default: mod.WallpaperCatalogGrid })));
 const MockupMenu = lazy(() => import("./MockupMenu").then(mod => ({ default: mod.MockupMenu })));
 const AudioMenu = lazy(() => import("./AudioMenu").then(mod => ({ default: mod.AudioMenu })));
+const VideosMenu = lazy(() => import("./VideosMenu").then(mod => ({ default: mod.VideosMenu })));
 
 interface ExtendedControlPanelProps extends ControlPanelProps {
     onTogglePanel?: () => void;
@@ -87,12 +88,20 @@ export function ControlPanel({
     onToggleMuteOriginalAudio,
     onMasterVolumeChange,
     videoDuration = 0,
-    videoHasAudioTrack = true,
     // Cursor props
     cursorConfig = DEFAULT_CURSOR_CONFIG,
     cursorData,
     isRecordedVideo = false,
     onCursorConfigChange,
+    // Videos library props
+    onAddVideoToTrack,
+    onRemoveVideoFromTrack,
+    onVideoUploadToLibrary,
+    onVideoDeleteFromTrack,
+    videosInTrackIds = [],
+    videosLibraryRefresh,
+    isVideoUploading = false,
+    onVideoAudioToggle
 }: ExtendedControlPanelProps) {
     return (
         <div className="relative w-full sm:w-[320px] h-screen bg-[#141417] border-r border-white/10 flex flex-col shrink-0">
@@ -104,7 +113,7 @@ export function ControlPanel({
                 <TooltipAction label="Cerrar panel de control" side="right">
                     <motion.button
                         onClick={onTogglePanel}
-                        className="p-2 rounded-lg text-white/60 hover:text-white hover:bg-white/5 transition-all duration-200" 
+                        className="p-2 rounded-lg text-white/60 hover:text-white hover:bg-white/5 transition-all duration-200"
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
                     >
@@ -236,13 +245,28 @@ export function ControlPanel({
                     </>
                 )}
 
-                {activeTool === "cursor" && (
-                    <Suspense >
-                        <CursorMenu
-                            cursorConfig={cursorConfig}
-                            onCursorConfigChange={onCursorConfigChange || (() => {})}
-                            cursorData={cursorData}
-                            isRecordedVideo={isRecordedVideo}
+                {activeTool === "mockup" && (
+                    <Suspense fallback={<MockupMenuSkeleton />}>
+                        <MockupMenu
+                            mockupId={mockupId}
+                            mockupConfig={mockupConfig}
+                            onMockupChange={onMockupChange}
+                            onMockupConfigChange={onMockupConfigChange}
+                        />
+                    </Suspense>
+                )}
+
+                {activeTool === "videos" && (
+                    <Suspense fallback={<MockupMenuSkeleton />}>
+                        <VideosMenu
+                            onAddToTrack={onAddVideoToTrack}
+                            onRemoveFromTrack={onRemoveVideoFromTrack}
+                            onVideoUpload={onVideoUploadToLibrary}
+                            onVideoDeleteFromTrack={onVideoDeleteFromTrack}
+                            videosInTrackIds={videosInTrackIds}
+                            refreshTrigger={videosLibraryRefresh}
+                            isUploading={isVideoUploading}
+                            onVideoAudioToggle={onVideoAudioToggle}
                         />
                     </Suspense>
                 )}
@@ -273,7 +297,6 @@ export function ControlPanel({
                             onDeleteAudioTrack={onDeleteAudioTrack || (() => { })}
                             onToggleMuteOriginalAudio={onToggleMuteOriginalAudio || (() => { })}
                             onMasterVolumeChange={onMasterVolumeChange || (() => { })}
-                            videoHasAudioTrack={videoHasAudioTrack}
                         />
                     </Suspense>
                 )}
@@ -306,13 +329,13 @@ export function ControlPanel({
                     </>
                 )}
 
-                {activeTool === "mockup" && (
-                    <Suspense fallback={<MockupMenuSkeleton />}>
-                        <MockupMenu
-                            mockupId={mockupId}
-                            mockupConfig={mockupConfig}
-                            onMockupChange={onMockupChange}
-                            onMockupConfigChange={onMockupConfigChange}
+                {activeTool === "cursor" && (
+                    <Suspense >
+                        <CursorMenu
+                            cursorConfig={cursorConfig}
+                            onCursorConfigChange={onCursorConfigChange || (() => { })}
+                            cursorData={cursorData}
+                            isRecordedVideo={isRecordedVideo}
                         />
                     </Suspense>
                 )}

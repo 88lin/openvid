@@ -1,3 +1,5 @@
+import type { VideoTrackClip } from "./video-track.types";
+
 export type ExportQuality = "4k" | "2k" | "1080p" | "720p" | "480p" | "gif" | "webm-alpha";
 
 export interface TrimSettings {
@@ -10,7 +12,6 @@ export interface ExportSettings {
     fps?: number;
     trim?: TrimSettings;
     transparentBackground?: boolean;
-    // Audio settings
     muteOriginalAudio?: boolean;
     audioTracks?: Array<{
         audioUrl: string;
@@ -22,6 +23,8 @@ export interface ExportSettings {
     }>;
     masterVolume?: number;
     videoBlob?: Blob;
+    videoClips?: VideoTrackClip[];
+    videoClipBlobs?: Map<string, Blob>;
 }
 
 export interface ExportProgress {

@@ -290,7 +290,7 @@ export function PhotoPickerPopover({ onSelect }: PhotoPickerPopoverProps) {
                     </div>
 
                     <div className="px-4 py-2.5 border-t border-white/10 bg-white/5 shrink-0">
-                        <span className="text-[9px] text-white/30">
+                        <span className="text-[10px] text-white/30">
                             Fotos de{" "}
                             <a
                                 href="https://unsplash.com"

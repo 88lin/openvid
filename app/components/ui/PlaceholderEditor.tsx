@@ -23,7 +23,6 @@ export default function PlaceholderEditor({ onVideoUpload, isUploading = false }
         fileInputRef.current?.click();
     };
 
-    // --- Funciones del Drag & Drop ---
     const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
         e.stopPropagation();
@@ -38,7 +37,7 @@ export default function PlaceholderEditor({ onVideoUpload, isUploading = false }
 
     const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
-        e.stopPropagation(); // Previene que el navegador abra el archivo
+        e.stopPropagation();
     };
 
     const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {

@@ -9,7 +9,7 @@
 
 **Graba tu pantalla o sube un video, añade zooms suaves, mockups de dispositivo y fondos personalizados - exporta un demo cinematográfico listo para compartir.**
 
-[Demo en vivo](https://openvid.dev) · [Funcionalidades](#-funcionalidades) · [Instalación](#-inicio-rápido)
+[Demo en vivo](https://openvid.dev) · [Funcionalidades](#-funcionalidades) · [Instalación](#-inicio-rápido) · [Comunidad en Discord](https://discord.gg/f8KEyceS)
 
 </div>
 
@@ -144,9 +144,6 @@ Abre [http://localhost:3000](http://localhost:3000)
 
 ---
 
-## ☁️ ¿Cómo has utilizado CubePath?
-CubePath se utilizó para el despliegue y hosting de la aplicación. openvid corre completamente en el navegador (FFmpeg.wasm + Canvas API), por lo que CubePath sirve la app Next.js sin necesidad de backend propio, todo el procesamiento de video ocurre del lado del cliente.
-
 ## 💬 Comunidad
 ¡Cualquier contribución es bienvenida! Únete a nuestro servidor de **Discord** para coordinar ideas:
-[Invítame a Discord](https://discord.gg/f8KEyceS)
+[Únete a Discord](https://discord.gg/f8KEyceS)

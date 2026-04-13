@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion, Variants } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 
 const features = [
     "Grabación de pantalla",
@@ -45,37 +45,6 @@ export default function DemoVideo() {
             clearInterval(featureInterval);
         };
     }, []);
-
-    const tickerVariants: Variants = {
-        enter: {
-            y: 20,
-            opacity: 0,
-            filter: "blur(4px)",
-            scale: 0.95
-        },
-        center: {
-            y: 0,
-            opacity: 1,
-            filter: "blur(0px)",
-            scale: 1,
-            transition: {
-                y: { type: "spring", stiffness: 300, damping: 30 },
-                opacity: { duration: 0.2 },
-                filter: { duration: 0.3 }
-            }
-        },
-        exit: {
-            y: -20,
-            opacity: 0,
-            filter: "blur(4px)",
-            scale: 0.95,
-            transition: {
-                y: { type: "spring", stiffness: 300, damping: 30 },
-                opacity: { duration: 0.2 },
-                filter: { duration: 0.3 }
-            }
-        }
-    };
 
     return (
         <div className="w-full flex flex-col items-center mb-30">

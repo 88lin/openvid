@@ -226,7 +226,7 @@ button {
 
 .custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: rgb(58, 58, 58) transparent;
+  scrollbar-color: rgb(74, 73, 73) transparent;
 }
 
 @keyframes gradient-x {
