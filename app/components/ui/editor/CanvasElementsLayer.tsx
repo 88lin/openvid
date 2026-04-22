@@ -19,6 +19,8 @@ export function CanvasElementsLayer({
     elementDragStart,
     layerZIndex,
     hitTestOnly = false,
+    elementCorners: elementCornersProp,
+    setElementCorners: setElementCornersProp,
 }: {
     canvasContainerRef?: React.RefObject<HTMLDivElement | null>;
     canvasElements: CanvasElement[];
@@ -33,12 +35,17 @@ export function CanvasElementsLayer({
     setIsDraggingElementRotation: (dragging: boolean) => void;
     elementDragStart: React.MutableRefObject<{ x: number; y: number; initialX: number; initialY: number; initialRotation: number }>;
     layerZIndex: number;
-     hitTestOnly?: boolean;
+    hitTestOnly?: boolean;
+    elementCorners?: Record<string, Corner | null>;
+    setElementCorners?: React.Dispatch<React.SetStateAction<Record<string, Corner | null>>>;
 }) {
     const layerRef = useRef<HTMLDivElement>(null);
     const [refSize, setRefSize] = useState(0);
 
-    const [elementCorners, setElementCorners] = useState<Record<string, Corner>>({});
+    // Estado local como fallback si no se pasan las props (capas que no son hit)
+    const [localElementCorners, setLocalElementCorners] = useState<Record<string, Corner | null>>({});
+    const elementCorners = elementCornersProp ?? localElementCorners;
+    const setElementCorners = setElementCornersProp ?? setLocalElementCorners;
 
     useEffect(() => {
         const el = layerRef.current;
@@ -63,11 +70,11 @@ export function CanvasElementsLayer({
         }
     }, [canvasContainerRef]);
 
-const filteredElements = hitTestOnly 
-    ? canvasElements  // todos los elementos cuando es hit layer
-    : canvasElements.filter(element =>
-        behindVideo ? element.zIndex < VIDEO_Z_INDEX : element.zIndex >= VIDEO_Z_INDEX
-      );
+    const filteredElements = hitTestOnly
+        ? canvasElements
+        : canvasElements.filter(element =>
+            behindVideo ? element.zIndex < VIDEO_Z_INDEX : element.zIndex >= VIDEO_Z_INDEX
+        );
 
     if (filteredElements.length === 0) {
         return (
@@ -91,7 +98,7 @@ const filteredElements = hitTestOnly
             {[...filteredElements].sort((a, b) => a.zIndex - b.zIndex).map((element) => {
                 const isSelected = selectedElementId === element.id;
                 const isHovered = hoveredElementId === element.id;
-                const activeCorner: Corner = elementCorners[element.id] ?? "top-right";
+                const activeCorner: Corner | null = elementCorners[element.id] ?? null;
 
                 const wPx = toPx(element.width);
                 const hPx = toPx(element.height);
@@ -105,12 +112,14 @@ const filteredElements = hitTestOnly
                     transform: `translate(-50%, -50%) rotate(${element.rotation}deg)`,
                     zIndex: hitTestOnly ? element.zIndex : element.zIndex,
                     transition: isDraggingElement ? 'none' : 'transform 0.1s ease-out',
-                    // Cuando es hitTestOnly: invisible pero interactivo
                     ...(hitTestOnly ? { opacity: 0, pointerEvents: 'auto' } : {}),
                 };
 
                 const handleMouseEnter = () => setHoveredElementId(element.id);
-                const handleMouseLeave = () => setHoveredElementId(null);
+                const handleMouseLeave = () => {
+                    setHoveredElementId(null);
+                    setElementCorners(prev => ({ ...prev, [element.id]: null }));
+                };
                 const handleMouseMove = (e: React.MouseEvent<HTMLElement>) => {
                     const corner = getNearestCorner(e, element.rotation);
                     setElementCorners(prev => ({ ...prev, [element.id]: corner }));
@@ -146,7 +155,7 @@ const filteredElements = hitTestOnly
                     );
                 }
 
-                const rotationHandle = isSelected && onElementUpdate ? (
+                const rotationHandle = (isSelected || isHovered) && activeCorner && onElementUpdate ? (
                     <div
                         data-element-rotation
                         style={getCornerStyle(activeCorner, -14)}

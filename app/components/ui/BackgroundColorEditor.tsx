@@ -199,7 +199,7 @@ function SortableStopList({ stops, onReorder, onColorChange, onPositionChange, o
 }
 
 export function BackgroundColorEditor({ value, onChange }: BackgroundColorEditorProps) {
-    const t = useTranslations("colorEditor"); // Inicializar traducciones
+    const t = useTranslations("colorEditor");
     const [mode, setMode] = useState<"solid" | "gradient">(
         value?.type === "solid" ? "solid" : "gradient"
     );

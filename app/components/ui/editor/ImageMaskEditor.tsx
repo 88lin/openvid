@@ -14,14 +14,18 @@ import {
 import type { ImageMaskConfig } from "@/types/photo.types";
 import { getMediaMaskStyles } from "./getMediaMaskStyles";
 import { ImageMaskEditorProps, MaskPreset, MASK_PRESETS } from "@/types/ImageMask.types";
+import { TooltipAction } from "@/components/ui/tooltip-action";
+import { useTranslations } from "next-intl"; 
 
-export function ImageMaskEditor({ 
-    maskConfig, 
-    onMaskConfigChange, 
+export function ImageMaskEditor({
+    maskConfig,
+    onMaskConfigChange,
     canvasImageUrl
 }: ImageMaskEditorProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<"presets" | "custom">("presets");
+    
+    const t = useTranslations("editor.imageMask");
 
     const isPresetActive = (preset: MaskPreset) => {
         if (preset.id === "none") {
@@ -76,20 +80,22 @@ export function ImageMaskEditor({
 
     return (
         <Popover open={isOpen} onOpenChange={setIsOpen}>
-            <PopoverTrigger asChild>
-                <Button
-                    variant="outline"
-                    className={`gap-2 text-xs transition-all duration-200 ${maskConfig.enabled
-                        ? "bg-gradient-radial-primary text-cyan-500 border border-cyan-500/50!"
-                        : ""
-                        }`}
-                    size="sm"
-                >
-                    <Icon icon="material-symbols:gradient-outline" width="16" />
-                    Mask
-                </Button>
-
-            </PopoverTrigger>
+            <TooltipAction label={t("tooltip")}>
+                <PopoverTrigger asChild>
+                    <Button
+                        variant="outline"
+                        className={`gap-2 text-xs transition-all duration-200 ${maskConfig.enabled
+                            ? "bg-gradient-radial-primary text-cyan-500 border border-cyan-500/50!"
+                            : ""
+                            }`}
+                        size="sm"
+                    >
+                        <Icon icon="material-symbols:gradient-outline" width="16" />
+                        {t("trigger")}
+                        <Icon icon="lucide:chevron-down" width="14" className="ml-auto opacity-50 shrink-0" />
+                    </Button>
+                </PopoverTrigger>
+            </TooltipAction>
 
             <PopoverContent align="end" className="w-100 bg-[#0A0A0A] border-white/10 shadow-2xl p-0 rounded-xl overflow-hidden">
                 <div className="flex flex-col">
@@ -97,7 +103,7 @@ export function ImageMaskEditor({
                         <div className="flex items-center justify-between">
                             <PopoverTitle className="text-xs font-semibold text-white/80 tracking-wide uppercase flex items-center gap-2">
                                 <Icon icon="material-symbols:gradient-outline" width="14" className="text-blue-400" />
-                                Efectos de Máscara
+                                {t("title")}
                             </PopoverTitle>
                         </div>
                     </PopoverHeader>
@@ -111,7 +117,7 @@ export function ImageMaskEditor({
                                 }`}
                         >
                             <Icon icon="mdi:palette-outline" width="14" className="inline mr-1.5" />
-                            Preestablecido
+                            {t("tabs.presets")}
                         </button>
                         <button
                             onClick={() => setActiveTab("custom")}
@@ -121,7 +127,7 @@ export function ImageMaskEditor({
                                 }`}
                         >
                             <Icon icon="mdi:tune" width="14" className="inline mr-1.5" />
-                            Personalizado
+                            {t("tabs.custom")}
                         </button>
                     </div>
 
@@ -136,18 +142,17 @@ export function ImageMaskEditor({
                                         <button
                                             key={preset.id}
                                             onClick={() => handlePresetClick(preset)}
-                                            className={`group relative flex flex-col rounded-lg border transition-all overflow-hidden ${
-                                                active
-                                                    ? "border-blue-500 bg-blue-500/10"
-                                                    : "border-white/10 hover:border-white/30 bg-white/5 hover:bg-white/10"
-                                            }`}
+                                            className={`group relative flex flex-col rounded-lg border transition-all overflow-hidden ${active
+                                                ? "border-blue-500 bg-blue-500/10"
+                                                : "border-white/10 hover:border-white/30 bg-white/5 hover:bg-white/10"
+                                                }`}
                                         >
                                             <div className="relative w-full aspect-video bg-zinc-900">
                                                 {canvasImageUrl ? (
                                                     <div className="absolute inset-0 flex items-center justify-center p-1">
                                                         <img
                                                             src={canvasImageUrl}
-                                                            alt={preset.label}
+                                                            alt={t(`presets.${preset.id}`)}
                                                             className="w-full h-full object-cover"
                                                             style={previewStyles}
                                                         />
@@ -164,7 +169,8 @@ export function ImageMaskEditor({
 
                                                 <div className="absolute inset-x-0 bottom-0 h-full flex items-end p-2 pointer-events-none">
                                                     <span className={`text-[10px] font-bold text-shadow-lg transition-colors leading-tight ${active ? "text-blue-400" : "text-white/90"}`}>
-                                                        {preset.label}
+                                                        {/* Aquí traducimos el nombre del preset usando su ID */}
+                                                        {t(`presets.${preset.id}`)}
                                                     </span>
                                                 </div>
 
@@ -180,9 +186,10 @@ export function ImageMaskEditor({
                             </div>
                         ) : (
                             <div className="space-y-4">
+                                {/* Controles de TOP */}
                                 <div className="space-y-2">
                                     <div className="flex items-center justify-between">
-                                        <label className="text-xs font-medium text-white/70">Top</label>
+                                        <label className="text-xs font-medium text-white/70">{t("controls.top")}</label>
                                         <button
                                             onClick={() => onMaskConfigChange({
                                                 ...maskConfig,
@@ -190,13 +197,13 @@ export function ImageMaskEditor({
                                             })}
                                             className="text-[10px] text-blue-400 hover:text-blue-300"
                                         >
-                                            {maskConfig.top ? "Quitar" : "Añadir"}
+                                            {maskConfig.top ? t("controls.remove") : t("controls.add")}
                                         </button>
                                     </div>
                                     {maskConfig.top && (
                                         <>
                                             <SliderControl
-                                                label="From"
+                                                label={t("controls.from")}
                                                 value={maskConfig.top.from}
                                                 onChange={(value) => onMaskConfigChange({
                                                     ...maskConfig,
@@ -208,7 +215,7 @@ export function ImageMaskEditor({
                                                 suffix="%"
                                             />
                                             <SliderControl
-                                                label="To"
+                                                label={t("controls.to")}
                                                 value={maskConfig.top.to ?? 100}
                                                 onChange={(value) => onMaskConfigChange({
                                                     ...maskConfig,
@@ -224,9 +231,10 @@ export function ImageMaskEditor({
                                 </div>
 
                                 <div className="space-y-2">
-                                    <hr />
+                                    <hr className="border-white/10" />
+                                    {/* Controles de BOTTOM */}
                                     <div className="flex items-center justify-between">
-                                        <label className="text-xs font-medium text-white/70">Bottom</label>
+                                        <label className="text-xs font-medium text-white/70">{t("controls.bottom")}</label>
                                         <button
                                             onClick={() => onMaskConfigChange({
                                                 ...maskConfig,
@@ -234,13 +242,13 @@ export function ImageMaskEditor({
                                             })}
                                             className="text-[10px] text-blue-400 hover:text-blue-300"
                                         >
-                                            {maskConfig.bottom ? "Quitar" : "Añadir"}
+                                            {maskConfig.bottom ? t("controls.remove") : t("controls.add")}
                                         </button>
                                     </div>
                                     {maskConfig.bottom && (
                                         <>
                                             <SliderControl
-                                                label="From"
+                                                label={t("controls.from")}
                                                 value={maskConfig.bottom.from}
                                                 onChange={(value) => onMaskConfigChange({
                                                     ...maskConfig,
@@ -252,7 +260,7 @@ export function ImageMaskEditor({
                                                 suffix="%"
                                             />
                                             <SliderControl
-                                                label="To"
+                                                label={t("controls.to")}
                                                 value={maskConfig.bottom.to ?? 100}
                                                 onChange={(value) => onMaskConfigChange({
                                                     ...maskConfig,
@@ -266,11 +274,12 @@ export function ImageMaskEditor({
                                         </>
                                     )}
                                 </div>
-                                <hr />
+                                <hr className="border-white/10" />
                                 <div className="grid grid-cols-2 gap-4">
+                                    {/* Controles de LEFT */}
                                     <div className="space-y-2">
                                         <div className="flex items-center justify-between">
-                                            <label className="text-xs font-medium text-white/70">Left</label>
+                                            <label className="text-xs font-medium text-white/70">{t("controls.left")}</label>
                                             <button
                                                 onClick={() => onMaskConfigChange({
                                                     ...maskConfig,
@@ -283,7 +292,7 @@ export function ImageMaskEditor({
                                         </div>
                                         {maskConfig.left && (
                                             <SliderControl
-                                                label="From"
+                                                label={t("controls.from")}
                                                 value={maskConfig.left.from}
                                                 onChange={(value) => onMaskConfigChange({
                                                     ...maskConfig,
@@ -297,9 +306,10 @@ export function ImageMaskEditor({
                                         )}
                                     </div>
 
+                                    {/* Controles de RIGHT */}
                                     <div className="space-y-2">
                                         <div className="flex items-center justify-between">
-                                            <label className="text-xs font-medium text-white/70">Right</label>
+                                            <label className="text-xs font-medium text-white/70">{t("controls.right")}</label>
                                             <button
                                                 onClick={() => onMaskConfigChange({
                                                     ...maskConfig,
@@ -312,7 +322,7 @@ export function ImageMaskEditor({
                                         </div>
                                         {maskConfig.right && (
                                             <SliderControl
-                                                label="From"
+                                                label={t("controls.from")}
                                                 value={maskConfig.right.from}
                                                 onChange={(value) => onMaskConfigChange({
                                                     ...maskConfig,

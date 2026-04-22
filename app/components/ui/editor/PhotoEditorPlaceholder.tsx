@@ -37,7 +37,6 @@ export function PhotoEditorPlaceholder({
 }: PhotoEditorPlaceholderProps) {
     const previewImageUrl = staticImageUrl ?? canvasImageUrl;
     const t = useTranslations("editor");
-
     const [customConfig, setCustomConfig] = useState<Preview3DConfig>({
         id: "custom",
         label: "Custom",
@@ -48,7 +47,6 @@ export function PhotoEditorPlaceholder({
         scale: 0.9,
         perspective: 600,
     });
-
     const [isCustomPopoverOpen, setIsCustomPopoverOpen] = useState(false);
 
     const isCustomUntouched =
@@ -71,8 +69,11 @@ export function PhotoEditorPlaceholder({
     );
 
     const allPreviews: Preview3DConfig[] = [
-        ...PREVIEW_CONFIGS.map(config => ({ ...config })),
-        customConfig,
+        { ...customConfig, label: t("photoPreview.custom.label") },
+        ...PREVIEW_CONFIGS.map(config => ({
+            ...config,
+            label: t(`photoPreview.configs.${config.id}`)
+        })),
     ];
 
     if (!previewImageUrl) {
@@ -101,27 +102,28 @@ export function PhotoEditorPlaceholder({
     const renderPreviewCard = (config: Preview3DConfig) => {
         const isSelected = selectedPreviewId === config.id;
         const isCustom = config.id === "custom";
-
         const ButtonCard = (
             <button
                 onClick={() => {
                     onSelectPreview?.(config);
                     if (isCustom) setIsCustomPopoverOpen(true);
                 }}
-                className={`group relative flex-1 min-w-25 aspect-video squircle-element p-px transition-all duration-300 ease-out outline-none ${isSelected
-                    ? `bg-gradient-radial-primary shadow-[0_0_20px_rgba(0,163,255,0.15)]`
-                    : isCustom && isCustomUntouched
-                        ? "bg-transparent border border-dashed border-white/20 hover:border-white/40"
-                        : "bg-white/10 hover:bg-white/20"
-                    }`}
+                className={`group relative shrink-0 w-32 sm:w-62 aspect-video squircle-element p-px transition-all duration-300 ease-out outline-none ${
+                    isSelected
+                        ? `shadow-[0_0_20px_rgba(0,163,255,0.15)]`
+                        : isCustom && isCustomUntouched
+                            ? "bg-gradient-radial-primary border border-dashed border-white/20 hover:border-white/40"
+                            : "bg-white/10 hover:bg-white/20"
+                }`}
             >
                 <div
-                    className={`relative w-full h-full rounded-[10px] overflow-hidden transition-colors ${isCustom && isCustomUntouched ? "bg-transparent" : "bg-black/90"
-                        }`}
+                    className={`relative w-full h-full rounded-[10px] overflow-hidden transition-colors ${
+                        isCustom && isCustomUntouched ? "bg-transparent" : "bg-black/90"
+                    }`}
                 >
                     {(!isCustom || !isCustomUntouched) && (
                         <div
-                            className="absolute inset-0 opacity-[0.17] pointer-events-none group-hover:opacity-[0.3] transition-opacity duration-300"
+                            className="absolute inset-0 opacity-10 pointer-events-none group-hover:opacity-[0.3] transition-opacity duration-300"
                             style={{
                                 backgroundImage: `radial-gradient(circle, #ffffff 0.8px, transparent 0.8px)`,
                                 backgroundSize: '10px 10px',
@@ -134,23 +136,24 @@ export function PhotoEditorPlaceholder({
                                 <Icon icon="mdi:tune-variant" width={14} className="text-white/60 group-hover:text-[#00A3EE] transition-colors" />
                             </div>
                             <span className="text-[10px] font-medium text-white/50 group-hover:text-white/80 transition-colors">
-                                Personalizar
+                                {t("photoPreview.custom.customize")}
                             </span>
                         </div>
                     ) : (
                         <>
                             <div className="absolute inset-0 bg-linear-to-br from-white/3 to-transparent" />
-
                             {isCustom && (
                                 <div className="absolute top-2 left-2 z-20 flex items-center gap-1 bg-black/60 backdrop-blur-md border border-white/10 px-1.5 py-0.5 rounded text-[9px] font-bold text-white/90 uppercase tracking-wider pointer-events-none shadow-lg">
                                     <Icon icon="mdi:tune" width={10} className="text-[#00A3EE]" />
-                                    Custom
+                                    {t("photoPreview.custom.customize")}
                                 </div>
                             )}
-
                             <div className="absolute inset-0 flex items-center justify-center p-2 z-10">
                                 <div
-                                    style={{ perspective: `${config.perspective || 600}px`, perspectiveOrigin: 'center center' }}
+                                    style={{
+                                        perspective: `${config.perspective || 600}px`,
+                                        perspectiveOrigin: 'center center'
+                                    }}
                                     className="w-full h-full flex items-center justify-center"
                                 >
                                     <div
@@ -161,11 +164,15 @@ export function PhotoEditorPlaceholder({
                                             transition: "transform 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94)",
                                         }}
                                     >
-                                        <img src={previewImageUrl!} alt={config.label} className="w-full h-full object-cover" draggable={false} />
+                                        <img
+                                            src={previewImageUrl!}
+                                            alt={config.label}
+                                            className="w-full h-full object-cover"
+                                            draggable={false}
+                                        />
                                     </div>
                                 </div>
                             </div>
-
                             <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-20" />
                             <div className="absolute bottom-2 left-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-1 group-hover:translate-y-0 pointer-events-none flex items-center gap-1.5 z-20">
                                 {!isCustom && <Icon icon="mdi:eye-outline" width={12} className="text-white/70" />}
@@ -175,7 +182,6 @@ export function PhotoEditorPlaceholder({
                             </div>
                         </>
                     )}
-
                     {isSelected && (
                         <div className={`absolute top-2 right-2 z-30 size-5 rounded-full bg-gradient-primary flex items-center justify-center shadow-xl`}>
                             <Icon icon="mdi:check-bold" width={12} className="text-white" />
@@ -191,23 +197,45 @@ export function PhotoEditorPlaceholder({
                     <PopoverTrigger asChild>
                         {ButtonCard}
                     </PopoverTrigger>
-                    <PopoverContent align="end" sideOffset={12} className="w-64 bg-[#0A0A0A] border-white/10 shadow-2xl p-4 space-y-4 rounded-xl z-50">
+                    <PopoverContent
+                        align="start" 
+                        sideOffset={12}
+                        className="w-64 bg-[#0A0A0A] border-white/10 shadow-2xl p-4 space-y-4 rounded-xl z-50"
+                    >
                         <PopoverHeader className="mb-2">
                             <PopoverTitle className="text-xs font-semibold text-white/80 tracking-wide uppercase flex items-center gap-2">
                                 <Icon icon="mdi:tune" width={14} className="text-[#00A3EE]" />
-                                Ajustes 3D
+                                {t("photoPreview.custom.title")}
                             </PopoverTitle>
                         </PopoverHeader>
 
                         <div className="space-y-4">
-                            <SliderControl icon="mdi:cube-outline" label="Perspectiva" value={customConfig.perspective || 600} min={200} max={1000} step={50} onChange={(value) => updateCustomConfig({ perspective: value })} suffix="px" />
-                            <SliderControl icon="mdi:resize" label="Escala" value={Math.round(customConfig.scale * 100)} min={50} max={150} step={5} onChange={(value) => updateCustomConfig({ scale: value / 100 })} suffix="%" />
+                            <SliderControl
+                                icon="mdi:cube-outline"
+                                label={t("photoPreview.custom.perspective")}
+                                value={customConfig.perspective || 600}
+                                min={200}
+                                max={1000}
+                                step={50}
+                                onChange={(value) => updateCustomConfig({ perspective: value })}
+                                suffix="px"
+                            />
 
-                            {/* Pad de Rotación 2D minimalista */}
+                            <SliderControl
+                                icon="mdi:resize"
+                                label={t("photoPreview.custom.scale")}
+                                value={Math.round(customConfig.scale * 100)}
+                                min={50}
+                                max={150}
+                                step={5}
+                                onChange={(value) => updateCustomConfig({ scale: value / 100 })}
+                                suffix="%"
+                            />
+
                             <div className="space-y-2">
                                 <div className="flex items-center gap-1.5 text-[11px] text-white/50">
                                     <Icon icon="mdi:rotate-3d-variant" width={12} />
-                                    <span>Rotación (X/Y)</span>
+                                    <span>{t("photoPreview.custom.rotationXY")}</span>
                                 </div>
                                 <div
                                     className="relative w-full aspect-square bg-white/3 rounded-lg border border-white/10 cursor-crosshair overflow-hidden hover:bg-white/4 transition-colors"
@@ -215,7 +243,11 @@ export function PhotoEditorPlaceholder({
                                         const rect = e.currentTarget.getBoundingClientRect();
                                         const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
                                         const y = ((e.clientY - rect.top) / rect.height) * 2 - 1;
-                                        updateCustomConfig({ rotateY: Math.round(-x * 45), rotateX: Math.round(y * 45) });
+
+                                        updateCustomConfig({
+                                            rotateY: Math.round(-x * 45),
+                                            rotateX: Math.round(y * 45)
+                                        });
                                     }}
                                 >
                                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -224,25 +256,58 @@ export function PhotoEditorPlaceholder({
                                     </div>
                                     <div
                                         className={`absolute w-2.5 h-2.5 rounded-full bg-gradient-primary shadow-[0_0_10px_rgba(0,163,255,0.5)]`}
-                                        style={{ left: `${50 + (-customConfig.rotateY / 45) * 50}%`, top: `${50 + (customConfig.rotateX / 45) * 50}%`, transform: "translate(-50%, -50%)", transition: "all 0.1s ease-out" }}
+                                        style={{
+                                            left: `${50 + (-customConfig.rotateY / 45) * 50}%`,
+                                            top: `${50 + (customConfig.rotateX / 45) * 50}%`,
+                                            transform: "translate(-50%, -50%)",
+                                            transition: "all 0.1s ease-out"
+                                        }}
                                     />
                                 </div>
                             </div>
 
-                            <SliderControl icon="mdi:axis-z-rotate-clockwise" label="Rotación Z" value={customConfig.rotateZ} min={-45} max={45} step={5} onChange={(value) => updateCustomConfig({ rotateZ: value })} suffix="°" />
-                            <SliderControl icon="mdi:arrow-up-down" label="Vertical" value={customConfig.translateY} min={-10} max={10} step={1} onChange={(value) => updateCustomConfig({ translateY: value })} suffix="%" />
+                            <SliderControl
+                                icon="mdi:axis-z-rotate-clockwise"
+                                label={t("photoPreview.custom.rotationZ")}
+                                value={customConfig.rotateZ}
+                                min={-45}
+                                max={45}
+                                step={5}
+                                onChange={(value) => updateCustomConfig({ rotateZ: value })}
+                                suffix="°"
+                            />
+
+                            <SliderControl
+                                icon="mdi:arrow-up-down"
+                                label={t("photoPreview.custom.vertical")}
+                                value={customConfig.translateY}
+                                min={-10}
+                                max={10}
+                                step={1}
+                                onChange={(value) => updateCustomConfig({ translateY: value })}
+                                suffix="%"
+                            />
                         </div>
 
                         <button
                             onClick={() => {
-                                const resetConfig: Preview3DConfig = { id: "custom", label: "Custom", rotateX: 0, rotateY: 0, rotateZ: 0, translateY: 0, scale: 0.9, perspective: 600 };
+                                const resetConfig: Preview3DConfig = {
+                                    id: "custom",
+                                    label: t("photoPreview.custom.label"),
+                                    rotateX: 0,
+                                    rotateY: 0,
+                                    rotateZ: 0,
+                                    translateY: 0,
+                                    scale: 0.9,
+                                    perspective: 600
+                                };
                                 setCustomConfig(resetConfig);
                                 if (selectedPreviewId === "custom") onSelectPreview?.(resetConfig);
                             }}
                             className="w-full mt-4 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-[11px] text-white/60 hover:text-white transition-all flex items-center justify-center gap-2 border border-white/5"
                         >
                             <Icon icon="mdi:restore" width={14} />
-                            Restablecer
+                            {t("photoPreview.custom.reset")}
                         </button>
                     </PopoverContent>
                 </Popover>
@@ -254,11 +319,13 @@ export function PhotoEditorPlaceholder({
 
     return (
         <div className={`flex flex-col bg-black border-t border-white/10 ${className}`}>
-
             <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-3 border-b border-white/5">
                 <div className="flex items-center gap-2 text-white/60 whitespace-nowrap">
                     <Icon icon="mdi:tune-vertical" width={16} />
-                    <span className="text-xs font-semibold tracking-wide uppercase">Ajustes</span>
+                    <span className="text-xs font-semibold tracking-wide uppercase">
+                        {t("photoPreview.settings")}
+                    </span>
+
                     {imageMaskConfig && onImageMaskConfigChange && (
                         <ImageMaskEditor
                             maskConfig={imageMaskConfig}
@@ -268,46 +335,51 @@ export function PhotoEditorPlaceholder({
                     )}
 
                     {onToggle3DBackground && (
-                        <TooltipAction label="Aplicar efecto 3D">
+                        <TooltipAction label={t("photoPreview.apply3D")}>
                             <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() => onToggle3DBackground(!apply3DToBackground)}
-                                className={`px-2.5 py-2 text-xs font-medium squircle-element transition-all ${apply3DToBackground
-                                    ? "bg-gradient-radial-primary text-cyan-500 border border-cyan-500/50!"
-                                    : "bg-white/5 text-white/50 border border-white/10 hover:bg-white/10"
-                                    }`}
-                                aria-label="Aplicar efecto 3D"
+                                className={`px-2.5 py-2 text-xs font-medium squircle-element transition-all ${
+                                    apply3DToBackground
+                                        ? "bg-gradient-radial-primary text-cyan-500 border border-cyan-500/50!"
+                                        : "bg-white/5 text-white/50 border border-white/10 hover:bg-white/10"
+                                }`}
+                                aria-label={t("photoPreview.apply3D")}
                             >
                                 <Icon icon="mdi:layers" width={12} className="inline" />
-                                3D: Mockup
+                                {t("photoPreview.mockup3D")}
                             </Button>
                         </TooltipAction>
                     )}
 
-                    <TooltipAction label="Restablecer valores predeterminados">
+                    <TooltipAction label={t("photoPreview.resetDefaults")}>
                         <Button
                             variant="outline"
                             size="sm"
                             className="text-xs"
                             onClick={() => {
-                                const defaultCustom: Preview3DConfig = { id: "custom", label: "Custom", rotateX: 0, rotateY: 0, rotateZ: 0, translateY: 0, scale: 0.9, perspective: 600 };
+                                const defaultCustom: Preview3DConfig = {
+                                    id: "custom",
+                                    label: t("photoPreview.custom.label"),
+                                    rotateX: 0,
+                                    rotateY: 0,
+                                    rotateZ: 0,
+                                    translateY: 0,
+                                    scale: 0.9,
+                                    perspective: 600
+                                };
                                 setCustomConfig(defaultCustom);
                                 onReset?.();
                             }}
                         >
-                            <Icon
-                                icon="material-symbols:refresh-rounded"
-                                width={12}
-                            />
-                            Resetear
+                            <Icon icon="material-symbols:refresh-rounded" width={12} />
+                            {t("photoPreview.reset")}
                         </Button>
                     </TooltipAction>
-
                 </div>
 
                 <div className="flex flex-wrap items-center justify-end gap-2">
-
                     {onOpenCropper && (
                         <TooltipAction label={t("cropper.tooltip")}>
                             <Button
@@ -334,10 +406,9 @@ export function PhotoEditorPlaceholder({
                 </div>
             </div>
 
-            <div className="flex w-full gap-3 px-5 py-4 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
+            <div className="flex gap-3 px-5 py-4 overflow-x-auto custom-scrollbar mask-r-from-90% ">
                 {allPreviews.map(renderPreviewCard)}
             </div>
-
         </div>
     );
 }

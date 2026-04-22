@@ -6,6 +6,7 @@ import { Icon } from "@iconify/react";
 import { useTranslations } from "next-intl";
 import type { AspectRatio } from "@/types";
 import { TooltipAction } from "@/components/ui/tooltip-action";
+import { Button } from "@/components/ui/button";
 
 interface AspectRatioSelectProps {
     value: AspectRatio;
@@ -30,8 +31,8 @@ export function AspectRatioSelect({
         { id: "16:9", label: t("labels.youtube"), subLabel: "16:9" },
         { id: "9:16", label: t("labels.tiktok"), subLabel: "9:16" },
         { id: "1:1", label: t("labels.instagram"), subLabel: "1:1" },
-        { id: "4:3", label: "Estándar", subLabel: "4:3" },
-        { id: "3:4", label: "Retrato", subLabel: "3:4" },
+        { id: "4:3", label: t("labels.standard"), subLabel: "4:3" },
+        { id: "3:4", label: t("labels.portrait"), subLabel: "3:4" },
     ];
 
     const handleOpenChange = (open: boolean) => {
@@ -91,11 +92,11 @@ export function AspectRatioSelect({
         <Popover open={isOpen} onOpenChange={handleOpenChange}>
             <TooltipAction label={t("tooltip")}>
                 <PopoverTrigger asChild>
-                    <button className="flex items-center gap-2 h-8 px-3 text-xs font-medium border border-white/20 bg-black squircle-element hover:bg-accent hover:text-accent-foreground transition-colors w-full sm:w-auto">
+                    <Button variant="outline" size="sm" className="text-xs">
                         <Icon icon="mynaui:layout" width="16" className="shrink-0" />
                         <span className="truncate">{displayLabel}</span>
                         <Icon icon="lucide:chevron-down" width="14" className="ml-auto opacity-50 shrink-0" />
-                    </button>
+                    </Button>
                 </PopoverTrigger>
             </TooltipAction>
 

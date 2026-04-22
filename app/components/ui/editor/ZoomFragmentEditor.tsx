@@ -322,10 +322,10 @@ export function ZoomFragmentEditor({
 
                     {fragment.enable3D && (
                         <div className="space-y-3 pt-3 border-t border-gray-500/20">
-                            <SliderControl icon="mdi:brightness-6" label={t("effect3d.intensity")} value={fragment.perspective3DIntensity ?? 50} min={0} max={100} step={5} onChange={(value) => onUpdate({ perspective3DIntensity: value })} suffix="%" />
+                            <SliderControl icon="mdi:brightness-6" label={tCommon("effect3d.intensity")} value={fragment.perspective3DIntensity ?? 50} min={0} max={100} step={5} onChange={(value) => onUpdate({ perspective3DIntensity: value })} suffix="%" />
                             <div className="space-y-2">
                                 <div className="flex items-center gap-2 text-xs text-white/50">
-                                    <span>{t("effect3d.direction")}</span>
+                                    <span>{tCommon("effect3d.direction")}</span>
                                 </div>
                                 <div
                                     className="relative w-full aspect-square max-w-30 mx-auto bg-[#0A0A0A] rounded-md border border-[#262626] hover:border-[#404040] transition-colors cursor-crosshair overflow-hidden group"
@@ -345,7 +345,7 @@ export function ZoomFragmentEditor({
                                     </div>
                                     <div className="absolute w-2.5 h-2.5 bg-gray-300 rounded-full shadow-[0_0_8px_rgba(255,255,255,0.2)] transition-all duration-300 ease-out z-10" style={{ left: `${50 + (-(fragment.perspective3DAngleY ?? (-(fragment.focusX - 50) / 50 * 15)) / 45) * 50}%`, top: `${50 + ((fragment.perspective3DAngleX ?? ((fragment.focusY - 50) / 50 * 15)) / 45) * 50}%`, transform: 'translate(-50%, -50%)' }} />
                                 </div>
-                                <p className="text-[10px] text-white/30 text-center">{t("effect3d.directionHint")}</p>
+                                <p className="text-[10px] text-white/30 text-center">{tCommon("effect3d.directionHint")}</p>
                             </div>
                         </div>
                     )}

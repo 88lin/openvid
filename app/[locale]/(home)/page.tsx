@@ -38,7 +38,7 @@ export default function Home() {
       <div className="relative overflow-hidden bg-gradient-radial-primary w-full py-20 pb-40">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-250 h-[150%] rounded-[100%] blur-xl pointer-events-none "></div>
         <section className="w-full">
-          <div className="max-w-6xl mx-auto px-6 mb-14">
+          <div className="w-full sm:max-w-6xl mx-auto sm:px-6 mb-14">
             <EditorPreview />
           </div>
           {/* <BentoDemos /> */}

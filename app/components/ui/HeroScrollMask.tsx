@@ -106,7 +106,7 @@ export function HeroScrollMask() {
       ScrollTrigger.create({
         trigger: pinContainerRef.current,
         pin: true,
-        start: "top top",
+        start: "top top+=65px",
         end: "+=300%",
         scrub: 1,
         animation: timeline,
@@ -117,7 +117,10 @@ export function HeroScrollMask() {
   }, []);
 
   return (
-    <section ref={pinContainerRef} className="relative z-0 h-svh overflow-hidden bg-gradient-radial-primary transparent">
+    <section
+      ref={pinContainerRef}
+      className="relative z-0 h-[calc(100svh-80px)] overflow-hidden bg-gradient-radial-primary transparent"
+    >
       <div className="relative w-full h-svh overflow-hidden z-0 bg-transparent">
 
         {floatImages.map((img, id) => (
@@ -197,16 +200,15 @@ export function HeroScrollMask() {
                 <path d="M503.501 20.1523C500.655 10.8349 505.164 2.46105 513.757 0.411426C522.202 -1.60279 528.731 3.9868 528.028 12.6294C527.577 18.1794 523.214 23.1626 517.215 24.9798C511.545 26.6973 507.717 25.4373 503.501 20.1523Z" />
               </svg>
             </span>
-            <div className="absolute inset-0 w-full h-full z-10 overflow-hidden">
-              <div className="absolute inset-0 z-20 bg-linear-to-b from-transparent from-70% to-[#0C0C0D] pointer-events-none" />
-
+            <div className="absolute inset-0 w-full h-full z-10 overflow-hidden flex flex-col justify-center">
+              <div className="absolute inset-0 z-20 bg-linear-to-b from-transparent from-90% to-[#0C0C0D] pointer-events-none" />
               <video
                 ref={videoRef}
                 autoPlay
                 loop
                 muted
                 playsInline
-                className="w-full h-full object-cover"
+                className="w-full h-auto max-h-full object-contain"
               >
                 <source src="/images/pages/demo.mp4" type="video/mp4" />
               </video>

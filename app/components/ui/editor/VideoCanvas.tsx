@@ -8,7 +8,7 @@ import { ASPECT_RATIO_DIMENSIONS } from "@/types";
 import { getWallpaperUrl } from "@/lib/wallpaper.utils";
 import { drawRoundedRect, drawRoundedRectBottomOnly, calculateScaledPadding, applyCanvasBackground, getAspectRatioStyle, getMaxWidth, Corner, getCornerStyle, getNearestCorner } from "@/lib/canvas.utils";
 import { drawMockupToCanvas } from "@/lib/mockup-canvas.utils";
-import { speedToTransitionMs, ZOOM_EASING, calculateZoomPhaseState } from "@/types/zoom.types";
+import { speedToTransitionMs, ZOOM_EASING, calculateZoomPhaseState, zoomLevelToFactor } from "@/types/zoom.types";
 import type { ZoomFragment } from "@/types/zoom.types";
 import PlaceholderEditor from "../PlaceholderEditor";
 import { MockupWrapper } from "./mockups/MockupWrapper";
@@ -108,9 +108,13 @@ export const VideoCanvas = forwardRef<VideoCanvasHandle, VideoCanvasProps>(funct
         // Calculate 3-phase state
         const phaseState = calculateZoomPhaseState(activeZoomFragment, currentTime);
 
-        // Calculate translation to keep focus point centered
-        const translateX = (50 - phaseState.focusX) * (phaseState.scale - 1) * 2;
-        const translateY = (50 - phaseState.focusY) * (phaseState.scale - 1) * 2;
+        // CSS preview: transform-origin is center, so translate % is relative to element size.
+        // To pin focusX% to the screen center after scale(S) translate(TX%) with origin-center:
+        //   T(cx) · S · T(-cx) · T(txPx) maps focusPx to center
+        //   → txPx = cx - focusPx  (independent of scale)
+        // Expressed as percentage of the element: TX% = (50 - focusX)
+        const translateX = 50 - phaseState.focusX;
+        const translateY = 50 - phaseState.focusY;
 
         // During hold phase with movement, reduce transition to avoid jarring
         const isMoving = activeZoomFragment.movementEnabled && phaseState.phase === 'hold';
@@ -216,6 +220,7 @@ export const VideoCanvas = forwardRef<VideoCanvasHandle, VideoCanvasProps>(funct
     const dragStartPos = useRef({ x: 0, y: 0, initialRotation: 0, initialTranslateX: 0, initialTranslateY: 0 });
     const lastAngleRef = useRef<number | null>(null);
     const videoContainerRef = useRef<HTMLDivElement>(null);
+    const [elementCorners, setElementCorners] = useState<Record<string, Corner | null>>({});
 
     // Camera overlay refs / state
     const cameraVideoRef = useRef<HTMLVideoElement | null>(null);
@@ -947,26 +952,39 @@ export const VideoCanvas = forwardRef<VideoCanvasHandle, VideoCanvasProps>(funct
         const has3DEffect = zoomState.perspective > 0 && (zoomState.rotateX !== 0 || zoomState.rotateY !== 0);
         const hasZoom = zoomState.scale !== 1;
 
-        let focusPxX = 0, focusPxY = 0, fOffX = 0, fOffY = 0;
+        let focusPxX = 0, focusPxY = 0;
         if (hasZoom) {
             focusPxX = (zoomState.focusX / 100) * canvasWidth;
             focusPxY = (zoomState.focusY / 100) * canvasHeight;
-            fOffX = (zoomCenterX - focusPxX) * (zoomState.scale - 1);
-            fOffY = (zoomCenterY - focusPxY) * (zoomState.scale - 1);
+        }
+
+        // Find target scale from the active/previous zoom fragment.
+        // We need S_target to compute the pivot point that gives identity at S=1
+        // and pins the focus to the canvas center at S=S_target.
+        const activeFragment = zoomFragments.find(
+            f => frameTime >= f.startTime && frameTime <= f.endTime
+        ) ?? zoomFragments
+            .filter(f => f.endTime < frameTime)
+            .sort((a, b) => b.endTime - a.endTime)[0];
+        const targetScale = activeFragment ? zoomLevelToFactor(activeFragment.zoomLevel) : zoomState.scale;
+
+        let pivotX = zoomCenterX, pivotY = zoomCenterY;
+        if (hasZoom && targetScale > 1) {
+            pivotX = (targetScale * focusPxX - zoomCenterX) / (targetScale - 1);
+            pivotY = (targetScale * focusPxY - zoomCenterY) / (targetScale - 1);
         }
 
         const applyVideoZoom = (c: CanvasRenderingContext2D) => {
             if (hasZoom) {
-                c.translate(focusPxX, focusPxY);
+                c.translate(pivotX, pivotY);
                 c.scale(zoomState.scale, zoomState.scale);
-                c.translate(-focusPxX + fOffX / zoomState.scale, -focusPxY + fOffY / zoomState.scale);
+                c.translate(-pivotX, -pivotY);
             }
         };
 
         let fgCanvas: HTMLCanvasElement | null = null;
         let fgCtx: CanvasRenderingContext2D | null = null;
 
-        // 1. ELIMINAMOS renderScale. Usamos solo un margen fijo del 50% para el giro 3D.
         const BLEED_FACTOR = 1.5;
         const fgWidth = canvasWidth * BLEED_FACTOR;
         const fgHeight = canvasHeight * BLEED_FACTOR;
@@ -1211,29 +1229,12 @@ export const VideoCanvas = forwardRef<VideoCanvasHandle, VideoCanvasProps>(funct
                         perspectiveOrigin: 'center center',
                     }}
                 >
-                    <div className="absolute inset-0 overflow-hidden">
-                        <div className="absolute transition-all duration-200" style={{
-                            inset: backgroundBlur > 0 ? `-${backgroundBlur}px` : '0',
-                            ...(shouldShowCustomColor && backgroundColorCss
-                                ? backgroundColorCss.startsWith('#') || backgroundColorCss.startsWith('rgb')
-                                    ? { backgroundColor: backgroundColorCss }
-                                    : { backgroundImage: backgroundColorCss }
-                                : (shouldShowCustomImage || shouldShowUnsplashOverride)
-                                    ? {
-                                        backgroundImage: `url('${shouldShowCustomImage ? selectedImageUrl : unsplashOverrideUrl}')`,
-                                        backgroundSize: 'cover',
-                                        backgroundPosition: 'center',
-                                    }
-                                    : shouldShowWallpaper
-                                        ? {
-                                            backgroundImage: `url('${wallpaperUrl}')`,
-                                            backgroundSize: 'cover',
-                                            backgroundPosition: 'center',
-                                        }
-                                        : { backgroundColor: 'transparent' }),
-                            filter: backgroundBlur > 0 ? `blur(${backgroundBlur * 0.4}px)` : 'none',
-                        }} />
-                    </div>
+                    {!(mediaType === "image" && apply3DToBackground) && (
+                        <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+                            <div className="absolute transition-all duration-200" style={{ inset: backgroundBlur > 0 ? `-${backgroundBlur}px` : '0', ...(shouldShowCustomColor && backgroundColorCss ? backgroundColorCss.startsWith('#') || backgroundColorCss.startsWith('rgb') ? { backgroundColor: backgroundColorCss } : { backgroundImage: backgroundColorCss } : (shouldShowCustomImage || shouldShowUnsplashOverride) ? { backgroundImage: `url('${shouldShowCustomImage ? selectedImageUrl : unsplashOverrideUrl}')`, backgroundSize: 'cover', backgroundPosition: 'center', } : shouldShowWallpaper ? { backgroundImage: `url('${wallpaperUrl}')`, backgroundSize: 'cover', backgroundPosition: 'center', } : { backgroundColor: 'transparent' }), filter: backgroundBlur > 0 ? `blur(${backgroundBlur * 0.4}px)` : 'none', }} />
+                        </div>
+                    )}
+
                     {/* Zoom + translate layer (+ 3D transform for image mode when apply3DToBackground is true) */}
                     <div className="absolute inset-0 origin-center"
                         style={{
@@ -1248,6 +1249,12 @@ export const VideoCanvas = forwardRef<VideoCanvasHandle, VideoCanvasProps>(funct
                                 : zoomTransform.isMoving ? `transform ${zoomTransform.transitionMs}ms linear` : `transform ${zoomTransform.transitionMs}ms ${ZOOM_EASING}`,
                         }}
                     >
+                        {/* FONDO 3D: Solo se renderiza aquí adentro cuando el modo imagen 3D está activo */}
+                        {(mediaType === "image" && apply3DToBackground) && (
+                            <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ zIndex: 0, transform: 'translateZ(-1px)' }}>
+                                <div className="absolute transition-all duration-200" style={{ inset: '-50%', ...(shouldShowCustomColor && backgroundColorCss ? backgroundColorCss.startsWith('#') || backgroundColorCss.startsWith('rgb') ? { backgroundColor: backgroundColorCss } : { backgroundImage: backgroundColorCss } : (shouldShowCustomImage || shouldShowUnsplashOverride) ? { backgroundImage: `url('${shouldShowCustomImage ? selectedImageUrl : unsplashOverrideUrl}')`, backgroundSize: 'cover', backgroundPosition: 'center', } : shouldShowWallpaper ? { backgroundImage: `url('${wallpaperUrl}')`, backgroundSize: 'cover', backgroundPosition: 'center', } : { backgroundColor: 'transparent' }), filter: backgroundBlur > 0 ? `blur(${backgroundBlur * 0.4}px)` : 'none', }} />
+                            </div>
+                        )}
                         {/* Capa 2A: Canvas elements BEHIND video — sin rotación 3D */}
                         <CanvasElementsLayer
                             canvasContainerRef={canvasContainerRef}
@@ -1263,6 +1270,8 @@ export const VideoCanvas = forwardRef<VideoCanvasHandle, VideoCanvasProps>(funct
                             setIsDraggingElementRotation={setIsDraggingElementRotation}
                             elementDragStart={elementDragStart}
                             layerZIndex={1}
+                            elementCorners={elementCorners}
+                            setElementCorners={setElementCorners}
                         />
 
                         {/* 3D rotation layer — solo envuelve el mockup, el fondo queda plano */}
@@ -1479,6 +1488,8 @@ export const VideoCanvas = forwardRef<VideoCanvasHandle, VideoCanvasProps>(funct
                             setIsDraggingElementRotation={setIsDraggingElementRotation}
                             elementDragStart={elementDragStart}
                             layerZIndex={3}
+                            elementCorners={elementCorners}
+                            setElementCorners={setElementCorners}
                         />
 
                         {/* Capa HIT: invisible, todos los elementos, para recibir eventos */}
@@ -1497,6 +1508,8 @@ export const VideoCanvas = forwardRef<VideoCanvasHandle, VideoCanvasProps>(funct
                             elementDragStart={elementDragStart}
                             layerZIndex={100}
                             hitTestOnly={true}
+                            elementCorners={elementCorners}
+                            setElementCorners={setElementCorners}
                         />
 
                     </div>
