@@ -37,7 +37,7 @@ export function BentoDemos() {
   return (
     <section
       ref={containerRef}
-      className="grid place-content-center gap-4 p-[max(2vh,1.5rem)] w-full h-[80vh] min-h-115 grid-cols-[25%_30%_15%_25%] grid-rows-2 max-[690px]:h-[65vh] max-[470px]:grid-cols-2 max-[470px]:grid-rows-3 perspective-distant"
+      className="grid place-content-center gap-4 p-[max(2vh,1.5rem)] w-full h-[82vh] min-h-115 grid-cols-[25%_30%_15%_25%] grid-rows-2 max-[690px]:h-[65vh] max-[470px]:grid-cols-2 max-[470px]:grid-rows-3 perspective-distant"
     >
       {bentoItems.map((item, index) => (
         <div
