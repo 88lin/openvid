@@ -23,7 +23,7 @@ export default function GitHubBadge() {
     >
       <Icon icon="mdi:github" width="28" height="28" />
 
-      <div className="flex items-center gap-1 px-2 py-1 mt-1 text-xs rounded-md bg-gradient-to-r from-yellow-400 to-yellow-600 text-black font-semibold shadow-md">
+      <div className="flex items-center gap-1 px-2 py-1 mt-1 text-xs rounded-md bg-linear-to-r from-yellow-400 to-yellow-600 text-black font-semibold shadow-md tracking-tight">
         <Icon icon="mdi:star" width="12" height="12" />
         <span>{stars ?? "—"}</span>
       </div>
