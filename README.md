@@ -11,7 +11,7 @@
 
 **Record your screen or upload a video, add smooth zooms, device mockups, 3D effects, and custom backgrounds - export a cinematic demo ready to share.**
 
-[Live Demo](https://openvid.dev) · [Features](#-features) · [Installation](#-quick-start) · [Discord Community](https://discord.gg/f8KEyceS)
+[Live Demo](https://openvid.dev) · [Features](#-features) · [Installation](#-quick-start) · [Discord Community](https://discord.gg/kM5FtydGQ)
 
 </div>
 
