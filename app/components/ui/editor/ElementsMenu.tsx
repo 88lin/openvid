@@ -88,15 +88,19 @@ export function ElementsMenu({
 
     useEffect(() => {
         if (!isSyncing.current && selectedElement?.type === "svg" && onUpdateElement) {
+            // SVG elements are always square
             onUpdateElement(selectedElement.id, { width: shapeSize, height: shapeSize, color: shapeColor, opacity: shapeOpacity / 100 });
         }
     }, [shapeSize, shapeColor, shapeOpacity, selectedElement?.id, selectedElement?.type, onUpdateElement]);
 
     useEffect(() => {
         if (!isSyncing.current && selectedElement?.type === "image" && onUpdateElement) {
-            onUpdateElement(selectedElement.id, { width: imageSize, height: imageSize, opacity: imageOpacity / 100 });
+            // Maintain aspect ratio: calculate height based on original proportions
+            const aspectRatio = selectedElement.width / selectedElement.height;
+            const newHeight = aspectRatio > 0 ? imageSize / aspectRatio : imageSize;
+            onUpdateElement(selectedElement.id, { width: imageSize, height: newHeight, opacity: imageOpacity / 100 });
         }
-    }, [imageSize, imageOpacity, selectedElement?.id, selectedElement?.type, onUpdateElement]);
+    }, [imageSize, imageOpacity, selectedElement?.id, selectedElement?.type, selectedElement?.width, selectedElement?.height, onUpdateElement]);
 
     useEffect(() => {
         if (!isSyncing.current && selectedElement?.type === "text" && onUpdateElement) {
@@ -155,12 +159,27 @@ export function ElementsMenu({
         });
     }, []);
 
-    const handleAddUploadedImage = useCallback((image: UploadedImage) => {
+    const handleAddUploadedImage = useCallback(async (image: UploadedImage) => {
         const timestamp = Date.now();
+        let width = imageSize;
+        let height = imageSize;
+        await new Promise<void>((resolve) => {
+            const img = new Image();
+            img.onload = () => {
+                if (img.naturalWidth && img.naturalHeight) {
+                    const ar = img.naturalWidth / img.naturalHeight;
+                    if (ar >= 1) { height = imageSize / ar; }
+                    else { width = imageSize * ar; }
+                }
+                resolve();
+            };
+            img.onerror = () => resolve();
+            img.src = image.dataUrl;
+        });
         const newElement: ImageElement = {
             id: `image-${timestamp}-${Math.random().toString(36).substring(2, 9)}`,
             type: "image", category: "uploads", x: 50, y: 50,
-            width: imageSize, height: imageSize, rotation: 0,
+            width, height, rotation: 0,
             opacity: imageOpacity / 100, zIndex: timestamp, imagePath: image.dataUrl,
         };
         onAddElement(newElement);
@@ -194,12 +213,27 @@ export function ElementsMenu({
         onAddElement(newElement);
     }, [shapeSize, shapeOpacity, shapeColor, onAddElement]);
 
-    const handleAddImage = useCallback((item: { id: string; name: string; imagePath: string }, categoryId?: string) => {
+    const handleAddImage = useCallback(async (item: { id: string; name: string; imagePath: string }, categoryId?: string) => {
         const timestamp = Date.now();
+        let width = imageSize;
+        let height = imageSize;
+        await new Promise<void>((resolve) => {
+            const img = new Image();
+            img.onload = () => {
+                if (img.naturalWidth && img.naturalHeight) {
+                    const ar = img.naturalWidth / img.naturalHeight;
+                    if (ar >= 1) { height = imageSize / ar; }
+                    else { width = imageSize * ar; }
+                }
+                resolve();
+            };
+            img.onerror = () => resolve();
+            img.src = item.imagePath;
+        });
         const newElement: ImageElement = {
             id: `image-${timestamp}-${Math.random().toString(36).substring(2, 9)}`,
             type: "image", category: categoryId || "overlays", x: 50, y: 50,
-            width: imageSize, height: imageSize, rotation: 0,
+            width, height, rotation: 0,
             opacity: imageOpacity / 100, zIndex: timestamp, imagePath: item.imagePath,
         };
         onAddElement(newElement);

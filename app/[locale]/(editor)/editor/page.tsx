@@ -36,7 +36,7 @@ import { EditorTopBar } from "@/app/components/ui/editor/EditorTopBar";
 import { VideoCanvas } from "@/app/components/ui/editor/VideoCanvas";
 import { PlayerControls } from "@/app/components/ui/editor/PlayerControls";
 import { findValidFragmentPosition } from "@/app/components/ui/editor/ZoomFragmentTrackItem";
-import { LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { TimelineSkeleton } from "@/app/components/ui/Skeleton";
 import { AudioTrimModal } from "@/app/components/ui/editor/AudioTrimModal";
 import { VIDEO_Z_INDEX } from "@/lib/constants";
@@ -524,42 +524,69 @@ export default function Editor() {
         }
     }, [captureScreen, createProject]);
 
-    // Unified image upload handler - updates current project if exists, otherwise creates new
+    // Unified image upload handler - always creates a new history entry to preserve existing projects
     const handleImageUploadToCanvas = useCallback(async (file: File) => {
         try {
             const img = await createImageBitmap(file);
-
-            // If there's a current project, update it instead of creating a new one
-            if (currentProject && isPhotoMode) {
-                const updated = await saveCurrentProject({
-                    imageBlob: file,
-                    imageName: file.name,
-                    imageWidth: img.width,
-                    imageHeight: img.height,
-                });
-
-                if (updated) {
-                    setImageUrl(updated.imageDataUrl);
-                    setImageDimensions({ width: img.width, height: img.height });
+            const project = await createProject(
+                file,
+                file.name,
+                img.width,
+                img.height,
+                {
+                    backgroundTab,
+                    selectedWallpaper,
+                    backgroundBlur,
+                    selectedImageUrl,
+                    backgroundColorConfig,
+                    padding,
+                    roundedCorners,
+                    shadows,
+                    aspectRatio,
+                    customDimensions,
+                    cropArea,
+                    mockupId,
+                    mockupConfig,
+                    canvasElements,
+                    imageTransform: {
+                        rotation: videoTransform.rotation,
+                        translateX: videoTransform.translateX,
+                        translateY: videoTransform.translateY,
+                    },
+                    imagePreview3D: imageTransform,
+                    apply3DToBackground,
+                    imageMaskConfig,
                 }
-            } else {
-                // No current project, create a new one
-                const project = await createProject(
-                    file,
-                    file.name,
-                    img.width,
-                    img.height
-                );
+            );
 
-                if (project) {
-                    setImageUrl(project.imageDataUrl);
-                    setImageDimensions({ width: img.width, height: img.height });
-                }
+            if (project) {
+                setImageUrl(project.imageDataUrl);
+                setImageDimensions({ width: img.width, height: img.height });
             }
         } catch (error) {
             console.error("Failed to upload image:", error);
         }
-    }, [createProject, currentProject, isPhotoMode, saveCurrentProject]);
+    }, [
+        createProject,
+        backgroundTab,
+        selectedWallpaper,
+        backgroundBlur,
+        selectedImageUrl,
+        backgroundColorConfig,
+        padding,
+        roundedCorners,
+        shadows,
+        aspectRatio,
+        customDimensions,
+        cropArea,
+        mockupId,
+        mockupConfig,
+        canvasElements,
+        videoTransform,
+        imageTransform,
+        apply3DToBackground,
+        imageMaskConfig,
+    ]);
 
     // Handler for drag & drop images on canvas (photo mode only)
     const handleImageDrop = useCallback(async (files: FileList | File[]) => {
@@ -572,7 +599,12 @@ export default function Editor() {
             await handleImageUploadToCanvas(imageFile);
         }
     }, [isPhotoMode, handleImageUploadToCanvas]);
-
+    const selectCanvasElement = useCallback((id: string | null) => {
+        setSelectedElementId(id);
+        if (id) {
+            setActiveTool("elements");
+        }
+    }, []);
     // Image export handler - using html-to-image with fixed dimensions
     const handleImageExport = useCallback(async (
         format: ImageExportFormat,
@@ -638,6 +670,10 @@ export default function Editor() {
 
             const hasTransparentBackground = selectedWallpaper === -1;
 
+            // Temporarily deselect to exclude selection borders from the captured image
+            const prevSelection = selectedElementId;
+            if (prevSelection) selectCanvasElement(null);
+
             await new Promise(resolve => setTimeout(resolve, 50));
 
             const blob = await toBlob(previewContainer, {
@@ -649,6 +685,9 @@ export default function Editor() {
                 canvasHeight: exportHeight,
                 pixelRatio: 1,
             });
+
+            // Restore selection after capture
+            if (prevSelection) selectCanvasElement(prevSelection);
 
             originalSrcs.forEach((originalSrc, img) => {
                 img.src = originalSrc;
@@ -671,7 +710,7 @@ export default function Editor() {
             setImageExportProgress({ status: "error", progress: 0, message: `Export failed: ${errorMessage}` });
             setTimeout(() => setImageExportProgress({ status: "idle", progress: 0, message: "" }), 4000);
         }
-    }, [imageUrl, imageDimensions, selectedWallpaper, aspectRatio, customDimensions]);
+    }, [imageUrl, imageDimensions, selectedWallpaper, aspectRatio, customDimensions, selectedElementId, selectCanvasElement]);
     // Generate canvas snapshot for photo mode previews
     useEffect(() => {
         if (!isPhotoMode || !imageUrl || !canvasRef.current) {
@@ -951,13 +990,6 @@ export default function Editor() {
     const deleteCanvasElement = useCallback((id: string) => {
         setCanvasElements(prev => prev.filter(el => el.id !== id));
         setSelectedElementId(prev => prev === id ? null : prev);
-    }, []);
-
-    const selectCanvasElement = useCallback((id: string | null) => {
-        setSelectedElementId(id);
-        if (id) {
-            setActiveTool("elements");
-        }
     }, []);
 
     const [copiedElement, setCopiedElement] = useState<CanvasElement | null>(null);

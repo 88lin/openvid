@@ -91,11 +91,19 @@ export function CanvasElementsLayer({
             ref={setRefs}
             className="absolute inset-0"
             onClick={(e) => {
-                if (e.target === e.currentTarget && onElementSelect) onElementSelect(null);
+                if (e.target === e.currentTarget && onElementSelect) {
+                    onElementSelect(null);
+                }
             }}
             style={{ zIndex: layerZIndex, pointerEvents: 'none' }}
         >
-            {[...filteredElements].sort((a, b) => a.zIndex - b.zIndex).map((element) => {
+            {[...filteredElements].sort((a, b) => {
+                if (hitTestOnly) {
+                    if (a.id === selectedElementId) return 1;
+                    if (b.id === selectedElementId) return -1;
+                }
+                return a.zIndex - b.zIndex;
+            }).map((element) => {
                 const isSelected = selectedElementId === element.id;
                 const isHovered = hoveredElementId === element.id;
                 const activeCorner: Corner | null = elementCorners[element.id] ?? null;
@@ -112,7 +120,6 @@ export function CanvasElementsLayer({
                     transform: `translate(-50%, -50%) rotate(${element.rotation}deg)`,
                     zIndex: hitTestOnly ? element.zIndex : element.zIndex,
                     transition: isDraggingElement ? 'none' : 'transform 0.1s ease-out',
-                    ...(hitTestOnly ? { opacity: 0, pointerEvents: 'auto' } : {}),
                 };
 
                 const handleMouseEnter = () => setHoveredElementId(element.id);
@@ -126,7 +133,10 @@ export function CanvasElementsLayer({
                 };
                 const handleMouseDown = (e: React.MouseEvent<HTMLElement>) => {
                     if (!onElementSelect) return;
-                    if ((e.target as HTMLElement).closest('[data-element-rotation]')) return;
+                    if ((e.target as HTMLElement).closest('[data-element-rotation]')) {
+                        e.stopPropagation();
+                        return;
+                    }
                     e.preventDefault();
                     e.stopPropagation();
                     onElementSelect(element.id);
@@ -140,25 +150,11 @@ export function CanvasElementsLayer({
                     };
                 };
 
-                if (hitTestOnly) {
-                    return (
-                        <div
-                            key={element.id}
-                            data-canvas-element
-                            className="pointer-events-auto cursor-move"
-                            style={commonStyle}
-                            onMouseEnter={handleMouseEnter}
-                            onMouseLeave={handleMouseLeave}
-                            onMouseMove={handleMouseMove}
-                            onMouseDown={handleMouseDown}
-                        />
-                    );
-                }
-
-                const rotationHandle = (isSelected || isHovered) && activeCorner && onElementUpdate ? (
+                const rotationHandle = (isSelected) && activeCorner && onElementUpdate ? (
                     <div
                         data-element-rotation
-                        style={getCornerStyle(activeCorner, -14)}
+                        className="pointer-events-auto cursor-grab"
+                        style={{ ...getCornerStyle(activeCorner, -14), padding: '1px', margin: '-1px' }}
                         onMouseDown={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
@@ -183,26 +179,91 @@ export function CanvasElementsLayer({
                     />
                 ) : null;
 
+                if (hitTestOnly) {
+                    const TOP_Z_INDEX = 2147483647;
+
+                    const expandedHitArea = isSelected ? (
+                        <div
+                            className="absolute"
+                            style={{
+                                backgroundColor: 'rgba(0,0,0,0.002)',
+                                pointerEvents: 'auto'
+                            }}
+                        />
+                    ) : null;
+
+                    if (element.type === "text") {
+                        return (
+                            <div
+                                key={element.id}
+                                data-canvas-element
+                                className="absolute pointer-events-auto cursor-move select-none"
+                                style={{
+                                    left: `${element.x}%`,
+                                    top: `${element.y}%`,
+                                    transform: `translate(-50%, -50%) rotate(${element.rotation}deg)`,
+                                    zIndex: isSelected ? TOP_Z_INDEX : element.zIndex,
+                                    backgroundColor: isSelected ? 'rgba(0,0,0,0.002)' : 'transparent'
+                                }}
+                                onMouseEnter={handleMouseEnter}
+                                onMouseLeave={handleMouseLeave}
+                                onMouseMove={handleMouseMove}
+                                onMouseDown={handleMouseDown}
+                            >
+                                {expandedHitArea}
+
+                                <div
+                                    className="whitespace-nowrap pointer-events-none"
+                                    style={{
+                                        fontSize: refSize > 0 ? `${element.fontSize * (refSize / 1080)}px` : `${element.fontSize}px`,
+                                        fontFamily: element.fontFamily,
+                                        opacity: 0
+                                    }}
+                                >
+                                    {element.content}
+                                </div>
+
+                                {selectionBorder}
+                                {rotationHandle}
+                            </div>
+                        );
+                    }
+
+                    return (
+                        <div
+                            key={element.id}
+                            data-canvas-element
+                            className="absolute pointer-events-auto cursor-move"
+                            style={{
+                                ...commonStyle,
+                                zIndex: isSelected ? TOP_Z_INDEX : element.zIndex,
+                                backgroundColor: isSelected ? 'rgba(0,0,0,0.002)' : 'transparent'
+                            }}
+                            onMouseEnter={handleMouseEnter}
+                            onMouseLeave={handleMouseLeave}
+                            onMouseMove={handleMouseMove}
+                            onMouseDown={handleMouseDown}
+                        >
+                            {expandedHitArea}
+
+                            {selectionBorder}
+                            {rotationHandle}
+                        </div>
+                    );
+                }
                 if (element.type === "svg") {
                     const SvgComponent = SVG_COMPONENTS[(element as SvgElement).svgId];
                     return (
                         <div
                             key={element.id}
-                            data-canvas-element
-                            className="pointer-events-auto cursor-move"
+                            className="absolute pointer-events-none"
                             style={commonStyle}
-                            onMouseEnter={handleMouseEnter}
-                            onMouseLeave={handleMouseLeave}
-                            onMouseMove={handleMouseMove}
-                            onMouseDown={handleMouseDown}
                         >
                             {SvgComponent && (
                                 <div className="w-full h-full" style={{ opacity: element.opacity }}>
                                     <SvgComponent color={(element as SvgElement).color} className="w-full h-full" />
                                 </div>
                             )}
-                            {selectionBorder}
-                            {rotationHandle}
                         </div>
                     );
                 }
@@ -211,13 +272,8 @@ export function CanvasElementsLayer({
                     return (
                         <div
                             key={element.id}
-                            data-canvas-element
-                            className="pointer-events-auto cursor-move"
+                            className="absolute pointer-events-none"
                             style={commonStyle}
-                            onMouseEnter={handleMouseEnter}
-                            onMouseLeave={handleMouseLeave}
-                            onMouseMove={handleMouseMove}
-                            onMouseDown={handleMouseDown}
                         >
                             <img
                                 src={(element as ImageElement).imagePath}
@@ -226,8 +282,6 @@ export function CanvasElementsLayer({
                                 className="w-full h-full object-contain rounded"
                                 style={{ pointerEvents: 'none', opacity: element.opacity }}
                             />
-                            {selectionBorder}
-                            {rotationHandle}
                         </div>
                     );
                 }
@@ -236,8 +290,7 @@ export function CanvasElementsLayer({
                     return (
                         <div
                             key={element.id}
-                            data-canvas-element
-                            className="absolute pointer-events-auto cursor-move select-none"
+                            className="absolute pointer-events-none"
                             style={{
                                 left: `${element.x}%`,
                                 top: `${element.y}%`,
@@ -245,15 +298,11 @@ export function CanvasElementsLayer({
                                 zIndex: element.zIndex,
                                 transition: isDraggingElement ? 'none' : 'transform 0.1s ease-out',
                             }}
-                            onMouseEnter={handleMouseEnter}
-                            onMouseLeave={handleMouseLeave}
-                            onMouseMove={handleMouseMove}
-                            onMouseDown={handleMouseDown}
                         >
                             <div
                                 className="whitespace-nowrap"
                                 style={{
-                                    fontSize: `${element.fontSize}px`,
+                                    fontSize: refSize > 0 ? `${element.fontSize * (refSize / 1080)}px` : `${element.fontSize}px`,
                                     fontFamily: element.fontFamily,
                                     fontWeight: element.fontWeight === 'normal' ? 400 : element.fontWeight === 'medium' ? 500 : 700,
                                     textAlign: 'center',
@@ -264,13 +313,6 @@ export function CanvasElementsLayer({
                             >
                                 {element.content}
                             </div>
-                            {(isSelected || isHovered) && (
-                                <div
-                                    className={`absolute -inset-x-2 -inset-y-1 border pointer-events-none ${isSelected ? 'border-blue-500' : 'border-white/50'}`}
-                                    style={{ borderRadius: '2px' }}
-                                />
-                            )}
-                            {rotationHandle}
                         </div>
                     );
                 }

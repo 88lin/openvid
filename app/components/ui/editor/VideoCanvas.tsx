@@ -20,7 +20,7 @@ import { applyPerspective3D, disposePerspective3D } from "@/lib/perspective3d";
 import { RotationHandleIcon } from "@/components/ui/RotationHandleIcon";
 import { CanvasElementsLayer } from "./CanvasElementsLayer";
 import { EditorHoverTooltip } from "./EditorHoverTooltip";
-import { Icon } from "@iconify/react";
+import DropImage from "@/components/ui/DropImage";
 export type { VideoCanvasHandle, VideoCanvasProps };
 
 export const VideoCanvas = forwardRef<VideoCanvasHandle, VideoCanvasProps>(function VideoCanvas({
@@ -150,6 +150,7 @@ export const VideoCanvas = forwardRef<VideoCanvasHandle, VideoCanvasProps>(funct
 
     // On-canvas controls state
     const [isVideoHovered, setIsVideoHovered] = useState(false);
+    const [isVideoSelected, setIsVideoSelected] = useState(false);
 
     // Image zoom state (for photo mode)
     const [imageZoomScale, setImageZoomScale] = useState(1);
@@ -210,7 +211,7 @@ export const VideoCanvas = forwardRef<VideoCanvasHandle, VideoCanvasProps>(funct
     }, []);
     const [isDraggingVideo, setIsDraggingVideo] = useState(false);
     const [isDraggingRotation, setIsDraggingRotation] = useState(false);
-    const [videoHoverCorner, setVideoHoverCorner] = useState<Corner>("top-right");
+    const [videoHoverCorner, setVideoHoverCorner] = useState<Corner | null>("top-right");
     const dragStartPos = useRef({ x: 0, y: 0, initialRotation: 0, initialTranslateX: 0, initialTranslateY: 0 });
     const lastAngleRef = useRef<number | null>(null);
     const videoContainerRef = useRef<HTMLDivElement>(null);
@@ -246,6 +247,16 @@ export const VideoCanvas = forwardRef<VideoCanvasHandle, VideoCanvasProps>(funct
         vertical: number[];
         horizontal: number[];
     }>({ vertical: [], horizontal: [] });
+
+    // Wrapper for onElementSelect that also deselects the mockup/video
+    const handleElementSelect = (id: string | null) => {
+        if (id !== null) {
+            setIsVideoSelected(false);
+        }
+        if (onElementSelect) {
+            onElementSelect(id);
+        }
+    };
 
     // Drag & drop state for images (photo mode only)
     const [isDraggingOver, setIsDraggingOver] = useState(false);
@@ -1255,14 +1266,7 @@ export const VideoCanvas = forwardRef<VideoCanvasHandle, VideoCanvasProps>(funct
             onDrop={handleDrop}
         >
             {mediaType === "image" && isDraggingOver && (
-                <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm pointer-events-none">
-                    <div className="flex flex-col items-center gap-4 text-white mask-[radial-gradient(circle,black_50%,transparent_95%)]">
-                        <Icon icon="hugeicons:image-upload" width="120" />
-                        <div className="text-xl font-semibold uppercase tracking-wider">
-                            Suelta la imagen
-                        </div>
-                    </div>
-                </div>
+                <DropImage />
 
             )}
 
@@ -1290,8 +1294,13 @@ export const VideoCanvas = forwardRef<VideoCanvasHandle, VideoCanvasProps>(funct
                     containerType: 'size',
                 }}
                 onClick={(e) => {
-                    if (!(e.target as HTMLElement).closest('[data-canvas-element]') && !(e.target as HTMLElement).closest('[data-camera-overlay]') && onElementSelect) {
-                        onElementSelect(null);
+                    if (
+                        !(e.target as HTMLElement).closest('[data-canvas-element]') &&
+                        !(e.target as HTMLElement).closest('[data-camera-overlay]') &&
+                        !(e.target as HTMLElement).closest('[data-video-container]')
+                    ) {
+                        if (onElementSelect) onElementSelect(null);
+                        setIsVideoSelected(false);
                     }
                 }}
             >
@@ -1336,7 +1345,7 @@ export const VideoCanvas = forwardRef<VideoCanvasHandle, VideoCanvasProps>(funct
                             hoveredElementId={hoveredElementId}
                             isDraggingElement={isDraggingElement}
                             behindVideo={true}
-                            onElementSelect={onElementSelect}
+                            onElementSelect={handleElementSelect}
                             onElementUpdate={onElementUpdate}
                             setHoveredElementId={setHoveredElementId}
                             setIsDraggingElement={setIsDraggingElement}
@@ -1351,13 +1360,12 @@ export const VideoCanvas = forwardRef<VideoCanvasHandle, VideoCanvasProps>(funct
                         <div
                             className="absolute inset-0 origin-center"
                             style={{
-                                transform: zoomTransform.perspective > 0
-                                    ? `rotateX(${zoomTransform.rotateX}deg) rotateY(${zoomTransform.rotateY}deg)`
-                                    : 'none',
+                                transform: zoomTransform.perspective > 0 ? `rotateX(${zoomTransform.rotateX}deg) rotateY(${zoomTransform.rotateY}deg)` : 'none',
                                 transition: `transform ${zoomTransform.transitionMs}ms ${ZOOM_EASING}`,
                                 willChange: zoomTransform.perspective > 0 ? 'transform' : 'auto',
                                 transformStyle: 'preserve-3d',
-                                zIndex: 2
+                                zIndex: isVideoSelected ? 101 : 2,
+                                pointerEvents: 'none',
                             }}
                         >
                             {/* Capa 2B: Video con padding, esquinas redondeadas y sombras */}
@@ -1365,7 +1373,7 @@ export const VideoCanvas = forwardRef<VideoCanvasHandle, VideoCanvasProps>(funct
                                 className="absolute inset-0 flex items-center justify-center transition-all duration-200"
                                 style={{
                                     padding: `${padding * 0.5}%`,
-                                    zIndex: 2,
+                                    zIndex: isVideoSelected ? 101 : 2,
                                     pointerEvents: 'none',
                                     ...(mediaType === "image" && imageTransform && !apply3DToBackground ? {
                                         perspective: `${imageTransform.perspective || 600}px`,
@@ -1375,6 +1383,7 @@ export const VideoCanvas = forwardRef<VideoCanvasHandle, VideoCanvasProps>(funct
                             >
                                 <div
                                     ref={videoContainerRef}
+                                    data-video-container
                                     className="relative flex w-full h-full items-center justify-center max-w-full max-h-full"
                                     style={{
                                         transform: mediaType === "image" && imageTransform && !apply3DToBackground
@@ -1396,13 +1405,19 @@ export const VideoCanvas = forwardRef<VideoCanvasHandle, VideoCanvasProps>(funct
                                         transformStyle: mediaType === "image" && !apply3DToBackground ? 'preserve-3d' : undefined,
                                     }}
                                     onMouseEnter={() => hasMedia && setIsVideoHovered(true)}
-                                    onMouseLeave={() => setIsVideoHovered(false)}
+                                    onMouseLeave={() => {
+                                        setIsVideoHovered(false);
+                                        setVideoHoverCorner(null);
+                                    }}
                                     onMouseDown={(e) => {
                                         if (!hasMedia || !onVideoTransformChange) return;
                                         // Only start dragging if not clicking on rotation handle
                                         if ((e.target as HTMLElement).closest('[data-rotation-handle]')) return;
 
                                         e.preventDefault();
+                                        setIsVideoSelected(true);
+                                        if (onElementSelect) onElementSelect(null);
+                                        setVideoHoverCorner(getNearestCorner(e, videoTransform.rotation));
                                         setIsDraggingVideo(true);
                                         dragStartPos.current = {
                                             x: e.clientX,
@@ -1415,7 +1430,7 @@ export const VideoCanvas = forwardRef<VideoCanvasHandle, VideoCanvasProps>(funct
                                     onMouseMove={(e) => { if (hasMedia) setVideoHoverCorner(getNearestCorner(e, videoTransform.rotation)); }}
                                 >
                                     <div className="relative">
-                                        {isVideoHovered && hasMedia && onVideoTransformChange && (
+                                        {isVideoSelected && videoHoverCorner && hasMedia && onVideoTransformChange && !isDraggingVideo && !isDraggingRotation && (
                                             <div
                                                 data-rotation-handle
                                                 style={getCornerStyle(videoHoverCorner, -14)}
@@ -1444,9 +1459,9 @@ export const VideoCanvas = forwardRef<VideoCanvasHandle, VideoCanvasProps>(funct
                                                 </div>
                                             </div>
                                         )}
-                                        {isVideoHovered && hasMedia && !isDraggingVideo && !isDraggingRotation && (
+                                        {(isVideoSelected || isVideoHovered) && hasMedia && !isDraggingRotation && (
                                             <div
-                                                className="absolute -inset-px border border-white pointer-events-none z-10 opacity-80"
+                                                className={`absolute -inset-px border pointer-events-none z-10 opacity-80 ${isVideoSelected ? 'border-blue-500' : 'border-white'}`}
                                                 style={{ borderRadius: `${roundedCorners + 1}px` }}
                                             />
                                         )}
@@ -1554,7 +1569,7 @@ export const VideoCanvas = forwardRef<VideoCanvasHandle, VideoCanvasProps>(funct
                             hoveredElementId={hoveredElementId}
                             isDraggingElement={isDraggingElement}
                             behindVideo={false}
-                            onElementSelect={onElementSelect}
+                            onElementSelect={handleElementSelect}
                             onElementUpdate={onElementUpdate}
                             setHoveredElementId={setHoveredElementId}
                             setIsDraggingElement={setIsDraggingElement}
@@ -1573,7 +1588,7 @@ export const VideoCanvas = forwardRef<VideoCanvasHandle, VideoCanvasProps>(funct
                             hoveredElementId={hoveredElementId}
                             isDraggingElement={isDraggingElement}
                             behindVideo={true}
-                            onElementSelect={onElementSelect}
+                            onElementSelect={handleElementSelect}
                             onElementUpdate={onElementUpdate}
                             setHoveredElementId={setHoveredElementId}
                             setIsDraggingElement={setIsDraggingElement}

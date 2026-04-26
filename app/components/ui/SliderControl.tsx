@@ -9,10 +9,10 @@ interface SliderControlProps {
     value: number;
     min?: number;
     max?: number;
-    step?: number; // Step for decimal values (default: 1)
-    suffix?: string; // Optional suffix to display after value (e.g., "%", "px")
+    step?: number;
+    suffix?: string;
     onChange?: (value: number) => void;
-    onChangeEnd?: () => void; // Called when dragging ends
+    onChangeEnd?: () => void;
 }
 
 export function SliderControl({ icon, label, value, min = 0, max = 100, step = 1, suffix = "", onChange, onChangeEnd }: SliderControlProps) {
@@ -48,7 +48,7 @@ export function SliderControl({ icon, label, value, min = 0, max = 100, step = 1
 
         const handleMouseUp = () => {
             setIsDragging(false);
-            onChangeEnd?.(); // Notify parent that dragging ended
+            onChangeEnd?.();
         };
 
         document.addEventListener('mousemove', handleMouseMove);

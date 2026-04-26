@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { Icon } from "@iconify/react";
 import * as Dialog from "@radix-ui/react-dialog";
 import type { ControlPanelProps } from "@/types/control-panel.types";
-import { LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 
 interface MobileControlPanelProps extends ControlPanelProps {
     isOpen: boolean;

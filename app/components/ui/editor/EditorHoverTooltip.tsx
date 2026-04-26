@@ -1,10 +1,13 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 interface EditorHoverTooltipProps {
     show: boolean;
 }
 
 export function EditorHoverTooltip({ show }: EditorHoverTooltipProps) {
+    const t = useTranslations("editor.hoverTooltip");
     if (!show) return null;
 
     return (
@@ -26,7 +29,8 @@ export function EditorHoverTooltip({ show }: EditorHoverTooltipProps) {
                 <div className="w-px h-4 bg-white/30" />
 
                 <div className="flex items-center gap-3">
-                    <span className="text-[11px] text-white/70 font-medium tracking-tight">Pegar</span>
+                    <span className="text-[11px] text-white/70 font-medium tracking-tight"><span>{t("paste")}</span>
+                    </span>
                     <div className="flex items-center gap-1">
                         <kbd className="h-5 px-1.5 flex items-center justify-center bg-[#171717] rounded border border-white/30 text-[9px] text-white font-mono">
                             Ctrl

@@ -927,6 +927,9 @@
         "from": "Desde",
         "to": "Hasta"
       }
+    },
+    "hoverTooltip": {
+      "paste": "Pegar"
     }
   },
   "historyMenu": {
