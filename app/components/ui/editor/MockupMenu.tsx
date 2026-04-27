@@ -176,7 +176,7 @@ export function MockupMenu({
                           </div>
                         </div>
                         <div className="absolute inset-0 group-hover:bg-black/5 transition-colors pointer-events-none" />
-                        <div className="absolute bottom-0 left-0 bg-black/60 backdrop-blur-md border-t border-r border-white/10 px-2 py-1 text-[9px] text-white/80 font-bold tracking-tighter rounded-tr-md rounded-bl-lg z-30">
+                        <div className="absolute bottom-0 left-0 bg-black/60 border-t border-r border-white/10 px-2 py-1 text-[9px] text-white/80 font-bold tracking-tighter rounded-tr-md rounded-bl-lg z-30">
                           {mockup.name}
                         </div>
                         {isActive && (

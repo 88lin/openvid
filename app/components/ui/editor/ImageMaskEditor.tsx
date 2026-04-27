@@ -12,10 +12,10 @@ import {
     PopoverTitle,
 } from "@/components/ui/popover";
 import type { ImageMaskConfig } from "@/types/photo.types";
-import { getMediaMaskStyles } from "./getMediaMaskStyles";
 import { ImageMaskEditorProps, MaskPreset, MASK_PRESETS } from "@/types/ImageMask.types";
 import { TooltipAction } from "@/components/ui/tooltip-action";
-import { useTranslations } from "next-intl"; 
+import { useTranslations } from "next-intl";
+import { GetMediaMaskStyles } from "./GetMediaMaskStyles";
 
 export function ImageMaskEditor({
     maskConfig,
@@ -24,7 +24,7 @@ export function ImageMaskEditor({
 }: ImageMaskEditorProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<"presets" | "custom">("presets");
-    
+
     const t = useTranslations("editor.imageMask");
 
     const isPresetActive = (preset: MaskPreset) => {
@@ -66,7 +66,7 @@ export function ImageMaskEditor({
 
     const getPreviewMaskStyles = (presetConfig: Partial<ImageMaskConfig>) => {
         if (!presetConfig.enabled) return {};
-        return getMediaMaskStyles({
+        return GetMediaMaskStyles({
             enabled: true,
             top: presetConfig.top,
             bottom: presetConfig.bottom,
