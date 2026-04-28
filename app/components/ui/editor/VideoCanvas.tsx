@@ -1289,7 +1289,7 @@ export const VideoCanvas = forwardRef<VideoCanvasHandle, VideoCanvasProps>(funct
         } else {
             const radius =
                 cameraConfig.shape === "squircle"
-                    ? Math.round(75 * sizeMultiplier)
+                    ? Math.round(85 * sizeMultiplier)
                     : Math.round(6 * sizeMultiplier);
 
             drawRoundedRect(ctx, drawX, drawY, size, size, radius);
@@ -2019,6 +2019,13 @@ export const VideoCanvas = forwardRef<VideoCanvasHandle, VideoCanvasProps>(funct
                                 .forEach(e => { if (onElementUpdate) onElementUpdate(e.id, { groupId: undefined }); });
                         }}
                         toolbar={layersPanelToolbar}
+                        videoLayerVisible={!!(videoUrl || imageUrl)}
+                        isVideoLayerSelected={selectedElementId === null && canvasSelectedIds.length === 0}
+                        onVideoLayerSelect={() => {
+                            handleElementSelect(null);
+                            setCanvasSelectedIds([]);
+                        }}
+                        mediaType={mediaType}
                     />
                 </div>
 

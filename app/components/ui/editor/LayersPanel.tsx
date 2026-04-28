@@ -26,6 +26,10 @@ export function LayersPanel({
     onUngroup,
     onSetGroupId,
     toolbar,
+    videoLayerVisible = false,
+    onVideoLayerSelect,
+    isVideoLayerSelected = false,
+    mediaType = "video",
 }: LayersPanelProps) {
     const t = useTranslations("editor")
     const [isOpen, setIsOpen] = useState(true);
@@ -133,15 +137,23 @@ export function LayersPanel({
 
     type VisualRow =
         | { kind: "element"; id: string }
-        | { kind: "group"; groupId: string };
+        | { kind: "group"; groupId: string }
+        | { kind: "video" };
 
     const visualRows = useMemo<VisualRow[]>(() => {
         const renderedGroupIds = new Set<string>();
         const rows: VisualRow[] = [];
 
+        let videoInserted = false;
+
         for (const id of displayOrder) {
             const el = elementsById[id];
             if (!el) continue;
+
+            if (!videoInserted && videoLayerVisible && el.zIndex < 1000) {
+                rows.push({ kind: "video" });
+                videoInserted = true;
+            }
 
             if (el.groupId) {
                 if (!renderedGroupIds.has(el.groupId)) {
@@ -159,8 +171,13 @@ export function LayersPanel({
                 rows.push({ kind: "element", id: el.id });
             }
         }
+
+        if (!videoInserted && videoLayerVisible) {
+            rows.push({ kind: "video" });
+        }
+
         return rows;
-    }, [displayOrder, elementsById, collapsedGroups]);
+    }, [displayOrder, elementsById, collapsedGroups, videoLayerVisible]);
 
     useEffect(() => {
         if (!pointerDrag) return;
@@ -179,6 +196,8 @@ export function LayersPanel({
             const INTO_ZONE = 0.30;
 
             visualRows.forEach((row, i) => {
+                if (row.kind === "video") return;
+
                 const key = row.kind === "element" ? row.id : `group:${row.groupId}`;
                 if (key === drag.id) return;
                 const el = rowRefs.current.get(key);
@@ -214,6 +233,20 @@ export function LayersPanel({
                     }
                 }
             });
+
+            if (!drag.isGroup && !intoGroupId && dropIdx > 0 && dropIdx < visualRows.length) {
+                const prevRow = visualRows[dropIdx - 1];
+                const nextRow = visualRows[dropIdx];
+
+                if (prevRow.kind === "element" && nextRow.kind === "element") {
+                    const prevEl = elementsById[prevRow.id];
+                    const nextEl = elementsById[nextRow.id];
+
+                    if (prevEl?.groupId && prevEl.groupId === nextEl?.groupId) {
+                        intoGroupId = prevEl.groupId;
+                    }
+                }
+            }
 
             const updated: PointerDragState = {
                 ...drag,
@@ -284,6 +317,7 @@ export function LayersPanel({
             }
 
             const isRowDragged = (r: VisualRow) => {
+                if (r.kind === "video") return false;
                 if (r.kind === "element") return movingSet.has(r.id);
                 if (r.kind === "group") {
                     const firstMember = displayOrder.find(
@@ -334,9 +368,12 @@ export function LayersPanel({
     const startPointerDrag = useCallback(
         (e: React.MouseEvent, id: string, isGroup: boolean) => {
             if (e.button !== 0) return;
-            const vIdx = visualRows.findIndex((r) =>
-                r.kind === "element" ? r.id === id : `group:${r.groupId}` === id
-            );
+            const vIdx = visualRows.findIndex((r) => {
+                if (r.kind === "video") return false;
+                if (r.kind === "element") return r.id === id;
+                if (r.kind === "group") return `group:${r.groupId}` === id;
+                return false;
+            });
             isDraggingRef.current = true;
             const drag: PointerDragState = {
                 id, isGroup,
@@ -376,6 +413,47 @@ export function LayersPanel({
         setSelectedIds([]);
         setCtxMenu(null);
     }, [selectedIds, onDelete]);
+
+    const renderVideoRow = useCallback(
+        (vIdx: number) => {
+            const isDropTarget = pointerDrag?.active && pointerDrag.dropIndex === vIdx;
+            const isSelected = isVideoLayerSelected;
+
+            return (
+                <div
+                    key="video-layer"
+                    ref={(node) => {
+                        if (node) rowRefs.current.set("video-layer", node);
+                        else rowRefs.current.delete("video-layer");
+                    }}
+                    onClick={() => {
+                        if (pointerDragRef.current?.active) return;
+                        onVideoLayerSelect?.();
+                    }}
+                    data-layer-row="video-layer"
+                    className={[
+                        "group relative flex items-center gap-1.5 h-7 px-2 rounded-md cursor-pointer select-none transition-all duration-100",
+                        isSelected
+                            ? "bg-[#00A3FF]/15 text-white"
+                            : "text-neutral-400 hover:bg-white/5 hover:text-neutral-200",
+                    ].join(" ")}
+                >
+                    {isDropTarget && (
+                        <div className="absolute -top-px left-0 right-0 h-0.5 rounded-full bg-blue-400 pointer-events-none z-10" />
+                    )}
+                    <div className="shrink-0 w-3 opacity-0" />
+                    <Icon
+                        icon={TYPE_ICON.video}
+                        className={`size-3.5 shrink-0 ${isSelected ? "text-[#00A3FF]" : "text-neutral-500"}`}
+                    />
+                    <span className="flex-1 text-[11px] truncate">
+                        {mediaType === "video" ? t("layerPanel.videoLayer") : t("layerPanel.imageLayer")}
+                    </span>
+                </div>
+            );
+        },
+        [pointerDrag, isVideoLayerSelected, onVideoLayerSelect, mediaType, t]
+    );
 
     const renderLayerRow = useCallback(
         (el: CanvasElement, isGroupChild: boolean, vIdx: number) => {
@@ -571,9 +649,17 @@ export function LayersPanel({
                         const rows: React.ReactNode[] = [];
                         let groupCounter = 0;
                         let vIdx = 0;
+                        let videoInserted = false;
+
                         for (const id of displayOrder) {
                             const el = elementsById[id];
                             if (!el) continue;
+
+                            if (!videoInserted && videoLayerVisible && el.zIndex >= 1000) {
+                                rows.push(renderVideoRow(vIdx++));
+                                videoInserted = true;
+                            }
+
                             if (el.groupId) {
                                 if (renderedGroupIds.has(el.groupId)) {
                                     continue;
@@ -677,6 +763,11 @@ export function LayersPanel({
                                 rows.push(renderLayerRow(el, false, currentVIdx));
                             }
                         }
+
+                        if (!videoInserted && videoLayerVisible) {
+                            rows.push(renderVideoRow(vIdx++));
+                        }
+
                         if (pointerDrag?.active && pointerDrag.dropIndex === visualRows.length) {
                             rows.push(
                                 <div key="drop-indicator-bottom" className="relative">
