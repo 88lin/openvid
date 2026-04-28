@@ -1,9 +1,8 @@
 "use client";
 
 import { Icon } from "@iconify/react";
-import { useCallback, useRef, useState, useEffect } from "react";
+import { useCallback, useRef, useState } from "react";
 import type { AudioMenuProps, AudioTrack } from "@/types/audio.types";
-import { SliderControl } from "../SliderControl";
 import { AudioTrimModal } from "./AudioTrimModal";
 import { Button } from "@/components/ui/button";
 import { TooltipAction } from "@/components/ui/tooltip-action";
@@ -13,29 +12,16 @@ import { useTranslations } from "next-intl";
 export function AudioMenu({
     audioTracks,
     uploadedAudios,
-    muteOriginalAudio,
-    masterVolume,
     videoDuration,
     onAudioUpload,
     onUpdateAudioTrack,
     onDeleteAudioTrack,
-    onToggleMuteOriginalAudio,
-    onMasterVolumeChange,
 }: AudioMenuProps) {
     const t = useTranslations("audioMenu");
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [selectedTrackId, setSelectedTrackId] = useState<string | null>(null);
     const [trimModalOpen, setTrimModalOpen] = useState(false);
     const [trimModalTrack, setTrimModalTrack] = useState<AudioTrack | null>(null);
-    const [internalMasterVolume, setInternalMasterVolume] = useState(masterVolume * 100);
-
-    useEffect(() => {
-        const externalValue = masterVolume * 100;
-        if (Math.abs(internalMasterVolume - externalValue) > 1) {
-            setInternalMasterVolume(externalValue);
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [masterVolume]);
 
     const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -112,39 +98,6 @@ export function AudioMenu({
                 <Icon icon="mdi:volume-high" width="20" />
                 <span>{t("title")}</span>
             </div>
-
-            <div className="bg-[#09090B] border border-white/5 squircle-element p-3">
-                <button
-                    onClick={onToggleMuteOriginalAudio}
-                    className="w-full flex items-center justify-between text-sm transition-colors text-white/80 hover:text-white">
-                    <div className="flex items-center gap-2">
-                        <Icon
-                            icon={muteOriginalAudio ? "mdi:volume-off" : "mdi:volume-high"}
-                            width="18"
-                            className={muteOriginalAudio ? "text-red-400" : "text-blue-400"}
-                        />
-                        <span>{t("originalAudio")}</span>
-                    </div>
-                    <div className={`px-2 py-0.5 rounded text-xs font-medium ${muteOriginalAudio
-                        ? "bg-red-500/20 text-red-400"
-                        : "bg-blue-500/20 text-blue-400"
-                        }`}>
-                        {muteOriginalAudio ? t("muted") : t("active")}
-                    </div>
-                </button>
-            </div>
-
-            <SliderControl
-                icon="mdi:volume-medium"
-                label={t("masterVolume")}
-                value={internalMasterVolume}
-                min={0}
-                max={100}
-                onChange={(value: number) => {
-                    setInternalMasterVolume(value);
-                    onMasterVolumeChange(value / 100);
-                }}
-            />
 
             <div
                 className={`flex flex-col items-center justify-center w-full rounded-lg transition-colors ${isDragOver ? "bg-blue-500/10 ring-1 ring-blue-500/40" : ""

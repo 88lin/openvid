@@ -98,15 +98,9 @@ export function ControlPanel({
     // Audio props
     uploadedAudios = [],
     audioTracks = [],
-    muteOriginalAudio = false,
-    masterVolume = 1,
     onAudioUpload,
-    onAudioDelete,
-    onAddAudioTrack,
     onUpdateAudioTrack,
     onDeleteAudioTrack,
-    onToggleMuteOriginalAudio,
-    onMasterVolumeChange,
     videoDuration = 0,
     // Cursor props
     cursorConfig = DEFAULT_CURSOR_CONFIG,
@@ -317,14 +311,10 @@ export function ControlPanel({
                         <AudioMenu
                             audioTracks={audioTracks}
                             uploadedAudios={uploadedAudios || []}
-                            muteOriginalAudio={muteOriginalAudio}
-                            masterVolume={masterVolume}
                             videoDuration={videoDuration}
                             onAudioUpload={onAudioUpload || (() => { })}
                             onUpdateAudioTrack={onUpdateAudioTrack || (() => { })}
                             onDeleteAudioTrack={onDeleteAudioTrack || (() => { })}
-                            onToggleMuteOriginalAudio={onToggleMuteOriginalAudio || (() => { })}
-                            onMasterVolumeChange={onMasterVolumeChange || (() => { })}
                         />
                     </Suspense>
                 )}

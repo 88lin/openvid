@@ -210,7 +210,7 @@ export function HeroScrollMask() {
                 playsInline
                 className="w-full max-w-370 h-auto max-h-full object-contain"
               >
-                <source src="/images/pages/demo-scroll.mp4" type="video/mp4" />
+                <source src="/images/pages/demo-scroll2.mp4" type="video/mp4" />
               </video>
               <div className="absolute bottom-0 left-0 right-0 h-40 z-20 bg-linear-to-t from-[#0B0B0B] via-[#0B0B0B]/80 to-transparent pointer-events-none" />
             </div>
