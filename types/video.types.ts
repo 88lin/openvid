@@ -27,6 +27,7 @@ export interface ExportSettings {
     videoBlob?: Blob;
     videoClips?: VideoTrackClip[];
     videoClipBlobs?: Map<string, Blob>;
+    clipAudioStates?: Record<string, boolean>;
 }
 
 export interface ExportProgress {
@@ -69,3 +70,39 @@ export const CROP_ASPECT_RATIOS = [
     { label: "4:3", value: 4 / 3 },
     { label: "3:4", value: 3 / 4 },
 ] as const;
+
+export interface LibraryVideo {
+    id: string;
+    blob: Blob;
+    fileName: string;
+    fileSize: number;
+    duration: number;
+    width: number;
+    height: number;
+    aspectRatio: string;
+    uploadedAt: number;
+    thumbnailUrl?: string;
+    hasAudio?: boolean;
+    originalHasAudio?: boolean;
+}
+
+export interface LibraryVideoInfo {
+    id: string;
+    fileName: string;
+    fileSize: number;
+    duration: number;
+    width: number;
+    height: number;
+    aspectRatio: string;
+    uploadedAt: number;
+    thumbnailUrl?: string;
+    hasAudio?: boolean;
+    originalHasAudio?: boolean;
+}
+
+export interface ExtendedVideoForDetection extends HTMLVideoElement {
+    audioTracks?: { length: number };
+    mozHasAudio?: boolean;
+    captureStream?: () => MediaStream;
+    mozCaptureStream?: () => MediaStream;
+}

@@ -1,40 +1,8 @@
+import { ExtendedVideoForDetection, LibraryVideo, LibraryVideoInfo } from "@/types";
+
 const DB_NAME = "openvid-videos-library";
 const DB_VERSION = 3;
 const STORE_NAME = "uploaded-videos";
-
-export interface LibraryVideo {
-    id: string;
-    blob: Blob;
-    fileName: string;
-    fileSize: number;
-    duration: number;
-    width: number;
-    height: number;
-    aspectRatio: string;
-    uploadedAt: number;
-    thumbnailUrl?: string;
-    hasAudio?: boolean;
-    originalHasAudio?: boolean;
-}
-
-export interface LibraryVideoInfo {
-    id: string;
-    fileName: string;
-    fileSize: number;
-    duration: number;
-    width: number;
-    height: number;
-    aspectRatio: string;
-    uploadedAt: number;
-    thumbnailUrl?: string;
-    hasAudio?: boolean;
-    originalHasAudio?: boolean;
-}
-
-interface ExtendedVideoElement extends HTMLVideoElement {
-    audioTracks?: { length: number };
-    mozHasAudio?: boolean;
-}
 
 let dbInstance: IDBDatabase | null = null;
 
@@ -140,52 +108,6 @@ async function getVideoMetadata(file: File): Promise<{
     });
 }
 
-async function detectVideoHasAudio(blob: Blob): Promise<boolean> {
-    return new Promise((resolve) => {
-        const url = URL.createObjectURL(blob);
-        const video = document.createElement("video");
-        video.muted = true;
-        video.preload = "auto";
-        let settled = false;
-
-        const cleanup = (result: boolean) => {
-            if (settled) return;
-            settled = true;
-            clearTimeout(timeoutId);
-            URL.revokeObjectURL(url);
-            video.src = "";
-            resolve(result);
-        };
-
-        const timeoutId = setTimeout(() => cleanup(false), 8000);
-
-        const checkAudio = (afterData: boolean) => {
-            const v = video as ExtendedVideoElement & { webkitAudioDecodedByteCount?: number };
-
-            if (afterData && typeof v.webkitAudioDecodedByteCount === "number") {
-                return cleanup(v.webkitAudioDecodedByteCount > 0);
-            }
-
-            if (v.audioTracks !== undefined && v.audioTracks.length > 0) {
-                return cleanup(true);
-            }
-
-            if (v.mozHasAudio !== undefined) {
-                return cleanup(Boolean(v.mozHasAudio));
-            }
-
-            if (!afterData) return;
-
-            cleanup(false);
-        };
-
-        video.addEventListener("loadedmetadata", () => checkAudio(false));
-        video.addEventListener("loadeddata", () => checkAudio(true));
-        video.addEventListener("error", () => cleanup(false));
-        video.src = url;
-    });
-}
-
 async function generateThumbnail(blob: Blob): Promise<string> {
     return new Promise((resolve, reject) => {
         const video = document.createElement("video");
@@ -257,7 +179,7 @@ export async function addVideoToLibrary(file: File): Promise<LibraryVideo> {
         aspectRatio: metadata.aspectRatio,
         uploadedAt: Date.now(),
         thumbnailUrl,
-        hasAudio: false,
+        hasAudio,
         originalHasAudio: hasAudio,
     };
 
@@ -311,7 +233,7 @@ export async function addVideoToLibraryWithMetadata(options: AddVideoWithMetadat
         aspectRatio: "auto",
         uploadedAt: Date.now(),
         thumbnailUrl,
-        hasAudio: false,
+        hasAudio: hasAudio,
         originalHasAudio: hasAudio,
     };
 
@@ -366,6 +288,71 @@ export async function getLibraryVideo(id: string): Promise<LibraryVideo | null> 
 
         request.onerror = () => reject(request.error);
         request.onsuccess = () => resolve(request.result || null);
+    });
+}
+
+export async function detectVideoHasAudio(blob: Blob): Promise<boolean> {
+    return new Promise((resolve) => {
+        const url = URL.createObjectURL(blob);
+        const video = document.createElement("video") as ExtendedVideoForDetection;
+        video.muted = true;
+        video.preload = "metadata";
+
+        let settled = false;
+        const cleanup = (result: boolean) => {
+            if (settled) return;
+            settled = true;
+            clearTimeout(timeoutId);
+            URL.revokeObjectURL(url);
+            video.src = "";
+            resolve(result);
+        };
+
+        const timeoutId = setTimeout(() => cleanup(false), 8000);
+
+        video.addEventListener("loadedmetadata", async () => {
+            if (video.mozHasAudio !== undefined) {
+                return cleanup(Boolean(video.mozHasAudio));
+            }
+
+            const MAX_DEEP_SCAN_SIZE = 50 * 1024 * 1024;
+
+            if (blob.size <= MAX_DEEP_SCAN_SIZE) {
+                try {
+                    const arrayBuffer = await blob.arrayBuffer();
+                    const AudioContextClass = window.OfflineAudioContext ||
+                        (window as Window & { webkitOfflineAudioContext?: typeof OfflineAudioContext }).webkitOfflineAudioContext;
+                    if (AudioContextClass) {
+                        const audioCtx = new AudioContextClass(1, 1, 44100);
+                        const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+                        if (audioBuffer.numberOfChannels === 0) return cleanup(false);
+                        const channelData = audioBuffer.getChannelData(0);
+                        for (let i = 0; i < channelData.length; i += 100) {
+                            if (Math.abs(channelData[i]) > 0.001) return cleanup(true);
+                        }
+                        return cleanup(false);
+                    }
+                } catch {
+                }
+            }
+
+            if (video.audioTracks !== undefined) {
+                if (video.audioTracks.length > 0) return cleanup(true);
+            } else {
+                const captureMethod = video.captureStream ?? video.mozCaptureStream;
+                if (captureMethod) {
+                    try {
+                        const stream = captureMethod.call(video);
+                        if (stream.getAudioTracks().length > 0) return cleanup(true);
+                    } catch { }
+                }
+            }
+
+            return cleanup(blob.size > MAX_DEEP_SCAN_SIZE);
+        });
+
+        video.addEventListener("error", () => cleanup(false));
+        video.src = url;
     });
 }
 

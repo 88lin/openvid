@@ -15,7 +15,6 @@ export interface WallpaperCategory {
     id: WallpaperCategoryId;
     label: string;
     icon: string;
-    /** Si true, se muestra por defecto en el panel. Si false, se oculta tras "Mostrar más" */
     primary: boolean;
     items: WallpaperItem[];
 }
