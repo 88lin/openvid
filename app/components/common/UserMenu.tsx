@@ -66,7 +66,7 @@ export function UserMenu() {
           <span className="hidden sm:block text-sm font-medium text-neutral-300 max-w-30 truncate">
             {displayName}
           </span>
-          <Icon icon="solar:alt-arrow-down-linear" className="hidden sm:block size-4 text-neutral-400" />
+          <Icon icon="solar:alt-arrow-down-linear" className="hidden sm:block size-4 text-neutral-400" aria-hidden="true" />
         </button>
       </DropdownMenu.Trigger>
 
@@ -89,7 +89,7 @@ export function UserMenu() {
               href="/"
               className="flex items-center gap-3 px-3 py-2 text-sm text-neutral-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors cursor-pointer outline-none"
             >
-              <Icon icon="hugeicons:home-11" className="size-4" />
+              <Icon icon="hugeicons:home-11" className="size-4" aria-hidden="true" />
               {t('home')}
             </Link>
           </DropdownMenu.Item>
@@ -99,7 +99,7 @@ export function UserMenu() {
               href="/editor"
               className="flex items-center gap-3 px-3 py-2 text-sm text-neutral-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors cursor-pointer outline-none"
             >
-              <Icon icon="solar:video-frame-cut-2-linear" className="size-4" />
+              <Icon icon="solar:video-frame-cut-2-linear" className="size-4" aria-hidden="true" />
               <span>{t('editor')}</span>
             </Link>
           </DropdownMenu.Item>
@@ -113,12 +113,12 @@ export function UserMenu() {
           >
             {isLoggingOut ? (
               <>
-                <Icon icon="svg-spinners:ring-resize" className="size-4" />
+                <Icon icon="svg-spinners:ring-resize" className="size-4" aria-hidden="true" />
                 <span>{t('loggingOut')}</span>
               </>
             ) : (
               <>
-                <Icon icon="solar:logout-2-linear" className="size-4" />
+                <Icon icon="solar:logout-2-linear" className="size-4" aria-hidden="true" />
                 <span>{t('logout')}</span>
               </>
             )}

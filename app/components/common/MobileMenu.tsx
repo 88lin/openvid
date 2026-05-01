@@ -75,8 +75,9 @@ export function MobileMenu() {
         <button
           className="md:hidden p-2 text-neutral-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
           aria-label={t('menu')}
+          aria-expanded={isOpen}
         >
-          <Icon icon="solar:hamburger-menu-linear" className="w-6 h-6" />
+          <Icon icon="solar:hamburger-menu-linear" className="w-6 h-6" aria-hidden="true" />
         </button>
       </Dialog.Trigger>
 
@@ -97,9 +98,9 @@ export function MobileMenu() {
             <Dialog.Close asChild>
               <button
                 className="p-2 text-neutral-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-                aria-label={t('menu')}
+                aria-label={t('close')}
               >
-                <Icon icon="solar:close-square-linear" className="w-5 h-5" />
+                <Icon icon="solar:close-square-linear" className="w-5 h-5" aria-hidden="true" />
               </button>
             </Dialog.Close>
           </div>
@@ -110,7 +111,7 @@ export function MobileMenu() {
                 onClick={closeMenu}
                 className="flex items-center gap-3 px-4 py-3 text-neutral-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
               >
-                <Icon icon="solar:document-text-linear" className="w-5 h-5" />
+                <Icon icon="solar:document-text-linear" className="w-5 h-5" aria-hidden="true" />
                 <span>{t('docs')}</span>
               </Link>
 
@@ -121,9 +122,9 @@ export function MobileMenu() {
                 onClick={closeMenu}
                 className="flex items-center gap-3 px-4 py-3 text-neutral-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
               >
-                <Icon icon="mdi:github" className="w-5 h-5" />
+                <Icon icon="mdi:github" className="w-5 h-5" aria-hidden="true" />
                 <span>{t('github')}</span>
-                <Icon icon="solar:external-link-linear" className="w-4 h-4 ml-auto opacity-50" />
+                <Icon icon="solar:external-link-linear" className="w-4 h-4 ml-auto opacity-50" aria-hidden="true" />
               </a>
 
               <a
@@ -133,9 +134,9 @@ export function MobileMenu() {
                 onClick={closeMenu}
                 className="flex items-center gap-3 px-4 py-3 text-neutral-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
               >
-                <Icon icon="mdi:donate" className="w-5 h-5" />
+                <Icon icon="mdi:donate" className="w-5 h-5" aria-hidden="true" />
                 <span>{t('donate')}</span>
-                <Icon icon="solar:external-link-linear" className="w-4 h-4 ml-auto opacity-50" />
+                <Icon icon="solar:external-link-linear" className="w-4 h-4 ml-auto opacity-50" aria-hidden="true" />
               </a>
             </div>
           </nav>
@@ -149,12 +150,12 @@ export function MobileMenu() {
               >
                 {isLoggingOut ? (
                   <>
-                    <Icon icon="svg-spinners:ring-resize" className="w-5 h-5 animate-spin" />
+                    <Icon icon="svg-spinners:ring-resize" className="w-5 h-5 animate-spin" aria-hidden="true" />
                     <span className="font-medium">{t('loggingOut')}</span>
                   </>
                 ) : (
                   <>
-                    <Icon icon="solar:logout-2-linear" className="w-5 h-5" />
+                    <Icon icon="solar:logout-2-linear" className="w-5 h-5" aria-hidden="true" />
                     <span className="font-medium">{t('logout')}</span>
                   </>
                 )}
@@ -166,7 +167,7 @@ export function MobileMenu() {
                   onClick={closeMenu}
                   className="flex items-center gap-3 px-4 py-3"
                 >
-                  <Icon icon="solar:login-2-linear" className="w-5 h-5" />
+                  <Icon icon="solar:login-2-linear" className="w-5 h-5" aria-hidden="true" />
                   <span>{t('login')}</span>
                 </Link>
               </Button>

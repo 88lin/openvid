@@ -95,7 +95,7 @@ export function AudioMenu({
     return (
         <div className="p-4 flex flex-col gap-5">
             <div className="flex items-center gap-2 text-white font-medium">
-                <Icon icon="mdi:volume-high" width="20" />
+                <Icon icon="mdi:volume-high" width="20" aria-hidden="true" />
                 <span>{t("title")}</span>
             </div>
 
@@ -112,11 +112,13 @@ export function AudioMenu({
                     accept=".mp3,.wav,.ogg,.aac,.m4a,audio/*"
                     onChange={handleFileSelect}
                     className="hidden"
+                    aria-label={t("uploadButton")}
                 />
                 <Button
                     variant="outline"
                     className="w-full text-xs"
                     onClick={() => fileInputRef.current?.click()}
+                    aria-label={t("uploadButton")}
                 >
                     <Icon icon="mdi:upload" width="14" />
                     <span>{t("uploadButton")}</span>
@@ -207,8 +209,8 @@ export function AudioMenu({
             )}
 
             {audioTracks.length === 0 && (
-                <div className="text-center py-8 px-4 text-white/40">
-                    <Icon icon="mdi:music-note-off" width="48" className="mx-auto mb-3 opacity-30" />
+                <div className="text-center py-8 px-4 text-white/40" role="status">
+                    <Icon icon="mdi:music-note-off" width="48" className="mx-auto mb-3 opacity-30" aria-hidden="true" />
                     <p className="text-sm">{t("noTracks")}</p>
                     <p className="text-xs mt-1">{t("noTracksHint")}</p>
                 </div>

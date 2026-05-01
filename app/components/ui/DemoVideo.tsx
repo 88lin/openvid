@@ -94,6 +94,7 @@ export default function DemoVideo() {
                         preload="metadata"
                         poster="/images/pages/demo-poster.avif"
                         className="w-full h-auto object-cover transform-gpu transition-transform duration-1000 group-hover:scale-105"
+                        aria-label={t('title')}
                     >
                        <source src="/images/pages/demo.mp4" type="video/mp4" />
                     </video>

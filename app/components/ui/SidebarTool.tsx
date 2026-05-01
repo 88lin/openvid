@@ -89,7 +89,7 @@ export const SidebarTool = forwardRef<HTMLButtonElement, SidebarToolProps>(
                             }`}
                     >
                         {typeof icon === "string" ? (
-                            <Icon icon={icon} width="20" />
+                            <Icon icon={icon} width="20" aria-hidden="true" />
                         ) : (
                             <div className="w-5 h-5 flex items-center justify-center">{icon}</div>
                         )}
@@ -144,6 +144,7 @@ export const SidebarTool = forwardRef<HTMLButtonElement, SidebarToolProps>(
                                 muted
                                 playsInline
                                 className="absolute inset-0 w-full h-full object-cover mask-b-to-20% mask-b-from-80% z-10"
+                                aria-hidden="true"
                             />
                         )}
                         <div className="absolute inset-0 z-20 bg-linear-to-t from-[#09090B] via-[#09090B]/50 to-transparent pointer-events-none" />

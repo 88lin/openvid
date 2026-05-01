@@ -95,13 +95,17 @@ export function CarouselDemos() {
         <div className="absolute bottom-20 sm:-bottom-4 sm:left-120 z-0 pointer-events-none opacity-50">
           <img
             src="/images/carousel/decorators/sparkle.png"
+            alt=""
             className="size-20 md:size-48 animate-pulse"
+            aria-hidden="true"
           />
         </div>
         <div className="absolute bottom-10 sm:bottom-0 right-1/4 z-10 pointer-events-none">
           <img
             src="/images/carousel/decorators/sparkle-move.svg"
+            alt=""
             className="size-8 md:size-10"
+            aria-hidden="true"
           />
         </div>
         <div className="a3d-container row-videos" style={{ "--n": videos.length } as React.CSSProperties}>
@@ -116,6 +120,7 @@ export function CarouselDemos() {
               playsInline
               src={vid.src}
               poster={vid.poster}
+              aria-label={`Demo video ${index + 1}`}
             />
           ))}
         </div>

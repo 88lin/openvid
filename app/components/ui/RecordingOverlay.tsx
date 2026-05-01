@@ -78,6 +78,7 @@ export default function RecordingOverlay() {
                         <button
                             onClick={stopRecording}
                             className="group flex items-center gap-3 px-4 py-1.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 hover:border-red-500/50 rounded-full transition-all"
+                            aria-label={t('recording.stop')}
                         >
                             <div className="flex items-center gap-2 text-red-400 text-sm font-medium">
                                 <div className="w-3 h-3 bg-red-500 rounded-sm group-hover:scale-110 transition-transform" />

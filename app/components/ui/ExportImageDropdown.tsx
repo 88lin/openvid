@@ -180,10 +180,11 @@ export function ExportImageDropdown({
                     className="px-3 py-2 text-sm gap-2 min-w-27.5"
                     size="sm"
                     disabled={isExporting}
+                    aria-label={t("button")}
                 >
-                    <Icon icon="icon-park-outline:export" width="18" />
+                    <Icon icon="icon-park-outline:export" width="18" aria-hidden="true" />
                     {t("button")}
-                    <Icon icon="icon-park-outline:chevron-down" width="16" className="opacity-50" />
+                    <Icon icon="icon-park-outline:chevron-down" width="16" className="opacity-50" aria-hidden="true" />
                 </Button>
             </PopoverTrigger>
 
@@ -218,6 +219,8 @@ export function ExportImageDropdown({
                                 disabled={disabled}
                                 className={`relative flex flex-col items-center gap-2 transition-all duration-300 group ${disabled ? "opacity-20 cursor-not-allowed" : "cursor-pointer"
                                     }`}
+                                aria-label={`${opt.label} format - ${opt.description}`}
+                                aria-pressed={isSelected}
                             >
                                 <div
                                     className={`relative size-12 squircle-element flex items-center justify-center transition-all duration-300 border ${isSelected
@@ -237,6 +240,7 @@ export function ExportImageDropdown({
                                         icon={opt.icon}
                                         width="22"
                                         className={`${isSelected ? "text-white" : "text-white/40 group-hover:text-white/60"}`}
+                                        aria-hidden="true"
                                     />
 
                                     {isSelected && (
@@ -261,6 +265,7 @@ export function ExportImageDropdown({
                                 key={i}
                                 onClick={() => handleExport(preset)}
                                 className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors border-b border-white/10 last:border-0 group"
+                                aria-label={`Export ${preset.label} - ${preset.description}`}
                             >
                                 <div className="flex flex-col items-start gap-1">
                                     <div className="flex items-center gap-2">

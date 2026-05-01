@@ -44,6 +44,9 @@ function InlineTextEditor({
             contentEditable
             suppressContentEditableWarning
             spellCheck={false}
+            role="textbox"
+            aria-label="Edit text element"
+            aria-multiline="true"
             style={{
                 fontSize: `${fontSize}px`,
                 fontFamily: element.fontFamily,
@@ -268,6 +271,7 @@ export function CanvasElementsLayer({
                     <div
                         className={`absolute inset-0 border pointer-events-none ${isSelected ? 'border-blue-500' : 'border-white/50'}`}
                         style={{ borderRadius: '2px' }}
+                        aria-hidden="true"
                     />
                 ) : null;
 
@@ -339,6 +343,10 @@ export function CanvasElementsLayer({
                                 zIndex: isSelected ? TOP_Z_INDEX : element.zIndex,
                                 backgroundColor: isSelected ? 'rgba(0,0,0,0.002)' : 'transparent'
                             }}
+                            role="button"
+                            aria-label={`Canvas element: ${element.type}`}
+                            aria-pressed={isSelected}
+                            tabIndex={0}
                             onMouseEnter={handleMouseEnter}
                             onMouseLeave={handleMouseLeave}
                             onMouseMove={handleMouseMove}

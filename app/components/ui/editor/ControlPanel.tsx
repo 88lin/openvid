@@ -133,15 +133,16 @@ export function ControlPanel({
     const t = useTranslations("controlPanel");
 
     return (
-        <div className="relative w-full sm:w-[320px] h-screen bg-[#141417] border-r border-white/10 flex flex-col shrink-0">
-            <header className="flex items-center justify-between h-13 p-2 border-b border-white/10 shrink-0">
+        <div className="relative w-full sm:w-[320px] h-screen bg-[#141417] border-r border-white/10 flex flex-col shrink-0" role="complementary" aria-label="Control panel">
+            <header className="flex items-center justify-between h-13 p-2 border-b border-white/10 shrink-0" role="banner">
                 <Link
                     href="/"
                     onClick={() => { window.location.href = "/"; }}
                     className="flex items-center gap-2 group"
+                    aria-label="OpenVid home"
                 >
-                    <Image src="/svg/logo-openvid.svg" alt="Logo" width={30} height={30} />
-                    <Image src="/svg/openvid.svg" alt="Logo" width={70} height={50} />
+                    <Image src="/svg/logo-openvid.svg" alt="" width={30} height={30} />
+                    <Image src="/svg/openvid.svg" alt="OpenVid" width={70} height={50} />
                 </Link>
 
                 <TooltipAction label={t("header.close")} side="right">
@@ -150,12 +151,13 @@ export function ControlPanel({
                         className="p-2 rounded-lg text-white/60 hover:text-white hover:bg-white/5 transition-all duration-200"
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
+                        aria-label={t("header.close")}
                     >
                         <motion.div
                             animate={{ rotate: isOpen ? 0 : 180 }}
                             transition={{ duration: 0.3, ease: "easeInOut" }}
                         >
-                            <Icon icon="lucide:sidebar-close" width="20" />
+                            <Icon icon="lucide:sidebar-close" width="20" aria-hidden="true" />
                         </motion.div>
                     </motion.button>
                 </TooltipAction>

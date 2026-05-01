@@ -36,13 +36,17 @@ export function LanguageSwitcher() {
       <DropdownMenu.Trigger asChild>
         <Button variant="outline" className='text-xs'
           disabled={isPending}
+          aria-label={`Language: ${currentLanguage.name}`}
+          aria-haspopup="listbox"
+          aria-expanded={isOpen}
         >
-          <Icon icon={currentLanguage.icon} width="18" height="18" />
+          <Icon icon={currentLanguage.icon} width="18" height="18" aria-hidden="true" />
           <span className="hidden sm:inline font-medium">{currentLanguage.code.toUpperCase()}</span>
           <Icon
             icon="solar:alt-arrow-down-linear"
             width="14"
             className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+            aria-hidden="true"
           />
         </Button>
       </DropdownMenu.Trigger>
@@ -58,11 +62,12 @@ export function LanguageSwitcher() {
               onSelect={() => handleLanguageChange(lang.code as 'en' | 'es')}
               className={`flex items-center gap-3 px-3 py-2 text-sm squircle-element cursor-pointer outline-none transition-colors ${locale === lang.code ? 'bg-white/10 text-white' : 'text-white/70 hover:bg-white/5 hover:text-white'
                 }`}
+              aria-current={locale === lang.code ? 'true' : undefined}
             >
-              <Icon icon={lang.icon} width="20" height="20" />
+              <Icon icon={lang.icon} width="20" height="20" aria-hidden="true" />
               <span className="flex-1">{lang.name}</span>
               {locale === lang.code && (
-                <Icon icon="solar:check-circle-bold" width="16" className="text-green-400" />
+                <Icon icon="solar:check-circle-bold" width="16" className="text-green-400" aria-hidden="true" />
               )}
             </DropdownMenu.Item>
           ))}

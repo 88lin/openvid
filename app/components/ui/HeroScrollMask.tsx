@@ -135,8 +135,9 @@ export function HeroScrollMask() {
               <div className="absolute inset-0 bg-linear-to-tr from-white/5 to-transparent z-0" />
               <img
                 src={img.src}
-                alt={`demo-${id}`}
+                alt=""
                 className="w-full h-full block object-cover z-10 contrast-[1.1] brightness-[0.9] saturate-[1.2]"
+                aria-hidden="true"
               />
               <div
                 className="pointer-events-none absolute inset-0 z-20"
@@ -209,6 +210,7 @@ export function HeroScrollMask() {
                 muted
                 playsInline
                 className="w-full max-w-370 h-auto max-h-full object-contain"
+                aria-label={t('title')}
               >
                 <source src="/images/pages/demo-scroll2.mp4" type="video/mp4" />
               </video>
@@ -217,7 +219,7 @@ export function HeroScrollMask() {
           </h2>
 
           <p className="absolute bottom-10 z-30 text-white/80 font-semibold text-4xl">
-            <Icon icon="iconoir:mouse-scroll-wheel" />
+            <Icon icon="iconoir:mouse-scroll-wheel" aria-hidden="true" />
           </p>
         </div>
       </div>

@@ -172,25 +172,30 @@ export function VideosMenu({
       <input ref={fileInputRef} type="file" accept="video/*" onChange={handleFileSelect} className="hidden" />
 
       <div className="flex items-center gap-2 text-white font-medium">
-        <Icon icon="solar:video-library-outline" width="20" />
+        <Icon icon="solar:video-library-outline" width="20" aria-hidden="true" />
         <span>{t("title")}</span>
       </div>
 
       <div className="flex-1 overflow-y-auto custom-scrollbar -mx-1 px-1">
         {isLoading ? (
-          <div className="flex items-center justify-center py-8">
-            <Icon icon="svg-spinners:ring-resize" width="24" className="text-white/40" />
+          <div className="flex items-center justify-center py-8" role="status">
+            <Icon icon="svg-spinners:ring-resize" width="24" className="text-white/40" aria-hidden="true" />
           </div>
         ) : videos.length === 0 ? (
           <div
             onClick={triggerFileUpload}
             className="group bg-[#09090B] border border-dashed border-white/10 hover:border-white/30 hover:bg-white/3 squircle-element p-8 text-center cursor-pointer transition-colors"
+            role="button"
+            tabIndex={0}
+            aria-label={t("empty.uploadButton")}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); triggerFileUpload(); } }}
           >
             <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-4 group-hover:scale-105 transition-transform">
               <Icon
                 icon="solar:upload-minimalistic-outline"
                 width="24"
                 className="text-white/40 group-hover:text-white/70 transition-colors"
+                aria-hidden="true"
               />
             </div>
             <p className="text-sm font-medium text-white/70 mb-1">{t("emptyState.title")}</p>

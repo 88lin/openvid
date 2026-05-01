@@ -29,8 +29,9 @@ export default function EditorPreview() {
       <div className="absolute top-0 right-0 md:-right-10 z-30 pointer-events-none">
         <img
           src="/images/carousel/decorators/sparkle-blur.png"
-          alt="decoración"
+          alt=""
           className="size-40 md:size-50 object-contain opacity-80 animate-pulse"
+          aria-hidden="true"
         />
       </div>
       <h2 className="relative text-4xl md:text-6xl text-center font-bold tracking-tighter text-white mb-10 leading-tight drop-shadow-[0_0_30px_rgba(183,203,248,0.3)] z-20">
@@ -78,8 +79,9 @@ export default function EditorPreview() {
             >
               <img
                 src="/images/carousel/decorators/sparkle-move.svg"
-                alt="decor"
+                alt=""
                 className="size-6 md:size-8"
+                aria-hidden="true"
               />
             </div>
 
@@ -89,8 +91,9 @@ export default function EditorPreview() {
             >
               <img
                 src="/images/carousel/decorators/sparkle-static.svg"
-                alt="decor-left"
+                alt=""
                 className="size-4 md:size-6"
+                aria-hidden="true"
               />
             </div>
           </div>

@@ -78,7 +78,7 @@ export function MockupMenu({
   return (
     <div className="p-4 flex flex-col gap-6">
       <div className="flex items-center gap-2 text-white font-medium">
-        <Icon icon="hugeicons:ai-browser" width="20" />
+        <Icon icon="hugeicons:ai-browser" width="20" aria-hidden="true" />
         <span>{t("title")}</span>
       </div>
 
@@ -96,6 +96,8 @@ export function MockupMenu({
             <button
               type="button"
               className="group relative flex items-center gap-3 p-2 squircle-element border transition-all w-full h-35 bg-blue-500/10 border-blue-500/40 text-blue-300"
+              aria-label={t("windowType")}
+              aria-haspopup="dialog"
             >
               <div className="flex-1 flex flex-col gap-2 h-full justify-center overflow-hidden">
                 <div className="w-full squircle-element overflow-hidden bg-neutral-900 relative h-full">
@@ -118,7 +120,7 @@ export function MockupMenu({
                 </div>
               </div>
               <div className="flex items-center justify-center px-2 border-l border-white/5 h-full group-hover:text-white transition-colors">
-                <Icon icon="uil:sort" />
+                <Icon icon="uil:sort" aria-hidden="true" />
               </div>
             </button>
           </PopoverTrigger>
@@ -227,19 +229,21 @@ export function MockupMenu({
       )}
 
       {features.hasDarkMode && (
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-[11px] text-white/55">
-            <Icon icon="ph:moon-bold" width="14" />
+        <fieldset className="flex items-center justify-between">
+          <legend className="flex items-center gap-2 text-[11px] text-white/55">
+            <Icon icon="ph:moon-bold" width="14" aria-hidden="true" />
             <span>{t("darkMode.label")}</span>
-          </div>
-          <div className="flex items-center gap-1 p-0.5 rounded-lg bg-white/6 border border-white/[0.07]">
+          </legend>
+          <div className="flex items-center gap-1 p-0.5 rounded-lg bg-white/6 border border-white/[0.07]" role="group" aria-label={t("darkMode.label")}>
             <button
               onClick={() => handleDarkModeChange(true)}
               className={`flex items-center gap-1 px-2 py-1 rounded-md text-[10px] transition-colors ${
                 mockupConfig?.darkMode ? "bg-[#09090B] border border-white/10 text-white/70" : "text-white/30 hover:text-white/50"
               }`}
+              aria-pressed={mockupConfig?.darkMode}
+              aria-label={t("darkMode.dark")}
             >
-              <Icon icon="ph:moon-bold" width="10" /> {t("darkMode.dark")}
+              <Icon icon="ph:moon-bold" width="10" aria-hidden="true" /> {t("darkMode.dark")}
             </button>
             <button
               onClick={() => handleDarkModeChange(false)}
@@ -248,11 +252,13 @@ export function MockupMenu({
                   ? "bg-[#09090B] border border-white/10 text-white/70"
                   : "text-white/30 hover:text-white/50"
               }`}
+              aria-pressed={!mockupConfig?.darkMode}
+              aria-label={t("darkMode.light")}
             >
-              <Icon icon="ph:sun-bold" width="10" /> {t("darkMode.light")}
+              <Icon icon="ph:sun-bold" width="10" aria-hidden="true" /> {t("darkMode.light")}
             </button>
           </div>
-        </div>
+        </fieldset>
       )}
 
       {features.hasFrameColor && (
@@ -273,12 +279,13 @@ export function MockupMenu({
               />
             ))}
             <label className="aspect-square squircle-element border border-dashed border-white/30 bg-white/5 flex items-center justify-center hover:bg-white/10 transition group cursor-pointer relative">
-              <Icon icon="mingcute:color-picker-fill" width="20" className="text-white/30" />
+              <Icon icon="mingcute:color-picker-fill" width="20" className="text-white/30" aria-hidden="true" />
               <input
                 type="color"
                 className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                 onChange={(e) => handleFrameColorChange(e.target.value)}
                 value={mockupConfig?.frameColor || "#ffffff"}
+                aria-label={t("frameColor.customLabel")}
               />
             </label>
           </div>
@@ -289,13 +296,14 @@ export function MockupMenu({
         <div className="space-y-2">
           <p className="text-[10px] uppercase tracking-widest text-white/40 font-bold">{t("url.label")}</p>
           <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#09090B] border border-white/[0.07] focus-within:border-blue-500/40 transition-colors">
-            <Icon icon="line-md:link" width="13" className="text-white/30 shrink-0" />
+            <Icon icon="line-md:link" width="13" className="text-white/30 shrink-0" aria-hidden="true" />
             <input
               type="text"
               value={mockupConfig?.url || ""}
               onChange={(e) => handleUrlChange(e.target.value)}
               placeholder={t("url.placeholder")}
               className="flex-1 bg-transparent text-[11px] text-white/70 placeholder:text-white/20 outline-none font-mono"
+              aria-label={t("url.label")}
             />
           </div>
         </div>
@@ -330,8 +338,9 @@ export function MockupMenu({
         <button
           onClick={() => handleMockupSelect("none")}
           className="w-full flex items-center justify-center gap-2 py-2 rounded-lg border border-white/7 bg-white/4 hover:bg-red-500/10 hover:border-red-500/30 text-white/40 hover:text-red-400 text-[11px] transition-all"
+          aria-label={t("remove")}
         >
-          <Icon icon="ph:trash-bold" width="13" />
+          <Icon icon="ph:trash-bold" width="13" aria-hidden="true" />
           {t("remove")}
         </button>
       )}

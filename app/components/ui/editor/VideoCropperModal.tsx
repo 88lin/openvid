@@ -222,7 +222,7 @@ export function VideoCropperModal({
                     <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/10">
                         <div className="flex items-center gap-2.5">
                             <div className="w-6 h-6 rounded-md bg-white/10 flex items-center justify-center">
-                                <Icon icon="mdi:crop" className="text-sm text-white/70" />
+                                <Icon icon="mdi:crop" className="text-sm text-white/70" aria-hidden="true" />
                             </div>
                             <span className="text-sm font-medium text-white">{t("title")}</span>
                             {videoDimensions.width > 0 && (
@@ -234,8 +234,9 @@ export function VideoCropperModal({
                         <button
                             onClick={onClose}
                             className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/10 transition-colors text-white/40 hover:text-white/70"
+                            aria-label={t("close")}
                         >
-                            <Icon icon="mdi:close" className="text-base" />
+                            <Icon icon="mdi:close" className="text-base" aria-hidden="true" />
                         </button>
                     </div>
 

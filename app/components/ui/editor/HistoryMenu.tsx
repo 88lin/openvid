@@ -73,10 +73,10 @@ export function HistoryMenu({
         <div className="p-4 flex flex-col gap-4 h-full">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-white font-medium">
-                    <Icon icon="material-symbols:history" width="20" />
+                    <Icon icon="material-symbols:history" width="20" aria-hidden="true" />
                     <span>{t("title")}</span>
                 </div>
-                <span className="text-xs text-white/40">
+                <span className="text-xs text-white/40" aria-live="polite">
                     {projects.length} {t("items")}
                 </span>
             </div>
@@ -116,7 +116,7 @@ export function HistoryMenu({
 
             <div className="flex-1 overflow-y-auto custom-scrollbar px-2 pb-4 pt-2">
                 {isLoading ? (
-                    <div className="grid grid-cols-2 gap-3 animate-pulse">
+                    <div className="grid grid-cols-2 gap-3 animate-pulse" role="status" aria-label={t("loading")}>
                         {[...Array(2)].map((_, i) => (
                             <div
                                 key={i}
@@ -125,7 +125,7 @@ export function HistoryMenu({
                                 <div className="absolute inset-0 bg-linear-to-t from-white/5 to-transparent" />
 
                                 <div className="absolute inset-0 flex items-center justify-center">
-                                    <Icon icon="solar:image-linear" width="24" className="text-white/10" />
+                                    <Icon icon="solar:image-linear" width="24" className="text-white/10" aria-hidden="true" />
                                 </div>
 
                                 <div className="absolute inset-x-0 bottom-0 p-2.5">
@@ -135,15 +135,15 @@ export function HistoryMenu({
                         ))}
                     </div>
                 ) : projects.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-12 text-white/40 animate-in fade-in">
+                    <div className="flex flex-col items-center justify-center py-12 text-white/40 animate-in fade-in" role="status">
                         <div className="w-16 h-16 squircle-element bg-white/5 flex items-center justify-center mb-4 border border-white/10">
-                            <Icon icon="solar:gallery-linear" width="32" className="opacity-50" />
+                            <Icon icon="solar:gallery-linear" width="32" className="opacity-50" aria-hidden="true" />
                         </div>
                         <p className="text-sm font-medium text-white/70">{t("empty.title")}</p>
                         <p className="text-xs mt-1 text-center max-w-50 leading-relaxed">{t("empty.description")}</p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-2 gap-3 animate-in fade-in duration-300">
+                    <div className="grid grid-cols-2 gap-3 animate-in fade-in duration-300" role="list" aria-label={t("title")}>
                         {projects.map((project) => (
                             <div
                                 key={project.id}
@@ -161,13 +161,13 @@ export function HistoryMenu({
                                     />
                                 ) : (
                                     <div className="absolute inset-0 flex items-center justify-center bg-[#171717]">
-                                        <Icon icon="solar:image-linear" width="24" className="text-white/20" />
+                                        <Icon icon="solar:image-linear" width="24" className="text-white/20" aria-hidden="true" />
                                     </div>
                                 )}
 
                                 {currentProjectId === project.id && (
                                     <div className="absolute top-2 left-2 z-10 bg-black border border-white/30 rounded-full p-0.5 shadow-lg animate-in zoom-in">
-                                        <Icon icon="mdi:check" width="14" className="text-white" />
+                                        <Icon icon="mdi:check" width="14" className="text-white" aria-hidden="true" />
                                     </div>
                                 )}
 

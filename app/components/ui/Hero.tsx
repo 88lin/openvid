@@ -128,7 +128,7 @@ export default function Hero({ onVideoUpload, onPhotoUpload }: HeroProps) {
 
                 <img
                     src="/svg/version.svg"
-                    alt="Version"
+                    alt=""
                     aria-hidden="true"
                     className={`absolute h-auto shadow-2xl transition-all ${locale === 'es' ? "-top-8 sm:-top-4 lg:top-0 xl:top-2 left-0 -rotate-10 sm:left-30" : "-top-8 sm:top-0 xl:top-2 sm:left-10 -rotate-10"} w-16 sm:w-18`}
                 />
@@ -138,14 +138,14 @@ export default function Hero({ onVideoUpload, onPhotoUpload }: HeroProps) {
                             <span className="sr-only">{chunks}</span>
                             <img
                                 src="/svg/mockups.svg"
-                                alt="Screen icon"
+                                alt=""
                                 aria-hidden="true"
                                 className="inline-block h-[1.6em] w-auto align-middle translate-y-[0.1em] sm:translate-y-[0.3em]"
                             />
                             <img
                                 src="/svg/cursor-animate.svg"
                                 className="absolute -top-18 sm:-top-25 -right-28 sm:-right-30 h-[4em] w-auto"
-                                alt="Cursor animation"
+                                alt=""
                                 aria-hidden="true"
                             />
                         </span>
@@ -181,6 +181,7 @@ export default function Hero({ onVideoUpload, onPhotoUpload }: HeroProps) {
                                         icon="svg-spinners:ring-resize"
                                         width="18"
                                         className="text-blue-400 shrink-0"
+                                        aria-hidden="true"
                                     />
                                     <span>{t("uploadButtonUploading")}</span>
                                 </>
@@ -190,12 +191,13 @@ export default function Hero({ onVideoUpload, onPhotoUpload }: HeroProps) {
                                         icon="ph:arrow-fat-down-bold"
                                         width="18"
                                         className="text-blue-400 shrink-0"
+                                        aria-hidden="true"
                                     />
                                     <span>{t("uploadButtonDragging")}</span>
                                 </>
                             ) : (
                                 <>
-                                    <Icon icon="mage:video-upload" width="22" className="shrink-0" />
+                                    <Icon icon="mage:video-upload" width="22" className="shrink-0" aria-hidden="true" />
                                     <span>{t("uploadButton")}</span>
                                     <span className="text-white/40 text-xs">MP4, WebM, MOV</span>
                                 </>
@@ -217,6 +219,7 @@ export default function Hero({ onVideoUpload, onPhotoUpload }: HeroProps) {
                         accept="video/mp4,video/webm,video/quicktime,video/x-matroska"
                         className="hidden"
                         onChange={handleVideoFileChange}
+                        aria-label={t("uploadButton")}
                     />
                 </div>
 
@@ -240,6 +243,7 @@ export default function Hero({ onVideoUpload, onPhotoUpload }: HeroProps) {
                                         icon="svg-spinners:ring-resize"
                                         width="18"
                                         className="text-red-400 shrink-0"
+                                        aria-hidden="true"
                                     />
                                     <span>{t("uploadPhotoUploading")}</span>
                                 </>
@@ -249,6 +253,7 @@ export default function Hero({ onVideoUpload, onPhotoUpload }: HeroProps) {
                                         icon="ph:arrow-fat-down-bold"
                                         width="18"
                                         className="text-red-400 shrink-0"
+                                        aria-hidden="true"
                                     />
                                     <span>{t("uploadPhotoDragging")}</span>
                                 </>
@@ -258,6 +263,7 @@ export default function Hero({ onVideoUpload, onPhotoUpload }: HeroProps) {
                                         icon="solar:gallery-wide-linear"
                                         width="20"
                                         className="shrink-0"
+                                        aria-hidden="true"
                                     />
                                     <span>{t("uploadPhotoButton")}</span>
                                     <span className="text-white/40 text-xs">JPG, PNG, WEBP</span>
@@ -280,6 +286,7 @@ export default function Hero({ onVideoUpload, onPhotoUpload }: HeroProps) {
                         accept="image/jpeg,image/png,image/webp,image/gif"
                         className="hidden"
                         onChange={handlePhotoFileChange}
+                        aria-label={t("uploadPhotoButton")}
                     />
                 </div>
             </div>

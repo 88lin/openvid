@@ -79,7 +79,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#030303] grid lg:grid-cols-2 text-white selection:bg-white/30">
+    <div className="min-h-screen w-full bg-[#030303] grid lg:grid-cols-2 text-white selection:bg-white/30" role="main">
       <div className="relative flex flex-col justify-center px-8 sm:px-16 lg:px-24 xl:px-32">
 
         <div className="absolute top-8 left-8 sm:left-12 lg:left-16">
@@ -98,7 +98,7 @@ export default function Login() {
 
         <div className="w-full max-w-sm mx-auto mt-16 lg:mt-0">
           <div className="mb-10">
-            <Image src="/svg/logo-openvid.svg" alt="Logo" width={60} height={60} className="mb-4" />
+            <Image src="/svg/logo-openvid.svg" alt="openvid logo" width={60} height={60} className="mb-4" />
             <h1 className="text-3xl sm:text-4xl font-light tracking-tighter text-white mb-3">
               {t('title')}
             </h1>
@@ -107,7 +107,7 @@ export default function Login() {
             </p>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-4" role="group" aria-label={t('providers.groupLabel') || 'Sign in options'}>
             {providers.map((providerConfig) => (
               <Button
                 key={providerConfig.provider}
@@ -116,6 +116,7 @@ export default function Login() {
                 variant="outline"
                 size="lg"
                 className={`w-full h-12 gap-3 text-white transition-all font-light rounded-none ${providerConfig.bgClass} disabled:opacity-50 disabled:cursor-not-allowed`}
+                aria-label={`${t(`providers.${providerConfig.provider}`)} sign in`}
               >
                 {loading === providerConfig.provider ? (
                   <>
@@ -139,7 +140,7 @@ export default function Login() {
           </div>
 
           {error && (
-            <div className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded">
+            <div className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded" role="alert" aria-live="polite">
               <p className="text-red-400 text-sm">{error}</p>
             </div>
           )}
@@ -152,19 +153,19 @@ export default function Login() {
           </p>
         </div>
       </div>
-      <div className="hidden lg:block relative w-full h-full border-l border-white/10 bg-[#020203] overflow-hidden group">
+      <div className="hidden lg:block relative w-full h-full border-l border-white/10 bg-[#020203] overflow-hidden group" aria-hidden="true">
         <div className="absolute -top-[10%] -left-[10%] w-[70%] h-[70%] bg-cyan-600/20 rounded-full blur-[80px] pointer-events-none group-hover:bg-cyan-500/30 transition-colors duration-1000"></div>
         <div className="absolute -bottom-[10%] -right-[10%] w-[60%] h-[60%] bg-purple-900/10 rounded-full blur-[80px] pointer-events-none group-hover:bg-purple-700/50 transition-colors duration-1000"></div>
         <div className="absolute inset-0 bg-[radial-gradient(white_0.5px,transparent_0.5px)] bg-size-[40px_40px] opacity-[0.4] pointer-events-none"></div>
         <div className="absolute inset-0 transition-transform duration-1000 ease-in-out scale-110 group-hover:scale-125">
           <img
             src="/images/pages/openvid-login.webp"
-            alt="Cinematic Shot BW"
+            alt=""
             className="absolute inset-0 w-full h-full object-contain mix-blend-luminosity opacity-70 transition-all duration-1000 ease-in-out [clip-path:inset(0_0_0_50%)] group-hover:opacity-0"
           />
           <img
             src="/images/pages/openvid-login.webp"
-            alt="Cinematic Shot Color"
+            alt=""
             className="absolute inset-0 w-full h-full object-contain transition-all duration-1000 ease-in-out [clip-path:inset(0_50%_0_0)] group-hover:[clip-path:inset(0_0_0_0%)]"
           />
           <div

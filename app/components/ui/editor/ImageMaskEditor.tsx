@@ -102,7 +102,7 @@ export function ImageMaskEditor({
                     <PopoverHeader className="px-4 py-3 border-b border-white/10 bg-white/5">
                         <div className="flex items-center justify-between">
                             <PopoverTitle className="text-xs font-semibold text-white/80 tracking-wide uppercase flex items-center gap-2">
-                                <Icon icon="material-symbols:gradient-outline" width="14" className="text-blue-400" />
+                                <Icon icon="material-symbols:gradient-outline" width="14" className="text-blue-400" aria-hidden="true" />
                                 {t("title")}
                             </PopoverTitle>
                         </div>

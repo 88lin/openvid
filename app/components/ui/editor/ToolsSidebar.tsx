@@ -192,7 +192,7 @@ export function ToolsSidebar({
     const recordButtonContent = getRecordButtonContent();
 
     return (
-        <div className="relative shrink-0 bg-[#141417]" style={{ width: '90px' }}>
+        <div className="relative shrink-0 bg-[#141417]" style={{ width: '90px' }} role="complementary" aria-label={t("tools.toolbar")}>
             <div className="h-13 border-b border-white/10 w-full" />
             <aside
                 className="h-full absolute top-1/2 left-12 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center gap-4 squircle-element border shadow-md shadow-white/20 border-white/10 z-40 max-h-154 3xl:max-h-[800px]"
@@ -201,6 +201,9 @@ export function ToolsSidebar({
                     minWidth: '70px',
                     background: 'radial-gradient(circle at 50% 30%, #2a2a2a 0%, #131313 64%)',
                 }}
+                role="toolbar"
+                aria-orientation="vertical"
+                aria-label={t("tools.toolbar")}
             >
                 <div className="flex flex-col gap-4 w-full overflow-y-auto px-2 custom-scrollbar mask-y-from-85% mask-y-to-99%">
                     <div className="shrink-0 h-12" aria-hidden="true" />
@@ -365,15 +368,16 @@ export function ToolsSidebar({
                                 onClick={handleUploadClick}
                                 disabled={isUploading}
                                 className={`w-full flex flex-col items-center text-center justify-center gap-1.5 p-2 rounded-xl cursor-pointer transition-all group disabled:opacity-50 disabled:cursor-not-allowed border-2 ${isDragging ? "bg-blue-500/20 text-blue-400 border-dashed border-blue-400/50 scale-105" : "border-transparent text-white/60 hover:bg-blue-500/20 hover:text-blue-400"}`}
+                                aria-label={isUploading ? t("upload.buttonUploading") : t("upload.button")}
                             >
                                 {isUploading ? (
                                     <>
-                                        <Icon icon="svg-spinners:ring-resize" className="transition-transform duration-300" width="24" height="24" />
+                                        <Icon icon="svg-spinners:ring-resize" className="transition-transform duration-300" width="24" height="24" aria-hidden="true" />
                                         <span className="text-xs font-medium">{t("upload.buttonUploading")}</span>
                                     </>
                                 ) : (
                                     <>
-                                        <Icon icon="mage:video-upload" className={`transition-transform duration-300 ${!isDragging && "group-hover:scale-105"}`} width="24" height="24" />
+                                        <Icon icon="mage:video-upload" className={`transition-transform duration-300 ${!isDragging && "group-hover:scale-105"}`} width="24" height="24" aria-hidden="true" />
                                         <span className="text-xs font-medium">
                                             {isDragging ? t("upload.dropHere") : t("upload.button")}
                                         </span>
@@ -406,10 +410,12 @@ export function ToolsSidebar({
                                 onClick={onScreenCapture}
                                 disabled={isCapturing}
                                 className={`w-full flex flex-col items-center text-center justify-center gap-1.5 p-2 rounded-xl cursor-pointer transition-all group border-2 border-transparent disabled:cursor-not-allowed ${isCapturing ? "opacity-70" : "hover:bg-cyan-500/10"}`}
+                                aria-label={isCapturing ? t("photo.capturing") : t("photo.capture")}
                             >
                                 <Icon
                                     icon={isCapturing ? "svg-spinners:ring-resize" : "fluent:screenshot-20-regular"}
                                     width="24"
+                                    aria-hidden="true"
                                     height="24"
                                     className={`transition-colors ${isCapturing ? "text-cyan-400" : "text-white/60 group-hover:text-cyan-400"}`}
                                 />

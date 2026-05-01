@@ -10,13 +10,13 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
   
   return (
-    <footer className="border-t border-white/10 bg-[#050505] pt-16 pb-8">
+    <footer className="border-t border-white/10 bg-[#050505] pt-16 pb-8" role="contentinfo">
       <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between gap-12 mb-16">
         <div className="w-full md:w-1/3">
           <div className="flex items-center gap-2 mb-4">
-            <Link href="/" className="flex items-center gap-2 group">
-              <Image src="/svg/logo-openvid.svg" alt="Logo" width={50} height={50} />
-              <Image src="/svg/openvid.svg" alt="Logo" width={100} height={50} />
+            <Link href="/" className="flex items-center gap-2 group" aria-label="OpenVid - Go to home">
+              <Image src="/svg/logo-openvid.svg" alt="" width={50} height={50} aria-hidden="true" />
+              <Image src="/svg/openvid.svg" alt="OpenVid" width={100} height={50} />
             </Link>
           </div>
           <p className="text-neutral-500 text-sm leading-relaxed">
@@ -28,36 +28,36 @@ export default function Footer() {
         </div>
 
         <div className="flex gap-12 md:gap-24">
-          <div>
+          <nav aria-label={t('product')}>
             <h4 className="text-white font-medium text-sm mb-4">{t('product')}</h4>
             <ul className="space-y-3 text-sm text-neutral-500">
               <li><a href="#docs" className="hover:text-white transition-colors">{t('docs')}</a></li>
               <li><Link href="/editor" className="hover:text-white transition-colors">{t('editor')}</Link></li>
               <li><a href="/donate" target="_blank" className="hover:text-white transition-colors">{t('donate')}</a></li>
             </ul>
-          </div>
-          <div>
+          </nav>
+          <nav aria-label={t('contact')}>
             <h4 className="text-white font-medium text-sm mb-4">{t('contact')}</h4>
             <ul className="space-y-3 text-sm text-neutral-500">
               <li><a href="https://github.com/CristianOlivera1/openvid" target="_blank" className="hover:text-white transition-colors">{t('github')}</a></li>
             </ul>
-          </div>
-          <div>
+          </nav>
+          <nav aria-label={t('legal')}>
             <h4 className="text-white font-medium text-sm mb-4">{t('legal')}</h4>
             <ul className="space-y-3 text-sm text-neutral-500">
               <li><Link href="/privacy" className="hover:text-white transition-colors">{t('privacy')}</Link></li>
               <li><Link href="/terms" className="hover:text-white transition-colors">{t('terms')}</Link></li>
             </ul>
-          </div>
+          </nav>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-6 pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
         <span className="text-xs text-neutral-600">© {currentYear} openvid {t('rights')}</span>
-        <div className="flex gap-4 text-neutral-600">
-          <a href="#" className="hover:text-white transition-colors"><Icon icon="solar:brand-twitter-linear" width="18"></Icon></a>
-          <a href="#" className="hover:text-white transition-colors"><Icon icon="solar:brand-github-linear" width="18"></Icon></a>
-          <a href="#" className="hover:text-white transition-colors"><Icon icon="solar:brand-discord-linear" width="18"></Icon></a>
+        <div className="flex gap-4 text-neutral-600" aria-label="Social links">
+          <a href="#" className="hover:text-white transition-colors" aria-label="Twitter"><Icon icon="solar:brand-twitter-linear" width="18" aria-hidden="true" /></a>
+          <a href="#" className="hover:text-white transition-colors" aria-label="GitHub"><Icon icon="solar:brand-github-linear" width="18" aria-hidden="true" /></a>
+          <a href="#" className="hover:text-white transition-colors" aria-label="Discord"><Icon icon="solar:brand-discord-linear" width="18" aria-hidden="true" /></a>
         </div>
       </div>
     </footer>

@@ -17,23 +17,26 @@ export default function TermsPage() {
     return (
         <div className="min-h-screen bg-[#09090B] py-16 px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto">
-                <div className="mb-12">
+                <nav aria-label="Breadcrumb" className="mb-12">
                     <Link
                         href="/"
                         className="inline-flex items-center text-sm text-white/50 hover:text-white mb-8 transition-colors"
+                        aria-label={t("backToHome")}
                     >
-                        <Icon icon="lucide:arrow-left" width="16" className="mr-2" />
+                        <Icon icon="lucide:arrow-left" width="16" className="mr-2" aria-hidden="true" />
                         {t("backToHome")}
                     </Link>
+                </nav>
+                <header className="mb-12">
                     <h1 className="text-3xl md:text-4xl font-semibold text-white mb-3">
                         {t("title")}
                     </h1>
                     <p className="text-white/50 text-sm">
                         {t("lastUpdated", { date: lastUpdatedDate })}
                     </p>
-                </div>
+                </header>
 
-                <div className="space-y-10 text-white/70 leading-relaxed">
+                <main className="space-y-10 text-white/70 leading-relaxed">
                     <section>
                         <h2 className="text-xl font-medium text-white mb-4">
                             1. {t("acceptance.title")}
@@ -117,9 +120,9 @@ export default function TermsPage() {
                         </h2>
                         <p>{t("contact.content")}</p>
                     </section>
-                </div>
+                </main>
 
-                <div className="mt-16 pt-8 border-t border-white/10">
+                <footer className="mt-16 pt-8 border-t border-white/10">
                     <p className="text-sm text-white/50">
                         {t.rich("acceptance2.content", {
                             privacy: (chunks) => (
@@ -132,7 +135,7 @@ export default function TermsPage() {
                             ),
                         })}
                     </p>
-                </div>
+                </footer>
             </div>
         </div>
     );

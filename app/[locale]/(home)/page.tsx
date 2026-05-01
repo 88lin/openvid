@@ -74,32 +74,32 @@ export default async function Home({ params }: Props) {
       <div className="flex flex-col">
       <div className="relative overflow-hidden bg-gradient-radial-primary w-full">
 
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-75 h-75 rounded-full bg-cyan-500/15 blur-[80px] pointer-events-none z-0" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-75 h-75 rounded-full bg-cyan-500/15 blur-[80px] pointer-events-none z-0" aria-hidden="true" />
 
-        <section className="pt-32 pb-6 sm:pb-14 bg-gradient-radial-primary">
+        <section className="pt-32 pb-6 sm:pb-14 bg-gradient-radial-primary" aria-label="Hero section">
           <div className="max-w-6xl mx-auto px-6 text-center relative z-10">
             <Hero />
           </div>
         </section>
 
-        <section className="w-full">
+        <section className="w-full" aria-label="Product preview">
           <HeroScrollMask />
         </section>
       </div>
-      <section className="w-full py-10 sm:py-16">
+      <section className="w-full py-10 sm:py-16" aria-label="How it works">
         <div className="max-w-6xl mx-auto px-6">
           <InteractiveRecordingSteps />
         </div>
       </section>
 
       <div className="relative overflow-hidden bg-gradient-radial-primary w-full pt-0 pb-30 sm:py-20">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-250 h-[150%] rounded-[100%] blur-xl pointer-events-none "></div>
-        <section className="w-full">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-250 h-[150%] rounded-[100%] blur-xl pointer-events-none" aria-hidden="true"></div>
+        <section className="w-full" aria-label="Editor features and demos">
           <div className="w-full mx-auto bg-[url('/images/pages/dots.svg')] bg-no-repeat bg-contain bg-center">
             <EditorPreview />
           </div>
           <CarouselDemos />
-          <section className="pt-4 pb-10 sm:py-2 w-full mb-0 sm:mb-42">
+          <section className="pt-4 pb-10 sm:py-2 w-full mb-0 sm:mb-42" aria-label="Support the project">
             <div
               className="absolute left-1/2 -translate-x-1/2 w-150 h-500 pointer-events-none z-0 pro-glow"
               style={{
@@ -107,6 +107,7 @@ export default async function Home({ params }: Props) {
                 willChange: 'filter, background',
                 background: 'radial-gradient(circle at var(--glow-x) 20%, rgba(6, 182, 212, 0.25) 0%, transparent 70%)'
               }}
+              aria-hidden="true"
             />
             <div className="max-w-xl mx-auto px-6">
               <DonationCard />

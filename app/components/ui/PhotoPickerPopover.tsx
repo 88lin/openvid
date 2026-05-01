@@ -229,14 +229,14 @@ export function PhotoPickerPopover({ onSelect }: PhotoPickerPopoverProps) {
         <Popover open={open} onOpenChange={setOpen}>
             <TooltipAction label={t("tooltip")}>
                 <PopoverTrigger asChild>
-                    <button className="aspect-square squircle-element bg-gray-100 border border-white/10 bg-linear-to-br from-indigo-500 via-purple-500 to-pink-500 bg-[url('/svg/ppu.svg')] bg-cover bg-center flex items-center justify-center hover:opacity-80 transition group relative overflow-hidden" />
+                    <button className="aspect-square squircle-element bg-gray-100 border border-white/10 bg-linear-to-br from-indigo-500 via-purple-500 to-pink-500 bg-[url('/svg/ppu.svg')] bg-cover bg-center flex items-center justify-center hover:opacity-80 transition group relative overflow-hidden" aria-label={t("tooltip")} />
                 </PopoverTrigger>
             </TooltipAction>
             <PopoverContent side="right" align="start" sideOffset={12} className="w-115 p-0 border-0 shadow-2xl">
                 <div className="flex flex-col bg-black border border-white/10 rounded-xl overflow-hidden shadow-2xl max-h-150">
                     <div className="px-4 py-3 border-b border-white/10 bg-white/5 shrink-0">
                         <div className="flex items-center gap-2">
-                            <Icon icon="ph:images-bold" width="13" className="text-white/50" />
+                            <Icon icon="ph:images-bold" width="13" className="text-white/50" aria-hidden="true" />
                             <span className="text-[10px] font-medium uppercase tracking-[0.15em] text-white/50">
                                 {t("title")}
                             </span>
@@ -247,7 +247,7 @@ export function PhotoPickerPopover({ onSelect }: PhotoPickerPopoverProps) {
                     </div>
                     <div className="px-4 pt-3 pb-2 shrink-0">
                         <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/6 border border-white/10 focus-within:border-white/20 transition-colors">
-                            <Icon icon="ph:magnifying-glass-bold" width="13" className="text-white/30 shrink-0" />
+                            <Icon icon="ph:magnifying-glass-bold" width="13" className="text-white/30 shrink-0" aria-hidden="true" />
                             <input
                                 type="text"
                                 value={inputValue}
@@ -255,10 +255,11 @@ export function PhotoPickerPopover({ onSelect }: PhotoPickerPopoverProps) {
                                 onKeyDown={handleInputKeyDown}
                                 placeholder={t("searchPlaceholder")}
                                 className="flex-1 bg-transparent text-[12px] text-white/80 placeholder:text-white/30 outline-none"
+                                aria-label={t("searchPlaceholder")}
                             />
                             {inputValue && (
-                                <button onClick={handleClear} className="text-white/30 hover:text-white/60 transition-colors">
-                                    <Icon icon="mdi:close" width="13" />
+                                <button onClick={handleClear} className="text-white/30 hover:text-white/60 transition-colors" aria-label="Clear search">
+                                    <Icon icon="mdi:close" width="13" aria-hidden="true" />
                                 </button>
                             )}
                         </div>
@@ -289,7 +290,7 @@ export function PhotoPickerPopover({ onSelect }: PhotoPickerPopoverProps) {
                         <MasonryGrid photos={photos} onSelect={handleSelect} loading={loading && photos.length === 0} emptyText={t("noResults")} />
                         {loading && photos.length > 0 && (
                             <div className="flex justify-center py-3">
-                                <Icon icon="mdi:loading" className="text-white/30 animate-spin" width="20" />
+                                <Icon icon="mdi:loading" className="text-white/30 animate-spin" width="20" aria-hidden="true" />
                             </div>
                         )}
                     </div>

@@ -44,6 +44,7 @@ export function ExportDropdown({ onExport, exportProgress, hasTransparentBackgro
           (isTransparent ? "hover:bg-cyan-500/5" : "hover:bg-white/5")
         }`} 
         onClick={() => handleExport(id)}
+        aria-label={`Export as ${id.toUpperCase()} ${resolution}`}
       >
         <div className="flex items-center justify-between w-full">
           <span className={`text-sm font-medium transition-colors ${
@@ -86,10 +87,11 @@ export function ExportDropdown({ onExport, exportProgress, hasTransparentBackgro
           className="px-3 py-2 text-sm gap-2 min-w-27.5" 
           size="sm" 
           disabled={isExporting}
+          aria-label={t("button")}
         >
-          <Icon icon="icon-park-outline:export" width="18" />
+          <Icon icon="icon-park-outline:export" width="18" aria-hidden="true" />
           {t("button")}
-          <Icon icon="mdi:chevron-down" width="16" className="opacity-50" />
+          <Icon icon="mdi:chevron-down" width="16" className="opacity-50" aria-hidden="true" />
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-72 bg-[#1C1C1F] border-white/10 text-white shadow-2xl p-0 overflow-hidden">

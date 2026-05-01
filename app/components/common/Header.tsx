@@ -12,7 +12,6 @@ import { Button } from "@/components/ui/button";
 import { useRecording } from "@/hooks/RecordingContext";
 import RecordingSetupDialog from "../ui/RecordingSetupDialog";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import GitHubStars from "@/components/ui/GitHubStars";
 
 export default function Header() {
   const t = useTranslations('header');
@@ -59,12 +58,12 @@ export default function Header() {
 
   const getButtonContent = () => {
     if (isCountdown || isProcessing) {
-      return <Icon icon="eos-icons:loading" className="w-4 h-4 animate-spin" />;
+      return <Icon icon="eos-icons:loading" className="w-4 h-4 animate-spin" aria-hidden="true" />;
     }
     if (isRecording) {
-      return <div className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse" />;
+      return <div className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse" aria-hidden="true" />;
     }
-    return <Icon icon="material-symbols:cast-outline-rounded" className="w-4 h-4" />;
+    return <Icon icon="material-symbols:cast-outline-rounded" className="w-4 h-4" aria-hidden="true" />;
   };
 
   return (
@@ -75,21 +74,23 @@ export default function Header() {
       )}
       >
         <div className="max-w-6xl mx-auto px-3 sm:px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 group">
-            <Image src="/svg/logo-openvid.svg" alt="Logo" width={50} height={50} style={{ height: "auto" }} />
-            <Image src="/svg/openvid.svg" alt="Logo" width={100} height={50} className="hidden sm:flex" style={{ height: "auto" }} />
+          <Link href="/" className="flex items-center gap-2 group" aria-label="OpenVid - Go to home">
+            <Image src="/svg/logo-openvid.svg" alt="" aria-hidden="true" width={50} height={50} style={{ height: "auto" }} />
+            <Image src="/svg/openvid.svg" alt="OpenVid" width={100} height={50} className="hidden sm:flex" style={{ height: "auto" }} />
           </Link>
 
-          <div className="hidden md:flex items-center gap-8 text-md font-medium text-neutral-400">
+          <nav className="hidden md:flex items-center gap-8 text-md font-medium text-neutral-400" aria-label="Main navigation">
             <a href="#docs" className="hover:text-white transition-colors">{t('docs')}</a>
             <Link href="/donate" target="_blank" className="hover:text-white transition-colors">{t('donate')}</Link>
-          </div>
+          </nav>
 
           <div className="flex items-center gap-3 sm:gap-6">
             <Button
               variant="outline"
               onClick={handleHeaderAction}
               disabled={isCountdown || isProcessing}
+              aria-label={isRecording ? tRecording('step4.visual.stop') : t('screen')}
+              aria-pressed={isRecording}
               className={cn(
                 "transition-all hidden sm:flex",
                 isRecording && "border-red-500/50 text-red-400 hover:bg-red-500/5"
@@ -100,7 +101,7 @@ export default function Header() {
                 {isRecording ? tRecording('step4.visual.stop') : t('screen')}
               </span>
               {!isRecording && (
-                <kbd className="hidden lg:flex items-center ml-1 px-1.5 py-0.5 rounded bg-black/20 border border-white/20 text-[9px] font-black text-white/80 uppercase">
+                <kbd className="hidden lg:flex items-center ml-1 px-1.5 py-0.5 rounded bg-black/20 border border-white/20 text-[9px] font-black text-white/80 uppercase" aria-label="Alt + S">
                   Alt + S
                 </kbd>
               )}
@@ -136,8 +137,8 @@ export default function Header() {
 
         {showMobileAlert && (
           <div className="absolute top-20 left-1/2 -translate-x-1/2 w-full max-w-xs px-4">
-            <Alert variant="warning" className="bg-[#0A0A0A] border-yellow-500/50">
-              <Icon icon="solar:laptop-minimalistic-broken" className="text-xl" />
+            <Alert variant="warning" className="bg-[#0A0A0A] border-yellow-500/50" role="alert">
+              <Icon icon="solar:laptop-minimalistic-broken" className="text-xl" aria-hidden="true" />
               <AlertTitle>{tRecording('step1.permissionRequired')}</AlertTitle>
               <AlertDescription>{tRecording('step1.mobileAlert')}</AlertDescription>
             </Alert>

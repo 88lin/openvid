@@ -34,6 +34,8 @@ export function OptionsGrid({ selectedIndex = -1, onSelect, onUnsplashSelect }: 
             backgroundPosition: "0 0,0 6px,6px -6px,-6px 0",
             backgroundColor: "#ccc",
           }}
+          aria-label={t("options.none")}
+          aria-pressed={selectedIndex === -1}
         />
       </TooltipAction>
       <PhotoPickerPopover onSelect={(url) => onUnsplashSelect?.(url)} />
@@ -51,8 +53,8 @@ function CategoryPopover({ category, selectedIndex, onSelect }: { category: Wall
     <Popover open={open} onOpenChange={setOpen}>
       <TooltipAction label={t("popover.seeMore", { name: categoryName })}>
         <PopoverTrigger asChild>
-          <button className="aspect-square rounded-lg border border-white/10 bg-white/5 flex items-center justify-center hover:bg-white/10 transition group">
-            <Icon icon="ph:plus-bold" width="16" className="text-blue-400 group-hover:text-blue-300 transition-colors" />
+          <button className="aspect-square rounded-lg border border-white/10 bg-white/5 flex items-center justify-center hover:bg-white/10 transition group" aria-label={t("popover.seeMore", { name: categoryName })}>
+            <Icon icon="ph:plus-bold" width="16" className="text-blue-400 group-hover:text-blue-300 transition-colors" aria-hidden="true" />
           </button>
         </PopoverTrigger>
       </TooltipAction>
@@ -60,7 +62,7 @@ function CategoryPopover({ category, selectedIndex, onSelect }: { category: Wall
       <PopoverContent side="right" align="start" sideOffset={12} className="w-126 p-0 border-0 shadow-2xl">
         <div className="flex flex-col bg-[#111113] border border-white/10 rounded-xl overflow-hidden shadow-2xl">
           <div className="flex items-center gap-2 px-4 py-3 border-b border-white/10 bg-white/2">
-            <Icon icon={category.icon} width="14" className="text-white/50" />
+            <Icon icon={category.icon} width="14" className="text-white/50" aria-hidden="true" />
             <span className="text-[10px] font-medium uppercase tracking-[0.15em] text-white/50">
               {categoryName}
             </span>
@@ -112,7 +114,7 @@ function SecondaryCategoryGrid({ category, selectedIndex, onSelect }: { category
       className="flex flex-col gap-2 overflow-hidden"
     >
       <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-white/60 font-bold">
-        <Icon icon={category.icon} width="12" />
+        <Icon icon={category.icon} width="12" aria-hidden="true" />
         <span>{t(`categories.${category.id}`)}</span>
       </div>
       <div className="grid grid-cols-6 gap-2">
@@ -148,7 +150,7 @@ export function WallpaperCatalogGrid({ selectedIndex = -1, onSelect }: Wallpaper
           whileTap={{ scale: 0.95 }}
         >
           <motion.div animate={{ rotate: showAll ? 180 : 0 }} transition={{ duration: 0.3, ease: "easeInOut" }}>
-            <Icon icon="lucide:chevron-down" width="12" />
+            <Icon icon="lucide:chevron-down" width="12" aria-hidden="true" />
           </motion.div>
           <span>{showAll ? t("options.showLess") : t("options.showMore")}</span>
         </motion.button>
@@ -172,6 +174,8 @@ function WallpaperThumb({ item, isSelected, onSelect }: { item: WallpaperItem; i
         isSelected ? "ring-2 ring-white/90 border-white/40 shadow-md shadow-black/50" : "border-white/10 hover:border-white/30 hover:ring-1 ring-white/20"
       }`}
       style={{ backgroundImage: `url('${item.previewUrl}')` }}
+      aria-label={item.filename}
+      aria-pressed={isSelected}
     />
   );
 }
@@ -184,6 +188,8 @@ function WallpaperThumbProgressive({ item, isSelected, onSelect }: { item: Wallp
       className={`aspect-square squircle-element cursor-pointer transition-all bg-cover bg-center border overflow-hidden relative ${
         isSelected ? "ring-2 ring-white/90 border-white/40 shadow-md shadow-black/50" : "border-white/10 hover:border-white/30 hover:ring-1 ring-white/20"
       }`}
+      aria-label={item.filename}
+      aria-pressed={isSelected}
     >
       <img
         src={item.previewUrl}

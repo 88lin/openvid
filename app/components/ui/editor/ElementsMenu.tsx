@@ -255,39 +255,39 @@ export function ElementsMenu({
         <div className="p-4 flex flex-col gap-5">
 
             <div className="flex items-center gap-2 text-white font-medium">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="transition-colors duration-200">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="transition-colors duration-200" aria-hidden="true">
                     <path d="M11 13.5V21.5H3V13.5H11ZM9 15.5H5V19.5H9V15.5ZM12 2L17.5 11H6.5L12 2ZM12 5.86L10.08 9H13.92L12 5.86Z" fill="currentColor" stroke="currentColor" strokeWidth="0.2" />
                     <path fillRule="evenodd" clipRule="evenodd" d="M13.7667 13.8246C13.7667 13.6323 13.8431 13.4479 13.9791 13.312C14.115 13.176 14.2994 13.0996 14.4917 13.0996H20.2917C20.484 13.0996 20.6684 13.176 20.8044 13.312C20.9403 13.4479 21.0167 13.6323 21.0167 13.8246V14.7913C21.0167 14.9836 20.9403 15.168 20.8044 15.3039C20.6684 15.4399 20.484 15.5163 20.2917 15.5163C20.0994 15.5163 19.915 15.4399 19.7791 15.3039C19.6431 15.168 19.5667 14.9836 19.5667 14.7913V14.5496H18.1167V20.3496H18.3584C18.5507 20.3496 18.7351 20.426 18.871 20.562C19.007 20.6979 19.0834 20.8823 19.0834 21.0746C19.0834 21.2669 19.007 21.4513 18.871 21.5873C18.7351 21.7232 18.5507 21.7996 18.3584 21.7996H16.4251C16.2328 21.7996 16.0484 21.7232 15.9124 21.5873C15.7764 21.4513 15.7001 21.2669 15.7001 21.0746C15.7001 20.8823 15.7764 20.6979 15.9124 20.562C16.0484 20.426 16.2328 20.3496 16.4251 20.3496H16.6667V14.5496H15.2167V14.7913C15.2167 14.9836 15.1403 15.168 15.0044 15.3039C14.8684 15.4399 14.684 15.5163 14.4917 15.5163C14.2994 15.5163 14.115 15.4399 13.9791 15.3039C13.8431 15.168 13.7667 14.9836 13.7667 14.7913V13.8246Z" fill="currentColor" stroke="currentColor" strokeWidth="0.5" />
                 </svg>
                 <span>{t("title")}</span>
             </div>
 
-            <div className="grid grid-cols-3 bg-[#09090B] squircle-element p-1 text-xs font-medium border border-white/5">
-                <button className={`flex justify-center items-center gap-1.5 py-1.5 rounded transition ${mode === "elements" ? "bg-white/10 text-white" : "text-white/50 hover:text-white/80"}`} onClick={() => setMode("elements")}>
-                    <Icon icon="iconoir:hexagon" width="14" />
+            <div className="grid grid-cols-3 bg-[#09090B] squircle-element p-1 text-xs font-medium border border-white/5" role="tablist" aria-label={t("title")}>
+                <button className={`flex justify-center items-center gap-1.5 py-1.5 rounded transition ${mode === "elements" ? "bg-white/10 text-white" : "text-white/50 hover:text-white/80"}`} onClick={() => setMode("elements")} role="tab" aria-selected={mode === "elements"} aria-controls="elements-panel">
+                    <Icon icon="iconoir:hexagon" width="14" aria-hidden="true" />
                     {t("tabs.elements")}
                 </button>
-                <button className={`flex justify-center items-center gap-1.5 py-1.5 rounded transition ${mode === "text" ? "bg-white/10 text-white" : "text-white/50 hover:text-white/80"}`} onClick={() => setMode("text")}>
-                    <Icon icon="iconoir:text-size" width="14" />
+                <button className={`flex justify-center items-center gap-1.5 py-1.5 rounded transition ${mode === "text" ? "bg-white/10 text-white" : "text-white/50 hover:text-white/80"}`} onClick={() => setMode("text")} role="tab" aria-selected={mode === "text"} aria-controls="text-panel">
+                    <Icon icon="iconoir:text-size" width="14" aria-hidden="true" />
                     {t("tabs.text")}
                 </button>
-                <button className={`flex justify-center items-center gap-1.5 py-1.5 rounded transition ${mode === "uploads" ? "bg-white/10 text-white" : "text-white/50 hover:text-white/80"}`} onClick={() => setMode("uploads")}>
-                    <Icon icon="ph:upload-simple-bold" width="14" />
+                <button className={`flex justify-center items-center gap-1.5 py-1.5 rounded transition ${mode === "uploads" ? "bg-white/10 text-white" : "text-white/50 hover:text-white/80"}`} onClick={() => setMode("uploads")} role="tab" aria-selected={mode === "uploads"} aria-controls="uploads-panel">
+                    <Icon icon="ph:upload-simple-bold" width="14" aria-hidden="true" />
                     {t("tabs.uploads")}
                 </button>
             </div>
 
             {mode === "elements" && (
-                <div className="flex flex-col gap-5 animate-in fade-in duration-150">
+                <div className="flex flex-col gap-5 animate-in fade-in duration-150" role="tabpanel" id="elements-panel">
 
                     <div className="space-y-2">
                         <div className="text-[10px] uppercase tracking-widest text-white/40 font-semibold">{t("sections.shapes")}</div>
                         <div className="grid grid-cols-6 gap-2">
                             {PINNED_SVG_ITEMS.map((item) => (
                                 <TooltipAction label={item.name} key={item.id}>
-                                    <button onClick={() => handleAddSvg(item)} className="aspect-square bg-white/3 hover:bg-white/8 border border-white/[0.07] hover:border-white/20 squircle-element flex items-center justify-center transition-all active:scale-90 group">
+                                    <button onClick={() => handleAddSvg(item)} className="aspect-square bg-white/3 hover:bg-white/8 border border-white/[0.07] hover:border-white/20 squircle-element flex items-center justify-center transition-all active:scale-90 group" aria-label={`Add ${item.name}`}>
                                         {item.icon ? (
-                                            <Icon icon={item.icon} width="18" className="text-white/50 group-hover:text-white transition-colors" />
+                                            <Icon icon={item.icon} width="18" className="text-white/50 group-hover:text-white transition-colors" aria-hidden="true" />
                                         ) : (() => {
                                             const SvgComponent = SVG_COMPONENTS[item.id];
                                             return SvgComponent

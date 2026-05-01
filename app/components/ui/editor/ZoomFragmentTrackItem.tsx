@@ -205,6 +205,12 @@ export function ZoomFragmentTrackItem({
             onMouseEnter={onMouseEnter}
             onMouseLeave={onMouseLeave}
             whileTap={{ scale: 0.98 }}
+            role="slider"
+            aria-valuemin={0}
+            aria-valuemax={videoDuration}
+            aria-valuenow={fragment.startTime}
+            aria-label={`Zoom fragment ${zoomLevelToFactor(fragment.zoomLevel).toFixed(1)}x, ${duration.toFixed(1)}s`}
+            tabIndex={0}
         >
             {/* Resize handle - Start */}
             <motion.div
@@ -217,6 +223,12 @@ export function ZoomFragmentTrackItem({
                 onDragStart={() => handleResizeStart('start')}
                 onDragEnd={handleResizeEnd}
                 onClick={(e) => e.stopPropagation()}
+                role="slider"
+                aria-label="Resize start"
+                aria-valuemin={0}
+                aria-valuemax={videoDuration}
+                aria-valuenow={fragment.startTime}
+                tabIndex={0}
             >
                 <div className={`w-1 h-6 rounded rounded-md-full transition-all ${isResizing === 'start'
                         ? 'bg-blue-300 scale-110'
@@ -245,6 +257,12 @@ export function ZoomFragmentTrackItem({
                 onDragStart={() => handleResizeStart('end')}
                 onDragEnd={handleResizeEnd}
                 onClick={(e) => e.stopPropagation()}
+                role="slider"
+                aria-label="Resize end"
+                aria-valuemin={0}
+                aria-valuemax={videoDuration}
+                aria-valuenow={fragment.endTime}
+                tabIndex={0}
             >
                 <div className={`w-1 h-6 rounded rounded-md-full transition-all ${isResizing === 'end'
                         ? 'bg-blue-300 scale-110'

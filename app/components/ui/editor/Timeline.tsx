@@ -337,6 +337,12 @@ export function Timeline({
                             <motion.div
                                 className="absolute top-0 bottom-0 z-20 flex flex-col items-center cursor-ew-resize group select-none"
                                 style={{ x: playheadX, translateX: "-50%" }}
+                                role="slider"
+                                aria-label={`Playhead at ${formatTime(currentTime)}`}
+                                aria-valuemin={videoClips.length > 0 ? 0 : trimRange.start}
+                                aria-valuemax={videoClips.length > 0 ? validDuration : trimRange.end}
+                                aria-valuenow={currentTime}
+                                tabIndex={0}
                                 drag="x"
                                 dragConstraints={{
                                     left: videoClips.length > 0 ? 0 : trimStartPosition,
@@ -465,6 +471,12 @@ export function Timeline({
                                                 <motion.div
                                                     className="absolute top-0 bottom-0 w-3 cursor-ew-resize z-20 group/trim flex items-center justify-center"
                                                     style={{ x: trimStartX, translateX: "-50%" }}
+                                                    role="slider"
+                                                    aria-label={`Trim start at ${formatTime(trimRange.start)}`}
+                                                    aria-valuemin={0}
+                                                    aria-valuemax={trimRange.end}
+                                                    aria-valuenow={trimRange.start}
+                                                    tabIndex={0}
                                                     drag="x"
                                                     dragConstraints={{ left: 0, right: contentWidth }}
                                                     dragElastic={0}
@@ -473,13 +485,19 @@ export function Timeline({
                                                     onDragStart={() => handleTrimDragStart('start')}
                                                     onDragEnd={handleTrimDragEnd}
                                                 >
-                                                    <div className={`w-1.5 h-8 rounded-full transition-all ${isDraggingTrim === 'start' ? 'bg-[#4ade80] scale-110' : 'bg-[#34A853] group-hover/trim:bg-[#4ade80]'}`} />
+                                                    <div className={`w-1.5 h-8 rounded-full transition-all ${isDraggingTrim === 'start' ? 'bg-[#4ade80] scale-110' : 'bg-[#34A853] group-hover/trim:bg-[#4ade80]'}`} aria-hidden="true" />
                                                 </motion.div>
 
                                                 {/* Trim End Handle */}
                                                 <motion.div
                                                     className="absolute top-0 bottom-0 w-3 cursor-ew-resize z-20 group/trim flex items-center justify-center"
                                                     style={{ x: trimEndX, translateX: "-50%" }}
+                                                    role="slider"
+                                                    aria-label={`Trim end at ${formatTime(trimRange.end)}`}
+                                                    aria-valuemin={trimRange.start}
+                                                    aria-valuemax={validDuration}
+                                                    aria-valuenow={trimRange.end}
+                                                    tabIndex={0}
                                                     drag="x"
                                                     dragConstraints={{ left: 0, right: contentWidth }}
                                                     dragElastic={0}
@@ -488,7 +506,7 @@ export function Timeline({
                                                     onDragStart={() => handleTrimDragStart('end')}
                                                     onDragEnd={handleTrimDragEnd}
                                                 >
-                                                    <div className={`w-1.5 h-8 rounded-full transition-all ${isDraggingTrim === 'end' ? 'bg-[#4ade80] scale-110' : 'bg-[#34A853] group-hover/trim:bg-[#4ade80]'}`} />
+                                                    <div className={`w-1.5 h-8 rounded-full transition-all ${isDraggingTrim === 'end' ? 'bg-[#4ade80] scale-110' : 'bg-[#34A853] group-hover/trim:bg-[#4ade80]'}`} aria-hidden="true" />
                                                 </motion.div>
                                             </>
                                         )}
@@ -592,7 +610,7 @@ export function Timeline({
                                                     transition={{ type: "spring", stiffness: 500, damping: 40 }}
                                                 >
                                                     <div className="w-full h-full rounded border border-dashed border-blue-400/50 bg-blue-500/10 flex flex-col items-center justify-center gap-0.5">
-                                                        <Icon icon="qlementine-icons:zoom-12" width="12" height="12" className="text-blue-400" />
+                                                        <Icon icon="qlementine-icons:zoom-12" width="12" height="12" className="text-blue-400" aria-hidden="true" />
                                                         <span className="text-[8px] font-mono text-blue-400/60">+ Zoom</span>
                                                     </div>
                                                 </motion.div>

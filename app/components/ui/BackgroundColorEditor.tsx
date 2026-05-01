@@ -296,12 +296,14 @@ export function BackgroundColorEditor({ value, onChange }: BackgroundColorEditor
                 <button
                     className={`flex-1 py-1.5 rounded transition ${mode === "gradient" ? "bg-white/10 text-white" : "text-white/60 hover:text-white"}`}
                     onClick={() => { setMode("gradient"); onChange({ type: "gradient", config: currentGradient }); }}
+                    aria-pressed={mode === "gradient"}
                 >
                     {t("modes.gradient")}
                 </button>
                 <button
                     className={`flex-1 py-1.5 rounded transition ${mode === "solid" ? "bg-white/10 text-white" : "text-white/60 hover:text-white"}`}
                     onClick={() => { setMode("solid"); onChange({ type: "solid", config: { color: currentSolidColor } }); }}
+                    aria-pressed={mode === "solid"}
                 >
                     {t("modes.solid")}
                 </button>
@@ -318,20 +320,22 @@ export function BackgroundColorEditor({ value, onChange }: BackgroundColorEditor
                                     className={`aspect-square squircle-element cursor-pointer hover:ring-2 transition border shadow-sm ${value?.type === "solid" && value.config.color === color ? "ring-2 ring-white/90 shadow-lg shadow-white" : "border-white/10 ring-white/60"}`}
                                     style={{ backgroundColor: color }}
                                     onClick={() => handleSolidColorSelect(color)}
+                                    aria-label={`Select color ${color}`}
+                                    aria-pressed={value?.type === "solid" && value.config.color === color}
                                 />
                             ))}
                             <Popover>
                                 <TooltipAction label={t("tooltips.moreColors")}>
                                     <PopoverTrigger asChild>
-                                        <button className="aspect-square squircle-element border border-dashed border-white/30 bg-white/5 flex items-center justify-center hover:bg-white/10 transition group" >
-                                            <Icon icon="ph:plus-bold" width="16" className="text-blue-400 group-hover:text-blue-300 transition-colors" />
+                                        <button className="aspect-square squircle-element border border-dashed border-white/30 bg-white/5 flex items-center justify-center hover:bg-white/10 transition group" aria-label={t("tooltips.moreColors")}>
+                                            <Icon icon="ph:plus-bold" width="16" className="text-blue-400 group-hover:text-blue-300 transition-colors" aria-hidden="true" />
                                         </button>
                                     </PopoverTrigger>
                                 </TooltipAction>
                                 <PopoverContent side="right" align="start" sideOffset={12} className="w-72 p-0 border-0 shadow-2xl">
                                     <div className="flex flex-col bg-[#111113] border border-white/10 rounded-xl overflow-hidden shadow-2xl">
                                         <div className="flex items-center gap-2 px-4 py-3 border-b border-white/10 bg-white/2">
-                                            <Icon icon="mdi:palette" width="14" className="text-white/50" />
+                                            <Icon icon="mdi:palette" width="14" className="text-white/50" aria-hidden="true" />
                                             <span className="text-[10px] font-medium uppercase tracking-[0.15em] text-white/50">{t("sections.moreColors")}</span>
                                             <span className="ml-auto text-[10px] text-white/60">{PRESET_SOLID_COLORS.length} total</span>
                                         </div>
@@ -342,6 +346,8 @@ export function BackgroundColorEditor({ value, onChange }: BackgroundColorEditor
                                                     className={`aspect-square squircle-element cursor-pointer hover:ring-2 transition border shadow-sm ${value?.type === "solid" && value.config.color === color ? "ring-2 ring-white/90 shadow-lg shadow-white" : "border-white/10 ring-white/60"}`}
                                                     style={{ backgroundColor: color }}
                                                     onClick={() => handleSolidColorSelect(color)}
+                                                    aria-label={`Select color ${color}`}
+                                                    aria-pressed={value?.type === "solid" && value.config.color === color}
                                                 />
                                             ))}
                                         </div>
@@ -356,13 +362,13 @@ export function BackgroundColorEditor({ value, onChange }: BackgroundColorEditor
                         <div className="flex items-center gap-3">
                             <div className="w-12 h-12 squircle-element border border-white/20 shadow-lg shrink-0 relative overflow-hidden group">
                                 <div className="w-full h-full" style={{ backgroundColor: currentSolidColor }} />
-                                <input type="color" value={currentSolidColor} onChange={(e) => handleSolidColorChange(e.target.value)} className="absolute inset-0 cursor-pointer opacity-0" />
-                                <Icon icon="mdi:eyedropper" className="absolute inset-0 m-auto text-white/0 group-hover:text-white/60 transition-opacity pointer-events-none" width="20" />
+                                <input type="color" value={currentSolidColor} onChange={(e) => handleSolidColorChange(e.target.value)} className="absolute inset-0 cursor-pointer opacity-0" aria-label={t("sections.customize")} />
+                                <Icon icon="mdi:eyedropper" className="absolute inset-0 m-auto text-white/0 group-hover:text-white/60 transition-opacity pointer-events-none" width="20" aria-hidden="true" />
                             </div>
                             <div className="flex-1 bg-white/5 border border-white/10 squircle-element px-3 py-2.5 flex items-center justify-between transition-colors hover:border-white/20">
                                 <span className="text-sm font-mono text-white/80 uppercase tracking-tight">{currentSolidColor}</span>
-                                <button onClick={handleCopy} className={`transition-all duration-200 ${copied ? "text-green-400" : "text-white/20 hover:text-white/50"}`}>
-                                    {copied ? <Icon icon="line-md:check-all" width="14" /> : <Icon icon="mdi:content-copy" width="14" />}
+                                <button onClick={handleCopy} className={`transition-all duration-200 ${copied ? "text-green-400" : "text-white/20 hover:text-white/50"}`} aria-label={copied ? "Copied" : "Copy color code"}>
+                                    {copied ? <Icon icon="line-md:check-all" width="14" aria-hidden="true" /> : <Icon icon="mdi:content-copy" width="14" aria-hidden="true" />}
                                 </button>
                             </div>
                         </div>
@@ -384,21 +390,23 @@ export function BackgroundColorEditor({ value, onChange }: BackgroundColorEditor
                                         onClick={() => handleGradientSelect(gradient)}
                                         style={{ background: gradientCss }}
                                         className={`aspect-square squircle-element cursor-pointer transition-all duration-200 border shadow-sm hover:scale-105 active:scale-95 ${isSelected ? "ring-2 ring-white/90 shadow-lg shadow-white" : "border-white/10 ring-white/60"}`}
+                                        aria-label={`Select ${currentGradient.type} gradient preset ${i + 1}`}
+                                        aria-pressed={isSelected}
                                     />
                                 );
                             })}
                             <Popover>
                                 <TooltipAction label={t("tooltips.moreGradients")}>
                                     <PopoverTrigger asChild>
-                                        <button className="aspect-square squircle-element border border-dashed border-white/30 bg-white/5 flex items-center justify-center hover:bg-white/10 transition group" >
-                                            <Icon icon="ph:plus-bold" width="16" className="text-blue-400 group-hover:text-blue-300 transition-colors" />
+                                        <button className="aspect-square squircle-element border border-dashed border-white/30 bg-white/5 flex items-center justify-center hover:bg-white/10 transition group" aria-label={t("tooltips.moreGradients")}>
+                                            <Icon icon="ph:plus-bold" width="16" className="text-blue-400 group-hover:text-blue-300 transition-colors" aria-hidden="true" />
                                         </button>
                                     </PopoverTrigger>
                                 </TooltipAction>
                                 <PopoverContent side="right" align="start" sideOffset={12} className="w-72 p-0 border-0 shadow-2xl">
                                     <div className="flex flex-col bg-[#111113] border border-white/10 rounded-xl overflow-hidden shadow-2xl">
                                         <div className="flex items-center gap-2 px-4 py-3 border-b border-white/10 bg-white/2">
-                                            <Icon icon="mdi:gradient-horizontal" width="14" className="text-white/50" />
+                                            <Icon icon="mdi:gradient-horizontal" width="14" className="text-white/50" aria-hidden="true" />
                                             <span className="text-[10px] font-medium uppercase tracking-[0.15em] text-white/50">
                                                 {t("sections.moreGradients", { type: t(`types.${currentGradient.type}`) })}
                                             </span>
@@ -414,6 +422,8 @@ export function BackgroundColorEditor({ value, onChange }: BackgroundColorEditor
                                                         onClick={() => handleGradientSelect(gradient)}
                                                         style={{ background: gradientCss }}
                                                         className={`aspect-square squircle-element cursor-pointer transition-all duration-200 border shadow-sm hover:scale-105 active:scale-95 ${isSelected ? "ring-2 ring-white/90 shadow-lg shadow-white" : "border-white/10 ring-white/60"}`}
+                                                        aria-label={`Select ${currentGradient.type} gradient preset ${i + 24}`}
+                                                        aria-pressed={isSelected}
                                                     />
                                                 );
                                             })}
@@ -429,23 +439,24 @@ export function BackgroundColorEditor({ value, onChange }: BackgroundColorEditor
                         <div className="space-y-2">
                             <div className="text-[10px] text-white/60 font-medium">{t("sections.type")}</div>
                             <div className="flex gap-2">
-                                {(["linear", "radial", "conic"] as GradientType[]).map((type) => (
+                                {((["linear", "radial", "conic"] as GradientType[]).map((type) => (
                                     <button
                                         key={type}
                                         className={`flex-1 py-2 flex items-center justify-center gap-1.5 squircle-element text-xs font-medium transition ${currentGradient.type === type ? "bg-white/10 text-white border border-white/20" : "bg-white/10 text-white/60 hover:bg-white/10"}`}
                                         onClick={() => handleGradientTypeChange(type)}
+                                        aria-pressed={currentGradient.type === type}
                                     >
-                                        <Icon icon={type === "linear" ? "mdi:gradient-horizontal" : type === "radial" ? "mdi:blur-radial" : "solar:pie-chart-bold"} width="16" />
+                                        <Icon icon={type === "linear" ? "mdi:gradient-horizontal" : type === "radial" ? "mdi:blur-radial" : "solar:pie-chart-bold"} width="16" aria-hidden="true" />
                                         <span className="capitalize">{t(`types.${type}`)}</span>
                                     </button>
-                                ))}
+                                )))}
                             </div>
                         </div>
 
                         {(currentGradient.type === "linear" || currentGradient.type === "conic") && (
                             <div className="space-y-2">
                                 <div className="flex justify-between items-center text-[10px] text-white/60 font-medium">
-                                    <div className="flex items-center gap-1.5"><Icon icon="mdi:rotate-right" width="14" /><span>{t("sections.angle")}</span></div>
+                                    <div className="flex items-center gap-1.5"><Icon icon="mdi:rotate-right" width="14" aria-hidden="true" /><span>{t("sections.angle")}</span></div>
                                     <span className="font-mono text-white/50 px-2 py-0.5 rounded">{currentGradient.angle ?? (currentGradient.type === "conic" ? 0 : 135)}°</span>
                                 </div>
                                 <input
@@ -453,6 +464,7 @@ export function BackgroundColorEditor({ value, onChange }: BackgroundColorEditor
                                     value={currentGradient.angle ?? (currentGradient.type === "conic" ? 0 : 135)}
                                     onChange={(e) => onChange({ type: "gradient", config: { ...currentGradient, angle: parseInt(e.target.value) } })}
                                     className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[linear-gradient(90deg,#00A3EE,#003780)]"
+                                    aria-label={`${t("sections.angle")}: ${currentGradient.angle ?? (currentGradient.type === "conic" ? 0 : 135)} degrees`}
                                 />
                             </div>
                         )}
@@ -466,7 +478,7 @@ export function BackgroundColorEditor({ value, onChange }: BackgroundColorEditor
                                         <div key={axis} className="space-y-2">
                                             <div className="flex justify-between items-center text-[10px] text-white/60 font-medium">
                                                 <div className="flex items-center gap-1.5">
-                                                    <Icon icon={axis === "X" ? "mdi:arrow-left-right" : "mdi:arrow-up-down"} width="14" />
+                                                    <Icon icon={axis === "X" ? "mdi:arrow-left-right" : "mdi:arrow-up-down"} width="14" aria-hidden="true" />
                                                     <span>{t(`sections.origin${axis}`)}</span>
                                                 </div>
                                                 <span className="font-mono text-white/50 px-2 py-0.5 rounded">{val}%</span>
@@ -475,6 +487,7 @@ export function BackgroundColorEditor({ value, onChange }: BackgroundColorEditor
                                                 type="range" min="0" max="100" value={val}
                                                 onChange={(e) => onChange({ type: "gradient", config: { ...currentGradient, [key]: parseInt(e.target.value) } })}
                                                 className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[linear-gradient(90deg,#00A3EE,#003780)]"
+                                                aria-label={`${t(`sections.origin${axis}`)}: ${val} percent`}
                                             />
                                         </div>
                                     );
@@ -488,8 +501,8 @@ export function BackgroundColorEditor({ value, onChange }: BackgroundColorEditor
                                     {t("sections.stops", { count: currentGradient.stops.length })}
                                 </div>
                                 {currentGradient.stops.length < 5 && (
-                                    <button onClick={handleAddStop} className="text-[10px] text-white/50 hover:text-white flex items-center gap-1 transition-colors">
-                                        <Icon icon="mdi:plus" width="12" />{t("sections.add")}
+                                    <button onClick={handleAddStop} className="text-[10px] text-white/50 hover:text-white flex items-center gap-1 transition-colors" aria-label={t("sections.add")}>
+                                        <Icon icon="mdi:plus" width="12" aria-hidden="true" />{t("sections.add")}
                                     </button>
                                 )}
                             </div>

@@ -46,7 +46,7 @@ export function MobileToolsMenu({
                     className="fixed bottom-4 left-4 z-50 size-10 rounded-full shadow-lg shadow-blue-500/50 bg-gradient-primary flex items-center justify-center hover:scale-105 transition-transform active:scale-95 lg:hidden"
                     aria-label="Abrir menú de herramientas"
                 >
-                    <Icon icon="solar:widget-2-bold-duotone" width="20" className="text-white" />
+                    <Icon icon="solar:widget-2-bold-duotone" width="20" className="text-white" aria-hidden="true" />
                 </button>
             </Dialog.Trigger>
 
@@ -54,7 +54,7 @@ export function MobileToolsMenu({
                 <Dialog.Overlay className="fixed inset-0 bg-black/80 backdrop-blur-sm z-100 animate-in fade-in duration-200" />
                 <Dialog.Content className="fixed bottom-0 left-0 right-0 bg-[#1a1a1d] border-t border-white/10 rounded-t-2xl z-101 p-6 animate-in slide-in-from-bottom duration-300 max-h-[80vh] overflow-y-auto">
                     <div className="flex items-center justify-between mb-6">
-                        <Dialog.Title className="text-lg font-semibold text-white">
+                        <Dialog.Title className="text-lg font-semibold text-white" id="tools-dialog-title">
                             Herramientas
                         </Dialog.Title>
                         <Dialog.Close asChild>
@@ -71,6 +71,8 @@ export function MobileToolsMenu({
                         <button
                             onClick={() => handleToolChange("screenshot")}
                             className="flex items-center justify-center p-4 squircle-element transition-all duration-200 group relative flex-col gap-1"
+                            aria-label="Fondo"
+                            aria-pressed={activeTool === "screenshot"}
                             style={activeTool === "screenshot" ? {
                                 background: 'radial-gradient(circle at 50% 0%, #555555 0%, #454545 64%)',
                                 boxShadow: 'inset 0 1.01rem 0.2rem -1rem #fff, 0 0 0 1px #fff4, 0 4px 4px 0 #0004, 0 0 0 1px #333',
@@ -84,6 +86,7 @@ export function MobileToolsMenu({
                                     icon="solar:gallery-wide-linear"
                                     width="24"
                                     className={activeTool === "screenshot" ? "text-white" : "text-white/70"}
+                                    aria-hidden="true"
                                 />
                             </div>
 
@@ -99,6 +102,8 @@ export function MobileToolsMenu({
                         <button
                             onClick={() => handleToolChange("elements")}
                             className="flex items-center justify-center p-4 squircle-element transition-all duration-200 group relative flex-col gap-1 active:scale-95"
+                            aria-label="Elementos"
+                            aria-pressed={activeTool === "elements"}
                             style={activeTool === "elements" ? {
                                 background: 'radial-gradient(circle at 50% 0%, #555555 0%, #454545 64%)',
                                 boxShadow: 'inset 0 1.01rem 0.2rem -1rem #fff, 0 0 0 1px #fff4, 0 4px 4px 0 #0004, 0 0 0 1px #333',
@@ -124,6 +129,8 @@ export function MobileToolsMenu({
                         <button
                             onClick={() => handleToolChange("audio")}
                             className="flex items-center justify-center p-4 squircle-element transition-all duration-200 group relative flex-col gap-1 active:scale-95"
+                            aria-label="Audio"
+                            aria-pressed={activeTool === "audio"}
                             style={activeTool === "audio" ? {
                                 background: 'radial-gradient(circle at 50% 0%, #555555 0%, #454545 64%)',
                                 boxShadow: 'inset 0 1.01rem 0.2rem -1rem #fff, 0 0 0 1px #fff4, 0 4px 4px 0 #0004, 0 0 0 1px #333',
@@ -133,7 +140,7 @@ export function MobileToolsMenu({
                             }}
                         >
                             <div className={`transition-transform duration-300 ${activeTool === "audio" ? "scale-110" : "group-hover:scale-105"}`}>
-                                <Icon icon="mdi:volume-high" width="24" className={activeTool === "audio" ? "text-white" : "text-white/70"} />
+                                <Icon icon="mdi:volume-high" width="24" className={activeTool === "audio" ? "text-white" : "text-white/70"} aria-hidden="true" />
                             </div>
                             <span className={`text-sm font-medium transition-colors ${activeTool === "audio" ? "text-white" : "text-white/40"}`}>
                                 Audio

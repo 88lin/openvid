@@ -111,7 +111,7 @@ export function PlayerControls({
                         aria-label={fullscreenLabel}
                         aria-pressed={isFullscreen}
                     >
-                        <Icon icon={isFullscreen ? "typcn:arrow-minimise" : "typcn:arrow-maximise"} width="17" />
+                        <Icon icon={isFullscreen ? "typcn:arrow-minimise" : "typcn:arrow-maximise"} width="17" aria-hidden="true" />
                     </button>
                 </TooltipAction>
 
@@ -125,7 +125,7 @@ export function PlayerControls({
                             className="text-zinc-500 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             aria-label={t("zoom.out")}
                         >
-                            <Icon icon="mdi:magnify-minus-outline" width="16" />
+                            <Icon icon="mdi:magnify-minus-outline" width="16" aria-hidden="true" />
                         </button>
                     </TooltipAction>
 
@@ -160,7 +160,7 @@ export function PlayerControls({
                             className="text-zinc-500 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             aria-label={t("zoom.in")}
                         >
-                            <Icon icon="mdi:magnify-plus-outline" width="16" />
+                            <Icon icon="mdi:magnify-plus-outline" width="16" aria-hidden="true" />
                         </button>
                     </TooltipAction>
 
@@ -194,7 +194,7 @@ export function PlayerControls({
                             onClick={onSkipBackward}
                             aria-label={t("transport.backward")}
                         >
-                            <Icon icon="mdi:rewind-5" width="20" />
+                            <Icon icon="mdi:rewind-5" width="20" aria-hidden="true" />
                         </button>
                     </TooltipAction>
 
@@ -205,7 +205,7 @@ export function PlayerControls({
                             aria-label={playPauseLabel}
                             aria-pressed={isPlaying}
                         >
-                            <Icon icon={isPlaying ? "mdi:pause" : "mdi:play"} width="20" />
+                            <Icon icon={isPlaying ? "mdi:pause" : "mdi:play"} width="20" aria-hidden="true" />
                         </button>
                     </TooltipAction>
 
@@ -215,7 +215,7 @@ export function PlayerControls({
                             onClick={onSkipForward}
                             aria-label={t("transport.forward")}
                         >
-                            <Icon icon="mdi:fast-forward-5" width="20" />
+                            <Icon icon="mdi:fast-forward-5" width="20" aria-hidden="true" />
                         </button>
                     </TooltipAction>
                 </div>
@@ -237,7 +237,7 @@ export function PlayerControls({
                         onClick={onOpenCropper}
                         aria-label={t("cropper.tooltip")}
                     >
-                        <Icon icon="mdi:crop" width="14" />
+                        <Icon icon="mdi:crop" width="14" aria-hidden="true" />
                         {t("cropper.button")}
                     </Button>
                 </TooltipAction>

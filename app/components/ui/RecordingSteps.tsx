@@ -51,7 +51,7 @@ export default function InteractiveRecordingSteps() {
     }
     return (
       <div className="flex items-center gap-3">
-        <Icon icon="material-symbols:cast-outline-rounded" className="size-6" />
+        <Icon icon="material-symbols:cast-outline-rounded" className="size-6" aria-hidden="true" />
         <span>{t('step1.startButton')}</span>
         <div className="hidden sm:flex items-center gap-1 text-[10px] bg-white/10 text-neutral-300 px-1.5 py-0.5 rounded border border-white/5 ml-2">
           <kbd>Alt</kbd>
@@ -83,6 +83,7 @@ export default function InteractiveRecordingSteps() {
             className={`text-lg relative overflow-hidden ${isRecording ? 'border-red-500/50 text-red-400' : ''} ${!isIdle ? 'opacity-70 cursor-not-allowed' : ''}`}
             onClick={handleStartRecording}
             disabled={!isIdle}
+            aria-label={t('step1.startButton')}
           >
             {getStartButtonContent()}
           </Button>
@@ -253,8 +254,9 @@ export default function InteractiveRecordingSteps() {
           className={`text-lg flex items-center ${isRecording ? 'text-red-500 border-red-500/50 hover:bg-red-500/10' : 'text-neutral-500 border-neutral-500/50 cursor-not-allowed opacity-50'}`}
           onClick={stopRecording}
           disabled={!isRecording}
+          aria-label={isRecording ? t('step1.stopButton') : t('step1.startButton')}
         >
-          <div className={`w-4 h-4 rounded-sm mr-2 ${isRecording ? 'bg-red-500' : 'bg-neutral-500'}`}></div>
+          <div className={`w-4 h-4 rounded-sm mr-2 ${isRecording ? 'bg-red-500' : 'bg-neutral-500'}`} aria-hidden="true"></div>
           {isRecording ? t('step1.stopButton') : t('step1.startButton')}
           <div className={`hidden sm:flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded border ml-3 ${isRecording ? 'bg-red-500/10 text-red-300 border-red-500/20' : 'bg-neutral-500/10 text-neutral-400 border-neutral-500/20'}`}>
             <kbd>Alt</kbd>

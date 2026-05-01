@@ -84,7 +84,7 @@ export function PhotoEditorPlaceholder({
             >
                 <div className="flex flex-col items-center gap-3 text-white/40">
                     <div className="p-3 rounded-xl bg-white/5 border border-white/10">
-                        <Icon icon="lucide:image" width={28} height={28} />
+                        <Icon icon="lucide:image" width={28} height={28} aria-hidden="true" />
                     </div>
                     <div className="text-center">
                         <p className="text-sm font-medium text-white/60">
@@ -115,6 +115,8 @@ export function PhotoEditorPlaceholder({
                             ? "bg-gradient-radial-primary border border-dashed border-white/20 hover:border-white/40"
                             : "bg-white/10 hover:bg-white/20"
                 }`}
+                aria-label={config.label}
+                aria-pressed={isSelected}
             >
                 <div
                     className={`relative w-full h-full rounded-[10px] overflow-hidden transition-colors ${
@@ -144,7 +146,7 @@ export function PhotoEditorPlaceholder({
                             <div className="absolute inset-0 bg-linear-to-br from-white/3 to-transparent" />
                             {isCustom && (
                                 <div className="absolute top-2 left-2 z-20 flex items-center gap-1 bg-black/60 backdrop-blur-md border border-white/10 px-1.5 py-0.5 rounded text-[9px] font-bold text-white/90 uppercase tracking-wider pointer-events-none shadow-lg">
-                                    <Icon icon="mdi:tune" width={10} className="text-[#00A3EE]" />
+                                    <Icon icon="mdi:tune" width={10} className="text-[#00A3EE]" aria-hidden="true" />
                                     {t("photoPreview.custom.customize")}
                                 </div>
                             )}
@@ -175,7 +177,7 @@ export function PhotoEditorPlaceholder({
                             </div>
                             <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-20" />
                             <div className="absolute bottom-2 left-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-1 group-hover:translate-y-0 pointer-events-none flex items-center gap-1.5 z-20">
-                                {!isCustom && <Icon icon="mdi:eye-outline" width={12} className="text-white/70" />}
+                                {!isCustom && <Icon icon="mdi:eye-outline" width={12} className="text-white/70" aria-hidden="true" />}
                                 <span className="text-[11px] font-medium text-white/90 tracking-wide">
                                     {config.label}
                                 </span>
@@ -183,8 +185,8 @@ export function PhotoEditorPlaceholder({
                         </>
                     )}
                     {isSelected && (
-                        <div className={`absolute top-2 right-2 z-30 size-5 rounded-full bg-gradient-primary flex items-center justify-center shadow-xl`}>
-                            <Icon icon="mdi:check-bold" width={12} className="text-white" />
+                        <div className={`absolute top-2 right-2 z-30 size-5 rounded-full bg-gradient-primary flex items-center justify-center shadow-xl`} aria-hidden="true">
+                            <Icon icon="mdi:check-bold" width={12} className="text-white" aria-hidden="true" />
                         </div>
                     )}
                 </div>
@@ -321,7 +323,7 @@ export function PhotoEditorPlaceholder({
         <div className={`flex flex-col bg-black border-t border-white/10 ${className}`}>
             <div className="h-13 shrink-0 border-t border-white/10 flex items-center justify-between px-5 bg-[#0D0D11]">
                 <div className="flex items-center gap-2 text-white/60 whitespace-nowrap">
-                    <Icon icon="mdi:tune-vertical" width={16} />
+                    <Icon icon="mdi:tune-vertical" width={16} aria-hidden="true" />
                     <span className="text-xs font-semibold tracking-wide uppercase">
                         {t("photoPreview.settings")}
                     </span>
@@ -346,8 +348,9 @@ export function PhotoEditorPlaceholder({
                                         : "bg-white/5 text-white/50 border border-white/10 hover:bg-white/10"
                                 }`}
                                 aria-label={t("photoPreview.apply3D")}
+                                aria-pressed={apply3DToBackground}
                             >
-                                <Icon icon="mdi:layers" width={12} className="inline" />
+                                <Icon icon="mdi:layers" width={12} className="inline" aria-hidden="true" />
                                 {t("photoPreview.mockup3D")}
                             </Button>
                         </TooltipAction>
@@ -373,7 +376,7 @@ export function PhotoEditorPlaceholder({
                                 onReset?.();
                             }}
                         >
-                            <Icon icon="material-symbols:refresh-rounded" width={12} />
+                            <Icon icon="material-symbols:refresh-rounded" width={12} aria-hidden="true" />
                             {t("photoPreview.reset")}
                         </Button>
                     </TooltipAction>
@@ -389,7 +392,7 @@ export function PhotoEditorPlaceholder({
                                 onClick={onOpenCropper}
                                 aria-label={t("cropper.tooltip")}
                             >
-                                <Icon icon="mdi:crop" width={14} />
+                                <Icon icon="mdi:crop" width={14} aria-hidden="true" />
                                 {t("cropper.button")}
                             </Button>
                         </TooltipAction>

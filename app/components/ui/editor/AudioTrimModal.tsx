@@ -230,7 +230,7 @@ export function AudioTrimModal({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/60 backdrop-blur-md animate-in fade-in duration-200" role="dialog" aria-modal="true" aria-labelledby="audio-trim-title">
             <motion.div
                 initial={{ scale: 0.95, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
@@ -241,24 +241,24 @@ export function AudioTrimModal({
                 <div className="flex items-start justify-between mb-6">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-blue-500/10 border border-blue-500/20 rounded-xl">
-                            <Icon icon="mdi:content-cut" className="text-blue-400" width="24" />
+                            <Icon icon="mdi:content-cut" className="text-blue-400" width="24" aria-hidden="true" />
                         </div>
                         <div>
-                            <h2 className="text-xl font-bold text-white">Recortar audio</h2>
+                            <h2 id="audio-trim-title" className="text-xl font-bold text-white">Recortar audio</h2>
                             <p className="text-sm text-white/50 mt-0.5">
                                 Arrastra los handles o la zona azul para ajustar
                             </p>
                         </div>
                     </div>
-                    <button onClick={handleCancel} className="p-2 rounded-lg text-white/40 hover:text-white hover:bg-white/5 transition-colors">
-                        <Icon icon="lucide:x" width="20" />
+                    <button onClick={handleCancel} className="p-2 rounded-lg text-white/40 hover:text-white hover:bg-white/5 transition-colors" aria-label="Close">
+                        <Icon icon="lucide:x" width="20" aria-hidden="true" />
                     </button>
                 </div>
 
                 <div className="mb-6 p-4 bg-white/5 border border-white/10 rounded-xl">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2 text-sm text-white/60">
-                            <Icon icon="mdi:music-note" width="16" />
+                            <Icon icon="mdi:music-note" width="16" aria-hidden="true" />
                             <span className="font-medium text-white">{audioName}</span>
                         </div>
                         <span className="text-xs text-white/40">Duración total: {formatTime(audioDuration)}</span>
@@ -304,6 +304,13 @@ export function AudioTrimModal({
                             onDrag={handleTrimStartDrag}
                             onDragStart={() => setIsDragging(true)}
                             onDragEnd={handleTrimStartDragEnd}
+                            role="slider"
+                            aria-label="Trim start"
+                            aria-valuemin={0}
+                            aria-valuemax={audioDuration}
+                            aria-valuenow={trimStart}
+                            aria-valuetext={`Start: ${Math.floor(trimStart / 60)}:${String(Math.floor(trimStart % 60)).padStart(2, '0')}`}
+                            tabIndex={0}
                         >
                             <div className="absolute inset-0 bg-blue-500" />
                             <div
@@ -330,6 +337,13 @@ export function AudioTrimModal({
                             onDrag={handleTrimEndDrag}
                             onDragStart={() => setIsDragging(true)}
                             onDragEnd={handleTrimEndDragEnd}
+                            role="slider"
+                            aria-label="Trim end"
+                            aria-valuemin={0}
+                            aria-valuemax={audioDuration}
+                            aria-valuenow={trimEnd}
+                            aria-valuetext={`End: ${Math.floor(trimEnd / 60)}:${String(Math.floor(trimEnd % 60)).padStart(2, '0')}`}
+                            tabIndex={0}
                         >
                             <div className="absolute inset-0 bg-blue-500" />
                             <div
@@ -353,12 +367,12 @@ export function AudioTrimModal({
                             <div className="text-xs text-white/40 mb-1">Inicio</div>
                             <div className="text-lg font-mono text-white">{formatTime(trimStart)}</div>
                         </div>
-                        <Icon icon="mdi:arrow-right" width="20" className="text-white/40 shrink-0" />
+                        <Icon icon="mdi:arrow-right" width="20" className="text-white/40 shrink-0" aria-hidden="true" />
                         <div className="flex-1 p-3 bg-[#141417] border border-white/10 rounded-lg">
                             <div className="text-xs text-white/40 mb-1">Final</div>
                             <div className="text-lg font-mono text-white">{formatTime(trimEnd)}</div>
                         </div>
-                        <Icon icon="mdi:equal" width="20" className="text-white/40 shrink-0" />
+                        <Icon icon="mdi:equal" width="20" className="text-white/40 shrink-0" aria-hidden="true" />
                         <div className="flex-1 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
                             <div className="text-xs text-blue-400/60 mb-1">Duración</div>
                             <div className="text-lg font-mono text-blue-400 font-semibold">{formatTime(trimmedDuration)}</div>
@@ -379,7 +393,7 @@ export function AudioTrimModal({
                         variant="primary"
                         className="flex-1 h-11 text-white font-medium"
                     >
-                        <Icon icon="mdi:check" width="18" className="mr-1.5" />
+                        <Icon icon="mdi:check" width="18" className="mr-1.5" aria-hidden="true" />
                         Aplicar recorte
                     </Button>
                 </div>

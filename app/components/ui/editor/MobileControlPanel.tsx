@@ -48,6 +48,7 @@ export function MobileControlPanel({
                                     "hugeicons:ai-browser"
                                 } 
                                 width="20" 
+                                aria-hidden="true"
                             />
                             {controlPanelProps.activeTool === "screenshot" && "Fondo"}
                             {controlPanelProps.activeTool === "elements" && "Elementos"}
@@ -61,7 +62,7 @@ export function MobileControlPanel({
                                 className="h-8 w-8 rounded-full hover:bg-white/10 flex items-center justify-center transition-colors"
                                 aria-label="Cerrar"
                             >
-                                <Icon icon="mdi:close" width="20" className="text-white/70" />
+                                <Icon icon="mdi:close" width="20" className="text-white/70" aria-hidden="true" />
                             </button>
                         </Dialog.Close>
                     </div>
