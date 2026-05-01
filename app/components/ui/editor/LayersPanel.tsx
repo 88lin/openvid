@@ -30,6 +30,8 @@ export function LayersPanel({
     onVideoLayerSelect,
     isVideoLayerSelected = false,
     mediaType = "video",
+    hoveredElementId = null,
+    onHoverElement,
 }: LayersPanelProps) {
     const t = useTranslations("editor")
     const [isOpen, setIsOpen] = useState(true);
@@ -489,6 +491,16 @@ export function LayersPanel({
                         }
                         setCtxMenu({ x: e.clientX, y: e.clientY, id });
                     }}
+                    onMouseEnter={() => {
+                        if (!pointerDragRef.current?.active && onHoverElement) {
+                            onHoverElement(id);
+                        }
+                    }}
+                    onMouseLeave={() => {
+                        if (onHoverElement && hoveredElementId === id) {
+                            onHoverElement(null);
+                        }
+                    }}
                     data-layer-row={id}
                     className={[
                         "group relative flex items-center gap-1.5 h-7 rounded-md cursor-pointer select-none transition-all duration-100",
@@ -587,6 +599,8 @@ export function LayersPanel({
             onToggleVisible,
             onToggleLock,
             onDelete,
+            onHoverElement,
+            hoveredElementId,
             t
         ]
     );

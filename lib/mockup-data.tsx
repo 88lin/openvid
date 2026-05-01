@@ -8,7 +8,6 @@ export const MOCKUPS: Mockup[] = [
         category: "browser",
         features: {
             ...DEFAULT_MOCKUP_FEATURES,
-            // None no tiene configuraciones
         },
         preview: (
             <NonePreview />

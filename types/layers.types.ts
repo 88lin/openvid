@@ -28,6 +28,9 @@ export interface LayersPanelProps {
     onVideoLayerSelect?: () => void;
     isVideoLayerSelected?: boolean;
     mediaType?: "video" | "image";
+    // Hover support for element highlighting in canvas
+    hoveredElementId?: string | null;
+    onHoverElement?: (id: string | null) => void;
 }
 
 export interface CtxMenuState { x: number; y: number; id: string }

@@ -2028,6 +2028,8 @@ export const VideoCanvas = forwardRef<VideoCanvasHandle, VideoCanvasProps>(funct
                             setCanvasSelectedIds([]);
                         }}
                         mediaType={mediaType}
+                        hoveredElementId={hoveredElementId}
+                        onHoverElement={setHoveredElementId}
                     />
                 </div>
 
