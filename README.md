@@ -18,7 +18,7 @@
 > **The following demo was fully recorded and edited using openvid.**
 
 <div align="center">
-  <video src="https://github.com/user-attachments/assets/cde56298-6814-4943-a836-eb39f3d7e85d" width="100%">
+  <video src="https://github.com/user-attachments/assets/992f4ae3-c816-43ef-b029-2a15e7c0044f" width="100%">
     Your browser does not support the video tag.
   </video>
 </div>
