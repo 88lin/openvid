@@ -148,7 +148,6 @@ export function Position3DPresetsEditor({
                           </div>
                         )}
 
-                        {/* Tu nuevo diseño de badge para el texto del preset */}
                         <div className="absolute bottom-0 left-0 bg-black/60 border-t border-r border-white/10 px-1.5 py-0.5 text-[9px] font-semibold tracking-tight rounded-tr-md rounded-bl-lg z-30 max-w-[85%] truncate">
                           <span className={`transition-colors ${active ? "text-blue-400" : "text-white/80"}`}>
                             {preset.label}

@@ -1294,8 +1294,9 @@
       }
     }
   },
-  "dropImage": {
-    "title": "Drop the image"
+  "dropMedia": {
+    "titleImage": "Drop the image",
+    "titleVideo": "Drop your video here"
   },
   "audioTrimModal": {
     "title": "Trim audio",

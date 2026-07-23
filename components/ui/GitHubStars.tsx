@@ -7,17 +7,12 @@ export default function GitHubBadge() {
   const [stars, setStars] = useState<number | null>(null);
 
   useEffect(() => {
-    fetch("https://api.github.com/repos/CristianOlivera1/openvid", {
-      headers: {
-        "Authorization": `Bearer ${process.env.NEXT_PUBLIC_GITHUB_TOKEN}`,
-        "Accept": "application/vnd.github+json"
-      }
-    })
+    fetch("/api/github")
       .then((res) => {
-        if (!res.ok) throw new Error("GitHub Error");
+        if (!res.ok) throw new Error("Internal API Error");
         return res.json();
       })
-      .then((data) => setStars(data?.stargazers_count ?? null))
+      .then((data) => setStars(data.stars))
       .catch((err) => {
         console.warn("[GitHubBadge] Failed to fetch stars:", err);
         setStars(null);
@@ -29,7 +24,7 @@ export default function GitHubBadge() {
     if (count >= 1000) {
       return `${(count / 1000).toFixed(1)}K`;
     }
-    return count !== undefined ? count.toString() : "0";
+    return count.toString();
   };
 
   return (

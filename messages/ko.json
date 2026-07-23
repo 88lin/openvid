@@ -1294,8 +1294,9 @@
       }
     }
   },
-  "dropImage": {
-    "title": "이미지를 여기에 놓으세요"
+  "dropMedia": {
+    "titleImage": "이미지를 여기에 놓으세요",
+    "titleVideo": "여기에 비디오를 놓으세요"
   },
   "audioTrimModal": {
     "title": "오디오 자르기",

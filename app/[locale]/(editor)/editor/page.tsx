@@ -605,6 +605,7 @@ export default function Editor() {
             await handleImageUploadToCanvas(imageFile);
         }
     }, [isPhotoMode, handleImageUploadToCanvas]);
+
     const selectCanvasElement = useCallback((id: string | null) => {
         setSelectedElementId(id);
         setSelectedZoomFragmentId(null);
@@ -1472,10 +1473,10 @@ export default function Editor() {
         }
     }, []);
 
-    const handleVideoUpload = useCallback(async (file: File) => {
-        const hasExistingClips = videoClipsRef.current.length > 0;
+    const handleVideoUpload = useCallback(async (file: File, options?: { forceReplace?: boolean }) => {
+        const forceReplace = options?.forceReplace ?? false;
+        const hasExistingClips = videoClipsRef.current.length > 0 && !forceReplace;
 
-        // Add video to library first
         let libraryVideo: Awaited<ReturnType<typeof addVideoToLibrary>> | null = null;
         try {
             libraryVideo = await addVideoToLibrary(file);
@@ -1492,8 +1493,7 @@ export default function Editor() {
             return;
         }
 
-        // First video - add to track
-        clearClipUrls(); videoBlobsRef.current.clear();
+        clearClipUrls();
         videoBlobsRef.current.clear();
         videoUrlsRef.current.clear();
         activeClipIdRef.current = null;
@@ -1505,24 +1505,20 @@ export default function Editor() {
             if (!originalHasAudio) setMuteOriginalAudio(true);
             clipAudioStateRef.current.set(libraryVideo.id, libraryVideo.hasAudio !== false);
         }
-
         try {
             await clearAllThumbnailCache();
         } catch (error) {
             console.warn("Failed to clear thumbnails:", error);
         }
-
         const uploadedData = await uploadVideo(file);
         if (uploadedData && libraryVideo) {
             lastLoadedVideoIdRef.current = uploadedData.videoId;
-
             setVideoUrl(uploadedData.url);
             setVideoId(uploadedData.videoId);
             setVideoDuration(uploadedData.duration);
             setTrimRange({ start: 0, end: uploadedData.duration });
             setAspectRatio(uploadedData.aspectRatio);
             setVideoDimensions({ width: uploadedData.width, height: uploadedData.height });
-
             const newClip: VideoTrackClip = {
                 id: crypto.randomUUID(),
                 libraryVideoId: libraryVideo.id,
@@ -1540,15 +1536,22 @@ export default function Editor() {
             activeClipDataRef.current = newClip;
             setVideoClips([newClip]);
             setSelectedVideoClipId(newClip.id);
-
             const defaultFragments = generateDefaultZoomFragments(uploadedData.duration);
             setZoomFragments(defaultFragments);
-
             setCurrentTime(0);
             setIsPlaying(false);
             setTimeout(() => clearHistory(), 200);
         }
     }, [uploadVideo, clearHistory, showNewVideosBadge, clearClipUrls]);
+
+    const handleVideoDrop = useCallback(async (files: FileList | File[]) => {
+        if (isPhotoMode) return;
+        const fileArray = Array.from(files);
+        const videoFile = fileArray.find(f => f.type.startsWith('video/'));
+        if (videoFile) {
+            await handleVideoUpload(videoFile, { forceReplace: true });
+        }
+    }, [isPhotoMode, handleVideoUpload]);
 
     const handleVideoUploadToLibrary = useCallback(async (file: File) => {
         try {
@@ -2716,6 +2719,35 @@ export default function Editor() {
         [zoomFragments, selectedZoomFragmentId]
     );
 
+    const [copiedZoomFragment, setCopiedZoomFragment] = useState<Omit<ZoomFragment, 'id' | 'startTime' | 'endTime'> | null>(null);
+
+    const copySelectedZoomFragment = useCallback(() => {
+        if (!selectedZoomFragment) return;
+        const { id, startTime, endTime, ...config } = selectedZoomFragment;
+        setCopiedZoomFragment(config);
+    }, [selectedZoomFragment]);
+
+    const pasteZoomFragment = useCallback(() => {
+        if (!copiedZoomFragment) return;
+        const original = selectedZoomFragmentId
+            ? zoomFragmentsRef.current.find(f => f.id === selectedZoomFragmentId)
+            : null;
+        const duration = original ? original.endTime - original.startTime : DEFAULT_ZOOM_FRAGMENT_DURATION;
+        const hintTime = original ? original.endTime : currentTime;
+        const position = findValidFragmentPosition(hintTime, duration, zoomFragmentsRef.current, videoDuration);
+        if (!position) return;
+
+        const newFragment: ZoomFragment = {
+            ...copiedZoomFragment,
+            id: `zoom_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+            startTime: position.startTime,
+            endTime: position.endTime,
+        };
+        setZoomFragments(prev => [...prev, newFragment].sort((a, b) => a.startTime - b.startTime));
+        setSelectedZoomFragmentId(newFragment.id);
+        setActiveTool("zoom");
+    }, [copiedZoomFragment, selectedZoomFragmentId, currentTime, videoDuration]);
+
     // Calcular el CSS del background actual - memoized
     const backgroundColorCss = useMemo((): string | undefined => {
         if (backgroundTab === "color" && backgroundColorConfig) {
@@ -2769,13 +2801,25 @@ export default function Editor() {
                 return;
             }
 
-            if ((e.ctrlKey || e.metaKey) && e.key === 'c' && selectedElementId) {
-                e.preventDefault();
-                copySelectedElement();
-                return;
+            if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+                if (selectedElementId) {
+                    e.preventDefault();
+                    copySelectedElement();
+                    return;
+                }
+                if (selectedZoomFragmentId) {
+                    e.preventDefault();
+                    copySelectedZoomFragment();
+                    return;
+                }
             }
 
             if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
+                if (activeTool === 'zoom' && copiedZoomFragment) {
+                    e.preventDefault();
+                    pasteZoomFragment();
+                    return;
+                }
                 if (isPhotoMode && !copiedElement) {
                     return;
                 }
@@ -2829,7 +2873,7 @@ export default function Editor() {
 
         document.addEventListener("keydown", handleKeyDown);
         return () => document.removeEventListener("keydown", handleKeyDown);
-    }, [selectedElementId, selectedZoomFragmentId, selectedAudioTrackId, selectedVideoClipId, deleteCanvasElement, handleDeleteZoomFragment, handleDeleteAudioTrack, handleDeleteVideoClip, copySelectedElement, pasteElement, isPhotoMode, copiedElement, textToolActive]);
+    }, [selectedElementId, selectedZoomFragmentId, selectedAudioTrackId, selectedVideoClipId, deleteCanvasElement, handleDeleteZoomFragment, handleDeleteAudioTrack, handleDeleteVideoClip, copySelectedElement, pasteElement, isPhotoMode, copiedElement, textToolActive, copySelectedZoomFragment, pasteZoomFragment, copiedZoomFragment, activeTool]);
 
     const wasMobileRef = useRef<boolean | null>(null);
     const otherSelectionActive = !!(selectedZoomFragmentId || selectedAudioTrackId || selectedVideoClipId);
@@ -3130,6 +3174,7 @@ export default function Editor() {
                         onVideoUpload={handleVideoUpload}
                         onImageUpload={handleImageUploadToCanvas}
                         onImageDrop={handleImageDrop}
+                        onVideoDrop={handleVideoDrop}
                         isUploading={isUploading}
                         videoTransform={videoTransform}
                         onVideoTransformChange={setVideoTransform}
