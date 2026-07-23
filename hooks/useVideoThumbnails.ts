@@ -283,21 +283,31 @@ export function useVideoThumbnails(
     }, [videoUrl, duration, interval, quality, customWidth, progressive, videoId, generateThumbnailsAtQuality]);
 
     // Generate thumbnails when video URL or videoId changes
-    useEffect(() => {
-        if (videoUrl && duration > 0) {
-            setLowQualityThumbnails([]);
-            setHighQualityThumbnails([]);
-            setProgress(0);
+    const prevVideoUrlRef = useRef<string | null>(null);
 
-            generateThumbnails();
-        } else if (!videoUrl) {
-            // Clear thumbnails when video is removed
-            setLowQualityThumbnails([]);
-            setHighQualityThumbnails([]);
-            setProgress(0);
-        }
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (!videoUrl) {
+                setLowQualityThumbnails([]);
+                setHighQualityThumbnails([]);
+                setProgress(0);
+                return;
+            }
+
+            if (videoUrl !== prevVideoUrlRef.current) {
+                setLowQualityThumbnails([]);
+                setHighQualityThumbnails([]);
+                setProgress(0);
+                prevVideoUrlRef.current = videoUrl;
+            }
+
+            if (duration > 0) {
+                generateThumbnails();
+            }
+        }, 0);
 
         return () => {
+            clearTimeout(timer);
             abortRef.current = true;
         };
     }, [videoUrl, duration, videoId, generateThumbnails]);

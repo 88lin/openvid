@@ -1,4 +1,5 @@
 import { ExtendedVideoForDetection, LibraryVideo, LibraryVideoInfo } from "@/types";
+import { normalizeVideoFile } from "./video-conversion";
 
 const DB_NAME = "openvid-videos-library";
 const DB_VERSION = 3;
@@ -39,7 +40,7 @@ async function openDB(): Promise<IDBDatabase> {
         request.onerror = () => reject(request.error);
         request.onsuccess = () => {
             dbInstance = request.result;
-            cleanupOldLibraryEntries(dbInstance).catch(() => {});
+            cleanupOldLibraryEntries(dbInstance).catch(() => { });
             resolve(request.result);
         };
 
@@ -87,6 +88,13 @@ async function getVideoMetadata(file: File): Promise<{
     return new Promise((resolve, reject) => {
         const video = document.createElement("video");
         video.preload = "metadata";
+        const url = URL.createObjectURL(file);
+
+        const cleanup = () => {
+            video.removeAttribute("src");
+            video.load();
+            URL.revokeObjectURL(url);
+        };
 
         video.onloadedmetadata = () => {
             const metadata = {
@@ -95,16 +103,16 @@ async function getVideoMetadata(file: File): Promise<{
                 height: video.videoHeight,
                 aspectRatio: "auto",
             };
-            URL.revokeObjectURL(video.src);
+            cleanup();
             resolve(metadata);
         };
 
         video.onerror = () => {
-            URL.revokeObjectURL(video.src);
+            cleanup();
             reject(new Error("Failed to load video metadata"));
         };
 
-        video.src = URL.createObjectURL(file);
+        video.src = url;
     });
 }
 
@@ -113,56 +121,57 @@ async function generateThumbnail(blob: Blob): Promise<string> {
         const video = document.createElement("video");
         video.preload = "metadata";
         video.muted = true;
+        const url = URL.createObjectURL(blob);
+
+        const cleanup = () => {
+            video.removeAttribute("src");
+            video.load();
+            URL.revokeObjectURL(url);
+        };
 
         video.onloadeddata = () => {
             const seekTime = video.duration * 0.1;
-            if (!isFinite(seekTime) || seekTime < 0) {
-                video.currentTime = 0;
-            } else {
-                video.currentTime = seekTime;
-            }
+            video.currentTime = !isFinite(seekTime) || seekTime < 0 ? 0 : seekTime;
         };
 
         video.onseeked = () => {
             const canvas = document.createElement("canvas");
             const aspectRatio = video.videoWidth / video.videoHeight;
-            
             canvas.width = 320;
             canvas.height = Math.round(320 / aspectRatio);
 
             const ctx = canvas.getContext("2d");
             if (ctx) {
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                
                 const thumbnailUrl = canvas.toDataURL("image/jpeg", 0.9);
-                URL.revokeObjectURL(video.src);
+                cleanup();
                 resolve(thumbnailUrl);
             } else {
-                URL.revokeObjectURL(video.src);
+                cleanup();
                 reject(new Error("Failed to get canvas context"));
             }
         };
 
         video.onerror = () => {
-            URL.revokeObjectURL(video.src);
+            cleanup();
             reject(new Error("Failed to load video for thumbnail"));
         };
 
-        video.src = URL.createObjectURL(blob);
+        video.src = url;
     });
 }
 
 export async function addVideoToLibrary(file: File): Promise<LibraryVideo> {
     const db = await openDB();
     const metadata = await getVideoMetadata(file);
-    
+
     let thumbnailUrl: string | undefined;
     try {
         thumbnailUrl = await generateThumbnail(file);
     } catch (e) {
         console.warn("Failed to generate thumbnail:", e);
     }
-    
+
     let hasAudio = false;
     try {
         hasAudio = await detectVideoHasAudio(file);
@@ -170,11 +179,14 @@ export async function addVideoToLibrary(file: File): Promise<LibraryVideo> {
         console.warn("Failed to detect audio:", e);
     }
 
+    const { blob: normalizedBlob, wasConverted } = await normalizeVideoFile(file);
+    const fileName = wasConverted ? `${file.name.replace(/\.[^/.]+$/, "")}.mp4` : file.name;
+
     const video: LibraryVideo = {
         id: generateVideoId(),
-        blob: file,
-        fileName: file.name,
-        fileSize: file.size,
+        blob: normalizedBlob,
+        fileName,
+        fileSize: normalizedBlob.size,
         duration: metadata.duration,
         width: metadata.width,
         height: metadata.height,
@@ -189,7 +201,6 @@ export async function addVideoToLibrary(file: File): Promise<LibraryVideo> {
         const transaction = db.transaction(STORE_NAME, "readwrite");
         const store = transaction.objectStore(STORE_NAME);
         const request = store.add(video);
-
         request.onerror = () => reject(request.error);
         request.onsuccess = () => resolve(video);
     });
@@ -204,16 +215,18 @@ export interface AddVideoWithMetadataOptions {
     hasAudio?: boolean;
 }
 
-export async function addVideoToLibraryWithMetadata(options: AddVideoWithMetadataOptions): Promise<LibraryVideo> {
+export async function addVideoToLibraryWithMetadata(
+    options: AddVideoWithMetadataOptions
+): Promise<LibraryVideo> {
     const db = await openDB();
-    
+
     let thumbnailUrl: string | undefined;
     try {
         thumbnailUrl = await generateThumbnail(options.blob);
     } catch (e) {
         console.warn("Failed to generate thumbnail:", e);
     }
-    
+
     let hasAudio = options.hasAudio;
     if (hasAudio === undefined) {
         try {
@@ -224,18 +237,23 @@ export async function addVideoToLibraryWithMetadata(options: AddVideoWithMetadat
         }
     }
 
+    const { blob: normalizedBlob, wasConverted } = await normalizeVideoFile(options.blob);
+    const fileName = wasConverted
+        ? `${options.fileName.replace(/\.[^/.]+$/, "")}.mp4`
+        : options.fileName;
+
     const video: LibraryVideo = {
         id: generateVideoId(),
-        blob: options.blob,
-        fileName: options.fileName,
-        fileSize: options.blob.size,
+        blob: normalizedBlob,
+        fileName,
+        fileSize: normalizedBlob.size,
         duration: options.duration,
         width: options.width,
         height: options.height,
         aspectRatio: "auto",
         uploadedAt: Date.now(),
         thumbnailUrl,
-        hasAudio: hasAudio,
+        hasAudio,
         originalHasAudio: hasAudio,
     };
 
@@ -243,7 +261,6 @@ export async function addVideoToLibraryWithMetadata(options: AddVideoWithMetadat
         const transaction = db.transaction(STORE_NAME, "readwrite");
         const store = transaction.objectStore(STORE_NAME);
         const request = store.add(video);
-
         request.onerror = () => reject(request.error);
         request.onsuccess = () => resolve(video);
     });
@@ -305,11 +322,12 @@ export async function detectVideoHasAudio(blob: Blob): Promise<boolean> {
             if (settled) return;
             settled = true;
             clearTimeout(timeoutId);
+            video.removeAttribute("src");
+            video.load();
             URL.revokeObjectURL(url);
-            video.src = "";
             resolve(result);
         };
-
+        
         const timeoutId = setTimeout(() => cleanup(false), 8000);
 
         video.addEventListener("loadedmetadata", async () => {
@@ -374,7 +392,7 @@ export async function deleteLibraryVideo(id: string): Promise<void> {
 export async function updateVideoAudioState(id: string, hasAudio: boolean): Promise<void> {
     const db = await openDB();
     const video = await getLibraryVideo(id);
-    
+
     if (!video) {
         throw new Error(`Video with id ${id} not found`);
     }

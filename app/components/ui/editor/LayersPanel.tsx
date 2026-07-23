@@ -1,15 +1,42 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback, useMemo, memo } from "react";
+import {
+    useState,
+    useEffect,
+    useRef,
+    useCallback,
+    useMemo,
+    useSyncExternalStore,
+    memo,
+} from "react";
 import { createPortal } from "react-dom";
 import { Icon } from "@iconify/react";
 import type { CanvasElement } from "@/types/canvas-elements.types";
-import { LayersPanelProps, CtxMenuState, TYPE_ICON, PointerDragState } from "@/types/layers.types";
+import {
+    LayersPanelProps,
+    CtxMenuState,
+    TYPE_ICON,
+    PointerDragState,
+} from "@/types/layers.types";
 import { buildLayerNames, buildGroupNumbers } from "@/lib/layers.utils";
 import ContextMenu from "./ContextMenu";
 import { useTranslations } from "next-intl";
 import { TooltipAction } from "@/components/ui/tooltip-action";
+
 const VIDEO_SENTINEL = "__video__";
+const MOBILE_QUERY = "(max-width: 639px)";
+
+function subscribeToMobileQuery(callback: () => void) {
+    const mq = window.matchMedia(MOBILE_QUERY);
+    mq.addEventListener("change", callback);
+    return () => mq.removeEventListener("change", callback);
+}
+function getIsMobileSnapshot() {
+    return window.matchMedia(MOBILE_QUERY).matches;
+}
+function getIsMobileServerSnapshot() {
+    return false;
+}
 
 export function LayersPanelInner({
     elements,
@@ -34,35 +61,80 @@ export function LayersPanelInner({
     hoveredElementId = null,
     onHoverElement,
 }: LayersPanelProps) {
-    const t = useTranslations("editor")
-    const [isOpen, setIsOpen] = useState(true);
+    const t = useTranslations("editor");
+    const tActions = useTranslations("elementsMenu");
+
+    // --- open/closed panel, responsive default ---
+    const isMobile = useSyncExternalStore(
+        subscribeToMobileQuery,
+        getIsMobileSnapshot,
+        getIsMobileServerSnapshot
+    );
+    const [isOpen, setIsOpen] = useState(!isMobile);
+    const [prevIsMobile, setPrevIsMobile] = useState(isMobile);
+    if (isMobile !== prevIsMobile) {
+        // Adjusting state when an external value changes, done during render
+        // instead of inside an effect. Runs once per real breakpoint crossing;
+        // manual open/close toggles in between are left untouched.
+        setPrevIsMobile(isMobile);
+        setIsOpen(!isMobile);
+    }
+
+    // --- selection state ---
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const selectedIdsRef = useRef<string[]>([]);
-    selectedIdsRef.current = selectedIds;
+    useEffect(() => {
+        selectedIdsRef.current = selectedIds;
+    }, [selectedIds]);
+
+    const [prevSelectedId, setPrevSelectedId] = useState(selectedId);
+    if (selectedId !== prevSelectedId) {
+        setPrevSelectedId(selectedId);
+        setSelectedIds(selectedId ? [selectedId] : []);
+    }
+
+    const multiIdsKey = selectedMultiIds ? selectedMultiIds.join(",") : "";
+    const [prevMultiIdsKey, setPrevMultiIdsKey] = useState(multiIdsKey);
+    if (multiIdsKey !== prevMultiIdsKey) {
+        setPrevMultiIdsKey(multiIdsKey);
+        if (selectedMultiIds && selectedMultiIds.length > 0) {
+            setSelectedIds(selectedMultiIds);
+        }
+    }
+
     const [ctxMenu, setCtxMenu] = useState<CtxMenuState | null>(null);
     const [videoCtxMenu, setVideoCtxMenu] = useState<{ x: number; y: number } | null>(null);
-    const tActions = useTranslations("elementsMenu");
     const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
-    const [groupCtxMenu, setGroupCtxMenu] = useState<{ x: number; y: number; groupId: string } | null>(null);
+    const [groupCtxMenu, setGroupCtxMenu] = useState<{ x: number; y: number; groupId: string } | null>(
+        null
+    );
 
     const [pointerDrag, setPointerDrag] = useState<PointerDragState | null>(null);
     const pointerDragRef = useRef<PointerDragState | null>(null);
-    pointerDragRef.current = pointerDrag;
+    useEffect(() => {
+        pointerDragRef.current = pointerDrag;
+    }, [pointerDrag]);
 
     const listRef = useRef<HTMLDivElement>(null);
     const rowRefs = useRef<Map<string, HTMLDivElement>>(new Map());
     const isDraggingRef = useRef(false);
     const ignoreSyncUntilRef = useRef<number>(0);
 
-    const syncKey = elements.map((e) => e.id + ":" + e.zIndex + ":" + (e.groupId ?? "")).join(",");
-    const insertVideoSentinel = useCallback((ids: string[]): string[] => {
-        if (!videoLayerVisible) return ids;
-        const zIndexOf = (id: string) => elements.find((e) => e.id === id)?.zIndex ?? 0;
-        const idx = ids.findIndex((id) => zIndexOf(id) < 1000);
-        return idx === -1
-            ? [...ids, VIDEO_SENTINEL]
-            : [...ids.slice(0, idx), VIDEO_SENTINEL, ...ids.slice(idx)];
-    }, [elements, videoLayerVisible]);
+    const syncKey = elements
+        .map((e) => e.id + ":" + e.zIndex + ":" + (e.groupId ?? ""))
+        .join(",");
+
+    const insertVideoSentinel = useCallback(
+        (ids: string[]): string[] => {
+            if (!videoLayerVisible) return ids;
+            const zIndexOf = (id: string) => elements.find((e) => e.id === id)?.zIndex ?? 0;
+            const idx = ids.findIndex((id) => zIndexOf(id) < 1000);
+            return idx === -1
+                ? [...ids, VIDEO_SENTINEL]
+                : [...ids.slice(0, idx), VIDEO_SENTINEL, ...ids.slice(idx)];
+        },
+        [elements, videoLayerVisible]
+    );
 
     const [displayOrder, setDisplayOrder] = useState<string[]>(() =>
         insertVideoSentinel([...elements].sort((a, b) => b.zIndex - a.zIndex).map((e) => e.id))
@@ -75,22 +147,6 @@ export function LayersPanelInner({
         setDisplayOrder(insertVideoSentinel(sortedIncoming));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [syncKey, videoLayerVisible]);
-
-    useEffect(() => {
-        if (selectedId) {
-            setSelectedIds((prev) => (prev.includes(selectedId) ? prev : [selectedId]));
-        } else {
-            setSelectedIds([]);
-        }
-    }, [selectedId]);
-
-    const multiIdsKey = selectedMultiIds ? selectedMultiIds.join(",") : "";
-    useEffect(() => {
-        if (selectedMultiIds && selectedMultiIds.length > 0) {
-            setSelectedIds(selectedMultiIds);
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [multiIdsKey]);
 
     useEffect(() => {
         if (!ctxMenu && !videoCtxMenu && !groupCtxMenu) return;
@@ -109,9 +165,7 @@ export function LayersPanelInner({
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key !== "Delete" && e.key !== "Backspace") return;
             const tag = (e.target as HTMLElement).tagName;
-            if (tag === "INPUT" || tag === "TEXTAREA" || (e.target as HTMLElement).isContentEditable)
-                return;
-
+            if (tag === "INPUT" || tag === "TEXTAREA" || (e.target as HTMLElement).isContentEditable) return;
             const ids = selectedIdsRef.current;
             if (ids.length > 0) {
                 e.stopPropagation();
@@ -124,19 +178,6 @@ export function LayersPanelInner({
         window.addEventListener("keydown", handleKeyDown, true);
         return () => window.removeEventListener("keydown", handleKeyDown, true);
     }, [onDelete, onSelect]);
-
-    useEffect(() => {
-        const mq = window.matchMedia("(max-width: 639px)");
-
-        const handler = (e: MediaQueryListEvent) => {
-            setIsOpen(!e.matches);
-        };
-
-        setIsOpen(!mq.matches);
-
-        mq.addEventListener("change", handler);
-        return () => mq.removeEventListener("change", handler);
-    }, []);
 
     const handleRowClick = useCallback(
         (e: React.MouseEvent, id: string) => {
@@ -169,7 +210,6 @@ export function LayersPanelInner({
     const visualRows = useMemo<VisualRow[]>(() => {
         const renderedGroupIds = new Set<string>();
         const rows: VisualRow[] = [];
-
         for (const id of displayOrder) {
             if (id === VIDEO_SENTINEL) {
                 rows.push({ kind: "video" });
@@ -177,7 +217,6 @@ export function LayersPanelInner({
             }
             const el = elementsById[id];
             if (!el) continue;
-
             if (el.groupId) {
                 if (!renderedGroupIds.has(el.groupId)) {
                     renderedGroupIds.add(el.groupId);
@@ -196,108 +235,9 @@ export function LayersPanelInner({
         return rows;
     }, [displayOrder, elementsById, collapsedGroups]);
 
-    useEffect(() => {
-        if (!pointerDrag) return;
-        const MOVE_THRESHOLD = 5;
-
-        const onMove = (e: MouseEvent) => {
-            const drag = pointerDragRef.current;
-            if (!drag) return;
-
-            const moved = Math.abs(e.clientY - drag.startY) > MOVE_THRESHOLD;
-            if (!moved && !drag.active) return;
-
-            let dropIdx = drag.dropIndex;
-            let bestDist = Infinity;
-            let intoGroupId: string | null = null;
-            const INTO_ZONE = 0.30;
-
-            visualRows.forEach((row, i) => {
-                const key = row.kind === "element" ? row.id : row.kind === "group" ? `group:${row.groupId}` : VIDEO_SENTINEL;
-                if (key === drag.id) return;
-                const el = rowRefs.current.get(key);
-                if (!el) return;
-                const rect = el.getBoundingClientRect();
-
-                if (row.kind === "group" && !drag.isGroup && drag.id !== VIDEO_SENTINEL) {
-                    const midTop = rect.top + rect.height * INTO_ZONE;
-                    const midBot = rect.bottom - rect.height * INTO_ZONE;
-                    if (e.clientY >= midTop && e.clientY <= midBot) {
-                        const dist = Math.abs(e.clientY - (rect.top + rect.height / 2));
-                        if (dist < bestDist) {
-                            bestDist = dist;
-                            intoGroupId = row.groupId;
-                            dropIdx = i;
-                        }
-                        return;
-                    }
-                }
-
-                const topDist = Math.abs(e.clientY - rect.top);
-                if (topDist < bestDist) {
-                    bestDist = topDist;
-                    dropIdx = i;
-                    intoGroupId = null;
-                }
-                if (i === visualRows.length - 1) {
-                    const bottomDist = Math.abs(e.clientY - rect.bottom);
-                    if (bottomDist < bestDist) {
-                        bestDist = bottomDist;
-                        dropIdx = i + 1;
-                        intoGroupId = null;
-                    }
-                }
-            });
-
-            if (!drag.isGroup && !intoGroupId && drag.id !== VIDEO_SENTINEL && dropIdx > 0 && dropIdx < visualRows.length) {
-                const prevRow = visualRows[dropIdx - 1];
-                const nextRow = visualRows[dropIdx];
-
-                if (prevRow.kind === "element" && nextRow.kind === "element") {
-                    const prevEl = elementsById[prevRow.id];
-                    const nextEl = elementsById[nextRow.id];
-
-                    if (prevEl?.groupId && prevEl.groupId === nextEl?.groupId) {
-                        intoGroupId = prevEl.groupId;
-                    }
-                }
-            }
-
-            const updated: PointerDragState = {
-                ...drag,
-                x: e.clientX,
-                y: e.clientY,
-                dropIndex: dropIdx,
-                dropTargetGroupId: intoGroupId,
-                active: true,
-            };
-            pointerDragRef.current = updated;
-            setPointerDrag(updated);
-        };
-
-        const onUp = () => {
-            const drag = pointerDragRef.current;
-            if (drag?.active) {
-                applyReorder(drag);
-            }
-            isDraggingRef.current = false;
-            setPointerDrag(null);
-        };
-
-        window.addEventListener("mousemove", onMove);
-        window.addEventListener("mouseup", onUp);
-
-        return () => {
-            window.removeEventListener("mousemove", onMove);
-            window.removeEventListener("mouseup", onUp);
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [!!pointerDrag, visualRows]);
-
     const applyReorder = useCallback(
         (drag: PointerDragState) => {
             const { id, isGroup, dropIndex, dropTargetGroupId } = drag;
-
             let movingIds: string[];
             if (isGroup) {
                 const gid = id.replace("group:", "");
@@ -333,12 +273,9 @@ export function LayersPanelInner({
 
             const isRowDragged = (r: VisualRow) => {
                 if (r.kind === "video") return movingSet.has(VIDEO_SENTINEL);
-
                 if (r.kind === "element") return movingSet.has(r.id);
                 if (r.kind === "group") {
-                    const firstMember = displayOrder.find(
-                        (did) => elementsById[did]?.groupId === r.groupId
-                    );
+                    const firstMember = displayOrder.find((did) => elementsById[did]?.groupId === r.groupId);
                     return firstMember ? movingSet.has(firstMember) : false;
                 }
                 return false;
@@ -352,15 +289,13 @@ export function LayersPanelInner({
             const without = displayOrder.filter((did) => !movingSet.has(did));
             const visualRowsWithout = visualRows.filter((r) => !isRowDragged(r));
             const anchorRow = visualRowsWithout[nonDraggedCount];
-            let insertAt = without.length;
 
+            let insertAt = without.length;
             if (anchorRow) {
                 if (anchorRow.kind === "element") {
                     insertAt = without.indexOf(anchorRow.id);
                 } else if (anchorRow.kind === "group") {
-                    const firstMember = without.find(
-                        (did) => elementsById[did]?.groupId === anchorRow.groupId
-                    );
+                    const firstMember = without.find((did) => elementsById[did]?.groupId === anchorRow.groupId);
                     if (firstMember) insertAt = without.indexOf(firstMember);
                 }
             }
@@ -372,6 +307,7 @@ export function LayersPanelInner({
                 ignoreSyncUntilRef.current = Date.now() + 1500;
                 onSetGroupId!(pendingGroupChange.id, pendingGroupChange.groupId);
             }
+
             if (changed) {
                 ignoreSyncUntilRef.current = Math.max(ignoreSyncUntilRef.current, Date.now() + 1500);
                 setDisplayOrder(next);
@@ -389,6 +325,107 @@ export function LayersPanelInner({
         [displayOrder, elementsById, visualRows, onReorder, onSetGroupId]
     );
 
+    useEffect(() => {
+        if (!pointerDrag) return;
+        const MOVE_THRESHOLD = 5;
+
+        const onMove = (e: MouseEvent) => {
+            const drag = pointerDragRef.current;
+            if (!drag) return;
+            const moved = Math.abs(e.clientY - drag.startY) > MOVE_THRESHOLD;
+            if (!moved && !drag.active) return;
+
+            let dropIdx = drag.dropIndex;
+            let bestDist = Infinity;
+            let intoGroupId: string | null = null;
+            const INTO_ZONE = 0.3;
+
+            visualRows.forEach((row, i) => {
+                const key =
+                    row.kind === "element" ? row.id : row.kind === "group" ? `group:${row.groupId}` : VIDEO_SENTINEL;
+                if (key === drag.id) return;
+                const el = rowRefs.current.get(key);
+                if (!el) return;
+                const rect = el.getBoundingClientRect();
+
+                if (row.kind === "group" && !drag.isGroup && drag.id !== VIDEO_SENTINEL) {
+                    const midTop = rect.top + rect.height * INTO_ZONE;
+                    const midBot = rect.bottom - rect.height * INTO_ZONE;
+                    if (e.clientY >= midTop && e.clientY <= midBot) {
+                        const dist = Math.abs(e.clientY - (rect.top + rect.height / 2));
+                        if (dist < bestDist) {
+                            bestDist = dist;
+                            intoGroupId = row.groupId;
+                            dropIdx = i;
+                        }
+                        return;
+                    }
+                }
+
+                const topDist = Math.abs(e.clientY - rect.top);
+                if (topDist < bestDist) {
+                    bestDist = topDist;
+                    dropIdx = i;
+                    intoGroupId = null;
+                }
+                if (i === visualRows.length - 1) {
+                    const bottomDist = Math.abs(e.clientY - rect.bottom);
+                    if (bottomDist < bestDist) {
+                        bestDist = bottomDist;
+                        dropIdx = i + 1;
+                        intoGroupId = null;
+                    }
+                }
+            });
+
+            if (
+                !drag.isGroup &&
+                !intoGroupId &&
+                drag.id !== VIDEO_SENTINEL &&
+                dropIdx > 0 &&
+                dropIdx < visualRows.length
+            ) {
+                const prevRow = visualRows[dropIdx - 1];
+                const nextRow = visualRows[dropIdx];
+                if (prevRow.kind === "element" && nextRow.kind === "element") {
+                    const prevEl = elementsById[prevRow.id];
+                    const nextEl = elementsById[nextRow.id];
+                    if (prevEl?.groupId && prevEl.groupId === nextEl?.groupId) {
+                        intoGroupId = prevEl.groupId;
+                    }
+                }
+            }
+
+            const updated: PointerDragState = {
+                ...drag,
+                x: e.clientX,
+                y: e.clientY,
+                dropIndex: dropIdx,
+                dropTargetGroupId: intoGroupId,
+                active: true,
+            };
+            pointerDragRef.current = updated;
+            setPointerDrag(updated);
+        };
+
+        const onUp = () => {
+            const drag = pointerDragRef.current;
+            if (drag?.active) {
+                applyReorder(drag);
+            }
+            isDraggingRef.current = false;
+            setPointerDrag(null);
+        };
+
+        window.addEventListener("mousemove", onMove);
+        window.addEventListener("mouseup", onUp);
+        return () => {
+            window.removeEventListener("mousemove", onMove);
+            window.removeEventListener("mouseup", onUp);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [!!pointerDrag, visualRows]);
+
     const startPointerDrag = useCallback(
         (e: React.MouseEvent, id: string, isGroup: boolean) => {
             if (e.button !== 0) return;
@@ -400,8 +437,11 @@ export function LayersPanelInner({
             });
             isDraggingRef.current = true;
             const drag: PointerDragState = {
-                id, isGroup,
-                x: e.clientX, y: e.clientY, startY: e.clientY,
+                id,
+                isGroup,
+                x: e.clientX,
+                y: e.clientY,
+                startY: e.clientY,
                 dropIndex: vIdx >= 0 ? vIdx : 0,
                 dropTargetGroupId: null,
                 active: false,
@@ -418,12 +458,10 @@ export function LayersPanelInner({
         if (ctxId) onBringToFront(ctxId);
         setCtxMenu(null);
     }, [ctxId, onBringToFront]);
-
     const handleCtxSendToBack = useCallback(() => {
         if (ctxId) onSendToBack(ctxId);
         setCtxMenu(null);
     }, [ctxId, onSendToBack]);
-
     const handleCtxDelete = useCallback(() => {
         if (ctxId) {
             onDelete(ctxId);
@@ -431,7 +469,6 @@ export function LayersPanelInner({
         }
         setCtxMenu(null);
     }, [ctxId, onDelete]);
-
     const handleCtxDeleteSelected = useCallback(() => {
         onDelete([...selectedIds]);
         setSelectedIds([]);
@@ -442,7 +479,6 @@ export function LayersPanelInner({
         (vIdx: number) => {
             const isDropTarget = pointerDrag?.active && pointerDrag.dropIndex === vIdx;
             const isSelected = isVideoLayerSelected;
-
             return (
                 <div
                     key="video-layer"
@@ -465,7 +501,7 @@ export function LayersPanelInner({
                     }}
                     data-layer-row="video-layer"
                     className={[
-                        "group relative flex items-center gap-1.5  h-7 px-2 rounded-md cursor-pointer select-none transition-all duration-100",
+                        "group relative flex items-center gap-1.5 h-7 px-2 rounded-md cursor-pointer select-none transition-all duration-100",
                         isSelected
                             ? "bg-[#00A3FF]/15 text-white"
                             : "text-neutral-400 hover:bg-white/5 hover:text-neutral-200",
@@ -495,7 +531,6 @@ export function LayersPanelInner({
             const isSelected = selectedIds.includes(id);
             const isDraggingThis = pointerDrag?.active && pointerDrag.id === id;
             const isDropTarget = pointerDrag?.active && pointerDrag.dropIndex === vIdx;
-
             const isVisible = el.visible !== false;
             const isLocked = el.locked === true;
 
@@ -556,10 +591,7 @@ export function LayersPanelInner({
                         icon={TYPE_ICON[el.type]}
                         className={`size-4.5 shrink-0 ${isSelected ? "text-[#00A3FF]" : "text-neutral-500"}`}
                     />
-                    <span
-                        className={`flex-1 text-[11px] truncate ${isVisible ? "" : "opacity-40 line-through"
-                            }`}
-                    >
+                    <span className={`flex-1 text-[11px] truncate ${isVisible ? "" : "opacity-40 line-through"}`}>
                         {layerNames.get(id) ?? id}
                     </span>
                     <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -579,7 +611,6 @@ export function LayersPanelInner({
                                 />
                             </button>
                         </TooltipAction>
-
                         <TooltipAction label={isLocked ? t("layerPanel.tooltips.unlock") : t("layerPanel.tooltips.lock")}>
                             <button
                                 onClick={(e) => {
@@ -596,7 +627,6 @@ export function LayersPanelInner({
                                 />
                             </button>
                         </TooltipAction>
-
                         <TooltipAction label={t("layerPanel.tooltips.delete")}>
                             <button
                                 onClick={(e) => {
@@ -640,7 +670,7 @@ export function LayersPanelInner({
             onDelete,
             onHoverElement,
             hoveredElementId,
-            t
+            t,
         ]
     );
 
@@ -702,7 +732,6 @@ export function LayersPanelInner({
                         const rows: React.ReactNode[] = [];
                         let groupCounter = 0;
                         let vIdx = 0;
-
                         for (const id of displayOrder) {
                             if (id === VIDEO_SENTINEL) {
                                 rows.push(renderVideoRow(vIdx++));
@@ -710,7 +739,6 @@ export function LayersPanelInner({
                             }
                             const el = elementsById[id];
                             if (!el) continue;
-
                             if (el.groupId) {
                                 if (renderedGroupIds.has(el.groupId)) {
                                     continue;
@@ -726,8 +754,7 @@ export function LayersPanelInner({
                                     const thisGroupNum = groupNumbers.get(gid) ?? groupCounter;
                                     const isDraggingThisGroup = pointerDrag?.active && pointerDrag.id === groupKey;
                                     const currentGroupVIdx = vIdx++;
-                                    const isGroupDropTarget =
-                                        pointerDrag?.active && pointerDrag.dropIndex === currentGroupVIdx;
+                                    const isGroupDropTarget = pointerDrag?.active && pointerDrag.dropIndex === currentGroupVIdx;
 
                                     rows.push(
                                         <div
@@ -811,6 +838,7 @@ export function LayersPanelInner({
                                             </span>
                                         </div>
                                     );
+
                                     if (!isCollapsed) {
                                         for (const member of groupMembers) {
                                             const childVIdx = vIdx++;
@@ -823,7 +851,6 @@ export function LayersPanelInner({
                                 rows.push(renderLayerRow(el, false, currentVIdx));
                             }
                         }
-
                         if (pointerDrag?.active && pointerDrag.dropIndex === visualRows.length) {
                             rows.push(
                                 <div key="drop-indicator-bottom" className="relative">
@@ -835,7 +862,6 @@ export function LayersPanelInner({
                     })()
                 )}
             </div>
-
             {selectedIds.length > 1 && (
                 <div className="shrink-0 border-t border-white/6 px-2 py-1.5 flex items-center gap-1">
                     <span className="flex-1 text-[11px] text-neutral-500">
@@ -847,7 +873,8 @@ export function LayersPanelInner({
                                 onClick={() => onGroup(selectedIds)}
                                 className="flex items-center gap-1 px-1.5 py-0.5 text-[11px] text-neutral-400 hover:text-white hover:bg-white/10 rounded transition-colors"
                             >
-                                <Icon icon="solar:layers-minimalistic-bold" className="size-4" /> {t("layerPanel.groupAction")}
+                                <Icon icon="solar:layers-minimalistic-bold" className="size-4" />
+                                {t("layerPanel.groupAction")}
                             </button>
                         </TooltipAction>
                     )}
@@ -857,13 +884,13 @@ export function LayersPanelInner({
                                 onClick={() => onUngroup(selectedIds)}
                                 className="flex items-center gap-1 px-1.5 py-0.5 text-[11px] text-neutral-400 hover:text-white hover:bg-white/10 rounded transition-colors"
                             >
-                                <Icon icon="solar:layers-bold" className="size-4" /> {t("layerPanel.ungroupAction")}
+                                <Icon icon="solar:layers-bold" className="size-4" />
+                                {t("layerPanel.ungroupAction")}
                             </button>
                         </TooltipAction>
                     )}
                 </div>
             )}
-
             {videoCtxMenu && (
                 <div
                     data-ctx-menu
@@ -893,7 +920,6 @@ export function LayersPanelInner({
                     </button>
                 </div>
             )}
-
             {groupCtxMenu && (
                 <div
                     data-ctx-menu
@@ -930,7 +956,6 @@ export function LayersPanelInner({
                     </button>
                 </div>
             )}
-
             {ctxMenu &&
                 (() => {
                     const allInSameGroup =
@@ -940,7 +965,6 @@ export function LayersPanelInner({
                             return el?.groupId && el.groupId === elementsById[selectedIds[0]]?.groupId;
                         });
                     const anyHasGroup = selectedIds.some((id) => elementsById[id]?.groupId);
-
                     return (
                         <ContextMenu
                             x={ctxMenu.x}
@@ -973,7 +997,6 @@ export function LayersPanelInner({
                         />
                     );
                 })()}
-
             {pointerDrag?.active &&
                 typeof document !== "undefined" &&
                 (() => {
@@ -994,7 +1017,6 @@ export function LayersPanelInner({
                             ghostIcon = TYPE_ICON[dragEl.type];
                         }
                     }
-
                     return createPortal(
                         <div
                             className="fixed z-99999 pointer-events-none"
@@ -1005,9 +1027,7 @@ export function LayersPanelInner({
                         >
                             <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-[#1c1c1f]/90 border border-white/10 shadow-2xl backdrop-blur-sm">
                                 <Icon icon={ghostIcon} className="size-4.5 text-[#00A3FF]" />
-                                <span className="text-[11px] text-white font-medium max-w-30 truncate">
-                                    {ghostLabel}
-                                </span>
+                                <span className="text-[11px] text-white font-medium max-w-30 truncate">{ghostLabel}</span>
                             </div>
                         </div>,
                         document.body

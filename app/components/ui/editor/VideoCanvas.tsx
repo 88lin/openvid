@@ -283,19 +283,56 @@ function VideoCanvasInner({
     const lastSetVideoUrlRef = useRef<string | null>(null);
     const preservedVideoStateRef = useRef<{ time: number; playing: boolean } | null>(null);
     const imagePhoneRescaleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const cameraDragRef = useRef<{
+        pointerId: number;
+        startX: number;
+        startY: number;
+        initialX: number;
+        initialY: number;
+        rect: DOMRect;
+    } | null>(null);
+    const [isDraggingCamera, setIsDraggingCamera] = useState(false);
+
+    // Canvas elements controls state
+    const [hoveredElementId, setHoveredElementId] = useState<string | null>(null);
+    const [isDraggingElement, setIsDraggingElement] = useState(false);
+    const [isDraggingElementRotation, setIsDraggingElementRotation] = useState(false);
+    const [isDraggingElementResize, setIsDraggingElementResize] = useState(false);
+    const elementResizeStart = useRef<ElementResizeStart | null>(null);
+    const elementDragStart = useRef({ x: 0, y: 0, initialX: 0, initialY: 0, initialRotation: 0 });
+    // Positions of ALL selected elements captured once at drag-start (stable ref, never updated during drag)
+    const multiDragStartRef = useRef<Map<string, { x: number; y: number }>>(new Map());
+    // When clicking a multi-selected element, track potential collapse to single (cleared on actual drag)
+    const pendingCollapseRef = useRef<string | null>(null);
+    const wasDragRef = useRef(false);
+    const pendingVideoCollapseRef = useRef(false);
+    const pendingElementsCollapseRef = useRef(false);
+
+    // Drag & drop state for images (photo mode only)
+    const [isDraggingOver, setIsDraggingOver] = useState(false);
+    const canvasContainerRef = useRef<HTMLDivElement>(null);
+
+    // Inline text editing (Figma-style)
+    const [editingTextId, setEditingTextId] = useState<string | null>(null);
+
+    // Multi-select and canvas right-click context menu
+    const [canvasSelectedIds, setCanvasSelectedIds] = useState<string[]>([]);
+    const [canvasCtxMenu, setCanvasCtxMenu] = useState<{ x: number; y: number; isVideo?: boolean } | null>(null);
+    const [videoContainerSize, setVideoContainerSize] = useState({ width: 0, height: 0 });
 
     // Reset lastSetVideoUrlRef when mockupId changes to force src re-assignment on remount
     useEffect(() => {
         lastSetVideoUrlRef.current = null;
     }, [mockupId]);
 
-    useEffect(() => {
+    const [prevOtherSelectionActive, setPrevOtherSelectionActive] = useState(otherSelectionActive);
+    if (otherSelectionActive !== prevOtherSelectionActive) {
+        setPrevOtherSelectionActive(otherSelectionActive);
         if (otherSelectionActive) {
             setIsVideoSelected(false);
             setCanvasSelectedIds([]);
         }
-    }, [otherSelectionActive]);
-
+    }
     useEffect(() => {
         const targetUrl = activeClipUrl ?? videoUrl;
         if (videoRef.current && targetUrl) {
@@ -339,13 +376,7 @@ function VideoCanvasInner({
 
     // Track the real intrinsic aspect ratio of the video so the "none"
     useEffect(() => {
-        if (mediaType !== "video") return;
-
-        if (activeMediaAspect) {
-            setMediaAspect(activeMediaAspect);
-            return;
-        }
-
+        if (mediaType !== "video" || activeMediaAspect) return;
         const video = videoRef.current;
         if (!video) return;
         const updateAspect = () => {
@@ -399,41 +430,39 @@ function VideoCanvasInner({
     const mockupContentRef = useRef<HTMLDivElement>(null);
     const [contentInsets, setContentInsets] = useState({ top: 0, bottom: 0, left: 0, right: 0 });
 
-    ctrlScrollWheelRef.current = (e: WheelEvent) => {
-        if (!e.ctrlKey) return;
-
-        if (imagePhoneActive) {
-            e.preventDefault();
-            e.stopImmediatePropagation();
-            const next = Math.max(0.3, Math.min(3, imagePhoneScale * (e.deltaY < 0 ? 1.05 : 0.95)));
-            setImagePhoneScale(next);
-            setImagePhoneZoomVisible(true);
-            if (imagePhoneZoomTimerRef.current) clearTimeout(imagePhoneZoomTimerRef.current);
-            imagePhoneZoomTimerRef.current = setTimeout(() => setImagePhoneZoomVisible(false), 1200);
-            return;
-        }
-
-        if (mediaType === "video" && onPaddingChange) {
-            e.preventDefault();
-            e.stopImmediatePropagation();
-
-            const PADDING_MIN = 0;
-            const PADDING_MAX = 30;
-            const base = pendingPaddingRef.current ?? padding;
-            const step = Math.min(1.5, Math.max(0.15, Math.abs(e.deltaY) * 0.015));
-            const next = Math.max(PADDING_MIN, Math.min(PADDING_MAX, base + (e.deltaY < 0 ? -step : step)));
-
-            pendingPaddingRef.current = next;
-            if (paddingWheelRafRef.current === null) {
-                paddingWheelRafRef.current = requestAnimationFrame(() => {
-                    if (pendingPaddingRef.current !== null) {
-                        onPaddingChange(pendingPaddingRef.current);
-                    }
-                    paddingWheelRafRef.current = null;
-                });
+    useEffect(() => {
+        ctrlScrollWheelRef.current = (e: WheelEvent) => {
+            if (!e.ctrlKey) return;
+            if (imagePhoneActive) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                const next = Math.max(0.3, Math.min(3, imagePhoneScale * (e.deltaY < 0 ? 1.05 : 0.95)));
+                setImagePhoneScale(next);
+                setImagePhoneZoomVisible(true);
+                if (imagePhoneZoomTimerRef.current) clearTimeout(imagePhoneZoomTimerRef.current);
+                imagePhoneZoomTimerRef.current = setTimeout(() => setImagePhoneZoomVisible(false), 1200);
+                return;
             }
-        }
-    };
+            if (mediaType === "video" && onPaddingChange) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                const PADDING_MIN = 0;
+                const PADDING_MAX = 30;
+                const base = pendingPaddingRef.current ?? padding;
+                const step = Math.min(1.5, Math.max(0.15, Math.abs(e.deltaY) * 0.015));
+                const next = Math.max(PADDING_MIN, Math.min(PADDING_MAX, base + (e.deltaY < 0 ? -step : step)));
+                pendingPaddingRef.current = next;
+                if (paddingWheelRafRef.current === null) {
+                    paddingWheelRafRef.current = requestAnimationFrame(() => {
+                        if (pendingPaddingRef.current !== null) {
+                            onPaddingChange(pendingPaddingRef.current);
+                        }
+                        paddingWheelRafRef.current = null;
+                    });
+                }
+            }
+        };
+    });
 
     useEffect(() => {
         const el = previewContainerRef.current;
@@ -534,43 +563,6 @@ function VideoCanvasInner({
             }
         };
     }, [canvasDimensions, imagePhoneRefWidth, isRestoringProjectRef, setImagePhoneX, setImagePhoneY, setImagePhoneScale, setImagePhoneRefWidth]);
-
-    const cameraDragRef = useRef<{
-        pointerId: number;
-        startX: number;
-        startY: number;
-        initialX: number;
-        initialY: number;
-        rect: DOMRect;
-    } | null>(null);
-    const [isDraggingCamera, setIsDraggingCamera] = useState(false);
-
-    // Canvas elements controls state
-    const [hoveredElementId, setHoveredElementId] = useState<string | null>(null);
-    const [isDraggingElement, setIsDraggingElement] = useState(false);
-    const [isDraggingElementRotation, setIsDraggingElementRotation] = useState(false);
-    const [isDraggingElementResize, setIsDraggingElementResize] = useState(false);
-    const elementResizeStart = useRef<ElementResizeStart | null>(null);
-    const elementDragStart = useRef({ x: 0, y: 0, initialX: 0, initialY: 0, initialRotation: 0 });
-    // Positions of ALL selected elements captured once at drag-start (stable ref, never updated during drag)
-    const multiDragStartRef = useRef<Map<string, { x: number; y: number }>>(new Map());
-    // When clicking a multi-selected element, track potential collapse to single (cleared on actual drag)
-    const pendingCollapseRef = useRef<string | null>(null);
-    const wasDragRef = useRef(false);
-    const pendingVideoCollapseRef = useRef(false);
-    const pendingElementsCollapseRef = useRef(false);
-
-    // Drag & drop state for images (photo mode only)
-    const [isDraggingOver, setIsDraggingOver] = useState(false);
-    const canvasContainerRef = useRef<HTMLDivElement>(null);
-
-    // Inline text editing (Figma-style)
-    const [editingTextId, setEditingTextId] = useState<string | null>(null);
-
-    // Multi-select and canvas right-click context menu
-    const [canvasSelectedIds, setCanvasSelectedIds] = useState<string[]>([]);
-    const [canvasCtxMenu, setCanvasCtxMenu] = useState<{ x: number; y: number; isVideo?: boolean } | null>(null);
-    const [videoContainerSize, setVideoContainerSize] = useState({ width: 0, height: 0 });
 
     useEffect(() => {
         const container = videoContainerRef.current;
@@ -699,13 +691,16 @@ function VideoCanvasInner({
 
     // Effective aspect ratio for the "none" mockup contain-box, adjusted for
     // any active crop — mirrors the same math used in drawFrame's computeContainer.
+    const effectiveMediaAspect = mediaType === "video" ? (activeMediaAspect ?? mediaAspect) : mediaAspect;
+
     const mediaContainAspect = useMemo(() => {
-        if (!mediaAspect) return null;
+        if (!effectiveMediaAspect) return null;
         if (cropArea && (cropArea.width < 100 || cropArea.height < 100)) {
-            return mediaAspect * (cropArea.width / cropArea.height);
+            return effectiveMediaAspect * (cropArea.width / cropArea.height);
         }
-        return mediaAspect;
-    }, [mediaAspect, cropArea]);
+        return effectiveMediaAspect;
+    }, [effectiveMediaAspect, cropArea]);
+
     const effectivePhoneMaskConfig = useMemo(() => {
         return mediaType === "video" ? videoMaskConfig : imageMaskConfig;
     }, [mediaType, videoMaskConfig, imageMaskConfig]);
@@ -748,21 +743,22 @@ function VideoCanvasInner({
         }
     }, [imageUrlToLoad]);
 
-    useEffect(() => {
-        if (!imagePhoneActive) {
-            setActivePhoneDevice(null);
-            return;
-        }
-        if (imagePhoneDevice === activePhoneDevice) return;
+    const [prevImagePhoneActive, setPrevImagePhoneActive] = useState(imagePhoneActive);
+    if (imagePhoneActive !== prevImagePhoneActive) {
+        setPrevImagePhoneActive(imagePhoneActive);
+        if (!imagePhoneActive) setActivePhoneDevice(null);
+    }
 
+    useEffect(() => {
+        if (!imagePhoneActive) return;
+        if (imagePhoneDevice === activePhoneDevice) return;
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- inicia una transición temporizada real (setTimeout), no es sincronización directa de prop
         setPhoneTransitioning(true);
         setActivePhoneDevice(null);
-
         const id = setTimeout(() => {
             setActivePhoneDevice(imagePhoneDevice);
             setPhoneTransitioning(false);
         }, 50);
-
         return () => clearTimeout(id);
     }, [imagePhoneDevice, imagePhoneActive]);
 
@@ -1984,6 +1980,11 @@ function VideoCanvasInner({
             imagePhoneApiRef.current?.restorePreview();
         }
     };
+    const [activeVideoElement, setActiveVideoElement] = useState<HTMLVideoElement | null>(null);
+
+    useEffect(() => {
+        setActiveVideoElement(mediaType === "video" ? videoRef.current : null);
+    }, [mediaType, videoRef, videoUrl]);
 
     useImperativeHandle(ref, () => ({
         getExportCanvas: () => exportCanvasRef.current,
@@ -2637,7 +2638,7 @@ function VideoCanvasInner({
                                                     <Laptop3DViewer
                                                         key="laptop"
                                                         imageUrl={imageUrl}
-                                                        videoElement={mediaType === "video" ? videoRef.current : undefined}
+                                                        videoElement={activeVideoElement ?? undefined}
                                                         openingProgress={imagePhoneOpening}
                                                         imageMaskConfig={effectivePhoneMaskConfig}
                                                         cropArea={cropArea}
@@ -2663,7 +2664,7 @@ function VideoCanvasInner({
                                                     <IPhone13ProMax3DViewer
                                                         key="iphone-13-pro-max"
                                                         imageUrl={imageUrl}
-                                                        videoElement={mediaType === "video" ? videoRef.current : undefined}
+                                                        videoElement={activeVideoElement ?? undefined}
                                                         imageMaskConfig={effectivePhoneMaskConfig}
                                                         cropArea={cropArea}
                                                         initialRotationX={imagePhoneRotX}
@@ -2688,7 +2689,7 @@ function VideoCanvasInner({
                                                     <IPhone17ProMax3DViewer
                                                         key="iphone-17-pro-max"
                                                         imageUrl={imageUrl}
-                                                        videoElement={mediaType === "video" ? videoRef.current : undefined}
+                                                        videoElement={activeVideoElement ?? undefined}
                                                         imageMaskConfig={effectivePhoneMaskConfig}
                                                         cropArea={cropArea}
                                                         initialRotationX={imagePhoneRotX}
@@ -2713,7 +2714,7 @@ function VideoCanvasInner({
                                                     <DoubleIPhone3DViewer
                                                         key="double_iphone_13_pro"
                                                         imageUrl={imageUrl}
-                                                        videoElement={mediaType === "video" ? videoRef.current : undefined}
+                                                        videoElement={activeVideoElement ?? undefined}
                                                         imageMaskConfig={effectivePhoneMaskConfig}
                                                         cropArea={cropArea}
                                                         initialRotationX={imagePhoneRotX}
@@ -2737,7 +2738,7 @@ function VideoCanvasInner({
                                                     <IPadMini63DViewer
                                                         key="ipad_mini_6_2021"
                                                         imageUrl={imageUrl}
-                                                        videoElement={mediaType === "video" ? videoRef.current : undefined}
+                                                        videoElement={activeVideoElement ?? undefined}
                                                         imageMaskConfig={effectivePhoneMaskConfig}
                                                         cropArea={cropArea}
                                                         initialRotationX={imagePhoneRotX}
@@ -2762,7 +2763,7 @@ function VideoCanvasInner({
                                                     <Phone3DViewer
                                                         key={imagePhoneDevice}
                                                         imageUrl={imageUrl}
-                                                        videoElement={mediaType === "video" ? videoRef.current : undefined}
+                                                        videoElement={activeVideoElement ?? undefined}
                                                         imageMaskConfig={effectivePhoneMaskConfig}
                                                         cropArea={cropArea}
                                                         initialRotationX={imagePhoneRotX}

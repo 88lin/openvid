@@ -77,7 +77,7 @@ export function useVideoExport(
             setExportProgress({
                 status: "error",
                 progress: 0,
-                message: "No hay video para exportar",
+                message: "No video available to export",
             });
             isExportingRef.current = false;
             return;
@@ -87,7 +87,7 @@ export function useVideoExport(
             setExportProgress({
                 status: "error",
                 progress: 0,
-                message: "El video no está cargado correctamente",
+                message: "Video is not loaded correctly",
             });
             isExportingRef.current = false;
             return;
@@ -98,7 +98,7 @@ export function useVideoExport(
             setExportProgress({
                 status: "error",
                 progress: 0,
-                message: "Error al obtener el canvas de exportación",
+                message: "Failed to get the export canvas",
             });
             isExportingRef.current = false;
             return;
@@ -111,19 +111,19 @@ export function useVideoExport(
             setExportProgress({
                 status: "preparing",
                 progress: 2,
-                message: "Preparando video...",
+                message: "Preparing video...",
             });
 
             await ensureVideoReady(video);
 
             if (cancellationRef.current.cancelled) {
-                throw new Error("Exportación cancelada");
+                throw new Error("Export cancelled");
             }
 
             setExportProgress({
                 status: "preparing",
                 progress: 5,
-                message: "Configurando exportación...",
+                message: "Configuring export...",
             });
 
             const originalWidth = exportCanvas.width;
@@ -199,11 +199,11 @@ export function useVideoExport(
                     message: "",
                 });
             } else {
-                console.error("Error durante la exportación:", error);
+                console.error("Error during export:", error);
                 setExportProgress({
                     status: "error",
                     progress: 0,
-                    message: error instanceof Error ? error.message : "Error durante la exportación",
+                    message: error instanceof Error ? error.message : "Error during export",
                 });
             }
         } finally {
@@ -247,7 +247,7 @@ async function exportWithFFmpegWebM(
     const outputDuration = duration / speed;
     const totalFrames = Math.ceil(outputDuration * fps);
 
-    setProgress({ status: "preparing", progress: 3, message: "Cargando motor WebM..." });
+    setProgress({ status: "preparing", progress: 3, message: "Loading WebM engine..." });
 
     const ffmpegBase = `${window.location.origin}/ffmpeg`;
     await ffmpeg.load({
@@ -259,7 +259,7 @@ async function exportWithFFmpegWebM(
     video.currentTime = trimStart;
     await waitForVideoFrame(video);
     for (let i = 0; i < totalFrames; i++) {
-        if (cancellation.cancelled) throw new Error("Exportación cancelada");
+        if (cancellation.cancelled) throw new Error("Export cancelled");
 
         const outputTime = i / fps;
         const contentOffset = Math.min(outputTime * speed, duration - 0.001);
@@ -282,7 +282,7 @@ async function exportWithFFmpegWebM(
             setProgress({
                 status: "encoding",
                 progress: 8 + Math.round((i / totalFrames) * 60),
-                message: `[Paso 1/2] Guardando frame ${i + 1} de ${totalFrames}...`,
+                message: `[Step 1/2] Saving frame ${i + 1} of ${totalFrames}...`,
             });
         }
 
@@ -297,12 +297,12 @@ async function exportWithFFmpegWebM(
             setProgress({
                 status: "finalizing",
                 progress: Math.min(encodingProgress, 90),
-                message: `[Paso 2/2] Codificando VP8 con transparencia...`,
+                message: `[Step 2/2] Encoding VP8 with transparency...`,
             });
         }
     });
 
-    setProgress({ status: "finalizing", progress: 70, message: "[Paso 2/2] Iniciando codificación VP8..." });
+    setProgress({ status: "finalizing", progress: 70, message: "[Step 2/2] Starting VP8 encoding..." });
 
     try {
         await ffmpeg.exec([
@@ -320,19 +320,19 @@ async function exportWithFFmpegWebM(
             for (let i = 0; i < totalFrames; i++) {
                 await ffmpeg.deleteFile(`frame${String(i).padStart(5, "0")}.png`);
             }
-        } catch { /* ignorar errores de limpieza */ }
+        } catch { /* ignore cleanup errors */ }
     }
 
-    setProgress({ status: "finalizing", progress: 94, message: "Preparando descarga..." });
+    setProgress({ status: "finalizing", progress: 94, message: "Preparing download..." });
 
     const webmData = (await ffmpeg.readFile("output.webm")) as Uint8Array;
     const webmBlob = new Blob([new Uint8Array(webmData)], { type: "video/webm" });
 
-    try { await ffmpeg.deleteFile("output.webm"); } catch { /* ignorar */ }
+    try { await ffmpeg.deleteFile("output.webm"); } catch { /* ignore */ }
 
     downloadBlob(webmBlob, `video-transparent-${width}x${height}.webm`);
 
-    setProgress({ status: "complete", progress: 100, message: "¡WebM con transparencia exportado!" });
+    setProgress({ status: "complete", progress: 100, message: "Transparent WebM exported!" });
 }
 
 async function exportWithMediabunny(
@@ -350,13 +350,13 @@ async function exportWithMediabunny(
     speed: number = 1,
 ): Promise<void> {
     if (cancellation.cancelled) {
-        throw new Error("Exportación cancelada");
+        throw new Error("Export cancelled");
     }
 
     setProgress({
         status: "encoding",
         progress: 10,
-        message: `Iniciando codificación a ${fps} fps...`,
+        message: `Starting encoding at ${fps} fps...`,
     });
 
     const outputDuration = duration / speed;
@@ -389,7 +389,7 @@ async function exportWithMediabunny(
 
     for (let frameIndex = 0; frameIndex < totalFrames; frameIndex++) {
         if (cancellation.cancelled) {
-            throw new Error("Exportación cancelada");
+            throw new Error("Export cancelled");
         }
 
         const outputTime = frameIndex / fps;
@@ -410,7 +410,7 @@ async function exportWithMediabunny(
             setProgress({
                 status: "encoding",
                 progress,
-                message: `Codificando ${frameIndex + 1}/${totalFrames} frames (${fps}fps)...`,
+                message: `Encoding ${frameIndex + 1}/${totalFrames} frames (${fps}fps)...`,
             });
         }
 
@@ -420,31 +420,31 @@ async function exportWithMediabunny(
     }
 
     if (cancellation.cancelled) {
-        throw new Error("Exportación cancelada");
+        throw new Error("Export cancelled");
     }
 
     setProgress({
         status: "finalizing",
         progress: 92,
-        message: "Finalizando codificación...",
+        message: "Finalizing encoding...",
     });
 
     await output.finalize();
 
     if (cancellation.cancelled) {
-        throw new Error("Exportación cancelada");
+        throw new Error("Export cancelled");
     }
 
     setProgress({
         status: "finalizing",
         progress: 96,
-        message: "Generando archivo MP4...",
+        message: "Generating MP4 file...",
     });
 
     const buffer = (output.target as BufferTarget).buffer;
 
     if (!buffer) {
-        throw new Error("No se pudo generar el archivo MP4");
+        throw new Error("Failed to generate the MP4 file");
     }
 
     const blob = new Blob([buffer], { type: "video/mp4" });
@@ -453,7 +453,7 @@ async function exportWithMediabunny(
     setProgress({
         status: "complete",
         progress: 100,
-        message: "¡Exportación completada!",
+        message: "Export complete!",
     });
 }
 
@@ -501,13 +501,13 @@ async function exportWithMediabunnyAndAudio(
     }
 
     if (cancellation.cancelled) {
-        throw new Error("Exportación cancelada");
+        throw new Error("Export cancelled");
     }
 
     setProgress({
         status: "encoding",
         progress: 5,
-        message: hasMultipleClips ? `Preparando exportación multi-clip...` : `Preparando exportación con audio...`,
+        message: hasMultipleClips ? `Preparing multi-clip export...` : `Preparing export with audio...`,
     });
 
     const outputDuration = duration / speed;
@@ -537,123 +537,140 @@ async function exportWithMediabunnyAndAudio(
     video.pause();
 
     let currentClipId: string | null = null;
+    // Tracks the object URL currently assigned to `video.src` during a
+    // multi-clip export, so we can revoke it as soon as it's replaced or
+    // as soon as the export finishes — instead of leaking one blob: URL
+    // per clip switch for the whole duration of the export.
+    let currentClipBlobUrl: string | null = null;
 
-    if (hasMultipleClips && clips.length > 0) {
-        const sortedClips = [...clips].sort((a, b) => a.startTime - b.startTime);
-        const firstClip = sortedClips[0];
-        if (firstClip && clipBlobs) {
-            const blob = clipBlobs.get(firstClip.libraryVideoId);
-            if (blob) {
-                const blobUrl = URL.createObjectURL(blob);
-                video.src = blobUrl;
-                await new Promise<void>((resolve, reject) => {
-                    video.onloadedmetadata = () => resolve();
-                    video.onerror = () => reject(new Error("Failed to load video"));
-                });
-                currentClipId = firstClip.id;
-            }
+    const loadClipBlob = async (blob: Blob): Promise<void> => {
+        if (currentClipBlobUrl) {
+            URL.revokeObjectURL(currentClipBlobUrl);
         }
-        video.currentTime = clips[0]?.trimStart || 0;
-    } else {
-        video.currentTime = trimStart;
-    }
+        const blobUrl = URL.createObjectURL(blob);
+        currentClipBlobUrl = blobUrl;
+        video.pause();
+        video.src = blobUrl;
+        await new Promise<void>((resolve, reject) => {
+            video.onloadedmetadata = () => resolve();
+            video.onerror = () => reject(new Error("Failed to load video"));
+        });
+    };
 
-    await waitForVideoFrame(video);
-
-    const lockedWidth = canvas.width;
-    const lockedHeight = canvas.height;
-
-    for (let frameIndex = 0; frameIndex < totalFrames; frameIndex++) {
-        if (cancellation.cancelled) {
-            throw new Error("Exportación cancelada");
-        }
-
-        const outputTime = frameIndex / fps;
-        const contentOffset = Math.min(outputTime * speed, duration - 0.001);
-        const timelineTime = trimStart + contentOffset;
-
-        if (hasMultipleClips && clipBlobs) {
-            const activeClipInfo = getActiveClipAtTime(clips, timelineTime);
-
-            if (activeClipInfo) {
-                const { clip, clipTime } = activeClipInfo;
-
-                if (clip.id !== currentClipId) {
-                    const newBlob = clipBlobs.get(clip.libraryVideoId);
-                    if (newBlob) {
-                        const blobUrl = URL.createObjectURL(newBlob);
-                        video.pause();
-                        video.src = blobUrl;
-                        await new Promise<void>((resolve, reject) => {
-                            video.onloadedmetadata = () => resolve();
-                            video.onerror = () => reject(new Error("Failed to load video"));
-                        });
-                        currentClipId = clip.id;
-                    }
+    try {
+        if (hasMultipleClips && clips.length > 0) {
+            const sortedClips = [...clips].sort((a, b) => a.startTime - b.startTime);
+            const firstClip = sortedClips[0];
+            if (firstClip && clipBlobs) {
+                const blob = clipBlobs.get(firstClip.libraryVideoId);
+                if (blob) {
+                    await loadClipBlob(blob);
+                    currentClipId = firstClip.id;
                 }
+            }
+            video.currentTime = clips[0]?.trimStart || 0;
+        } else {
+            video.currentTime = trimStart;
+        }
 
-                video.currentTime = clipTime;
-                await waitForVideoFrame(video);
+        await waitForVideoFrame(video);
+
+        const lockedWidth = canvas.width;
+        const lockedHeight = canvas.height;
+
+        for (let frameIndex = 0; frameIndex < totalFrames; frameIndex++) {
+            if (cancellation.cancelled) {
+                throw new Error("Export cancelled");
+            }
+
+            const outputTime = frameIndex / fps;
+            const contentOffset = Math.min(outputTime * speed, duration - 0.001);
+            const timelineTime = trimStart + contentOffset;
+
+            if (hasMultipleClips && clipBlobs) {
+                const activeClipInfo = getActiveClipAtTime(clips, timelineTime);
+
+                if (activeClipInfo) {
+                    const { clip, clipTime } = activeClipInfo;
+
+                    if (clip.id !== currentClipId) {
+                        const newBlob = clipBlobs.get(clip.libraryVideoId);
+                        if (newBlob) {
+                            await loadClipBlob(newBlob);
+                            currentClipId = clip.id;
+                        }
+                    }
+
+                    video.currentTime = clipTime;
+                    await waitForVideoFrame(video);
+                }
+            }
+
+            if (canvas.width !== lockedWidth || canvas.height !== lockedHeight) {
+                canvas.width = lockedWidth;
+                canvas.height = lockedHeight;
+            }
+
+            await canvasHandle.drawFrame(true, timelineTime);
+            await videoSource.add(outputTime, frameDuration);
+
+            if (!hasMultipleClips) {
+                const nextFrame = frameIndex + 1;
+                if (nextFrame < totalFrames) {
+                    const nextContentOffset = Math.min((nextFrame / fps) * speed, duration - 0.001);
+                    video.currentTime = trimStart + nextContentOffset;
+                }
+            }
+
+            if (frameIndex % 10 === 0 || frameIndex === totalFrames - 1) {
+                const progress = 5 + Math.round((frameIndex / totalFrames) * 50);
+                setProgress({
+                    status: "encoding",
+                    progress,
+                    message: hasMultipleClips
+                        ? `Encoding clips ${frameIndex + 1}/${totalFrames}...`
+                        : `Encoding video ${frameIndex + 1}/${totalFrames}...`,
+                });
+            }
+
+            if (!hasMultipleClips) {
+                const nextFrame = frameIndex + 1;
+                if (nextFrame < totalFrames) {
+                    await waitForVideoFrame(video);
+                }
             }
         }
-
-        if (canvas.width !== lockedWidth || canvas.height !== lockedHeight) {
-            canvas.width = lockedWidth;
-            canvas.height = lockedHeight;
-        }
-
-        await canvasHandle.drawFrame(true, timelineTime);
-        await videoSource.add(outputTime, frameDuration);
-
-        if (!hasMultipleClips) {
-            const nextFrame = frameIndex + 1;
-            if (nextFrame < totalFrames) {
-                const nextContentOffset = Math.min((nextFrame / fps) * speed, duration - 0.001);
-                video.currentTime = trimStart + nextContentOffset;
-            }
-        }
-
-        if (frameIndex % 10 === 0 || frameIndex === totalFrames - 1) {
-            const progress = 5 + Math.round((frameIndex / totalFrames) * 50);
-            setProgress({
-                status: "encoding",
-                progress,
-                message: hasMultipleClips
-                    ? `Codificando clips ${frameIndex + 1}/${totalFrames}...`
-                    : `Codificando video ${frameIndex + 1}/${totalFrames}...`,
-            });
-        }
-
-        if (!hasMultipleClips) {
-            const nextFrame = frameIndex + 1;
-            if (nextFrame < totalFrames) {
-                await waitForVideoFrame(video);
-            }
+    } finally {
+        // Always release the last clip's object URL — whether the loop
+        // finished normally, was cancelled, or threw.
+        if (currentClipBlobUrl) {
+            URL.revokeObjectURL(currentClipBlobUrl);
+            currentClipBlobUrl = null;
         }
     }
 
     if (cancellation.cancelled) {
-        throw new Error("Exportación cancelada");
+        throw new Error("Export cancelled");
     }
 
     setProgress({
         status: "finalizing",
         progress: 56,
-        message: "Finalizando video...",
+        message: "Finalizing video...",
     });
 
     await output.finalize();
 
     const buffer = (output.target as BufferTarget).buffer;
     if (!buffer) {
-        throw new Error("No se pudo generar el archivo de video");
+        throw new Error("Failed to generate the video file");
     }
 
     const videoBlob = new Blob([buffer], { type: "video/mp4" });
 
     if (!needsAudioMixing) {
         downloadBlob(videoBlob, `openvid-${width}x${height}.mp4`);
-        setProgress({ status: "complete", progress: 100, message: "¡Exportación completada!" });
+        setProgress({ status: "complete", progress: 100, message: "Export complete!" });
         return;
     }
 
@@ -672,7 +689,7 @@ async function exportWithMediabunnyAndAudio(
 
     if (!hasUsableSourceBlob && !hasUsableMultiClipAudio && !hasUsableAudioTracks) {
         downloadBlob(videoBlob, `openvid-${width}x${height}.mp4`);
-        setProgress({ status: "complete", progress: 100, message: "¡Exportación completada!" });
+        setProgress({ status: "complete", progress: 100, message: "Export complete!" });
         return;
     }
 
@@ -680,7 +697,7 @@ async function exportWithMediabunnyAndAudio(
         setProgress({
             status: "finalizing",
             progress: 60,
-            message: "Cargando motor de audio...",
+            message: "Loading audio engine...",
         });
 
         const ffmpeg = new FFmpeg();
@@ -764,7 +781,7 @@ async function exportWithMediabunnyAndAudio(
         setProgress({
             status: "finalizing",
             progress: 70,
-            message: "Mezclando audio...",
+            message: "Mixing audio...",
         });
 
         const ffmpegArgs: string[] = ["-i", "video.mp4"];
@@ -820,7 +837,7 @@ async function exportWithMediabunnyAndAudio(
         const totalAudioInputs = audioInputs.length;
         if (totalAudioInputs === 0) {
             downloadBlob(videoBlob, `openvid-${width}x${height}.mp4`);
-            setProgress({ status: "complete", progress: 100, message: "¡Exportación completada!" });
+            setProgress({ status: "complete", progress: 100, message: "Export complete!" });
             return;
         } else if (audioInputs.length > 0) {
             filterComplex += `${audioInputs.join("")}amix=inputs=${audioInputs.length}:duration=longest:dropout_transition=0:normalize=0,atrim=0:${outputDuration.toFixed(3)},asetpts=PTS-STARTPTS[aout]`;
@@ -842,7 +859,7 @@ async function exportWithMediabunnyAndAudio(
                 setProgress({
                     status: "finalizing",
                     progress: Math.min(mixProgress, 95),
-                    message: `Procesando audio... ${Math.round(progress * 100)}%`,
+                    message: `Processing audio... ${Math.round(progress * 100)}%`,
                 });
             }
         });
@@ -855,7 +872,7 @@ async function exportWithMediabunnyAndAudio(
             setProgress({
                 status: "complete",
                 progress: 100,
-                message: "¡Exportación completada (sin mezcla de audio)!",
+                message: "Export complete (without audio mixing)!",
             });
             return;
         }
@@ -863,7 +880,7 @@ async function exportWithMediabunnyAndAudio(
         setProgress({
             status: "finalizing",
             progress: 96,
-            message: "Preparando descarga...",
+            message: "Preparing download...",
         });
 
         const outputData = (await ffmpeg.readFile("output.mp4")) as Uint8Array;
@@ -886,7 +903,7 @@ async function exportWithMediabunnyAndAudio(
         setProgress({
             status: "complete",
             progress: 100,
-            message: "¡Exportación con audio completada!",
+            message: "Export with audio complete!",
         });
     } catch (ffmpegError) {
         console.warn("FFmpeg audio processing failed, exporting video only:", ffmpegError);
@@ -894,7 +911,7 @@ async function exportWithMediabunnyAndAudio(
         setProgress({
             status: "complete",
             progress: 100,
-            message: "¡Exportación completada (sin audio)!",
+            message: "Export complete (without audio)!",
         });
     }
 }
@@ -909,7 +926,7 @@ function canvasToBlobFast(canvas: HTMLCanvasElement): Promise<Blob> {
         canvas.toBlob(
             (blob) => {
                 if (blob) resolve(blob);
-                else reject(new Error("Error al convertir canvas a imagen"));
+                else reject(new Error("Failed to convert canvas to image"));
             },
             "image/jpeg",
             0.95
@@ -935,9 +952,9 @@ async function exportWithFFmpegGif(
     const totalFrames = Math.ceil(outputDuration * fps);
 
     try {
-        if (cancellation.cancelled) throw new Error("Exportación cancelada");
+        if (cancellation.cancelled) throw new Error("Export cancelled");
 
-        setProgress({ status: "preparing", progress: 3, message: "Cargando motor de exportación GIF..." });
+        setProgress({ status: "preparing", progress: 3, message: "Loading GIF export engine..." });
 
         const baseURL = `${window.location.origin}/ffmpeg`;
 
@@ -946,14 +963,14 @@ async function exportWithFFmpegGif(
             wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm"),
         });
 
-        setProgress({ status: "encoding", progress: 8, message: `Capturando ${totalFrames} frames...` });
+        setProgress({ status: "encoding", progress: 8, message: `Capturing ${totalFrames} frames...` });
 
         video.pause();
         video.currentTime = trimStart;
         await waitForVideoFrame(video);
 
         for (let i = 0; i < totalFrames; i++) {
-            if (cancellation.cancelled) throw new Error("Exportación cancelada");
+            if (cancellation.cancelled) throw new Error("Export cancelled");
 
             const outputTime = i / fps;
             const contentOffset = Math.min(outputTime * speed, duration - 0.001);
@@ -975,7 +992,7 @@ async function exportWithFFmpegGif(
                 setProgress({
                     status: "encoding",
                     progress,
-                    message: `Capturando frame ${i + 1}/${totalFrames}...`,
+                    message: `Capturing frame ${i + 1}/${totalFrames}...`,
                 });
             }
 
@@ -984,7 +1001,7 @@ async function exportWithFFmpegGif(
             }
         }
 
-        setProgress({ status: "finalizing", progress: 60, message: "Generando paleta de colores óptima..." });
+        setProgress({ status: "finalizing", progress: 60, message: "Generating optimal color palette..." });
 
         await ffmpeg.exec([
             "-f", "image2",
@@ -994,9 +1011,9 @@ async function exportWithFFmpegGif(
             "palette.png",
         ]);
 
-        if (cancellation.cancelled) throw new Error("Exportación cancelada");
+        if (cancellation.cancelled) throw new Error("Export cancelled");
 
-        setProgress({ status: "finalizing", progress: 78, message: "Sintetizando GIF animado..." });
+        setProgress({ status: "finalizing", progress: 78, message: "Synthesizing animated GIF..." });
 
         await ffmpeg.exec([
             "-f", "image2",
@@ -1007,13 +1024,13 @@ async function exportWithFFmpegGif(
             "output.gif",
         ]);
 
-        setProgress({ status: "finalizing", progress: 94, message: "Descargando GIF..." });
+        setProgress({ status: "finalizing", progress: 94, message: "Downloading GIF..." });
 
         const gifData = (await ffmpeg.readFile("output.gif")) as Uint8Array;
         const gifBlob = new Blob([new Uint8Array(gifData)], { type: "image/gif" });
         downloadBlob(gifBlob, `animation-${width}x${height}.gif`);
 
-        setProgress({ status: "complete", progress: 100, message: "¡GIF exportado exitosamente!" });
+        setProgress({ status: "complete", progress: 100, message: "GIF exported successfully!" });
 
     } finally {
         if (ffmpeg.loaded) {
@@ -1024,7 +1041,7 @@ async function exportWithFFmpegGif(
                     await ffmpeg.deleteFile(`frame${String(i).padStart(5, "0")}.jpg`);
                 }
             } catch (e) {
-                console.warn("Error limpiando archivos temporales de FFmpeg", e);
+                console.warn("Error cleaning up temporary FFmpeg files", e);
             }
         }
     }

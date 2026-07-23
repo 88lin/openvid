@@ -1,11 +1,12 @@
 "use client";
+
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter, usePathname } from "@/navigation";
 import type { RecordingState, RecordingResult, VideoData, RecordingContextType } from "@/types";
 import type { CameraConfig, RecordingSetupConfig } from "@/types/camera.types";
 import { DEFAULT_RECORDING_SETUP, requestCameraStream, requestMicrophoneStream } from "@/types/camera.types";
 import { clearAllThumbnailCache } from "@/lib/thumbnail-cache";
-import { Input, Output, Mp4OutputFormat, BufferTarget, Conversion, ALL_FORMATS, BufferSource } from "mediabunny";
+import { convertToMp4 } from "@/lib/video-conversion";
 
 export type { RecordingState, RecordingResult, VideoData, RecordingContextType };
 
@@ -85,10 +86,8 @@ async function saveVideoToIndexedDB(
   } catch (e) {
     console.warn("Failed to clear thumbnail cache:", e);
   }
-
   const videoId = generateVideoId();
   const db = await getDB();
-
   return new Promise((resolve, reject) => {
     const storeName = "videos";
     const transaction = db.transaction([storeName], "readwrite");
@@ -102,7 +101,6 @@ async function saveVideoToIndexedDB(
       cameraBlob: extras.cameraBlob ?? null,
       cameraConfig: extras.cameraConfig ?? null,
     };
-
     const putRequest = store.put(videoData, "currentVideo");
     putRequest.onsuccess = () => {
       db.close();
@@ -129,17 +127,14 @@ export async function loadVideoFromIndexedDB(): Promise<{
   try {
     const db = await getDB();
     const storeName = "videos";
-
     if (!db.objectStoreNames.contains(storeName)) {
       db.close();
       return null;
     }
-
     return new Promise((resolve, reject) => {
       const transaction = db.transaction([storeName], "readonly");
       const store = transaction.objectStore(storeName);
       const getRequest = store.get("currentVideo");
-
       getRequest.onsuccess = () => {
         db.close();
         const data = getRequest.result;
@@ -149,7 +144,6 @@ export async function loadVideoFromIndexedDB(): Promise<{
           const timestamp = data.timestamp || Date.now();
           const cameraBlob: Blob | null = data.cameraBlob ?? null;
           const cameraUrl = cameraBlob ? URL.createObjectURL(cameraBlob) : null;
-
           resolve({
             blob: data.blob,
             duration: data.duration,
@@ -165,14 +159,13 @@ export async function loadVideoFromIndexedDB(): Promise<{
           resolve(null);
         }
       };
-
       getRequest.onerror = () => {
         db.close();
         reject(getRequest.error);
       };
     });
   } catch (error) {
-    console.error("Error al cargar video desde la base de datos:", error);
+    console.error("Error loading video from database:", error);
     return null;
   }
 }
@@ -181,17 +174,14 @@ export async function deleteRecordedVideo(): Promise<void> {
   try {
     const db = await getDB();
     const storeName = "videos";
-
     if (!db.objectStoreNames.contains(storeName)) {
       db.close();
       return;
     }
-
     return new Promise((resolve, reject) => {
       const transaction = db.transaction([storeName], "readwrite");
       const store = transaction.objectStore(storeName);
       const deleteRequest = store.delete("currentVideo");
-
       deleteRequest.onsuccess = () => {
         db.close();
         resolve();
@@ -207,18 +197,17 @@ export async function deleteRecordedVideo(): Promise<void> {
 }
 
 const titles = {
-  idle: "openvid - Crea tomas cinemáticas",
-  countdown: (count: number) => `Grabando en ${count}...`,
-  recording: "Grabando...",
-  processing: "⏳ Procesando video...",
+  idle: "openvid - Create cinematic takes",
+  countdown: (count: number) => `Recording in ${count}...`,
+  recording: "Recording...",
+  processing: "⏳ Processing video...",
 };
 
 function pickSupportedMimeType(preferred: string[]): string | undefined {
   for (const mimeType of preferred) {
     try {
       if (MediaRecorder.isTypeSupported(mimeType)) return mimeType;
-    } catch {
-    }
+    } catch { }
   }
   return undefined;
 }
@@ -232,7 +221,6 @@ export function useScreenRecording() {
   const [cameraConfig, setCameraConfig] = useState<CameraConfig | null>(null);
   const router = useRouter();
   const pathname = usePathname();
-
   const screenRecorderRef = useRef<MediaRecorder | null>(null);
   const cameraRecorderRef = useRef<MediaRecorder | null>(null);
   const screenChunksRef = useRef<Blob[]>([]);
@@ -277,7 +265,7 @@ export function useScreenRecording() {
       setTitle(titles.countdown(countdown));
     } else if (state === "recording") {
       const timeStr = recordingTime.toString().padStart(2, "0");
-      setTitle(`Grabando ${timeStr}s`);
+      setTitle(`Recording ${timeStr}s`);
     } else if (state === "processing") {
       setTitle(titles.processing);
     }
@@ -334,30 +322,27 @@ export function useScreenRecording() {
         screenChunksRef.current = [];
         cameraChunksRef.current = [];
         startTimeRef.current = Date.now();
-
-        const screenMime = pickSupportedMimeType([
-          "video/webm;codecs=vp9,opus",
-          "video/webm;codecs=vp8,opus",
-          "video/webm;codecs=vp9",
-          "video/webm;codecs=vp8",
-          "video/webm",
-        ]) || undefined;
-
+        const screenMime =
+          pickSupportedMimeType([
+            "video/webm;codecs=vp9,opus",
+            "video/webm;codecs=vp8,opus",
+            "video/webm;codecs=vp9",
+            "video/webm;codecs=vp8",
+            "video/webm",
+          ]) || undefined;
         const screenRecorder = new MediaRecorder(
           screenStream,
           screenMime ? { mimeType: screenMime } : undefined
         );
         screenRecorderRef.current = screenRecorder;
-
         screenRecorder.ondataavailable = (event) => {
           if (event.data.size > 0) {
             screenChunksRef.current.push(event.data);
           }
         };
-
         screenRecorder.onerror = (event) => {
-          console.error("Error del MediaRecorder (pantalla):", event);
-          setError("Error durante la grabación");
+          console.error("MediaRecorder error (screen):", event);
+          setError("Error during recording");
           setState("idle");
           cleanupStreams();
           restoreOriginals();
@@ -365,25 +350,24 @@ export function useScreenRecording() {
 
         let cameraRecorder: MediaRecorder | null = null;
         if (camStream) {
-          const camMime = pickSupportedMimeType([
-            "video/webm;codecs=vp9",
-            "video/webm;codecs=vp8",
-            "video/webm",
-          ]) || undefined;
-
+          const camMime =
+            pickSupportedMimeType([
+              "video/webm;codecs=vp9",
+              "video/webm;codecs=vp8",
+              "video/webm",
+            ]) || undefined;
           cameraRecorder = new MediaRecorder(
             camStream,
             camMime ? { mimeType: camMime } : undefined
           );
           cameraRecorderRef.current = cameraRecorder;
-
           cameraRecorder.ondataavailable = (event) => {
             if (event.data.size > 0) {
               cameraChunksRef.current.push(event.data);
             }
           };
           cameraRecorder.onerror = (event) => {
-            console.error("Error del MediaRecorder (cámara):", event);
+            console.error("MediaRecorder error (camera):", event);
           };
         }
 
@@ -395,72 +379,35 @@ export function useScreenRecording() {
           setState("processing");
           const duration = (Date.now() - startTimeRef.current) / 1000;
           cleanupStreams();
-
           try {
-            const rawScreenBlob = screenBlob || new Blob([], { type: screenMime || "video/webm" });
-
-            const arrayBuffer = await rawScreenBlob.arrayBuffer();
-            const uint8Array = new Uint8Array(arrayBuffer);
-
-            const source = new BufferSource(uint8Array);
-
-            const input = new Input({
-              source: source,
-              formats: ALL_FORMATS
-            });
-
-            const outputTarget = new BufferTarget();
-            const output = new Output({
-              format: new Mp4OutputFormat(),
-              target: outputTarget,
-            });
-
-            const conversion = await Conversion.init({
-              input,
-              output,
-              video: {
-                hardwareAcceleration: 'prefer-hardware',
-                keyFrameInterval: 2,
-              },
-              audio: {
-                codec: 'aac',
-                sampleRate: 48000,
-                numberOfChannels: 2,
-              }
-            });
-
-            if (!conversion.isValid) {
-              console.error("Pistas descartadas:", conversion.discardedTracks);
-              throw new Error("No se pudo iniciar la conversión del video.");
-            }
-
-            await conversion.execute();
-
-            if (!outputTarget.buffer) {
-              throw new Error("El buffer de salida es nulo. La conversión falló.");
-            }
-
-            const finalMp4Blob = new Blob([outputTarget.buffer], { type: 'video/mp4' });
-
+            const rawScreenBlob =
+              screenBlob || new Blob([], { type: screenMime || "video/webm" });
+            const finalMp4Blob = await convertToMp4(rawScreenBlob);
             await saveVideoToIndexedDB(finalMp4Blob, duration, {
               cameraBlob,
               cameraConfig: cameraConfigRef.current,
             });
-
+            await saveVideoToIndexedDB(finalMp4Blob, duration, {
+              cameraBlob,
+              cameraConfig: cameraConfigRef.current,
+            });
             if (pathname === "/editor") {
               window.location.reload();
             } else {
               router.push("/editor");
             }
           } catch (err) {
-            console.error("Error al procesar el video con Mediabunny:", err);
-            setError("Error al procesar el video");
+            console.error("Error processing video with Mediabunny:", err);
+            setError("Error processing video");
             setState("idle");
             restoreOriginals();
           }
         };
+
         screenRecorder.onstop = () => {
-          screenBlob = new Blob(screenChunksRef.current, { type: screenMime || "video/webm" });
+          screenBlob = new Blob(screenChunksRef.current, {
+            type: screenMime || "video/webm",
+          });
           pendingCount -= 1;
           if (pendingCount <= 0) finalize();
           else if (cameraRecorder && cameraRecorder.state !== "inactive") {
@@ -470,25 +417,29 @@ export function useScreenRecording() {
 
         if (cameraRecorder) {
           cameraRecorder.onstop = () => {
-            cameraBlob = new Blob(cameraChunksRef.current, { type: "video/webm" });
+            cameraBlob = new Blob(cameraChunksRef.current, {
+              type: "video/webm",
+            });
             pendingCount -= 1;
             if (pendingCount <= 0) finalize();
-            else if (screenRecorderRef.current && screenRecorderRef.current.state !== "inactive") {
+            else if (
+              screenRecorderRef.current &&
+              screenRecorderRef.current.state !== "inactive"
+            ) {
               screenRecorderRef.current.stop();
             }
           };
         }
 
         setState("recording");
-
         setTimeout(() => {
           startTimeRef.current = Date.now();
           screenRecorder.start(1000);
           cameraRecorder?.start(1000);
         }, 300);
       } catch (err) {
-        console.error("Error al iniciar grabación:", err);
-        setError(err instanceof Error ? err.message : "No se pudo iniciar la grabación");
+        console.error("Error starting recording:", err);
+        setError(err instanceof Error ? err.message : "Could not start recording");
         setState("idle");
         cleanupStreams();
         restoreOriginals();
@@ -500,14 +451,14 @@ export function useScreenRecording() {
   const startCountdown = useCallback(
     async (setupArg?: RecordingSetupConfig) => {
       const setup: RecordingSetupConfig = setupArg ?? DEFAULT_RECORDING_SETUP;
-
       try {
         setError(null);
         setRecordingTime(0);
-
         const screenStream = await navigator.mediaDevices.getDisplayMedia({
           video: { displaySurface: "browser" },
-          audio: setup.systemAudio ? { echoCancellation: true, noiseSuppression: true } : false,
+          audio: setup.systemAudio
+            ? { echoCancellation: true, noiseSuppression: true }
+            : false,
         });
         screenStreamRef.current = screenStream;
 
@@ -519,7 +470,7 @@ export function useScreenRecording() {
             setCameraStream(camStream);
             setCameraConfig(setup.camera);
           } catch (err) {
-            console.warn("Cámara denegada, continuando sin cámara:", err);
+            console.warn("Camera denied, continuing without camera:", err);
           }
         }
 
@@ -532,7 +483,7 @@ export function useScreenRecording() {
             });
             micStreamRef.current = micStream;
           } catch (err) {
-            console.warn("Micrófono denegado, continuando sin micrófono:", err);
+            console.warn("Microphone denied, continuing without microphone:", err);
           }
         }
 
@@ -543,18 +494,25 @@ export function useScreenRecording() {
 
         if (needsMixing) {
           try {
-            const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+            const AudioCtx =
+              window.AudioContext ||
+              (window as unknown as { webkitAudioContext: typeof AudioContext })
+                .webkitAudioContext;
             const audioCtx = new AudioCtx();
             audioCtxRef.current = audioCtx;
             const destination = audioCtx.createMediaStreamDestination();
 
             if (screenAudioTracks.length > 0) {
-              const screenSource = audioCtx.createMediaStreamSource(new MediaStream(screenAudioTracks));
+              const screenSource = audioCtx.createMediaStreamSource(
+                new MediaStream(screenAudioTracks)
+              );
               screenSource.connect(destination);
             }
 
             if (micAudioTracks.length > 0) {
-              const micSource = audioCtx.createMediaStreamSource(new MediaStream(micAudioTracks));
+              const micSource = audioCtx.createMediaStreamSource(
+                new MediaStream(micAudioTracks)
+              );
               const micGain = audioCtx.createGain();
               micGain.gain.value = setup.microphone.volume;
               micSource.connect(micGain);
@@ -566,7 +524,7 @@ export function useScreenRecording() {
               ...destination.stream.getAudioTracks(),
             ]);
           } catch (err) {
-            console.warn("Error al mezclar audio, usando solo audio de pantalla:", err);
+            console.warn("Error mixing audio, using only screen audio:", err);
             finalScreenStream = screenStream;
           }
         }
@@ -593,8 +551,8 @@ export function useScreenRecording() {
           }
         }, 1000);
       } catch (err) {
-        console.error("Error al iniciar captura:", err);
-        setError("No se pudo iniciar la captura de pantalla");
+        console.error("Error starting capture:", err);
+        setError("Could not start screen capture");
         setState("idle");
         cleanupStreams();
         restoreOriginals();
