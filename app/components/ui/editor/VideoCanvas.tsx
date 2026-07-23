@@ -20,7 +20,6 @@ import { applyPerspective3D, disposePerspective3D } from "@/lib/perspective3d";
 import { RotationHandleIcon } from "@/components/ui/RotationHandleIcon";
 import { CanvasElementsLayer, ElementResizeStart } from "./CanvasElementsLayer";
 import { EditorHoverTooltip } from "./EditorHoverTooltip";
-import DropImage from "@/components/ui/DropImage";
 import { LayersPanel } from "./LayersPanel";
 import { useMockup3dContext } from "@/app/contexts/Mockup3dContext";
 import { PHONE_H, PHONE_W, DEVICE_3D_DIMENSIONS, DEVICE_VIEWER_DEFAULTS, PHONE_DEVICE_URLS, type ImageMaskConfigLike } from "@/lib/phone3d.utils";
@@ -32,6 +31,7 @@ import { applyGradientMaskToRegion, GetMediaMaskStyles } from "@/lib/media-mask.
 import { MediaContent } from "@/components/ui/MediaContent";
 import { RotationGuideLine } from "@/components/ui/RotationGuideLine";
 import { drawCameraOverlayToCtx } from "@/lib/camera-overlay.utils";
+import DropMedia from "@/components/ui/DropMedia";
 
 export type { VideoCanvasHandle, VideoCanvasProps };
 
@@ -100,6 +100,7 @@ function VideoCanvasInner({
     onVideoUpload,
     onImageUpload,
     onImageDrop,
+    onVideoDrop,
     isUploading = false,
     videoTransform = { rotation: 0, translateX: 0, translateY: 0 },
     onVideoTransformChange,
@@ -1208,33 +1209,32 @@ function VideoCanvasInner({
 
     // Drag & drop handlers for images
     const handleDragOver = (e: React.DragEvent) => {
-        if (mediaType !== "image" || !onImageDrop) return;
+        const dropHandler = mediaType === "video" ? onVideoDrop : onImageDrop;
+        if (!dropHandler) return;
         if (!e.dataTransfer.types.includes("Files")) return;
-
         e.preventDefault();
         e.stopPropagation();
         setIsDraggingOver(true);
     };
 
     const handleDragLeave = (e: React.DragEvent) => {
-        if (mediaType !== "image") return;
-
+        const dropHandler = mediaType === "video" ? onVideoDrop : onImageDrop;
+        if (!dropHandler) return;
         e.preventDefault();
         e.stopPropagation();
         setIsDraggingOver(false);
     };
 
     const handleDrop = (e: React.DragEvent) => {
-        if (mediaType !== "image" || !onImageDrop) return;
+        const dropHandler = mediaType === "video" ? onVideoDrop : onImageDrop;
+        if (!dropHandler) return;
         if (!e.dataTransfer.types.includes("Files")) return;
-
         e.preventDefault();
         e.stopPropagation();
         setIsDraggingOver(false);
-
         const files = e.dataTransfer.files;
         if (files && files.length > 0) {
-            onImageDrop(files);
+            dropHandler(files);
         }
     };
 
@@ -2169,8 +2169,8 @@ function VideoCanvasInner({
                 setCanvasCtxMenu({ x: e.clientX, y: e.clientY, isVideo: isVideoTarget });
             }}
         >
-            {mediaType === "image" && isDraggingOver && (
-                <DropImage />
+            {isDraggingOver && (
+                <DropMedia mediaType={mediaType} />
             )}
 
             {canvasCtxMenu && (
@@ -2496,7 +2496,7 @@ function VideoCanvasInner({
                                                     transformStyle: mediaType === "image" && !apply3DToBackground ? 'preserve-3d' : undefined,
                                                 }}
                                             >
-                                                <EditorHoverTooltip show={isVideoHovered && !imagePhoneActive && mediaType === "image"} />
+                                                <EditorHoverTooltip show={isVideoHovered && !imagePhoneActive} />
                                             </div>
                                         </div>
                                     </div>
@@ -2586,7 +2586,7 @@ function VideoCanvasInner({
                                                         pointerEvents: "none",
                                                     }}
                                                 >
-                                                    <EditorHoverTooltip show={isVideoHovered && mediaType === "image"} />
+                                                    <EditorHoverTooltip show={isVideoHovered} />
                                                 </div>
                                             </div>
 

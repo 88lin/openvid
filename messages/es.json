@@ -1272,8 +1272,9 @@
       }
     }
   },
-  "dropImage": {
-    "title": "Suelta la imagen"
+  "dropMedia": {
+    "titleImage": "Suelta la imagen",
+    "titleVideo": "Suelta tu video aquí"
   },
   "audioTrimModal": {
     "title": "Recortar audio",
