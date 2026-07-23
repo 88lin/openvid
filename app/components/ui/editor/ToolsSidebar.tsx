@@ -367,15 +367,6 @@ export function ToolsSidebar({
                                     videoSrc: "/videos/preview-camera.mp4"
                                 }}
                             />
-
-                            {/* <SidebarTool
-                                icon="solar:cursor-bold-duotone"
-                                label={t("tools.cursor")}
-                                isActive={activeTool === "cursor"}
-                                onClick={() => onToolChange("cursor")}
-                                badge={!isCursorEnabled ? t("tools.soon") : undefined}
-                                disabled={!isCursorEnabled}
-                            /> */}
                         </>
                     )}
                     <div className="shrink-0 h-12" aria-hidden="true" />

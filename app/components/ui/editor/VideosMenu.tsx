@@ -49,20 +49,24 @@ export function VideosMenu({
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const loadVideos = useCallback(async () => {
-    try {
-      const videoList = await getLibraryVideoInfoList();
-      setVideos(videoList);
-    } catch (error) {
-      console.error("Error loading videos:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
-    loadVideos();
-  }, [loadVideos, refreshTrigger]);
+    let ignore = false;
+
+    getLibraryVideoInfoList()
+      .then((videoList) => {
+        if (!ignore) setVideos(videoList);
+      })
+      .catch((error) => {
+        console.error("Error loading videos:", error);
+      })
+      .finally(() => {
+        if (!ignore) setIsLoading(false);
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [refreshTrigger]);
 
   const handleDelete = async (id: string) => {
     if (deletingId) return;
@@ -263,8 +267,8 @@ export function VideosMenu({
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, x: -20, scale: 0.95 }}
                   className={`group relative rounded-lg border overflow-hidden transition-all duration-200 aspect-[16/10] w-full bg-[#000] ${videosInTrackIds.includes(video.id)
-                      ? "border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.15)]"
-                      : "border-neutral-800 hover:border-neutral-700"
+                    ? "border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.15)]"
+                    : "border-neutral-800 hover:border-neutral-700"
                     }`}
                 >
                   <div
@@ -296,8 +300,8 @@ export function VideosMenu({
 
                   <div
                     className={`absolute inset-0 flex items-center justify-center transition-opacity z-10 pointer-events-none ${videosInTrackIds.includes(video.id) || addingId === video.id
-                        ? "opacity-100"
-                        : "opacity-0 group-hover:opacity-100"
+                      ? "opacity-100"
+                      : "opacity-0 group-hover:opacity-100"
                       }`}
                   >
                     {addingId === video.id ? (
@@ -306,7 +310,7 @@ export function VideosMenu({
                       </div>
                     ) : videosInTrackIds.includes(video.id) ? (
                       <div className="p-2.5 rounded-full bg-blue-500/10 backdrop-blur-sm border border-blue-500/50">
-                        <Icon icon="solar:check-circle-bold" width="28" className="text-blue-500" />
+                        <Icon icon="solar:check-circle-bold" width="28" className="text-white" />
                       </div>
                     ) : (
                       <div className="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-[1px]">
@@ -338,10 +342,10 @@ export function VideosMenu({
                           onClick={() => handleToggleAudio(video.id, video.hasAudio)}
                           disabled={video.originalHasAudio === false}
                           className={`p-1.5 rounded-md backdrop-blur-sm border transition-colors ${video.originalHasAudio === false
-                              ? "text-neutral-500 border-transparent cursor-not-allowed"
-                              : video.hasAudio === false
-                                ? "text-red-400 bg-red-500/20 border-red-500/50"
-                                : "text-neutral-300 bg-neutral-900/50 hover:text-white hover:bg-neutral-800 border-neutral-700/50"
+                            ? "text-neutral-500 border-transparent cursor-not-allowed"
+                            : video.hasAudio === false
+                              ? "text-red-400 bg-red-500/20 border-red-500/50"
+                              : "text-neutral-300 bg-neutral-900/50 hover:text-white hover:bg-neutral-800 border-neutral-700/50"
                             }`}
                         >
                           <Icon icon={video.hasAudio === false ? "solar:volume-cross-outline" : "solar:volume-loud-outline"} width="15" />

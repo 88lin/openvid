@@ -1,3 +1,5 @@
+import { normalizeVideoFile } from "./video-conversion";
+
 const DB_NAME = "openvid-uploaded-videos";
 const DB_VERSION = 1;
 const STORE_NAME = "videos";
@@ -46,7 +48,7 @@ async function openDB(): Promise<IDBDatabase> {
         request.onerror = () => reject(request.error);
         request.onsuccess = () => {
             dbInstance = request.result;
-            cleanupOldUploadCache(dbInstance).catch(() => {});
+            cleanupOldUploadCache(dbInstance).catch(() => { });
             resolve(request.result);
         };
 
@@ -67,7 +69,7 @@ function calculateAspectRatio(width: number, height: number): string {
     return `${width / divisor}/${height / divisor}`;
 }
 
-async function getVideoMetadata(file: File): Promise<{
+async function getVideoMetadata(source: Blob): Promise<{
     duration: number;
     width: number;
     height: number;
@@ -76,7 +78,14 @@ async function getVideoMetadata(file: File): Promise<{
     return new Promise((resolve, reject) => {
         const video = document.createElement("video");
         video.preload = "metadata";
-        
+        const url = URL.createObjectURL(source);
+
+        const cleanup = () => {
+            video.removeAttribute("src");
+            video.load();
+            URL.revokeObjectURL(url);
+        };
+
         video.onloadedmetadata = () => {
             const metadata = {
                 duration: video.duration,
@@ -84,31 +93,34 @@ async function getVideoMetadata(file: File): Promise<{
                 height: video.videoHeight,
                 aspectRatio: calculateAspectRatio(video.videoWidth, video.videoHeight),
             };
-            
-            URL.revokeObjectURL(video.src);
+            cleanup();
             resolve(metadata);
         };
-        
         video.onerror = () => {
-            URL.revokeObjectURL(video.src);
+            cleanup();
             reject(new Error("Failed to load video metadata"));
         };
-        
-        video.src = URL.createObjectURL(file);
+        video.src = url;
     });
 }
 
 export async function saveUploadedVideo(file: File): Promise<CachedUploadedVideo> {
     try {
         const db = await openDB();
-        
-        const metadata = await getVideoMetadata(file);
-        
+
+        const { blob: normalizedBlob, wasConverted } = await normalizeVideoFile(file);
+
+        const metadata = await getVideoMetadata(normalizedBlob);
+
+        const fileName = wasConverted
+            ? `${file.name.replace(/\.[^/.]+$/, "")}.mp4`
+            : file.name;
+
         const data: CachedUploadedVideo = {
             key: SINGLE_VIDEO_KEY,
-            blob: file,
-            fileName: file.name,
-            fileSize: file.size,
+            blob: normalizedBlob,
+            fileName,
+            fileSize: normalizedBlob.size,
             duration: metadata.duration,
             width: metadata.width,
             height: metadata.height,
@@ -119,14 +131,13 @@ export async function saveUploadedVideo(file: File): Promise<CachedUploadedVideo
         return new Promise((resolve, reject) => {
             const transaction = db.transaction(STORE_NAME, "readwrite");
             const store = transaction.objectStore(STORE_NAME);
-            
             const request = store.put(data);
-
-            request.onerror = () => reject(request.error);
+            request.onerror = () => {
+                reject(request.error);
+            };
             request.onsuccess = () => resolve(data);
         });
     } catch (error) {
-        console.error("Failed to save uploaded video:", error);
         throw error;
     }
 }
@@ -183,7 +194,7 @@ export async function getUploadedVideoInfo(): Promise<{
 } | null> {
     const video = await getUploadedVideo();
     if (!video) return null;
-    
+
     return {
         fileName: video.fileName,
         fileSize: video.fileSize,

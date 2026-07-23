@@ -89,6 +89,9 @@ export default function Editor() {
         clearHistory,
     } = useUndoRedo<EditorState>(createInitialEditorState());
 
+    const [undoRedoVersion, setUndoRedoVersion] = useState(-1);
+    const [wallpaperShowAll, setWallpaperShowAll] = useState(false);
+
     const handleUndo = useCallback(() => {
         undo();
         setUndoRedoVersion(v => v + 1);
@@ -98,9 +101,6 @@ export default function Editor() {
         redo();
         setUndoRedoVersion(v => v + 1);
     }, [redo]);
-
-    const [undoRedoVersion, setUndoRedoVersion] = useState(-1);
-    const [wallpaperShowAll, setWallpaperShowAll] = useState(false);
 
     // Image state for photo mode
     const [imageUrl, setImageUrl] = useState<string | null>(null);
@@ -188,6 +188,46 @@ export default function Editor() {
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [isCropperOpen, setIsCropperOpen] = useState(false);
     const [cropArea, setCropArea] = useState<CropArea | undefined>(undefined);
+
+    const [selectedVideoClipId, setSelectedVideoClipId] = useState<string | null>(null);
+
+    // Multi-video playback: store video blobs and URLs indexed by libraryVideoId
+    const videoBlobsRef = useRef<Map<string, Blob>>(new Map());
+    const videoUrlsRef = useRef<Map<string, string>>(new Map());
+    const [videoUrlsMap, setVideoUrlsMap] = useState<Map<string, string>>(new Map());
+    const setClipUrl = useCallback((id: string, url: string) => {
+        videoUrlsRef.current.set(id, url);
+        setVideoUrlsMap(prev => {
+            const next = new Map(prev);
+            next.set(id, url);
+            return next;
+        });
+    }, []);
+    const deleteClipUrl = useCallback((id: string) => {
+        const url = videoUrlsRef.current.get(id);
+        if (url) URL.revokeObjectURL(url);
+        videoUrlsRef.current.delete(id);
+        setVideoUrlsMap(prev => {
+            if (!prev.has(id)) return prev;
+            const next = new Map(prev);
+            next.delete(id);
+            return next;
+        });
+    }, []);
+    const clearClipUrls = useCallback(() => {
+        for (const url of videoUrlsRef.current.values()) {
+            URL.revokeObjectURL(url);
+        }
+        videoUrlsRef.current.clear();
+        setVideoUrlsMap(new Map());
+    }, []);
+    const activeClipIdRef = useRef<string | null>(null);
+    const activeClipDataRef = useRef<VideoTrackClip | null>(null);
+    const clipAudioStateRef = useRef<Map<string, boolean>>(new Map());
+    const muteOriginalAudioRef = useRef<boolean>(false);
+
+    const lastTimeUpdateRef = useRef(0);
+    const REACT_TIME_UPDATE_INTERVAL_MS = 33;
 
     // Computed: which dimensions to use for the canvas
     const customAspectRatio = useMemo(() => {
@@ -344,44 +384,45 @@ export default function Editor() {
         if (!isPhotoMode || !currentProject) return;
         if (lastRestoredProjectIdRef.current === currentProject.id) return;
 
-        isRestoringProjectRef.current = true;
-        lastRestoredProjectIdRef.current = currentProject.id;
-
         const imageDataUrl = currentProject.imageDataUrl;
         if (!imageDataUrl) {
             console.error("Project missing imageDataUrl");
-            isRestoringProjectRef.current = false;
             return;
         }
 
-        setImageUrl(imageDataUrl);
-        setBackgroundTab(currentProject.backgroundTab);
-        setSelectedWallpaper(currentProject.selectedWallpaper);
-        setBackgroundBlur(currentProject.backgroundBlur);
-        setSelectedImageUrl(currentProject.selectedImageUrl);
-        setBackgroundColorConfig(currentProject.backgroundColorConfig);
-        setPadding(currentProject.padding);
-        setRoundedCorners(currentProject.roundedCorners);
-        setShadows(currentProject.shadows);
-        setAspectRatio(currentProject.aspectRatio);
-        setCustomDimensions(currentProject.customDimensions);
-        setCropArea(currentProject.cropArea);
-        setMockupId(currentProject.mockupId);
-        setMockupConfig(currentProject.mockupConfig);
-        setCanvasElements(currentProject.canvasElements);
-        setVideoTransform(currentProject.imageTransform);
-        setImageTransform(currentProject.imagePreview3D);
-        setApply3DToBackground(currentProject.apply3DToBackground);
-        setImageMaskConfig(currentProject.imageMaskConfig);
-        setImageZoomScale(currentProject.imageZoomScale ?? 1);
-        setImageDimensions({
-            width: currentProject.imageWidth,
-            height: currentProject.imageHeight,
-        });
+        isRestoringProjectRef.current = true;
+        lastRestoredProjectIdRef.current = currentProject.id;
 
-        setTimeout(() => {
-            isRestoringProjectRef.current = false;
-        }, 500);
+        queueMicrotask(() => {
+            setImageUrl(imageDataUrl);
+            setBackgroundTab(currentProject.backgroundTab);
+            setSelectedWallpaper(currentProject.selectedWallpaper);
+            setBackgroundBlur(currentProject.backgroundBlur);
+            setSelectedImageUrl(currentProject.selectedImageUrl);
+            setBackgroundColorConfig(currentProject.backgroundColorConfig);
+            setPadding(currentProject.padding);
+            setRoundedCorners(currentProject.roundedCorners);
+            setShadows(currentProject.shadows);
+            setAspectRatio(currentProject.aspectRatio);
+            setCustomDimensions(currentProject.customDimensions);
+            setCropArea(currentProject.cropArea);
+            setMockupId(currentProject.mockupId);
+            setMockupConfig(currentProject.mockupConfig);
+            setCanvasElements(currentProject.canvasElements);
+            setVideoTransform(currentProject.imageTransform);
+            setImageTransform(currentProject.imagePreview3D);
+            setApply3DToBackground(currentProject.apply3DToBackground);
+            setImageMaskConfig(currentProject.imageMaskConfig);
+            setImageZoomScale(currentProject.imageZoomScale ?? 1);
+            setImageDimensions({
+                width: currentProject.imageWidth,
+                height: currentProject.imageHeight,
+            });
+
+            setTimeout(() => {
+                isRestoringProjectRef.current = false;
+            }, 500);
+        });
     }, [currentProject, isPhotoMode]);
 
     // Image project handlers
@@ -741,18 +782,6 @@ export default function Editor() {
     useEffect(() => {
         videoClipsRef.current = videoClips;
     }, [videoClips]);
-    const [selectedVideoClipId, setSelectedVideoClipId] = useState<string | null>(null);
-
-    // Multi-video playback: store video blobs and URLs indexed by libraryVideoId
-    const videoBlobsRef = useRef<Map<string, Blob>>(new Map());
-    const videoUrlsRef = useRef<Map<string, string>>(new Map());
-    const activeClipIdRef = useRef<string | null>(null);
-    const activeClipDataRef = useRef<VideoTrackClip | null>(null);
-    const clipAudioStateRef = useRef<Map<string, boolean>>(new Map());
-    const muteOriginalAudioRef = useRef<boolean>(false);
-
-    const lastTimeUpdateRef = useRef(0);
-    const REACT_TIME_UPDATE_INTERVAL_MS = 33;
 
     const setCurrentTimeThrottled = useCallback((time: number) => {
         const now = performance.now();
@@ -1186,31 +1215,18 @@ export default function Editor() {
         }
     }, []);
 
-    const [thumbnailClipId, setThumbnailClipId] = useState<string | null>(null);
-
     const thumbnailsCacheRef = useRef<Map<string, VideoThumbnail[]>>(new Map());
-
     const currentDisplayTime = isDraggingPlayhead ? scrubTime : currentTime;
-    useEffect(() => {
-        if (videoClips.length <= 1) {
-            setThumbnailClipId(null);
-            return;
-        }
+    const thumbnailClipId = useMemo(() => {
+        if (videoClips.length <= 1) return null;
         const clipAtTime = getClipAtTime(videoClips, currentDisplayTime);
-        if (clipAtTime) {
-            setThumbnailClipId(prev => {
-                if (prev !== clipAtTime.libraryVideoId) {
-                    return clipAtTime.libraryVideoId;
-                }
-                return prev;
-            });
-        }
-    }, [currentDisplayTime, videoClips]);
+        return clipAtTime?.libraryVideoId ?? null;
+    }, [videoClips, currentDisplayTime]);
 
     const thumbnailUrl = useMemo(() => {
         if (videoClips.length <= 1 || !thumbnailClipId) return videoUrl;
-        return videoUrlsRef.current.get(thumbnailClipId) || videoUrl;
-    }, [videoUrl, videoClips.length, thumbnailClipId]);
+        return videoUrlsMap.get(thumbnailClipId) || videoUrl;
+    }, [videoUrl, videoClips.length, thumbnailClipId, videoUrlsMap]);
 
     const thumbnailVideoId = useMemo(() => {
         if (videoClips.length <= 1 || !thumbnailClipId) return videoId;
@@ -1282,6 +1298,7 @@ export default function Editor() {
         return null;
     }, [getRawThumbnailForTime, thumbnailVideoId, findNearestThumbnail]);
 
+
     // Find which clip is active at a given timeline time - using standardized function
     const findActiveClipAtTime = useCallback((timelineTime: number): VideoTrackClip | null => {
         const clips = videoClipsRef.current;
@@ -1301,14 +1318,12 @@ export default function Editor() {
             const currentUrls = videoUrlsRef.current;
             const neededIds = new Set(videoClips.map(c => c.libraryVideoId));
 
-            for (const [id, url] of currentUrls.entries()) {
+            for (const [id] of currentUrls.entries()) {
                 if (!neededIds.has(id)) {
-                    URL.revokeObjectURL(url);
-                    currentUrls.delete(id);
+                    deleteClipUrl(id);
                     currentBlobs.delete(id);
                 }
             }
-
             for (const clip of videoClips) {
                 if (!currentBlobs.has(clip.libraryVideoId)) {
                     try {
@@ -1316,7 +1331,7 @@ export default function Editor() {
                         if (libraryVideo) {
                             currentBlobs.set(clip.libraryVideoId, libraryVideo.blob);
                             const url = URL.createObjectURL(libraryVideo.blob);
-                            currentUrls.set(clip.libraryVideoId, url);
+                            setClipUrl(clip.libraryVideoId, url);
                         }
                     } catch (e) {
                         console.warn("Failed to load video blob for clip:", clip.id, e);
@@ -1328,7 +1343,7 @@ export default function Editor() {
         if (videoClips.length > 0) {
             loadClipBlobs();
         }
-    }, [videoClips]);
+    }, [videoClips, setClipUrl, deleteClipUrl]);
 
     const { exportVideo, cancelExport, exportProgress } = useVideoExport(videoRef, canvasRef);
     const { uploadVideo, loadUploadedVideo, isUploading } = useVideoUpload();
@@ -1478,9 +1493,7 @@ export default function Editor() {
         }
 
         // First video - add to track
-        for (const [, url] of videoUrlsRef.current.entries()) {
-            URL.revokeObjectURL(url);
-        }
+        clearClipUrls(); videoBlobsRef.current.clear();
         videoBlobsRef.current.clear();
         videoUrlsRef.current.clear();
         activeClipIdRef.current = null;
@@ -1535,7 +1548,7 @@ export default function Editor() {
             setIsPlaying(false);
             setTimeout(() => clearHistory(), 200);
         }
-    }, [uploadVideo, clearHistory, showNewVideosBadge]);
+    }, [uploadVideo, clearHistory, showNewVideosBadge, clearClipUrls]);
 
     const handleVideoUploadToLibrary = useCallback(async (file: File) => {
         try {
@@ -1563,7 +1576,7 @@ export default function Editor() {
         if (videoRef.current) {
             videoRef.current.playbackRate = speed;
         }
-    }, []);
+    }, [setGlobalSpeed]);
 
     // Handler to add video from library to the track (concatenate)
     const handleAddVideoToTrack = useCallback(async (videoId: string, blob: Blob, duration: number) => {
@@ -1572,11 +1585,7 @@ export default function Editor() {
 
         clipAudioStateRef.current.set(videoId, libraryVideo.hasAudio !== false);
 
-        if (!videoBlobsRef.current.has(videoId)) {
-            videoBlobsRef.current.set(videoId, blob);
-            const blobUrl = URL.createObjectURL(blob);
-            videoUrlsRef.current.set(videoId, blobUrl);
-        }
+        if (!videoBlobsRef.current.has(videoId)) { videoBlobsRef.current.set(videoId, blob); const blobUrl = URL.createObjectURL(blob); setClipUrl(videoId, blobUrl); }
 
         const { width: clipWidth, height: clipHeight } = await new Promise<{ width: number; height: number }>((resolve) => {
             const probe = document.createElement('video');
@@ -1639,7 +1648,7 @@ export default function Editor() {
 
             return updatedClips;
         });
-    }, [clearHistory, showNewVideosBadge]);
+    }, [clearHistory, showNewVideosBadge, setClipUrl]);
 
     const activeClipForDims = useMemo(
         () => (videoClips.length > 0 ? getClipAtTime(videoClips, currentTime) : null),
@@ -1653,8 +1662,8 @@ export default function Editor() {
 
     const activeClipUrl = useMemo(() => {
         if (!activeClipForDims) return videoUrl;
-        return videoUrlsRef.current.get(activeClipForDims.libraryVideoId) ?? videoUrl;
-    }, [activeClipForDims, videoUrl]);
+        return videoUrlsMap.get(activeClipForDims.libraryVideoId) ?? videoUrl;
+    }, [activeClipForDims, videoUrl, videoUrlsMap]);
 
     // Handlers for video clip management
     const handleSelectVideoClip = useCallback((clipId: string | null) => {
@@ -1751,7 +1760,10 @@ export default function Editor() {
         setActiveTool("video");
     }, [currentTime]);
 
-    const activeClipForSplit = getClipAtTime(videoClipsRef.current, currentTime);
+    const activeClipForSplit = useMemo(
+        () => getClipAtTime(videoClips, currentTime),
+        [videoClips, currentTime]
+    );
     const canSplitClip = !!activeClipForSplit && splitClipAtTime(activeClipForSplit, currentTime) !== null;
 
     // Handler to remove video from track when deleted from library (cascade delete)
@@ -1797,15 +1809,9 @@ export default function Editor() {
             return newClips;
         });
         // Clean up blob/URL refs
-        if (videoBlobsRef.current.has(libraryVideoId)) {
-            videoBlobsRef.current.delete(libraryVideoId);
-        }
-        if (videoUrlsRef.current.has(libraryVideoId)) {
-            const url = videoUrlsRef.current.get(libraryVideoId);
-            if (url) URL.revokeObjectURL(url);
-            videoUrlsRef.current.delete(libraryVideoId);
-        }
-    }, []);
+        videoBlobsRef.current.delete(libraryVideoId);
+        deleteClipUrl(libraryVideoId);
+    }, [deleteClipUrl]);
 
     // Handler for per-clip audio toggle from VideosMenu
     const handleVideoAudioToggle = useCallback((videoId: string, hasAudio: boolean) => {
@@ -1957,7 +1963,7 @@ export default function Editor() {
                                 }
 
                                 videoBlobsRef.current.set(libraryVideo.id, videoBlob);
-                                videoUrlsRef.current.set(libraryVideo.id, videoToLoad.url);
+                                setClipUrl(libraryVideo.id, videoToLoad.url);
                                 const originalHasAudio = libraryVideo.originalHasAudio !== false;
                                 clipAudioStateRef.current.set(libraryVideo.id, libraryVideo.hasAudio !== false);
                                 setVideoHasAudioTrack(originalHasAudio);
@@ -2026,7 +2032,7 @@ export default function Editor() {
 
         document.addEventListener("visibilitychange", handleVisibilityChange);
         return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
-    }, [loadUploadedVideo, clearHistory, isPhotoMode]);
+    }, [loadUploadedVideo, clearHistory, isPhotoMode, setClipUrl]);
 
     useEffect(() => {
         bgImagesGetAll()
@@ -2846,6 +2852,22 @@ export default function Editor() {
         return () => window.removeEventListener("resize", checkMobile);
     }, []);
 
+    const [currentPreviewThumbnail, setCurrentPreviewThumbnail] = useState<string | null>(null);
+    useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setCurrentPreviewThumbnail(getThumbnailForTime(currentDisplayTime)?.dataUrl ?? null);
+    }, [currentDisplayTime, getThumbnailForTime]);
+
+    const [zoomFragmentThumbnail, setZoomFragmentThumbnail] = useState<string | null>(null);
+    useEffect(() => {
+        if (!selectedZoomFragment) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setZoomFragmentThumbnail(null);
+            return;
+        }
+        setZoomFragmentThumbnail(getThumbnailForTime(selectedZoomFragment.startTime)?.dataUrl ?? null);
+    }, [selectedZoomFragment, getThumbnailForTime]);
+
     const handleAspectRatioChange = useCallback((ratio: AspectRatio) => {
         setAspectRatio(ratio);
     }, []);
@@ -2909,7 +2931,10 @@ export default function Editor() {
     ]);
 
     // Only show camera if the active clip has camera support
-    const activeClip = findActiveClipAtTime(currentTime);
+    const activeClip = useMemo(
+        () => getClipAtTime(videoClips, currentTime),
+        [videoClips, currentTime]
+    );
     const shouldShowCamera = activeClip?.hasCamera === true;
     const effectiveCameraUrl = shouldShowCamera ? cameraUrl : null;
 
@@ -2981,7 +3006,7 @@ export default function Editor() {
                                         onUpdateZoomFragment={handleUpdateZoomFragment}
                                         onDeleteZoomFragment={handleDeleteZoomFragment}
                                         videoUrl={videoUrl}
-                                        videoThumbnail={selectedZoomFragment ? getThumbnailForTime(selectedZoomFragment.startTime)?.dataUrl ?? null : null}
+                                        videoThumbnail={zoomFragmentThumbnail}
                                         currentTime={currentTime}
                                         getThumbnailForTime={getThumbnailForTime}
                                         videoDimensions={videoDimensions}
@@ -3150,7 +3175,7 @@ export default function Editor() {
                                 onZoomChange={handleZoomChange}
                                 videoMaskConfig={videoMaskConfig}
                                 onVideoMaskConfigChange={setVideoMaskConfig}
-                                videoPreviewImageUrl={getThumbnailForTime(currentDisplayTime)?.dataUrl ?? null}
+                                videoPreviewImageUrl={currentPreviewThumbnail}
                                 onSplitClip={handleSplitVideoClip}
                                 canSplitClip={canSplitClip}
                             />
@@ -3256,7 +3281,7 @@ export default function Editor() {
                 onUpdateZoomFragment={handleUpdateZoomFragment}
                 onDeleteZoomFragment={handleDeleteZoomFragment}
                 videoUrl={videoUrl}
-                videoThumbnail={selectedZoomFragment ? getThumbnailForTime(selectedZoomFragment.startTime)?.dataUrl ?? null : null}
+                videoThumbnail={zoomFragmentThumbnail}
                 currentTime={currentTime}
                 getThumbnailForTime={getThumbnailForTime}
                 videoDimensions={videoDimensions}
