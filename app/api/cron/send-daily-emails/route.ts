@@ -5,7 +5,14 @@ import DailyTipEmail from "@/components/emails/DailyTipEmail";
 
 const BATCH_SIZE = Number(process.env.EMAIL_BATCH_SIZE ?? 90);
 const FROM_EMAIL =
-  process.env.RESEND_FROM_EMAIL ?? "Openvid <onboarding@resend.dev>";
+  process.env.RESEND_FROM_EMAIL ?? "Openvid <hi@openvid.dev>";
+const REPLY_TO_EMAIL = process.env.RESEND_REPLY_TO ?? "oliverachavezcristian@gmail.com";
+
+type EligibleUser = {
+  id: string;
+  email: string;
+  first_name: string | null;
+};
 
 export async function POST(request: Request) {
   const authHeader = request.headers.get("authorization");
@@ -22,7 +29,8 @@ export async function POST(request: Request) {
     .eq("email_opt_out", false)
     .or(`last_email_sent_at.is.null,last_email_sent_at.lt.${cutoff}`)
     .order("last_email_sent_at", { ascending: true, nullsFirst: true })
-    .limit(BATCH_SIZE);
+    .limit(BATCH_SIZE)
+    .overrideTypes<EligibleUser[], { merge: false }>();
 
   if (queryError) {
     console.error("Error fetching users:", queryError);
@@ -33,9 +41,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "No eligible users found today", sent: 0 });
   }
 
-  const emails = users.map((user) => ({
+  const emails = users.map((user: EligibleUser) => ({
     from: FROM_EMAIL,
-    to: [user.email as string],
+    to: [user.email],
+    reply_to: REPLY_TO_EMAIL,
     subject: "Your daily OpenVid reminder",
     react: DailyTipEmail({ firstName: user.first_name }),
   }));
@@ -47,7 +56,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: sendError.message }, { status: 500 });
   }
 
-  const sentIds = users.map((u) => u.id);
+  const sentIds = users.map((u: EligibleUser) => u.id);
   const { error: updateError } = await supabase
     .from("user_profiles")
     .update({ last_email_sent_at: new Date().toISOString() })
