@@ -788,9 +788,10 @@ export default function Editor() {
         const now = performance.now();
         if (now - lastTimeUpdateRef.current >= REACT_TIME_UPDATE_INTERVAL_MS) {
             lastTimeUpdateRef.current = now;
-            setCurrentTime(time);
+            setCurrentTime(prev => (prev === time ? prev : time));
         }
     }, []);
+
     useEffect(() => {
         muteOriginalAudioRef.current = muteOriginalAudio;
     }, [muteOriginalAudio]);
@@ -2189,13 +2190,19 @@ export default function Editor() {
     }, [isPlaying, currentTime, trimRange.start, trimRange.end, syncAudioPlayback, findActiveClipAtTime, timelineToClipTime]);
 
     const updateTimeSmoothRef = useRef<() => void>(() => { });
+    const scheduleUpdateFrame = useCallback(() => {
+        if (animationFrameRef.current) {
+            cancelAnimationFrame(animationFrameRef.current);
+        }
+        animationFrameRef.current = requestAnimationFrame(updateTimeSmoothRef.current);
+    }, []);
 
     useEffect(() => {
         updateTimeSmoothRef.current = () => {
             if (justEndedRef.current) return;
             if (isSwitchingClipRef.current) {
                 if (isPlaying && !isDraggingPlayhead) {
-                    animationFrameRef.current = requestAnimationFrame(updateTimeSmoothRef.current);
+                    scheduleUpdateFrame();
                 }
                 return;
             }
@@ -2224,7 +2231,7 @@ export default function Editor() {
 
                     if (!activeClip) {
                         if (isPlaying && !isDraggingPlayhead) {
-                            animationFrameRef.current = requestAnimationFrame(updateTimeSmoothRef.current);
+                            scheduleUpdateFrame();
                         }
                         return;
                     }
@@ -2237,7 +2244,7 @@ export default function Editor() {
                     if (clipSwitchTimeRef.current !== null) {
                         setCurrentTime(clipSwitchTimeRef.current);
                         if (isPlaying && !isDraggingPlayhead) {
-                            animationFrameRef.current = requestAnimationFrame(updateTimeSmoothRef.current);
+                            scheduleUpdateFrame();
                         }
                         return;
                     }
@@ -2304,9 +2311,8 @@ export default function Editor() {
                                         currentVideo?.removeEventListener('canplay', onCanPlay);
                                     };
                                     currentVideo.addEventListener('canplay', onCanPlay);
-
                                     setCurrentTime(nextClipSnapshot.startTime);
-                                    animationFrameRef.current = requestAnimationFrame(updateTimeSmoothRef.current);
+                                    scheduleUpdateFrame();
                                     return;
                                 }
                             } else {
@@ -2351,7 +2357,7 @@ export default function Editor() {
                 }
             }
             if (isPlaying && !isDraggingPlayhead) {
-                animationFrameRef.current = requestAnimationFrame(updateTimeSmoothRef.current);
+                scheduleUpdateFrame();
             }
         };
     }, [isPlaying, isDraggingPlayhead, trimRange.end, syncAudioPlayback]);
@@ -2359,7 +2365,7 @@ export default function Editor() {
     // Start/stop animation frame loop based on playing state
     useEffect(() => {
         if (isPlaying && !isDraggingPlayhead) {
-            animationFrameRef.current = requestAnimationFrame(updateTimeSmoothRef.current);
+            scheduleUpdateFrame();
         } else {
             if (animationFrameRef.current) {
                 cancelAnimationFrame(animationFrameRef.current);
@@ -2850,6 +2856,7 @@ export default function Editor() {
             if ((e.key === "Delete" || e.key === "Backspace") && selectedZoomFragmentId) {
                 e.preventDefault();
                 handleDeleteZoomFragment(selectedZoomFragmentId);
+                return;
             }
 
             if (e.key === "Escape") {
@@ -2950,8 +2957,6 @@ export default function Editor() {
             justEndedRef.current = false;
         }, 300);
     }, [trimRange.end, videoDuration, syncAudioPlayback]);
-
-
 
     const layersPanelToolbar = useMemo(() => (
         <EditorTopBar
