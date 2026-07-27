@@ -172,13 +172,3 @@ Open [http://localhost:3000](http://localhost:3000)
 <a href="https://github.com/CristianOlivera1/openvid/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=CristianOlivera1/openvid" />
 </a>
-
-## Star History
-
-<a href="https://www.star-history.com/?repos=CristianOlivera1%2Fopenvid&type=date&legend=top-left">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=CristianOlivera1/openvid&type=date&theme=dark&legend=top-left&sealed_token=TpeJFODI2SIfhIkfwBBtWYMUpiFjmZXkZkoNjFMrnSIdSPVKIFRdF6todRCnssa9Wpn1Gqh22ggHfVxMY0DbHPfLsTSBzGMcVy9vr2MG8YefmwviRr9KqQ" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=CristianOlivera1/openvid&type=date&legend=top-left&sealed_token=TpeJFODI2SIfhIkfwBBtWYMUpiFjmZXkZkoNjFMrnSIdSPVKIFRdF6todRCnssa9Wpn1Gqh22ggHfVxMY0DbHPfLsTSBzGMcVy9vr2MG8YefmwviRr9KqQ" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=CristianOlivera1/openvid&type=date&legend=top-left&sealed_token=TpeJFODI2SIfhIkfwBBtWYMUpiFjmZXkZkoNjFMrnSIdSPVKIFRdF6todRCnssa9Wpn1Gqh22ggHfVxMY0DbHPfLsTSBzGMcVy9vr2MG8YefmwviRr9KqQ" />
- </picture>
-</a>
