@@ -2,9 +2,15 @@ interface ToggleProps {
     checked: boolean;
     onChange: (checked: boolean) => void;
     disabled?: boolean;
+    activeColor?: string;
 }
 
-export function Toggle({ checked, onChange, disabled = false }: ToggleProps) {
+export function Toggle({ 
+    checked, 
+    onChange, 
+    disabled = false, 
+    activeColor = "bg-[#00A3FF]"
+}: ToggleProps) {
     return (
         <button
             type="button"
@@ -21,7 +27,7 @@ export function Toggle({ checked, onChange, disabled = false }: ToggleProps) {
                 disabled
                     ? "opacity-50 cursor-not-allowed bg-white/5"
                     : checked
-                        ? "bg-[#00A3FF]"
+                        ? activeColor
                         : "bg-white/10"
             }`}
         >
