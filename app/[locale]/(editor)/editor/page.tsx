@@ -3187,6 +3187,7 @@ export default function Editor() {
                         onImageUpload={handleImageUploadToCanvas}
                         onScreenCapture={handleScreenCapture}
                         isCapturing={isCapturing}
+                        hasCamera={!!effectiveCameraUrl}
                     />
                 </div>
 

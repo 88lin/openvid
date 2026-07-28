@@ -7,6 +7,7 @@ import type { CameraConfig, RecordingSetupConfig } from "@/types/camera.types";
 import { DEFAULT_RECORDING_SETUP, requestCameraStream, requestMicrophoneStream } from "@/types/camera.types";
 import { clearAllThumbnailCache } from "@/lib/thumbnail-cache";
 import { convertToMp4 } from "@/lib/video-conversion";
+import { clearVideoTrack } from "@/lib/video-upload-cache";
 
 export type { RecordingState, RecordingResult, VideoData, RecordingContextType };
 
@@ -387,10 +388,7 @@ export function useScreenRecording() {
               cameraBlob,
               cameraConfig: cameraConfigRef.current,
             });
-            await saveVideoToIndexedDB(finalMp4Blob, duration, {
-              cameraBlob,
-              cameraConfig: cameraConfigRef.current,
-            });
+            await clearVideoTrack();
             if (pathname === "/editor") {
               window.location.reload();
             } else {
