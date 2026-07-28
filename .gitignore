@@ -46,5 +46,4 @@ supabase-setup.sql
 BACKEND_SPEC.md
 BACKEND_TESTING.md
 /openvid-back
-/lib/video-canvas
 /openvid-autozoom
