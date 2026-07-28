@@ -4,6 +4,8 @@ import type { MockupConfig } from "@/types/mockup.types";
 import type { CanvasElement } from "@/types/canvas-elements.types";
 import type { CameraConfig } from "@/types/camera.types";
 import type { Preview3DConfig, ImageMaskConfig } from "@/types/photo.types";
+import { MockupMotionFragment } from "@/lib/mockup-motion";
+import { VideoTrackClip } from "./video-track.types";
 
 export interface VideoTransform {
     rotation: number;
@@ -51,6 +53,8 @@ export interface EditorState {
     imagePhoneShadow: number;
     imagePhoneShadowColor: string;
     imagePhoneRefWidth: number;
+    mockupMotionFragments: MockupMotionFragment[];
+    videoClips: VideoTrackClip[];
 }
 
 export function createInitialEditorState(overrides?: Partial<EditorState>): EditorState {
@@ -118,6 +122,8 @@ export function createInitialEditorState(overrides?: Partial<EditorState>): Edit
         imagePhoneShadow: 0.6,
         imagePhoneShadowColor: '#000000',
         imagePhoneRefWidth: 0,
+        mockupMotionFragments: [],
+        videoClips: [],
         ...overrides,
     };
 }

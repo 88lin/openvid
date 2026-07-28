@@ -1,6 +1,7 @@
 import { ZoomFragment } from "./zoom.types";
 import type { AudioTrack, UploadedAudio } from "./audio.types";
 import type { VideoTrackClip } from "./video-track.types";
+import { MockupMotionFragment } from "@/lib/mockup-motion";
 
 export interface TrimRange {
     start: number;
@@ -31,6 +32,7 @@ export interface TimelineProps {
     onAddZoomFragment?: (startTime: number, endTime: number) => void;
     onUpdateZoomFragment?: (fragmentId: string, updates: Partial<ZoomFragment>) => void;
     onActivateZoomTool?: () => void;
+    onActivateMotionTool?: () => void;
     // Audio props
     audioTracks?: AudioTrack[];
     uploadedAudios?: UploadedAudio[];
@@ -38,6 +40,11 @@ export interface TimelineProps {
     onSelectAudioTrack?: (trackId: string | null) => void;
     onUpdateAudioTrack?: (trackId: string, updates: Partial<AudioTrack>) => void;
     globalSpeed?: number;
-     isPlaying?: boolean; 
+    isPlaying?: boolean;
     onZoomChange?: (zoom: number) => void;
+    mockupMotionFragments?: MockupMotionFragment[];
+    selectedMockupMotionFragmentId?: string | null;
+    onSelectMockupMotionFragment?: (id: string | null) => void;
+    onUpdateMockupMotionFragment?: (id: string, updates: Partial<MockupMotionFragment>) => void;
+    onDeleteMockupMotionFragment?: (id: string) => void;
 }
