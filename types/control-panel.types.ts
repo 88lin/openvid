@@ -6,6 +6,7 @@ import type { CanvasElement } from "./canvas-elements.types";
 import type { UploadedAudio, AudioTrack } from "./audio.types";
 import type { CameraConfig } from "./camera.types";
 import type { ImageProjectPreview } from "./image-project.types";
+import { MockupMotionFragment, MockupMotionPresetId } from "@/lib/mockup-motion";
 
 export interface ControlPanelProps {
     activeTool: Tool;
@@ -91,7 +92,13 @@ export interface ControlPanelProps {
     mediaType?: "video" | "image";
     wallpaperShowAll?: boolean;
     onWallpaperShowAllChange?: (value: boolean) => void;
-    globalSpeed?: number; 
+    globalSpeed?: number;
     onGlobalSpeedChange?: (speed: number) => void;
-
+    mockupMotionFragments?: MockupMotionFragment[];
+    selectedMockupMotionFragment?: MockupMotionFragment | null;
+    selectedMockupMotionFragmentId?: string | null;
+    onAddOrReplaceMotionPreset?: (presetId: MockupMotionPresetId) => void;
+    onUpdateMockupMotionFragment?: (id: string, updates: Partial<MockupMotionFragment>) => void;
+    onSelectMockupMotionFragment?: (id: string | null) => void;
+    onDeleteMockupMotionFragment?: (id: string) => void;
 }

@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { loadVideoFromIndexedDB, deleteRecordedVideo } from "@/hooks/useScreenRecording";
 import { useVideoUpload } from "@/hooks/useVideoUpload";
 import { useImageProjects } from "@/hooks/useImageProjects";
-import { getUploadedVideo, deleteUploadedVideo } from "@/lib/video-upload-cache";
+import { getUploadedVideo, deleteUploadedVideo, saveVideoTrack, getVideoTrack } from "@/lib/video-upload-cache";
 import { getUploadedImage, deleteUploadedImage } from "@/lib/image-upload-cache";
 import { useEditorMode } from "@/hooks/useEditorMode";
 import { useActiveTool } from "@/hooks/useActiveTool";
@@ -47,6 +47,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { TooltipAction } from "@/components/ui/tooltip-action";
 import { bgImagesDelete, bgImagesGetAll, bgImagesSave } from "@/lib/bg-images-idb";
+import { DEFAULT_MOCKUP_MOTION_CONFIG, findValidMotionPlacement, MockupMotionFragment, MockupMotionPresetId } from "@/lib/mockup-motion";
 
 const ControlPanel = lazy(() => import("@/app/components/ui/editor/ControlPanel").then(mod => ({ default: mod.ControlPanel })));
 const Timeline = lazy(() => import("@/app/components/ui/editor/Timeline").then(mod => ({ default: mod.Timeline })));
@@ -276,6 +277,8 @@ export default function Editor() {
     // Mockup state
     const [mockupId, setMockupId] = useState<string>("none");
     const [mockupConfig, setMockupConfig] = useState<MockupConfig>(DEFAULT_MOCKUP_CONFIG);
+    const [mockupMotionFragments, setMockupMotionFragments] = useState<MockupMotionFragment[]>([]);
+    const [selectedMockupMotionFragmentId, setSelectedMockupMotionFragmentId] = useState<string | null>(null);
 
     // Canvas elements state
     const [canvasElements, setCanvasElements] = useState<CanvasElement[]>([]);
@@ -378,6 +381,72 @@ export default function Editor() {
         currentProject, isPhotoMode, autoSaveCurrentProject,
     ]);
 
+    const selectedMockupMotionFragment = useMemo(
+        () => mockupMotionFragments.find((f) => f.id === selectedMockupMotionFragmentId) ?? null,
+        [mockupMotionFragments, selectedMockupMotionFragmentId]
+    );
+
+    const handleSelectMockupMotionFragment = useCallback((id: string | null) => {
+        setSelectedMockupMotionFragmentId(id);
+        setSelectedZoomFragmentId(null);
+        setSelectedAudioTrackId(null);
+        setSelectedVideoClipId(null);
+        setSelectedElementId(null);
+    }, []);
+
+    const handleUpdateMockupMotionFragment = useCallback(
+        (id: string, updates: Partial<MockupMotionFragment>) => {
+            setMockupMotionFragments((prev) =>
+                prev.map((f) => (f.id === id ? { ...f, ...updates } : f))
+            );
+        },
+        []
+    );
+
+    const handleDeleteMockupMotionFragment = useCallback((id: string) => {
+        setMockupMotionFragments((prev) => prev.filter((f) => f.id !== id));
+        setSelectedMockupMotionFragmentId((prev) => (prev === id ? null : prev));
+    }, []);
+
+    const mockupMotionFragmentsRef = useRef<MockupMotionFragment[]>([]);
+    useEffect(() => {
+        mockupMotionFragmentsRef.current = mockupMotionFragments;
+    }, [mockupMotionFragments]);
+
+    const handleAddOrReplaceMotionPreset = useCallback(
+        (presetId: MockupMotionPresetId) => {
+            const speed = DEFAULT_MOCKUP_MOTION_CONFIG.speed;
+            const intensity = DEFAULT_MOCKUP_MOTION_CONFIG.intensity;
+
+            const placement = findValidMotionPlacement(
+                presetId,
+                speed,
+                currentTime,
+                mockupMotionFragmentsRef.current,
+                videoDuration
+            );
+
+            if (!placement) {
+                return;
+            }
+
+            const newFragment: MockupMotionFragment = {
+                id: `motion_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
+                presetId,
+                intensity,
+                speed,
+                ...placement,
+            };
+            setMockupMotionFragments((prev) => [...prev, newFragment]);
+            setSelectedMockupMotionFragmentId(newFragment.id);
+            setActiveTool("motion");
+        },
+        [currentTime, videoDuration]
+    );
+
+    const handleActivateMotionTool = useCallback(() => {
+        setActiveTool("motion");
+    }, []);
 
     // Restore current project when project ID changes (not on every currentProject update)
     useEffect(() => {
@@ -611,6 +680,7 @@ export default function Editor() {
         setSelectedZoomFragmentId(null);
         setSelectedVideoClipId(null);
         setSelectedAudioTrackId(null);
+        setSelectedMockupMotionFragmentId(null);
         if (id) {
             setActiveTool("elements");
         }
@@ -774,11 +844,9 @@ export default function Editor() {
 
     // Video track clips state (multi-video support)
     const [videoClips, setVideoClips] = useState<VideoTrackClip[]>([]);
-    // Computed from videoClips - array of library video IDs currently in track
     const videosInTrackIds = useMemo(() =>
         videoClips.map(clip => clip.libraryVideoId),
         [videoClips]);
-    // Ref para acceder al valor actual de videoClips en callbacks (evitar closure stale)
     const videoClipsRef = useRef<VideoTrackClip[]>([]);
     useEffect(() => {
         videoClipsRef.current = videoClips;
@@ -796,6 +864,7 @@ export default function Editor() {
         muteOriginalAudioRef.current = muteOriginalAudio;
     }, [muteOriginalAudio]);
     // Audio trim modal state
+
     const [autoTrimModalOpen, setAutoTrimModalOpen] = useState(false);
     const [pendingAudioUpload, setPendingAudioUpload] = useState<{
         audio: import("@/types/audio.types").UploadedAudio;
@@ -904,7 +973,7 @@ export default function Editor() {
                 apply3DToBackground, imageMaskConfig, videoMaskConfig, imagePhoneActive, imagePhoneX,
                 imagePhoneY, imagePhoneScale, imagePhoneRotX, imagePhoneRotY, imagePhoneRotZ,
                 imagePhonePerspective, imagePhoneDevice, imagePhonePresetId, imagePhoneOpening,
-                imagePhoneShadow, imagePhoneShadowColor, imagePhoneRefWidth
+                imagePhoneShadow, imagePhoneShadowColor, imagePhoneRefWidth, mockupMotionFragments, videoClips,
             });
         }, 300);
 
@@ -918,59 +987,91 @@ export default function Editor() {
         masterVolume, cameraConfig, videoTransform, imageTransform, apply3DToBackground, imageMaskConfig,
         videoMaskConfig, imagePhoneActive, imagePhoneX, imagePhoneY, imagePhoneScale, imagePhoneRotX,
         imagePhoneRotY, imagePhoneRotZ, imagePhonePerspective, imagePhoneDevice, imagePhonePresetId,
-        imagePhoneOpening, imagePhoneShadow, imagePhoneShadowColor, imagePhoneRefWidth, setEditorState
+        imagePhoneOpening, imagePhoneShadow, imagePhoneShadowColor, imagePhoneRefWidth, setEditorState, videoClips
     ]);
 
     const prevUndoRedoVersionRef = useRef(undoRedoVersion);
     useEffect(() => {
         if (prevUndoRedoVersionRef.current === undoRedoVersion) return;
         prevUndoRedoVersionRef.current = undoRedoVersion;
-
         isRestoringProjectRef.current = true;
 
-        setBackgroundTab(editorState.backgroundTab);
-        setSelectedWallpaper(editorState.selectedWallpaper);
-        setBackgroundBlur(editorState.backgroundBlur);
-        setPadding(editorState.padding);
-        setRoundedCorners(editorState.roundedCorners);
-        setShadows(editorState.shadows);
-        setSelectedImageUrl(editorState.selectedImageUrl);
-        setBackgroundColorConfig(editorState.backgroundColorConfig);
-        setAspectRatio(editorState.aspectRatio);
-        setCustomDimensions(editorState.customDimensions);
-        setCropArea(editorState.cropArea);
-        setTrimRange(editorState.trimRange);
-        setZoomFragments(editorState.zoomFragments);
-        setMockupId(editorState.mockupId);
-        setMockupConfig(editorState.mockupConfig);
-        setCanvasElements(editorState.canvasElements);
-        setAudioTracks(editorState.audioTracks);
-        setMuteOriginalAudio(editorState.muteOriginalAudio);
-        setMasterVolume(editorState.masterVolume);
-        setCameraConfig(editorState.cameraConfig);
-        setVideoTransform(editorState.videoTransform);
-        setImageTransform(editorState.imageTransform);
-        setApply3DToBackground(editorState.apply3DToBackground);
-        setImageMaskConfig(editorState.imageMaskConfig);
-        setVideoMaskConfig(editorState.videoMaskConfig);
-        setImagePhoneActive(editorState.imagePhoneActive);
-        setImagePhoneX(editorState.imagePhoneX);
-        setImagePhoneY(editorState.imagePhoneY);
-        setImagePhoneScale(editorState.imagePhoneScale);
-        setImagePhoneRotX(editorState.imagePhoneRotX);
-        setImagePhoneRotY(editorState.imagePhoneRotY);
-        setImagePhoneRotZ(editorState.imagePhoneRotZ);
-        setImagePhonePerspective(editorState.imagePhonePerspective);
-        setImagePhoneDevice(editorState.imagePhoneDevice);
-        setImagePhonePresetId(editorState.imagePhonePresetId);
-        setImagePhoneOpening(editorState.imagePhoneOpening);
-        setImagePhoneShadow(editorState.imagePhoneShadow);
-        setImagePhoneShadowColor(editorState.imagePhoneShadowColor);
-        setImagePhoneRefWidth(editorState.imagePhoneRefWidth ?? 0);
+        queueMicrotask(() => {
+            setBackgroundTab(editorState.backgroundTab);
+            setSelectedWallpaper(editorState.selectedWallpaper);
+            setBackgroundBlur(editorState.backgroundBlur);
+            setPadding(editorState.padding);
+            setRoundedCorners(editorState.roundedCorners);
+            setShadows(editorState.shadows);
+            setSelectedImageUrl(editorState.selectedImageUrl);
+            setBackgroundColorConfig(editorState.backgroundColorConfig);
+            setAspectRatio(editorState.aspectRatio);
+            setCustomDimensions(editorState.customDimensions);
+            setCropArea(editorState.cropArea);
+            setTrimRange(editorState.trimRange);
+            setZoomFragments(editorState.zoomFragments);
+            setMockupId(editorState.mockupId);
+            setMockupConfig(editorState.mockupConfig);
+            setCanvasElements(editorState.canvasElements);
+            setAudioTracks(editorState.audioTracks);
+            setMuteOriginalAudio(editorState.muteOriginalAudio);
+            setMasterVolume(editorState.masterVolume);
+            setCameraConfig(editorState.cameraConfig);
+            setVideoTransform(editorState.videoTransform);
+            setImageTransform(editorState.imageTransform);
+            setApply3DToBackground(editorState.apply3DToBackground);
+            setImageMaskConfig(editorState.imageMaskConfig);
+            setVideoMaskConfig(editorState.videoMaskConfig);
+            setImagePhoneActive(editorState.imagePhoneActive);
+            setImagePhoneX(editorState.imagePhoneX);
+            setImagePhoneY(editorState.imagePhoneY);
+            setImagePhoneScale(editorState.imagePhoneScale);
+            setImagePhoneRotX(editorState.imagePhoneRotX);
+            setImagePhoneRotY(editorState.imagePhoneRotY);
+            setImagePhoneRotZ(editorState.imagePhoneRotZ);
+            setImagePhonePerspective(editorState.imagePhonePerspective);
+            setImagePhoneDevice(editorState.imagePhoneDevice);
+            setImagePhonePresetId(editorState.imagePhonePresetId);
+            setImagePhoneOpening(editorState.imagePhoneOpening);
+            setImagePhoneShadow(editorState.imagePhoneShadow);
+            setImagePhoneShadowColor(editorState.imagePhoneShadowColor);
+            setImagePhoneRefWidth(editorState.imagePhoneRefWidth ?? 0);
+            setMockupMotionFragments(editorState.mockupMotionFragments ?? []);
 
-        setTimeout(() => {
-            isRestoringProjectRef.current = false;
-        }, 500);
+            const restoredClips = editorState.videoClips ?? [];
+            setVideoClips(restoredClips);
+
+            if (restoredClips.length > 0) {
+                const newDuration = calculateTotalDuration(restoredClips);
+                setVideoDuration(newDuration);
+                setTrimRange({ start: 0, end: newDuration });
+
+                const clipAtTime = getClipAtTime(restoredClips, currentTime) ?? restoredClips[0];
+                activeClipIdRef.current = clipAtTime.id;
+                activeClipDataRef.current = clipAtTime;
+
+                const url = videoUrlsRef.current.get(clipAtTime.libraryVideoId);
+                if (url) {
+                    setVideoUrl(url);
+                    setVideoId(clipAtTime.libraryVideoId);
+                    if (videoRef.current) {
+                        videoRef.current.src = url;
+                        videoRef.current.currentTime = clipAtTime.trimStart;
+                    }
+                }
+            } else {
+                setVideoUrl(null);
+                setVideoId(null);
+                setVideoDuration(0);
+                setTrimRange({ start: 0, end: 0 });
+                activeClipIdRef.current = null;
+                activeClipDataRef.current = null;
+            }
+
+            setTimeout(() => {
+                isRestoringProjectRef.current = false;
+            }, 500);
+        });
     }, [undoRedoVersion]);
 
     // Handler para cambiar el mockup
@@ -1212,6 +1313,7 @@ export default function Editor() {
         setSelectedZoomFragmentId(null);
         setSelectedVideoClipId(null);
         setSelectedElementId(null);
+        setSelectedMockupMotionFragmentId(null);
         if (trackId) {
             setActiveTool("audio");
         }
@@ -1350,6 +1452,19 @@ export default function Editor() {
     const { exportVideo, cancelExport, exportProgress } = useVideoExport(videoRef, canvasRef);
     const { uploadVideo, loadUploadedVideo, isUploading } = useVideoUpload();
     const [videoBlob, setVideoBlob] = useState<Blob | null>(null);
+
+    const isPlayingRef = useRef(isPlaying);
+    const isDraggingPlayheadRef = useRef(isDraggingPlayhead);
+    const trimRangeRef = useRef(trimRange);
+    const syncAudioPlaybackRef = useRef(syncAudioPlayback);
+    useEffect(() => { isPlayingRef.current = isPlaying; }, [isPlaying]);
+    useEffect(() => { isDraggingPlayheadRef.current = isDraggingPlayhead; }, [isDraggingPlayhead]);
+    useEffect(() => { trimRangeRef.current = trimRange; }, [trimRange]);
+    useEffect(() => { syncAudioPlaybackRef.current = syncAudioPlayback; }, [syncAudioPlayback]);
+    const currentTimeRef = useRef<number>(0);
+    useEffect(() => {
+        currentTimeRef.current = currentTime;
+    }, [currentTime]);
 
     const handleExport = (quality: ExportQuality) => {
         /* console.log("=== RECIPE JSON PARA BACKEND (PRUEBAS) ===");
@@ -1676,6 +1791,7 @@ export default function Editor() {
         setSelectedZoomFragmentId(null);
         setSelectedAudioTrackId(null);
         setSelectedElementId(null);
+        setSelectedMockupMotionFragmentId(null);
         if (clipId) {
             setActiveTool("video");
         }
@@ -1738,10 +1854,9 @@ export default function Editor() {
 
     const handleSplitVideoClip = useCallback(() => {
         const clips = videoClipsRef.current;
-        const clipAtPlayhead = getClipAtTime(clips, currentTime);
+        const clipAtPlayhead = getClipAtTime(clips, currentTimeRef.current);
         if (!clipAtPlayhead) return;
-
-        const result = splitClipAtTime(clipAtPlayhead, currentTime);
+        const result = splitClipAtTime(clipAtPlayhead, currentTimeRef.current);
         if (!result) return;
 
         const { updatedClip, newClip } = result;
@@ -1762,7 +1877,7 @@ export default function Editor() {
         setSelectedAudioTrackId(null);
         setSelectedElementId(null);
         setActiveTool("video");
-    }, [currentTime]);
+    }, []);
 
     const activeClipForSplit = useMemo(
         () => getClipAtTime(videoClips, currentTime),
@@ -1895,12 +2010,54 @@ export default function Editor() {
         if (isPhotoMode) return;
         const loadVideo = async () => {
             try {
+                const persistedClips = await getVideoTrack();
+                if (persistedClips !== null) {
+                    if (persistedClips.length > 0 && videoClipsRef.current.length === 0) {
+                        const validClips: VideoTrackClip[] = [];
+                        for (const clip of persistedClips) {
+                            const libVideo = await getLibraryVideo(clip.libraryVideoId);
+                            if (!libVideo) continue;
+                            validClips.push(clip);
+                            if (!videoBlobsRef.current.has(clip.libraryVideoId)) {
+                                videoBlobsRef.current.set(clip.libraryVideoId, libVideo.blob);
+                                const url = URL.createObjectURL(libVideo.blob);
+                                setClipUrl(clip.libraryVideoId, url);
+                            }
+                            clipAudioStateRef.current.set(clip.libraryVideoId, libVideo.hasAudio !== false);
+                        }
+
+                        if (validClips.length > 0) {
+                            const sorted = [...validClips].sort((a, b) => a.startTime - b.startTime);
+                            setVideoClips(sorted);
+                            const totalDuration = calculateTotalDuration(sorted);
+                            setVideoDuration(totalDuration);
+                            setTrimRange({ start: 0, end: totalDuration });
+
+                            const firstClip = sorted[0];
+                            activeClipIdRef.current = firstClip.id;
+                            activeClipDataRef.current = firstClip;
+                            const firstUrl = videoUrlsRef.current.get(firstClip.libraryVideoId);
+                            if (firstUrl) {
+                                setVideoUrl(firstUrl);
+                                setVideoId(firstClip.libraryVideoId);
+                                lastLoadedVideoIdRef.current = firstClip.libraryVideoId;
+                                if (videoRef.current) {
+                                    videoRef.current.src = firstUrl;
+                                }
+                            }
+                            setZoomFragments(generateDefaultZoomFragments(totalDuration));
+                            setVideosLibraryRefresh(prev => prev + 1);
+                            setTimeout(() => clearHistory(), 200);
+                        }
+                    }
+                    return;
+                }
+
                 const [uploadedData, recordedData, cachedUpload] = await Promise.all([
                     loadUploadedVideo(),
                     loadVideoFromIndexedDB(),
                     getUploadedVideo(),
                 ]);
-
                 let videoToLoad: typeof uploadedData | typeof recordedData = null;
                 let videoBlob: Blob | null = null;
 
@@ -2119,12 +2276,11 @@ export default function Editor() {
                     setCurrentTime(timelineTime);
                     syncAudioPlayback(timelineTime, false);
                 } else {
-                    syncAudioPlayback(currentTime, false);
+                    syncAudioPlayback(currentTimeRef.current, false);
                 }
             } else {
                 const clips = videoClipsRef.current;
-                let startTime = currentTime;
-
+                let startTime = currentTimeRef.current;
                 if (trimRange.end > 0) {
                     if (startTime < trimRange.start || startTime >= trimRange.end) {
                         startTime = trimRange.start;
@@ -2187,27 +2343,30 @@ export default function Editor() {
             }
             setIsPlaying(!isPlaying);
         }
-    }, [isPlaying, currentTime, trimRange.start, trimRange.end, syncAudioPlayback, findActiveClipAtTime, timelineToClipTime]);
+    }, [isPlaying, trimRange.start, trimRange.end, syncAudioPlayback, findActiveClipAtTime, timelineToClipTime]);
 
     const updateTimeSmoothRef = useRef<() => void>(() => { });
     const scheduleUpdateFrame = useCallback(() => {
-        if (animationFrameRef.current) {
-            cancelAnimationFrame(animationFrameRef.current);
+        if (animationFrameRef.current !== null) {
+            return;
         }
-        animationFrameRef.current = requestAnimationFrame(updateTimeSmoothRef.current);
+        animationFrameRef.current = requestAnimationFrame(() => {
+            animationFrameRef.current = null;
+            updateTimeSmoothRef.current();
+        });
     }, []);
 
     useEffect(() => {
         updateTimeSmoothRef.current = () => {
             if (justEndedRef.current) return;
             if (isSwitchingClipRef.current) {
-                if (isPlaying && !isDraggingPlayhead) {
+                if (isPlayingRef.current && !isDraggingPlayheadRef.current) {
                     scheduleUpdateFrame();
                 }
                 return;
             }
 
-            if (videoRef.current && !isDraggingPlayhead) {
+            if (videoRef.current && !isDraggingPlayheadRef.current) {
                 const clips = videoClipsRef.current;
 
                 if (clips.length > 0) {
@@ -2230,7 +2389,7 @@ export default function Editor() {
                     }
 
                     if (!activeClip) {
-                        if (isPlaying && !isDraggingPlayhead) {
+                        if (isPlayingRef.current && !isDraggingPlayheadRef.current) {
                             scheduleUpdateFrame();
                         }
                         return;
@@ -2243,7 +2402,7 @@ export default function Editor() {
 
                     if (clipSwitchTimeRef.current !== null) {
                         setCurrentTime(clipSwitchTimeRef.current);
-                        if (isPlaying && !isDraggingPlayhead) {
+                        if (isPlayingRef.current && !isDraggingPlayheadRef.current) {
                             scheduleUpdateFrame();
                         }
                         return;
@@ -2317,7 +2476,7 @@ export default function Editor() {
                                 }
                             } else {
                                 videoRef.current.pause();
-                                syncAudioPlayback(clipEndOnTimeline, false);
+                                syncAudioPlaybackRef.current(clipEndOnTimeline, false);
                                 setIsPlaying(false);
                                 justEndedRef.current = true;
                                 setCurrentTime(clipEndOnTimeline);
@@ -2326,41 +2485,41 @@ export default function Editor() {
                             }
                         }
 
-                        if (trimRange.end > 0 && timelineTime >= trimRange.end) {
+                        if (trimRangeRef.current.end > 0 && timelineTime >= trimRangeRef.current.end) {
                             videoRef.current.pause();
-                            syncAudioPlayback(timelineTime, false);
+                            syncAudioPlaybackRef.current(timelineTime, false);
                             setIsPlaying(false);
                             justEndedRef.current = true;
-                            setCurrentTime(trimRange.end);
+                            setCurrentTime(trimRangeRef.current.end);
                             setTimeout(() => { justEndedRef.current = false; }, 300);
                             return;
                         }
 
                         setCurrentTimeThrottled(timelineTime);
-                        syncAudioPlayback(timelineTime, true);
+                        syncAudioPlaybackRef.current(timelineTime, true);
                     }
                 } else {
                     const currentVideoTime = videoRef.current.currentTime;
 
-                    if (trimRange.end > 0 && currentVideoTime >= trimRange.end) {
+                    if (trimRangeRef.current.end > 0 && currentVideoTime >= trimRangeRef.current.end) {
                         videoRef.current.pause();
-                        syncAudioPlayback(currentVideoTime, false);
+                        syncAudioPlaybackRef.current(currentVideoTime, false);
                         setIsPlaying(false);
                         justEndedRef.current = true;
-                        setCurrentTime(trimRange.end);
+                        setCurrentTime(trimRangeRef.current.end);
                         setTimeout(() => { justEndedRef.current = false; }, 300);
                         return;
                     }
 
                     setCurrentTimeThrottled(currentVideoTime);
-                    syncAudioPlayback(currentVideoTime, true);
+                    syncAudioPlaybackRef.current(currentVideoTime, true);
                 }
             }
-            if (isPlaying && !isDraggingPlayhead) {
+            if (isPlayingRef.current && !isDraggingPlayheadRef.current) {
                 scheduleUpdateFrame();
             }
         };
-    }, [isPlaying, isDraggingPlayhead, trimRange.end, syncAudioPlayback]);
+    }, [])
 
     // Start/stop animation frame loop based on playing state
     useEffect(() => {
@@ -2535,6 +2694,8 @@ export default function Editor() {
         }
     }, [trimRange.end, isPlaying, syncAudioPlayback]);
 
+    const pendingSeekCanPlayRef = useRef<{ video: HTMLVideoElement; handler: () => void } | null>(null);
+
     const handleSeek = useCallback((time: number) => {
         scrubTimeRef.current = time;
         setScrubTime(time);
@@ -2559,7 +2720,6 @@ export default function Editor() {
 
                     if (isDifferentSource && targetUrl) {
                         const wasPlaying = isPlaying;
-
                         if (videoRef.current && !videoRef.current.paused) {
                             videoRef.current.pause();
                         }
@@ -2567,15 +2727,16 @@ export default function Editor() {
                             cancelAnimationFrame(animationFrameRef.current);
                             animationFrameRef.current = null;
                         }
-
+                        if (pendingSeekCanPlayRef.current) {
+                            pendingSeekCanPlayRef.current.video.removeEventListener('canplay', pendingSeekCanPlayRef.current.handler);
+                            pendingSeekCanPlayRef.current = null;
+                        }
                         activeClipIdRef.current = clipAtTime.id;
                         activeClipDataRef.current = clipAtTime;
                         isSeekingToClipRef.current = true;
                         isSwitchingClipRef.current = true;
-
                         const currentVideo = videoRef.current;
                         currentVideo.src = targetUrl;
-
                         const onCanPlay = () => {
                             if (currentVideo) {
                                 currentVideo.playbackRate = globalSpeedRef.current;
@@ -2585,17 +2746,20 @@ export default function Editor() {
                                 isSeekingToClipRef.current = false;
                                 isSwitchingClipRef.current = false;
                                 clipSwitchTimeRef.current = null;
-
                                 if (wasPlaying) {
                                     currentVideo.play().catch(e => {
                                         if (e.name !== 'AbortError') console.warn('Play interrupted:', e);
                                     });
-                                    animationFrameRef.current = requestAnimationFrame(updateTimeSmoothRef.current);
+                                    scheduleUpdateFrame();
                                 }
                             }
                             currentVideo?.removeEventListener('canplay', onCanPlay);
+                            if (pendingSeekCanPlayRef.current?.handler === onCanPlay) {
+                                pendingSeekCanPlayRef.current = null;
+                            }
                         };
                         currentVideo.addEventListener('canplay', onCanPlay);
+                        pendingSeekCanPlayRef.current = { video: currentVideo, handler: onCanPlay };
                         syncAudioPlayback(time, false);
                         return;
                     } else {
@@ -2615,7 +2779,7 @@ export default function Editor() {
             }
             syncAudioPlayback(time, isPlaying);
         }
-    }, [isDraggingPlayhead, isPlaying, syncAudioPlayback, findActiveClipAtTime, timelineToClipTime]);
+    }, [isDraggingPlayhead, isPlaying, syncAudioPlayback, findActiveClipAtTime, timelineToClipTime, scheduleUpdateFrame]);
 
     // Handler for background image upload (for ControlPanel)
     const handleImageUpload = useCallback(async (file: File) => {
@@ -2673,6 +2837,7 @@ export default function Editor() {
         setSelectedAudioTrackId(null);
         setSelectedVideoClipId(null);
         setSelectedElementId(null);
+        setSelectedMockupMotionFragmentId(null);
     }, []);
 
     const handleActivateZoomTool = useCallback(() => {
@@ -2858,32 +3023,28 @@ export default function Editor() {
                 handleDeleteZoomFragment(selectedZoomFragmentId);
                 return;
             }
-
+            if ((e.key === "Delete" || e.key === "Backspace") && selectedMockupMotionFragmentId) {
+                e.preventDefault();
+                handleDeleteMockupMotionFragment(selectedMockupMotionFragmentId);
+                return;
+            }
             if (e.key === "Escape") {
                 e.preventDefault();
-                if (textToolActive) {
-                    setTextToolActive(false);
-                    return;
-                }
-                if (selectedElementId) {
-                    setSelectedElementId(null);
-                } else if (selectedVideoClipId) {
-                    setSelectedVideoClipId(null);
-                } else if (selectedAudioTrackId) {
-                    setSelectedAudioTrackId(null);
-                } else if (selectedZoomFragmentId) {
-                    setSelectedZoomFragmentId(null);
-                }
+                if (textToolActive) { setTextToolActive(false); return; }
+                if (selectedElementId) { setSelectedElementId(null); }
+                else if (selectedVideoClipId) { setSelectedVideoClipId(null); }
+                else if (selectedAudioTrackId) { setSelectedAudioTrackId(null); }
+                else if (selectedZoomFragmentId) { setSelectedZoomFragmentId(null); }
+                else if (selectedMockupMotionFragmentId) { setSelectedMockupMotionFragmentId(null); }
             }
-
         };
 
         document.addEventListener("keydown", handleKeyDown);
         return () => document.removeEventListener("keydown", handleKeyDown);
-    }, [selectedElementId, selectedZoomFragmentId, selectedAudioTrackId, selectedVideoClipId, deleteCanvasElement, handleDeleteZoomFragment, handleDeleteAudioTrack, handleDeleteVideoClip, copySelectedElement, pasteElement, isPhotoMode, copiedElement, textToolActive, copySelectedZoomFragment, pasteZoomFragment, copiedZoomFragment, activeTool]);
+    }, [selectedElementId, selectedZoomFragmentId, selectedAudioTrackId, selectedVideoClipId, selectedMockupMotionFragmentId, deleteCanvasElement, handleDeleteZoomFragment, handleDeleteAudioTrack, handleDeleteVideoClip, handleDeleteMockupMotionFragment, copySelectedElement, pasteElement, isPhotoMode, copiedElement, textToolActive, copySelectedZoomFragment, pasteZoomFragment, copiedZoomFragment, activeTool]);
 
     const wasMobileRef = useRef<boolean | null>(null);
-    const otherSelectionActive = !!(selectedZoomFragmentId || selectedAudioTrackId || selectedVideoClipId);
+    const otherSelectionActive = !!(selectedZoomFragmentId || selectedAudioTrackId || selectedVideoClipId || selectedMockupMotionFragmentId);
 
     useEffect(() => {
         const checkMobile = () => {
@@ -2904,19 +3065,28 @@ export default function Editor() {
     }, []);
 
     const [currentPreviewThumbnail, setCurrentPreviewThumbnail] = useState<string | null>(null);
+    const [zoomFragmentThumbnail, setZoomFragmentThumbnail] = useState<string | null>(null);
+
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setCurrentPreviewThumbnail(getThumbnailForTime(currentDisplayTime)?.dataUrl ?? null);
+        const timer = setTimeout(() => {
+            const thumbnail = getThumbnailForTime(currentDisplayTime)?.dataUrl ?? null;
+            setCurrentPreviewThumbnail(thumbnail);
+        }, 0);
+
+        return () => clearTimeout(timer);
     }, [currentDisplayTime, getThumbnailForTime]);
 
-    const [zoomFragmentThumbnail, setZoomFragmentThumbnail] = useState<string | null>(null);
     useEffect(() => {
-        if (!selectedZoomFragment) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
-            setZoomFragmentThumbnail(null);
-            return;
-        }
-        setZoomFragmentThumbnail(getThumbnailForTime(selectedZoomFragment.startTime)?.dataUrl ?? null);
+        const timer = setTimeout(() => {
+            if (!selectedZoomFragment) {
+                setZoomFragmentThumbnail(null);
+                return;
+            }
+            const thumbnail = getThumbnailForTime(selectedZoomFragment.startTime)?.dataUrl ?? null;
+            setZoomFragmentThumbnail(thumbnail);
+        }, 0);
+
+        return () => clearTimeout(timer);
     }, [selectedZoomFragment, getThumbnailForTime]);
 
     const handleAspectRatioChange = useCallback((ratio: AspectRatio) => {
@@ -2957,6 +3127,18 @@ export default function Editor() {
             justEndedRef.current = false;
         }, 300);
     }, [trimRange.end, videoDuration, syncAudioPlayback]);
+
+    const saveVideoTrackTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    useEffect(() => {
+        if (isPhotoMode) return;
+        if (saveVideoTrackTimeoutRef.current) clearTimeout(saveVideoTrackTimeoutRef.current);
+        saveVideoTrackTimeoutRef.current = setTimeout(() => {
+            saveVideoTrack(videoClips).catch(() => { });
+        }, 500);
+        return () => {
+            if (saveVideoTrackTimeoutRef.current) clearTimeout(saveVideoTrackTimeoutRef.current);
+        };
+    }, [videoClips, isPhotoMode]);
 
     const layersPanelToolbar = useMemo(() => (
         <EditorTopBar
@@ -3106,6 +3288,13 @@ export default function Editor() {
                                         onWallpaperShowAllChange={setWallpaperShowAll}
                                         globalSpeed={globalSpeed}
                                         onGlobalSpeedChange={handleGlobalSpeedChange}
+                                        mockupMotionFragments={mockupMotionFragments}
+                                        selectedMockupMotionFragment={selectedMockupMotionFragment}
+                                        selectedMockupMotionFragmentId={selectedMockupMotionFragmentId}
+                                        onAddOrReplaceMotionPreset={handleAddOrReplaceMotionPreset}
+                                        onUpdateMockupMotionFragment={handleUpdateMockupMotionFragment}
+                                        onSelectMockupMotionFragment={handleSelectMockupMotionFragment}
+                                        onDeleteMockupMotionFragment={handleDeleteMockupMotionFragment}
                                     />
                                 </Suspense>
                             </motion.div>
@@ -3202,6 +3391,8 @@ export default function Editor() {
                         imageZoomScale={imageZoomScale}
                         onImageZoomScaleChange={setImageZoomScale}
                         otherSelectionActive={otherSelectionActive}
+                        mockupMotionFragments={mockupMotionFragments}
+                        videoDuration={videoDuration}
                     />
 
                     {/* Video mode: Show player controls and timeline */}
@@ -3253,6 +3444,7 @@ export default function Editor() {
                                     onAddZoomFragment={handleAddZoomFragmentAtRange}
                                     onUpdateZoomFragment={handleUpdateZoomFragment}
                                     onActivateZoomTool={handleActivateZoomTool}
+                                    onActivateMotionTool={handleActivateMotionTool}
                                     audioTracks={audioTracks}
                                     uploadedAudios={uploadedAudios}
                                     selectedAudioTrackId={selectedAudioTrackId}
@@ -3261,6 +3453,11 @@ export default function Editor() {
                                     globalSpeed={globalSpeed}
                                     isPlaying={isPlaying}
                                     onZoomChange={handleZoomChange}
+                                    mockupMotionFragments={mockupMotionFragments}
+                                    selectedMockupMotionFragmentId={selectedMockupMotionFragmentId}
+                                    onSelectMockupMotionFragment={handleSelectMockupMotionFragment}
+                                    onUpdateMockupMotionFragment={handleUpdateMockupMotionFragment}
+                                    onDeleteMockupMotionFragment={handleDeleteMockupMotionFragment}
                                 />
                             </Suspense>
                         </>

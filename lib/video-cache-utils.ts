@@ -1,4 +1,5 @@
-import { getUploadedVideo } from "./video-upload-cache";
+import { getUploadedVideo, getVideoTrack } from "./video-upload-cache";
+import { getLibraryVideoCount } from "./videos-library";
 
 async function hasRecordedVideo(): Promise<boolean> {
     try {
@@ -43,13 +44,19 @@ async function hasRecordedVideo(): Promise<boolean> {
 }
 
 export async function hasAnyVideo(): Promise<boolean> {
-    try {
-        const uploadedVideo = await getUploadedVideo();
-        if (uploadedVideo) return true;
+  try {
+    const track = await getVideoTrack();
+    if (track && track.length > 0) return true;
 
-        return await hasRecordedVideo();
-    } catch (error) {
-        console.error("Error checking for any video:", error);
-        return false;
-    }
+    const uploadedVideo = await getUploadedVideo();
+    if (uploadedVideo) return true;
+
+    const libraryCount = await getLibraryVideoCount();
+    if (libraryCount > 0) return true;
+
+    return await hasRecordedVideo();
+  } catch (error) {
+    console.error("Error checking for any video:", error);
+    return false;
+  }
 }

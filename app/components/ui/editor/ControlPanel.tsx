@@ -7,7 +7,7 @@ import { TabButton } from "../../../../components/ui/TabButton";
 import type { ControlPanelProps } from "@/types/control-panel.types";
 import Link from "next/link";
 import Image from "next/image";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useState } from "react";
 import { useTranslations } from "next-intl";
 
 import {
@@ -20,13 +20,15 @@ import {
     ZoomFragmentEditorSkeleton,
     AudioMenuSkeleton,
     VideosMenuSkeleton,
-    HistoryMenuSkeleton
+    HistoryMenuSkeleton,
+    MotionMenuSkeleton
 } from "../Skeleton";
 
 import { ElementsMenu } from "./ElementsMenu";
 import { TooltipAction } from "@/components/ui/tooltip-action";
 import { CameraMenu } from "./CameraMenu";
 import { useMockup3dContext } from "@/app/contexts/Mockup3dContext";
+import { MotionMenu } from "./MotionMenu";
 
 const ImageRecentBackgroundGrid = lazy(() => import("../ImageRecentBackgroundGrid").then(mod => ({ default: mod.ImageRecentBackgroundGrid })));
 const BackgroundColorEditor = lazy(() => import("../BackgroundColorEditor").then(mod => ({ default: mod.BackgroundColorEditor })));
@@ -130,11 +132,18 @@ export function ControlPanel({
     mediaType = "video",
     globalSpeed = 1,
     onGlobalSpeedChange,
+    mockupMotionFragments = [],
+    selectedMockupMotionFragment = null,
+    selectedMockupMotionFragmentId = null,
+    onAddOrReplaceMotionPreset,
+    onUpdateMockupMotionFragment,
+    onSelectMockupMotionFragment,
+    onDeleteMockupMotionFragment,
 }: ExtendedControlPanelProps) {
 
     const t = useTranslations("controlPanel");
     const { imagePhoneActive } = useMockup3dContext();
-
+    const [isGlobalMotionEnabled, setIsGlobalMotionEnabled] = useState(false);
     return (
         <div className="relative w-full sm:w-[320px] h-screen bg-[#141417] border-r border-white/10 flex flex-col shrink-0" role="complementary" aria-label="Control panel">
             <header className="flex items-center justify-between h-13 p-2 border-b border-white/10 shrink-0" role="banner">
@@ -295,19 +304,25 @@ export function ControlPanel({
                         />
                     </Suspense>
                 )}
-                {/* 
                 {activeTool === "motion" && (
-                    <Suspense >
-                        {mediaType === "image"
-                            ? <ImageMotionMenu
-                                backgroundColorCss={undefined}
-                                backgroundTab={backgroundTab}
-                                selectedWallpaper={selectedWallpaper}
-                                selectedImageUrl={selectedImageUrl}
-                            />
-                            : <MotionMenu />}
+                    <Suspense fallback={<MotionMenuSkeleton />}>
+                        <MotionMenu
+                            fragments={mockupMotionFragments}
+                            selectedFragment={selectedMockupMotionFragment}
+                            onAddOrReplacePreset={(presetId) => onAddOrReplaceMotionPreset?.(presetId)}
+                            onUpdateSelectedFragment={(updates) =>
+                                selectedMockupMotionFragmentId &&
+                                onUpdateMockupMotionFragment?.(selectedMockupMotionFragmentId, updates)
+                            }
+                            onSelectFragment={(id) => onSelectMockupMotionFragment?.(id)}
+                            onDeleteFragment={(id) => onDeleteMockupMotionFragment?.(id)}
+                            mediaType={mediaType}
+                            mockupId={mockupId}
+                            isGlobalMotionEnabled={isGlobalMotionEnabled}
+                            onToggleGlobalMotion={setIsGlobalMotionEnabled}
+                        />
                     </Suspense>
-                )} */}
+                )}
 
                 {activeTool === "video" && (
                     <Suspense fallback={<VideosMenuSkeleton />}>

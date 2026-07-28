@@ -262,7 +262,7 @@ export function ToolsSidebar({
                         badgeStyle="premium"
                     />
 
-                    {/* {isPhotoMode && (
+                     {!isPhotoMode && (
                         <SidebarTool
                             icon="mage:box-3d"
                             label={t("tools.motion")}
@@ -276,7 +276,7 @@ export function ToolsSidebar({
                             badge={t("tools.newTool")}
                             badgeStyle="premium"
                         />
-                    )} */}
+                    )}
 
                     {/* Video-specific tools - hidden in photo mode */}
                     {!isPhotoMode && (

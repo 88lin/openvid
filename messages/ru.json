@@ -1302,5 +1302,38 @@
     "duration": "Длительность",
     "cancel": "Отмена",
     "apply": "Применить обрезку"
+  },
+  "motionMenu": {
+    "title": "Анимация",
+    "globalMotionLabel": "Анимировать всё",
+    "empty2D": {
+      "title": "Требуется 2D-макет",
+      "description": "Сначала примените 2D-макет (браузер, macOS и т.д.), чтобы его анимировать."
+    },
+    "categories": {
+      "Entrance": "Появление",
+      "Continue": "Непрерывное",
+      "Exit": "Исчезновение"
+    },
+    "presets": {
+      "focus-in": "Постепенный фокус",
+      "rise-settle": "Плавное появление",
+      "flip-reveal": "3D-переворот",
+      "depth-emerge": "Появление из глубины",
+      "z-spin-reveal": "Раскрытие с 3D-вращением",
+      "isometric-lift": "Изометрический взлёт",
+      "cinematic-showcase": "Кинематографический показ",
+      "panoramic-sweep": "Панорамный облёт",
+      "macro-track": "Диагональное макро-слежение",
+      "rim-light-reveal": "Раскрытие контурным светом",
+      "surface-orbit": "Орбита над поверхностью",
+      "low-dolly-reveal": "Наезд камеры у земли",
+      "exit-fade-down": "Исчезновение вниз",
+      "exit-scale-blur": "Исчезновение с размытием"
+    },
+    "controls": {
+      "intensity": "Интенсивность",
+      "speed": "Скорость"
+    }
   }
 }

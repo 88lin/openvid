@@ -63,7 +63,7 @@ export function UserMenu() {
           <div className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-full overflow-hidden border border-white/10 hover:border-white/30 transition-colors">
             <Image src={avatarUrl} alt={displayName} fill sizes="36px" className="object-cover" />
           </div>
-          <span className="hidden sm:block text-sm font-medium text-neutral-300 max-w-30 truncate">
+          <span className="hidden sm:block text-sm font-medium text-neutral-300 max-w-20 truncate">
             {displayName}
           </span>
           <Icon icon="solar:alt-arrow-down-linear" className="hidden sm:block size-4 text-neutral-400" aria-hidden="true" />

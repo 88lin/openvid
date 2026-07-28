@@ -1,5 +1,6 @@
 import type { ZoomFragment } from "./zoom.types";
 import type { CanvasElement } from "./canvas-elements.types";
+import { MockupMotionFragment } from "@/lib/mockup-motion";
 
 export type Tool = "screenshot" | "elements" | "audio" | "zoom" | "mockup" | "cursor" | "video" | "camera" | "history" | "motion";
 
@@ -129,5 +130,7 @@ export interface VideoCanvasProps {
     onPaddingChange?: (value: number) => void;
     imageZoomScale?: number;
     onImageZoomScaleChange?: (scale: number) => void;
-    otherSelectionActive?: boolean
+    otherSelectionActive?: boolean;
+    mockupMotionFragments?: MockupMotionFragment[];
+    videoDuration?: number;
 }

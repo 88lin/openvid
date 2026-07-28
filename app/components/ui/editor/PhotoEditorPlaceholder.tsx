@@ -447,7 +447,7 @@ export function PhotoEditorPlaceholder({
 
   return (
     <div className={`flex flex-col bg-black border-t border-white/10 ${className}`}>
-      <div className="h-13 shrink-0 border-t border-white/10 flex items-center justify-between px-3 bg-[#0D0D11] overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+      <div className="h-12 shrink-0 border-t border-white/10 flex items-center justify-between px-3 bg-[#0D0D11] overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
         <div className="flex items-center gap-2 text-white/70 whitespace-nowrap shrink-0">
           <Icon icon="mdi:tune-vertical" width={16} aria-hidden="true" />
           <span className="hidden sm:flex text-xs font-semibold tracking-wide uppercase">
