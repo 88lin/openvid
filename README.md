@@ -88,19 +88,42 @@ Add context to your demo with professional frames:
 
 ## Screenshots
 
-<table>
+<table width="100%">
   <tr>
-    <td width="50%">
-         <a href="https://www.youtube.com/watch?v=BreTDBD_pGY" target="_blank">
-            <img src="https://github.com/user-attachments/assets/82a82dc8-ce81-4d78-829e-12c9ef096758" alt="FreeCut multi-track timeline" width="100%" />
-         </a>
+    <td width="60%">
+      <a href="https://www.youtube.com/watch?v=BreTDBD_pGY" target="_blank">
+        <img
+          src="https://github.com/user-attachments/assets/82a82dc8-ce81-4d78-829e-12c9ef096758"
+          alt="FreeCut multi-track timeline"
+          width="100%"
+        />
+      </a>
     </td>
-    <td width="50%">
-      <img src="https://github.com/user-attachments/assets/901d74ce-3148-43f1-8b97-fd43f077d6f7" alt="FreeCut dopesheet keyframe editor" width="100%" />
+    <td width="40%">
+      <img
+        src="https://github.com/user-attachments/assets/9053805f-aa96-4a45-8c0e-cddd46df5406"
+        alt="Frame 1116606751"
+        width="100%"
+      />
+    </td>
+  </tr>
+  <tr>
+    <td width="60%">
+      <img
+        src="https://github.com/user-attachments/assets/a22c3d1b-a3d3-4934-ad6a-2c2542fd6206"
+        alt="Frame 1116606753"
+        width="100%"
+      />
+    </td>
+    <td width="40%">
+     <img
+        src="https://github.com/user-attachments/assets/cf864839-f17d-417a-91cb-81bbdf754631"
+        alt="Frame 1116606752"
+        width="100%"
+      />
     </td>
   </tr>
 </table>
-
 ---
 
 ## Technology
@@ -148,14 +171,4 @@ Open [http://localhost:3000](http://localhost:3000)
 ## Contributors
 <a href="https://github.com/CristianOlivera1/openvid/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=CristianOlivera1/openvid" />
-</a>
-
-## Star History
-
-<a href="https://www.star-history.com/?repos=CristianOlivera1%2Fopenvid&type=date&legend=top-left">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=CristianOlivera1/openvid&type=date&theme=dark&legend=top-left&sealed_token=TpeJFODI2SIfhIkfwBBtWYMUpiFjmZXkZkoNjFMrnSIdSPVKIFRdF6todRCnssa9Wpn1Gqh22ggHfVxMY0DbHPfLsTSBzGMcVy9vr2MG8YefmwviRr9KqQ" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=CristianOlivera1/openvid&type=date&legend=top-left&sealed_token=TpeJFODI2SIfhIkfwBBtWYMUpiFjmZXkZkoNjFMrnSIdSPVKIFRdF6todRCnssa9Wpn1Gqh22ggHfVxMY0DbHPfLsTSBzGMcVy9vr2MG8YefmwviRr9KqQ" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=CristianOlivera1/openvid&type=date&legend=top-left&sealed_token=TpeJFODI2SIfhIkfwBBtWYMUpiFjmZXkZkoNjFMrnSIdSPVKIFRdF6todRCnssa9Wpn1Gqh22ggHfVxMY0DbHPfLsTSBzGMcVy9vr2MG8YefmwviRr9KqQ" />
- </picture>
 </a>
