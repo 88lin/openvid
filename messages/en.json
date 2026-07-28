@@ -1307,5 +1307,38 @@
     "duration": "Duration",
     "cancel": "Cancel",
     "apply": "Apply trim"
+  },
+  "motionMenu": {
+    "title": "Motion",
+    "globalMotionLabel": "Animate all",
+    "empty2D": {
+      "title": "Requires 2D Mockup",
+      "description": "Apply a 2D mockup first (browser, macOS, etc.) to animate it."
+    },
+    "categories": {
+      "Entrance": "Entrance",
+      "Continue": "Continuous",
+      "Exit": "Exit"
+    },
+    "presets": {
+      "focus-in": "Progressive Focus",
+      "rise-settle": "Rising Reveal",
+      "flip-reveal": "3D Flip",
+      "depth-emerge": "Depth Emergence",
+      "z-spin-reveal": "3D Spin Reveal",
+      "isometric-lift": "Isometric Liftoff",
+      "cinematic-showcase": "Cinematic Showcase",
+      "panoramic-sweep": "Panoramic Sweep",
+      "macro-track": "Diagonal Macro Track",
+      "rim-light-reveal": "Rim Light Reveal",
+      "surface-orbit": "Surface Orbit",
+      "low-dolly-reveal": "Low Ground Dolly",
+      "exit-fade-down": "Fade Down Exit",
+      "exit-scale-blur": "Blur Scale Exit"
+    },
+    "controls": {
+      "intensity": "Intensity",
+      "speed": "Speed"
+    }
   }
 }

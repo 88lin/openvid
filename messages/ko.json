@@ -1307,5 +1307,38 @@
     "duration": "길이",
     "cancel": "취소",
     "apply": "자르기 적용"
+  },
+  "motionMenu": {
+    "title": "모션",
+    "globalMotionLabel": "모두 애니메이션",
+    "empty2D": {
+      "title": "2D 목업 필요",
+      "description": "애니메이션을 적용하려면 먼저 2D 목업(브라우저, macOS 등)을 적용하세요."
+    },
+    "categories": {
+      "Entrance": "등장",
+      "Continue": "지속",
+      "Exit": "퇴장"
+    },
+    "presets": {
+      "focus-in": "점진적 포커스",
+      "rise-settle": "상승 등장",
+      "flip-reveal": "3D 플립",
+      "depth-emerge": "깊이감 출현",
+      "z-spin-reveal": "3D 회전 공개",
+      "isometric-lift": "아이소메트릭 리프트",
+      "cinematic-showcase": "시네마틱 쇼케이스",
+      "panoramic-sweep": "파노라마 스윕",
+      "macro-track": "대각선 매크로 트래킹",
+      "rim-light-reveal": "림 라이트 공개",
+      "surface-orbit": "표면 궤도",
+      "low-dolly-reveal": "로우 달리 공개",
+      "exit-fade-down": "아래로 사라짐",
+      "exit-scale-blur": "블러 축소 퇴장"
+    },
+    "controls": {
+      "intensity": "강도",
+      "speed": "속도"
+    }
   }
 }
