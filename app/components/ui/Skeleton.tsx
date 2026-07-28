@@ -538,3 +538,53 @@ export function HistoryMenuSkeleton() {
         </div>
     );
 }
+
+export function MotionMenuSkeleton() {
+  return (
+    <div className="p-4 flex flex-col gap-4 h-full relative">
+      <div className="flex items-center gap-2 shrink-0">
+        <Skeleton width={20} height={20} variant="circle" />
+        <Skeleton height={14} width={50} />
+      </div>
+
+      <div className="flex-1 overflow-y-hidden -mx-1 px-1">
+        <div className="flex flex-col gap-6">
+          {[6, 6, 2].map((count, sectionIndex) => (
+            <div key={sectionIndex}>
+              <div className="flex items-center gap-2 mb-3">
+                <Skeleton height={9} width={60} />
+                <div className="h-px flex-1 bg-white/5" />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2.5">
+                {Array.from({ length: count }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="rounded-xl border border-neutral-800 bg-black p-2 flex flex-col gap-2"
+                  >
+                    <Skeleton
+                      variant="square"
+                      className="w-full aspect-[16/10] rounded-lg"
+                    />
+                    <Skeleton height={9} width="75%" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="shrink-0 flex flex-col gap-4 pt-4 border-t border-white/5">
+        {Array.from({ length: 2 }).map((_, i) => (
+          <div key={i} className="flex items-center gap-3">
+            <Skeleton width={14} height={14} variant="circle" />
+            <Skeleton height={10} width={70} />
+            <Skeleton height={6} className="flex-1" variant="default" />
+            <Skeleton height={10} width={24} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}

@@ -3,35 +3,38 @@
 import { useRef, useEffect, useImperativeHandle, useMemo, useState, useCallback, memo } from "react";
 import dynamic from "next/dynamic";
 import type { VideoCanvasHandle, VideoCanvasProps, VideoThumbnail } from "@/types";
-import type { ImageElement, SvgElement } from "@/types/canvas-elements.types";
+import type { ImageElement } from "@/types/canvas-elements.types";
 import { ASPECT_RATIO_DIMENSIONS } from "@/types";
 import { getWallpaperUrl } from "@/lib/wallpaper.utils";
-import { drawRoundedRect, drawRoundedRectBottomOnly, calculateScaledPadding, applyCanvasBackground, getAspectRatioStyle, getAspectRatioNumber, Corner, getCornerStyle, getNearestCorner, snapRotation, drawImageCover, getMockupOuterRadius, CORNER_SIGNS } from "@/lib/canvas.utils";
-import { drawMockupToCanvas } from "@/lib/mockup-canvas.utils";
+import { calculateScaledPadding, applyCanvasBackground, getAspectRatioStyle, getAspectRatioNumber, Corner, getCornerStyle, getNearestCorner, snapRotation, drawImageCover, getMockupOuterRadius, CORNER_SIGNS } from "@/lib/canvas.utils";
 import { speedToTransitionMs, ZOOM_EASING, calculateZoomPhaseState, zoomLevelToFactor } from "@/types/zoom.types";
 import type { ZoomFragment } from "@/types/zoom.types";
 import PlaceholderEditor from "../PlaceholderEditor";
 import { MockupWrapper } from "./mockups/MockupWrapper";
 import { DEFAULT_MOCKUP_CONFIG } from "@/types/mockup.types";
 import { calculateSmoothZoom } from "@/lib/canvas.utils";
-import { getSvgDataUrl } from "@/components/canvas-svg";
-import { VIDEO_Z_INDEX, BOTTOM_ONLY_RADIUS_MOCKUPS, SELF_SHADOWING_MOCKUPS } from "@/lib/constants";
+import { VIDEO_Z_INDEX } from "@/lib/constants";
 import { applyPerspective3D, disposePerspective3D } from "@/lib/perspective3d";
 import { RotationHandleIcon } from "@/components/ui/RotationHandleIcon";
 import { CanvasElementsLayer, ElementResizeStart } from "./CanvasElementsLayer";
 import { EditorHoverTooltip } from "./EditorHoverTooltip";
 import { LayersPanel } from "./LayersPanel";
 import { useMockup3dContext } from "@/app/contexts/Mockup3dContext";
-import { PHONE_H, PHONE_W, DEVICE_3D_DIMENSIONS, DEVICE_VIEWER_DEFAULTS, PHONE_DEVICE_URLS, type ImageMaskConfigLike } from "@/lib/phone3d.utils";
+import { PHONE_H, PHONE_W, DEVICE_3D_DIMENSIONS, DEVICE_VIEWER_DEFAULTS, PHONE_DEVICE_URLS } from "@/lib/phone3d.utils";
 import { Viewer3DControls } from "@/lib/viewer-controls3d";
 import { ControlsPopup } from "@/components/ui/ControlsPopup";
 import { CanvasContextMenu } from "@/components/ui/CanvasContextMenu";
 import { Viewer3DControlsBridge } from "@/components/ui/Viewer3DControlsBridge";
-import { applyGradientMaskToRegion, GetMediaMaskStyles } from "@/lib/media-mask.utils";
+import { GetMediaMaskStyles } from "@/lib/media-mask.utils";
 import { MediaContent } from "@/components/ui/MediaContent";
 import { RotationGuideLine } from "@/components/ui/RotationGuideLine";
 import { drawCameraOverlayToCtx } from "@/lib/camera-overlay.utils";
 import DropMedia from "@/components/ui/DropMedia";
+import { renderCanvasElements } from "@/lib/canvas-elements-render.utils";
+import { drawMaskedImage } from "@/lib/masked-image-draw.utils";
+import { drawMockupAndMedia, type MockupDrawContext } from "@/lib/mockup-media-draw.utils";
+import { drawPhone3DCompositeWithZoom, type Phone3DCompositeContext } from "@/lib/phone3d-composite-draw.utils";
+import { buildMockupMotionCss, MockupMotionTransform, REST_MOCKUP_MOTION, sampleCombinedMockupMotion } from "@/lib/mockup-motion";
 
 export type { VideoCanvasHandle, VideoCanvasProps };
 
@@ -68,6 +71,7 @@ const IPadMini63DViewer = dynamic(
 function VideoCanvasInner({
     activeTool: _activeTool,
     mediaType = "video",
+    isPlaying = false,
     imageUrl = null,
     imageRef,
     imageTransform,
@@ -127,6 +131,8 @@ function VideoCanvasInner({
     imageZoomScale = 1,
     onImageZoomScaleChange,
     otherSelectionActive = false,
+    mockupMotionFragments = [],
+    videoDuration = 0,
 }: VideoCanvasProps & { ref?: React.Ref<VideoCanvasHandle> }) {
     const wallpaperUrl = getWallpaperUrl(selectedWallpaper);
 
@@ -176,9 +182,11 @@ function VideoCanvasInner({
         };
     }, []);
 
-    // Ref for the non-passive Ctrl+scroll wheel handler (React's onWheel is always passive).
-    // Updated each render so the closure always has the latest state values.
     const ctrlScrollWheelRef = useRef<((e: WheelEvent) => void) | null>(null);
+    const imagePhoneActiveRef = useRef(imagePhoneActive);
+    useEffect(() => { imagePhoneActiveRef.current = imagePhoneActive; }, [imagePhoneActive]);
+    const paddingRef = useRef(padding);
+    useEffect(() => { paddingRef.current = padding; }, [padding]);
     // WebGL canvas from image phone Phone3DViewer, captured via onMount prop for export
     const imagePhoneCanvasRef = useRef<HTMLCanvasElement | null>(null);
     const imagePhoneApiRef = useRef<{
@@ -280,9 +288,14 @@ function VideoCanvasInner({
     // the "none" mockup container to the real letterboxed contain-box instead
     // of the full available area.
     const [mediaAspect, setMediaAspect] = useState<number | null>(null);
-
     const lastSetVideoUrlRef = useRef<string | null>(null);
-    const preservedVideoStateRef = useRef<{ time: number; playing: boolean } | null>(null);
+    const lastLogicalUrlRef = useRef<string | null>(null);
+
+    const currentTimePropRef = useRef(currentTime);
+    useEffect(() => { currentTimePropRef.current = currentTime; }, [currentTime]);
+
+    const isPlayingPropRef = useRef(isPlaying);
+    useEffect(() => { isPlayingPropRef.current = isPlaying; }, [isPlaying]);
     const imagePhoneRescaleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const cameraDragRef = useRef<{
         pointerId: number;
@@ -337,43 +350,33 @@ function VideoCanvasInner({
     useEffect(() => {
         const targetUrl = activeClipUrl ?? videoUrl;
         if (videoRef.current && targetUrl) {
-            // Always set src if video element has no src, src is empty, or we just changed mockup
-            const videoSrc = videoRef.current.src;
+            const videoEl = videoRef.current;
+            const videoSrc = videoEl.src;
             const needsSrc = !videoSrc || videoSrc === '' || videoSrc === window.location.href;
-            const isNewUrl = targetUrl !== lastSetVideoUrlRef.current;
+            const isNewAssignment = targetUrl !== lastSetVideoUrlRef.current;
 
-            if (needsSrc || isNewUrl) {
-                videoRef.current.src = targetUrl;
+            if (needsSrc || isNewAssignment) {
+                const isSameLogicalContent = targetUrl === lastLogicalUrlRef.current;
+
+                videoEl.src = targetUrl;
                 lastSetVideoUrlRef.current = targetUrl;
 
-                if (preservedVideoStateRef.current) {
-                    const { time, playing } = preservedVideoStateRef.current;
-                    videoRef.current.currentTime = time;
-                    if (playing) {
-                        videoRef.current.play().catch(() => {
-                            // Ignore play errors (may happen if video not ready)
+                if (isSameLogicalContent) {
+                    videoEl.currentTime = currentTimePropRef.current;
+                    if (isPlayingPropRef.current) {
+                        videoEl.play().catch(() => {
                         });
                     }
-                    preservedVideoStateRef.current = null;
                 }
+
+                lastLogicalUrlRef.current = targetUrl;
             }
         }
         if (!videoUrl && !activeClipUrl) {
             lastSetVideoUrlRef.current = null;
+            lastLogicalUrlRef.current = null;
         }
     }, [videoUrl, activeClipUrl, videoRef, mockupId]);
-
-    // Preserve video state when mockup changes (detect unmount via cleanup)
-    useEffect(() => {
-        return () => {
-            if (videoRef.current && videoUrl) {
-                preservedVideoStateRef.current = {
-                    time: videoRef.current.currentTime,
-                    playing: !videoRef.current.paused,
-                };
-            }
-        };
-    }, [mockupId, videoUrl, videoRef]);
 
     // Track the real intrinsic aspect ratio of the video so the "none"
     useEffect(() => {
@@ -434,11 +437,10 @@ function VideoCanvasInner({
     useEffect(() => {
         ctrlScrollWheelRef.current = (e: WheelEvent) => {
             if (!e.ctrlKey) return;
-            if (imagePhoneActive) {
+            if (imagePhoneActiveRef.current) {
                 e.preventDefault();
                 e.stopImmediatePropagation();
-                const next = Math.max(0.3, Math.min(3, imagePhoneScale * (e.deltaY < 0 ? 1.05 : 0.95)));
-                setImagePhoneScale(next);
+                setImagePhoneScale(prev => Math.max(0.3, Math.min(3, prev * (e.deltaY < 0 ? 1.05 : 0.95))));
                 setImagePhoneZoomVisible(true);
                 if (imagePhoneZoomTimerRef.current) clearTimeout(imagePhoneZoomTimerRef.current);
                 imagePhoneZoomTimerRef.current = setTimeout(() => setImagePhoneZoomVisible(false), 1200);
@@ -449,7 +451,7 @@ function VideoCanvasInner({
                 e.stopImmediatePropagation();
                 const PADDING_MIN = 0;
                 const PADDING_MAX = 30;
-                const base = pendingPaddingRef.current ?? padding;
+                const base = pendingPaddingRef.current ?? paddingRef.current;
                 const step = Math.min(1.5, Math.max(0.15, Math.abs(e.deltaY) * 0.015));
                 const next = Math.max(PADDING_MIN, Math.min(PADDING_MAX, base + (e.deltaY < 0 ? -step : step)));
                 pendingPaddingRef.current = next;
@@ -463,7 +465,7 @@ function VideoCanvasInner({
                 }
             }
         };
-    });
+    }, [mediaType, onPaddingChange, setImagePhoneScale]);
 
     useEffect(() => {
         const el = previewContainerRef.current;
@@ -536,18 +538,12 @@ function VideoCanvasInner({
             if (isRestoringProjectRef?.current) return;
 
             if (!pendingAspectRescaleRef.current) {
-                // Resize incidental: NO fue un cambio deliberado de aspect ratio.
-                // Solo resincronizamos el ancho base para no acumular drift,
-                // sin tocar la posición ni la escala del overlay.
                 if (imagePhoneRefWidth === 0 || Math.abs(canvasDimensions.width - imagePhoneRefWidth) > 0.5) {
                     setImagePhoneRefWidth(canvasDimensions.width);
                 }
                 return;
             }
 
-            // Cambio deliberado de aspect ratio: acá sí corresponde reescalar
-            // proporcionalmente, porque el canvas de export realmente cambió
-            // de tamaño por una acción del usuario.
             pendingAspectRescaleRef.current = false;
             if (imagePhoneRefWidth > 0 && Math.abs(canvasDimensions.width - imagePhoneRefWidth) > 0.5) {
                 const ratio = canvasDimensions.width / imagePhoneRefWidth;
@@ -689,6 +685,13 @@ function VideoCanvasInner({
 
     const hasMask = Object.keys(maskStyles).length > 0;
     const hasMockup = mockupId && mockupId !== "none";
+
+    const hasMockup2DMotion = mediaType === "video" && !imagePhoneActive && mockupMotionFragments.length > 0;
+
+    const mockupMotionPreview = useMemo<MockupMotionTransform>(
+        () => hasMockup2DMotion ? sampleCombinedMockupMotion(mockupMotionFragments, currentTime) : REST_MOCKUP_MOTION,
+        [hasMockup2DMotion, mockupMotionFragments, currentTime]
+    );
 
     // Effective aspect ratio for the "none" mockup contain-box, adjusted for
     // any active crop — mirrors the same math used in drawFrame's computeContainer.
@@ -1238,165 +1241,6 @@ function VideoCanvasInner({
         }
     };
 
-    const drawMaskedImage = (
-        destCtx: CanvasRenderingContext2D,
-        img: CanvasImageSource,
-        x: number,
-        y: number,
-        w: number,
-        h: number,
-        maskConfig?: ImageMaskConfigLike | null
-    ) => {
-        if (!maskConfig?.enabled) {
-            destCtx.drawImage(img, x, y, w, h);
-            return;
-        }
-        const safeW = Math.max(1, Math.round(w));
-        const safeH = Math.max(1, Math.round(h));
-        let off = maskCompositeCanvasRef.current;
-        if (!off) {
-            off = document.createElement('canvas');
-            maskCompositeCanvasRef.current = off;
-        }
-        if (off.width !== safeW || off.height !== safeH) {
-            off.width = safeW;
-            off.height = safeH;
-        }
-        const offCtx = off.getContext('2d');
-        if (!offCtx) {
-            destCtx.drawImage(img, x, y, w, h);
-            return;
-        }
-        offCtx.setTransform(1, 0, 0, 1, 0, 0);
-        offCtx.clearRect(0, 0, safeW, safeH);
-        offCtx.drawImage(img, 0, 0, safeW, safeH);
-        applyGradientMaskToRegion(offCtx, 0, 0, safeW, safeH, maskConfig);
-        destCtx.drawImage(off, x, y, w, h);
-    };
-
-    // Helper function to render canvas elements (SVG, images, text)
-    const renderCanvasElements = async (
-        ctx: CanvasRenderingContext2D,
-        elements: typeof canvasElements,
-        canvasWidth: number,
-        canvasHeight: number,
-        behindVideo: boolean
-    ) => {
-        const filteredElements = elements.filter(el =>
-            behindVideo ? el.zIndex < VIDEO_Z_INDEX : el.zIndex >= VIDEO_Z_INDEX
-        );
-        const sortedElements = [...filteredElements].sort((a, b) => a.zIndex - b.zIndex);
-
-        // Use smaller dimension as reference for consistent scaling across different aspect ratios
-        const referenceSize = Math.min(canvasWidth, canvasHeight);
-
-        for (const element of sortedElements) {
-            if (element.type === "svg") {
-                const svgElement = element as SvgElement;
-                const svgDataUrl = getSvgDataUrl(svgElement.svgId, svgElement.color || "#FFFFFF");
-                if (!svgDataUrl) continue;
-
-                const cacheKey = `${svgElement.svgId}-${svgElement.color || "#FFFFFF"}`;
-                let svgImage = svgImageCacheRef.current.get(cacheKey);
-                if (!svgImage || svgImage.src !== svgDataUrl) {
-                    svgImage = new Image();
-                    svgImageCacheRef.current.set(cacheKey, svgImage);
-                    svgImage.src = svgDataUrl;
-                    await new Promise<void>((resolve) => {
-                        if (svgImage!.complete) resolve();
-                        else { svgImage!.onload = () => resolve(); svgImage!.onerror = () => resolve(); }
-                    });
-                } else if (!svgImage.complete) {
-                    await new Promise<void>((resolve) => {
-                        svgImage!.onload = () => resolve();
-                        svgImage!.onerror = () => resolve();
-                        setTimeout(resolve, 500);
-                    });
-                }
-
-                ctx.save();
-
-                const elemX = (svgElement.x / 100) * canvasWidth;
-                const elemY = (svgElement.y / 100) * canvasHeight;
-                const elemWidth = (svgElement.width / 100) * referenceSize;
-                const elemHeight = (svgElement.height / 100) * referenceSize;
-
-                // Translate to element position, rotate, then draw centered
-                ctx.translate(elemX, elemY);
-                ctx.rotate((svgElement.rotation * Math.PI) / 180);
-                ctx.globalAlpha = svgElement.opacity;
-
-                ctx.drawImage(
-                    svgImage,
-                    -elemWidth / 2,
-                    -elemHeight / 2,
-                    elemWidth,
-                    elemHeight
-                );
-
-                ctx.restore();
-            } else if (element.type === "image") {
-                const img = elementImagesRef.current.get(element.imagePath);
-                if (!img) continue;
-
-                ctx.save();
-
-                const elemX = (element.x / 100) * canvasWidth;
-                const elemY = (element.y / 100) * canvasHeight;
-
-                // Calculate element dimensions using reference size to maintain consistent scaling
-                const elemWidth = (element.width / 100) * referenceSize;
-                const elemHeight = (element.height / 100) * referenceSize;
-
-                // For images, maintain the original aspect ratio
-                const imgAspectRatio = img.naturalWidth / img.naturalHeight;
-                let finalWidth = elemWidth;
-                let finalHeight = elemHeight;
-
-                const elementAspectRatio = elemWidth / elemHeight;
-                if (imgAspectRatio > elementAspectRatio) {
-                    finalHeight = elemWidth / imgAspectRatio;
-                } else {
-                    finalWidth = elemHeight * imgAspectRatio;
-                }
-
-                ctx.translate(elemX, elemY);
-                ctx.rotate((element.rotation * Math.PI) / 180);
-                ctx.globalAlpha = element.opacity;
-
-                ctx.drawImage(
-                    img,
-                    -finalWidth / 2,
-                    -finalHeight / 2,
-                    finalWidth,
-                    finalHeight
-                );
-
-                ctx.restore();
-            } else if (element.type === "text") {
-                ctx.save();
-
-                const elemX = (element.x / 100) * canvasWidth;
-                const elemY = (element.y / 100) * canvasHeight;
-
-                ctx.translate(elemX, elemY);
-                ctx.rotate((element.rotation * Math.PI) / 180);
-                ctx.globalAlpha = element.opacity;
-
-                const scaledFontSize = element.fontSize * (referenceSize / 1080);
-                const fontWeight = element.fontWeight === 'normal' ? '400' : element.fontWeight === 'medium' ? '500' : '700';
-                ctx.font = `${fontWeight} ${scaledFontSize}px ${element.fontFamily}`;
-                ctx.fillStyle = element.color;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-
-                ctx.fillText(element.content, 0, 0);
-
-                ctx.restore();
-            }
-        }
-    };
-
     // Function to draw a frame on the export canvas
     const drawFrame = async (highQuality: boolean = true, explicitTimelineTime?: number) => {
         const canvas = exportCanvasRef.current;
@@ -1425,12 +1269,28 @@ function VideoCanvasInner({
         const scaledRadius = roundedCorners * (canvasLongSide / 896);
         const scaledShadowBlur = shadows * (canvasLongSide / 896) * 0.8;
 
+        const frameTime = mediaType === "video" ? (explicitTimelineTime ?? (video ? video.currentTime : 0)) : 0;
+
+        const mockupMotionForFrame: MockupMotionTransform | undefined = hasMockup2DMotion
+            ? sampleCombinedMockupMotion(mockupMotionFragments, frameTime)
+            : undefined;
+
+        const mockupDrawCtx: MockupDrawContext = {
+            videoTransform, imageTransform, apply3DToBackground, imageZoomScale, shadows,
+            mockupId, mockupConfig, mediaType, cropArea, sourceWidth, sourceHeight,
+            canvasWidth, canvasHeight, scaledRadius, scaledShadowBlur, shadowCacheRef,
+            mockupMotion: mockupMotionForFrame,
+        };
+
+        const phone3dCtx: Phone3DCompositeContext = {
+            imagePhoneCanvasRef, imagePhoneApiRef, canvasDimensions, imagePhoneDevice,
+            imagePhoneScale, imagePhoneX, imagePhoneY, imagePhoneShadow, imagePhoneShadowColor,
+            effectivePhoneMaskConfig, maskCompositeCanvasRef,
+        };
+
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-        const frameTime = mediaType === "video"
-            ? (explicitTimelineTime ?? (video ? video.currentTime : 0))
-            : 0;
         const zoomState = calculateSmoothZoom(frameTime, zoomFragments);
         const zoomCenterX = canvasWidth / 2;
         const zoomCenterY = canvasHeight / 2;
@@ -1479,119 +1339,6 @@ function VideoCanvasInner({
             return { containerX: cX, containerY: cY, containerWidth: cW, containerHeight: cH };
         };
 
-        // Shared helper: draw shadow + mockup + video into a 2D context
-        const DEG_TO_RAD = Math.PI / 180;
-        const drawMockupAndMedia = (
-            c: CanvasRenderingContext2D,
-            containerX: number, containerY: number, containerWidth: number, containerHeight: number,
-            source: HTMLVideoElement | HTMLImageElement, applyImageXform: boolean, is3DActive: boolean = false
-        ) => {
-            const vCX = containerX + containerWidth / 2;
-            const vCY = containerY + containerHeight / 2;
-            const txPx = (videoTransform.translateX / 100) * containerWidth;
-            const tyPx = (videoTransform.translateY / 100) * containerHeight;
-
-            c.save();
-            c.translate(vCX + txPx, vCY + tyPx);
-            c.rotate(videoTransform.rotation * DEG_TO_RAD);
-
-            if (applyImageXform && imageTransform && !apply3DToBackground) {
-                if (imageTransform.perspective && imageTransform.perspective > 0 && (imageTransform.rotateX !== 0 || imageTransform.rotateY !== 0)) {
-                    const rotXR = imageTransform.rotateX * DEG_TO_RAD;
-                    const rotYR = imageTransform.rotateY * DEG_TO_RAD;
-                    const tanY2 = Math.tan(rotYR);
-                    const tanX2 = Math.tan(rotXR);
-                    const sX2 = 1 / Math.sqrt(1 + tanY2 * tanY2);
-                    const sY2 = 1 / Math.sqrt(1 + tanX2 * tanX2);
-                    c.transform(sX2, tanX2 * sY2, tanY2 * sX2, sY2, 0, 0);
-                }
-                c.rotate(imageTransform.rotateZ * DEG_TO_RAD);
-                c.scale(imageTransform.scale * imageZoomScale, imageTransform.scale * imageZoomScale);
-                const iTY = (imageTransform.translateY / 100) * containerHeight;
-                c.translate(0, iTY / (imageTransform.scale * imageZoomScale));
-            }
-            c.translate(-vCX, -vCY);
-
-            // Shadow
-            if (shadows > 0 && !SELF_SHADOWING_MOCKUPS.includes(mockupId)) {
-                const shadowKey = `${containerWidth.toFixed(1)}x${containerHeight.toFixed(1)}|${scaledRadius.toFixed(1)}|${scaledShadowBlur.toFixed(1)}`;
-                let cached = shadowCacheRef.current;
-                if (!cached || cached.key !== shadowKey) {
-                    const margin = Math.ceil(scaledShadowBlur * 3 + scaledShadowBlur * 0.3 + 8);
-                    const buf = document.createElement('canvas');
-                    buf.width = Math.ceil(containerWidth) + margin * 2;
-                    buf.height = Math.ceil(containerHeight) + margin * 2;
-                    const bctx = buf.getContext('2d');
-                    if (bctx) {
-                        bctx.shadowColor = 'rgba(0, 0, 0, 1)';
-                        bctx.shadowBlur = scaledShadowBlur;
-                        bctx.shadowOffsetY = scaledShadowBlur * 0.3;
-                        bctx.fillStyle = 'black';
-                        drawRoundedRect(bctx, margin, margin, containerWidth, containerHeight, scaledRadius);
-                        bctx.fill();
-                    }
-                    cached = { key: shadowKey, canvas: buf, offsetX: margin, offsetY: margin };
-                    shadowCacheRef.current = cached;
-                }
-                c.save();
-                c.drawImage(cached.canvas, containerX - cached.offsetX, containerY - cached.offsetY);
-                c.restore();
-            }
-
-            // Mockup frame
-            const hasMockupLocal = mockupId && mockupId !== "none";
-            const mockupCfg = mockupConfig || DEFAULT_MOCKUP_CONFIG;
-            let vX = containerX, vY = containerY, vW = containerWidth, vH = containerHeight, vR = scaledRadius;
-
-            if (hasMockupLocal) {
-                const mBlur = SELF_SHADOWING_MOCKUPS.includes(mockupId) ? scaledShadowBlur : 0;
-                const mr = drawMockupToCanvas(c, mockupId, mockupCfg, containerX, containerY, containerWidth, containerHeight, scaledRadius, mBlur, canvasWidth, canvasHeight);
-                vX = mr.contentX;
-                vY = mr.contentY;
-                vW = mr.contentWidth;
-                vH = mr.contentHeight;
-                vR = mockupId === "outline"
-                    ? scaledRadius * 1.6
-                    : (mockupId === "iphone-slim" || mockupId === "glass-curve" || mockupId === "glass-full")
-                        ? scaledRadius * 2.5
-                        : scaledRadius;
-            }
-
-            c.save();
-            const bottomOnly = hasMockupLocal && BOTTOM_ONLY_RADIUS_MOCKUPS.includes(mockupId);
-            if (vR > 0) {
-                if (bottomOnly) {
-                    drawRoundedRectBottomOnly(c, vX, vY, vW, vH, vR);
-                } else {
-                    drawRoundedRect(c, vX, vY, vW, vH, vR);
-                }
-                c.clip();
-            } else {
-                c.beginPath();
-                c.rect(vX, vY, vW, vH);
-                c.clip();
-            }
-            if (mediaType === "video") {
-                if (is3DActive) {
-                    c.filter = 'saturate(125%) contrast(110%) brightness(105%)';
-                } else {
-                    c.filter = 'saturate(130%) contrast(104%) brightness(103%)';
-                }
-            }
-
-            if (cropArea && (cropArea.width < 100 || cropArea.height < 100 || cropArea.x > 0 || cropArea.y > 0)) {
-                const sX = (cropArea.x / 100) * sourceWidth;
-                const sY = (cropArea.y / 100) * sourceHeight;
-                const cW2 = (cropArea.width / 100) * sourceWidth;
-                const cH2 = (cropArea.height / 100) * sourceHeight;
-                c.drawImage(source, sX, sY, cW2, cH2, vX, vY, vW, vH);
-            } else {
-                c.drawImage(source, vX, vY, vW, vH);
-            }
-            c.restore();
-            c.restore();
-        };
-
         if (mediaType === "image") {
             ctx.save();
             if (imageTransform && apply3DToBackground) {
@@ -1612,14 +1359,14 @@ function VideoCanvasInner({
                 ctx.translate(-zoomCenterX, -zoomCenterY + iTY);
             }
             drawBg(ctx);
-            await renderCanvasElements(ctx, canvasElements, canvasWidth, canvasHeight, true);
+            await renderCanvasElements(ctx, canvasElements, canvasWidth, canvasHeight, true, svgImageCacheRef.current, elementImagesRef.current);
             const { containerX: cX, containerY: cY, containerWidth: cW, containerHeight: cH } = computeContainer();
             // Only draw the 2D mockup + media when the 3D phone overlay is NOT active.
             // In the preview, CSS opacity:0 hides the video layer; here we skip drawing it.
             if (!imagePhoneActive) {
-                drawMockupAndMedia(ctx, cX, cY, cW, cH, image!, true);
+                drawMockupAndMedia(ctx, cX, cY, cW, cH, image!, true, false, mockupDrawCtx);
             }
-            await renderCanvasElements(ctx, canvasElements, canvasWidth, canvasHeight, false);
+            await renderCanvasElements(ctx, canvasElements, canvasWidth, canvasHeight, false, svgImageCacheRef.current, elementImagesRef.current);
             // ── Composite image phone mockup (WebGL snapshot) onto export canvas ──
             if (imagePhoneActive && imagePhoneCanvasRef.current) {
                 const phoneGL = imagePhoneCanvasRef.current;
@@ -1653,10 +1400,10 @@ function VideoCanvasInner({
                 }
                 if (highQuality) {
                     imagePhoneApiRef.current?.renderAt(drawW, drawH);
-                    drawMaskedImage(ctx, phoneGL, phoneCx - drawW / 2, phoneCy - drawH / 2, drawW, drawH, effectivePhoneMaskConfig);
+                    drawMaskedImage(ctx, phoneGL, phoneCx - drawW / 2, phoneCy - drawH / 2, drawW, drawH, effectivePhoneMaskConfig, maskCompositeCanvasRef);
                     imagePhoneApiRef.current?.restorePreview();
                 } else {
-                    drawMaskedImage(ctx, phoneGL, phoneCx - drawW / 2, phoneCy - drawH / 2, drawW, drawH, effectivePhoneMaskConfig);
+                    drawMaskedImage(ctx, phoneGL, phoneCx - drawW / 2, phoneCy - drawH / 2, drawW, drawH, effectivePhoneMaskConfig, maskCompositeCanvasRef);
                 }
 
             }
@@ -1664,7 +1411,9 @@ function VideoCanvasInner({
             return;
         }
 
-        const has3DEffect = zoomState.perspective > 0 && (zoomState.rotateX !== 0 || zoomState.rotateY !== 0);
+        const motionHasTilt = !!mockupMotionForFrame && (mockupMotionForFrame.rotateX !== 0 || mockupMotionForFrame.rotateY !== 0);
+        const has3DEffect =
+            (zoomState.perspective > 0 && (zoomState.rotateX !== 0 || zoomState.rotateY !== 0)) || motionHasTilt;
         const hasZoom = zoomState.scale !== 1;
 
         let focusPxX = 0, focusPxY = 0;
@@ -1672,10 +1421,7 @@ function VideoCanvasInner({
             focusPxX = (zoomState.focusX / 100) * canvasWidth;
             focusPxY = (zoomState.focusY / 100) * canvasHeight;
         }
-
-        // Find target scale from the active/previous zoom fragment.
-        // We need S_target to compute the pivot point that gives identity at S=1
-        // and pins the focus to the canvas center at S=S_target.
+      
         const activeFragment = zoomFragments.find(
             f => frameTime >= f.startTime && frameTime <= f.endTime
         ) ?? zoomFragments
@@ -1732,7 +1478,7 @@ function VideoCanvasInner({
 
         ctx.save();
         applyVideoZoom(ctx);
-        await renderCanvasElements(ctx, canvasElements, canvasWidth, canvasHeight, true);
+        await renderCanvasElements(ctx, canvasElements, canvasWidth, canvasHeight, true, svgImageCacheRef.current, elementImagesRef.current);
         ctx.restore();
 
         await drawCameraOverlayToCtx(ctx, canvasWidth, canvasHeight, cameraVideoRef.current, videoRef.current, cameraConfig);
@@ -1743,16 +1489,21 @@ function VideoCanvasInner({
             fgCtx.save();
             fgCtx.translate(fgOffsetX, fgOffsetY);
             if (!imagePhoneActive) {
-                drawMockupAndMedia(fgCtx, containerX, containerY, containerWidth, containerHeight, video!, false, true);
+                drawMockupAndMedia(fgCtx, containerX, containerY, containerWidth, containerHeight, video!, false, true, mockupDrawCtx);
             }
             fgCtx.restore();
-            applyPerspective3D(fgCanvas, zoomState.rotateX, zoomState.rotateY, zoomState.perspective / BLEED_FACTOR);
+            applyPerspective3D(
+                fgCanvas,
+                zoomState.rotateX + (mockupMotionForFrame?.rotateX ?? 0),
+                zoomState.rotateY + (mockupMotionForFrame?.rotateY ?? 0),
+                (zoomState.perspective || mockupMotionForFrame?.perspectivePx || 900) / BLEED_FACTOR,
+            );
             ctx.save();
             applyVideoZoom(ctx);
             ctx.drawImage(fgCanvas, -fgOffsetX, -fgOffsetY, fgWidth, fgHeight);
             ctx.restore();
             if (imagePhoneActive && imagePhoneCanvasRef.current) {
-                drawPhone3DCompositeWithZoom(ctx, canvasWidth, canvasHeight, frameTime, zoomState, highQuality, pivotX, pivotY);
+                drawPhone3DCompositeWithZoom(ctx, canvasWidth, canvasHeight, frameTime, zoomState, highQuality, pivotX, pivotY, phone3dCtx);
             }
         } else {
             const hasVideoMask = !!(videoMaskConfig?.enabled && (
@@ -1779,7 +1530,7 @@ function VideoCanvasInner({
                     vlCtx.imageSmoothingEnabled = true;
                     vlCtx.imageSmoothingQuality = 'high';
                     if (!imagePhoneActive) {
-                        drawMockupAndMedia(vlCtx, containerX, containerY, containerWidth, containerHeight, video!, false, false);
+                        drawMockupAndMedia(vlCtx, containerX, containerY, containerWidth, containerHeight, video!, false, false, mockupDrawCtx);
                     }
 
                     const vm = videoMaskConfig!;
@@ -1865,7 +1616,7 @@ function VideoCanvasInner({
                     ctx.restore();
                 }
                 if (imagePhoneActive && imagePhoneCanvasRef.current) {
-                    drawPhone3DCompositeWithZoom(ctx, canvasWidth, canvasHeight, frameTime, zoomState, highQuality, pivotX, pivotY);
+                    drawPhone3DCompositeWithZoom(ctx, canvasWidth, canvasHeight, frameTime, zoomState, highQuality, pivotX, pivotY, phone3dCtx);
 
                 }
 
@@ -1873,12 +1624,12 @@ function VideoCanvasInner({
                 ctx.save();
                 applyVideoZoom(ctx);
                 if (!imagePhoneActive) {
-                    drawMockupAndMedia(ctx, containerX, containerY, containerWidth, containerHeight, video!, false, false);
+                    drawMockupAndMedia(ctx, containerX, containerY, containerWidth, containerHeight, video!, false, false, mockupDrawCtx);
                 }
                 ctx.restore();
 
                 if (imagePhoneActive && imagePhoneCanvasRef.current) {
-                    drawPhone3DCompositeWithZoom(ctx, canvasWidth, canvasHeight, frameTime, zoomState, highQuality, pivotX, pivotY);
+                    drawPhone3DCompositeWithZoom(ctx, canvasWidth, canvasHeight, frameTime, zoomState, highQuality, pivotX, pivotY, phone3dCtx);
 
                 }
             }
@@ -1886,105 +1637,16 @@ function VideoCanvasInner({
 
         ctx.save();
         applyVideoZoom(ctx);
-        await renderCanvasElements(ctx, canvasElements, canvasWidth, canvasHeight, false);
+        await renderCanvasElements(ctx, canvasElements, canvasWidth, canvasHeight, false, svgImageCacheRef.current, elementImagesRef.current);
         ctx.restore();
 
         await drawCameraOverlayToCtx(ctx, canvasWidth, canvasHeight, cameraVideoRef.current, videoRef.current, cameraConfig);
     };
 
-    const drawPhone3DCompositeWithZoom = (
-        c: CanvasRenderingContext2D,
-        canvasWidth: number,
-        canvasHeight: number,
-        _frameTime: number,
-        zs: { scale: number; focusX: number; focusY: number },
-        highQuality: boolean,
-        pivotX: number,
-        pivotY: number,
-    ) => {
-        const phoneGL = imagePhoneCanvasRef.current!;
-        const domW = canvasDimensions?.width ?? canvasWidth;
-        const pxScale = canvasWidth / domW;
-        const zScale = zs.scale;
-
-        const centerX = canvasWidth / 2;
-        const centerY = canvasHeight / 2;
-
-        const measuredDims = imagePhoneApiRef.current?.getVisualSize?.();
-        const deviceDims = measuredDims ?? DEVICE_3D_DIMENSIONS[imagePhoneDevice] ?? { width: PHONE_W, height: PHONE_H };
-
-        const visualOffsetY = (measuredDims?.offsetY ?? 0) * imagePhoneScale * pxScale;
-
-        const baseCx = centerX + imagePhoneX * pxScale;
-        const baseCy = centerY + imagePhoneY * pxScale + visualOffsetY;
-
-        const baseW = deviceDims.width * imagePhoneScale * pxScale;
-        const baseH = deviceDims.height * imagePhoneScale * pxScale;
-
-        // LA SOLUCIÓN CORREGIDA: 
-        // Usamos exactamente baseW y baseH. Como baseW ya multiplica por pxScale,
-        // ya tiene la resolución alta necesaria para la exportación.
-        // Si multiplicamos aquí, rompemos la cámara 3D o excedemos la memoria WebGL.
-        if (highQuality) {
-            imagePhoneApiRef.current?.renderAt(baseW, baseH);
-        }
-
-        c.save();
-
-        if (zScale !== 1) {
-            c.translate(pivotX, pivotY);
-            c.scale(zScale, zScale);
-            c.translate(-pivotX, -pivotY);
-        }
-
-        const hasBuiltInShadow = imagePhoneApiRef.current?.hasBuiltInShadow ?? false;
-
-        if (imagePhoneShadow > 0.01 && !hasBuiltInShadow) {
-            const sT = imagePhoneShadow * imagePhoneShadow;
-            const sBlur = sT * 60;
-            const sOpacity = sT * 0.7;
-            c.save();
-            c.globalAlpha = sOpacity;
-            c.filter = `blur(${Math.max(2, sBlur * 0.6) * pxScale}px)`;
-            c.beginPath();
-            c.ellipse(
-                baseCx,
-                baseCy + baseH / 2 + sBlur * 0.2 * pxScale,
-                baseW * (0.6 - sT * 0.1) / 2,
-                Math.max(4, sBlur * 0.55) * pxScale / 2,
-                0, 0, Math.PI * 2
-            );
-            c.fillStyle = imagePhoneShadowColor;
-            c.fill();
-            c.restore();
-        }
-
-        if (imagePhoneShadow > 0.01) {
-            c.shadowColor = imagePhoneShadowColor;
-            c.shadowBlur = 28 * imagePhoneShadow * pxScale;
-            c.shadowOffsetX = 0;
-            c.shadowOffsetY = 18 * imagePhoneShadow * pxScale;
-        }
-
-        drawMaskedImage(c, phoneGL, baseCx - baseW / 2, baseCy - baseH / 2, baseW, baseH, effectivePhoneMaskConfig);
-
-        if (imagePhoneShadow > 0.01) {
-            c.shadowColor = "transparent";
-            c.shadowBlur = 0;
-            c.shadowOffsetY = 0;
-        }
-
-        c.restore();
-
-        if (highQuality) {
-            imagePhoneApiRef.current?.restorePreview();
-        }
-    };
     const [activeVideoElement, setActiveVideoElement] = useState<HTMLVideoElement | null>(null);
-
     useEffect(() => {
         setActiveVideoElement(mediaType === "video" ? videoRef.current : null);
-    }, [mediaType, videoRef, videoUrl]);
+    }, [mediaType, videoRef, videoUrl, mockupId, activeClipUrl, imagePhoneActive]);
 
     useImperativeHandle(ref, () => ({
         getExportCanvas: () => exportCanvasRef.current,
@@ -2428,52 +2090,28 @@ function VideoCanvasInner({
                                                         ...(mockupBoxSize
                                                             ? { width: `${mockupBoxSize.width}px`, height: `${mockupBoxSize.height}px` }
                                                             : { width: '100%', height: '100%' }),
+                                                        perspective:
+                                                            hasMockup2DMotion && mockupMotionPreview.perspectivePx > 0
+                                                                ? `${mockupMotionPreview.perspectivePx}px`
+                                                                : undefined,
                                                     }}
                                                 >
-                                                    {isVideoSelected && videoHoverCorner && hasMedia && onVideoTransformChange && !isDraggingVideo && (
-                                                        <div
-                                                            data-rotation-handle
-                                                            style={getCornerStyle(videoHoverCorner, -20)}
-                                                            onMouseDown={(e) => {
-                                                                e.preventDefault();
-                                                                e.stopPropagation();
-                                                                const container = videoContainerRef.current;
-                                                                if (!container) return;
-                                                                const rect = container.getBoundingClientRect();
-                                                                const centerX = rect.left + rect.width / 2;
-                                                                const centerY = rect.top + rect.height / 2;
-                                                                rotationCenterRef.current = { x: centerX, y: centerY };
-                                                                rotationStartAngleRef.current = Math.atan2(e.clientY - centerY, e.clientX - centerX) * (180 / Math.PI);
-                                                                setIsDraggingRotation(true);
-                                                                dragStartPos.current = {
-                                                                    x: e.clientX,
-                                                                    y: e.clientY,
-                                                                    initialRotation: videoTransform.rotation,
-                                                                    initialTranslateX: videoTransform.translateX,
-                                                                    initialTranslateY: videoTransform.translateY,
-                                                                };
-                                                            }}
-                                                        >
-                                                            <div style={{
-                                                                transform: `scale(${mediaType === "image" && imageTransform && !apply3DToBackground
-                                                                    ? 1 / (imageTransform.scale * imageZoomScale)
-                                                                    : 1
-                                                                    })`,
-                                                                transformOrigin: "center center"
-                                                            }}>
-                                                                <RotationHandleIcon corner={videoHoverCorner} color="#e5e7eb" />
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                    {(isVideoSelected || isVideoHovered) && hasMedia && !isDraggingRotation && !imagePhoneActive && (
-                                                        <div
-                                                            className={`absolute -inset-px border pointer-events-none z-10 opacity-80 ${isVideoSelected ? 'border-blue-500' : 'border-white'}`}
-                                                            style={{ borderRadius: `${getMockupOuterRadius(mockupId, roundedCorners) + 1}px` }}
-                                                        />
-                                                    )}
-
                                                     <div
                                                         className="w-full h-full"
+                                                        style={
+                                                            hasMockup2DMotion
+                                                                ? {
+                                                                    transform: buildMockupMotionCss(mockupMotionPreview),
+                                                                    transformStyle: "preserve-3d",
+                                                                    transformOrigin: "center center",
+                                                                    opacity: mockupMotionPreview.opacity,
+                                                                    filter:
+                                                                        mockupMotionPreview.blurPx > 0.4
+                                                                            ? `blur(${mockupMotionPreview.blurPx}px)`
+                                                                            : undefined,
+                                                                }
+                                                                : undefined
+                                                        }
                                                     >
                                                         <MockupWrapper
                                                             mockupId={mockupId}
@@ -2484,6 +2122,57 @@ function VideoCanvasInner({
                                                         >
                                                             {mockupChildren}
                                                         </MockupWrapper>
+
+                                                        {(isVideoSelected || isVideoHovered) && hasMedia && !isDraggingRotation && !imagePhoneActive && (
+                                                            <div
+                                                                className={`absolute -inset-px border pointer-events-none z-10 opacity-80 ${isVideoSelected ? "border-blue-500" : "border-white"
+                                                                    }`}
+                                                                style={{ borderRadius: `${getMockupOuterRadius(mockupId, roundedCorners) + 1}px` }}
+                                                            />
+                                                        )}
+
+                                                        {isVideoSelected && videoHoverCorner && hasMedia && onVideoTransformChange && !isDraggingVideo && (
+                                                            <div
+                                                                data-rotation-handle
+                                                                style={getCornerStyle(videoHoverCorner, -20)}
+                                                                onMouseDown={(e) => {
+                                                                    e.preventDefault();
+                                                                    e.stopPropagation();
+                                                                    const container = videoContainerRef.current;
+                                                                    if (!container) return;
+                                                                    const rect = container.getBoundingClientRect();
+                                                                    const centerX = rect.left + rect.width / 2;
+                                                                    const centerY = rect.top + rect.height / 2;
+                                                                    rotationCenterRef.current = { x: centerX, y: centerY };
+                                                                    rotationStartAngleRef.current = Math.atan2(e.clientY - centerY, e.clientX - centerX) * (180 / Math.PI);
+                                                                    setIsDraggingRotation(true);
+                                                                    dragStartPos.current = {
+                                                                        x: e.clientX,
+                                                                        y: e.clientY,
+                                                                        initialRotation: videoTransform.rotation,
+                                                                        initialTranslateX: videoTransform.translateX,
+                                                                        initialTranslateY: videoTransform.translateY,
+                                                                    };
+                                                                }}
+                                                            >
+                                                                <div
+                                                                    style={{
+                                                                        transform: [
+                                                                            `scale(${(mediaType === "image" && imageTransform && !apply3DToBackground
+                                                                                ? 1 / (imageTransform.scale * imageZoomScale)
+                                                                                : 1) * (hasMockup2DMotion && mockupMotionPreview.scale > 0 ? 1 / mockupMotionPreview.scale : 1)
+                                                                            })`,
+                                                                            hasMockup2DMotion
+                                                                                ? `rotateZ(${-mockupMotionPreview.rotateZ}deg) rotateY(${-mockupMotionPreview.rotateY}deg) rotateX(${-mockupMotionPreview.rotateX}deg)`
+                                                                                : "",
+                                                                        ].filter(Boolean).join(" "),
+                                                                        transformOrigin: "center center",
+                                                                    }}
+                                                                >
+                                                                    <RotationHandleIcon corner={videoHoverCorner} color="#e5e7eb" />
+                                                                </div>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </div>

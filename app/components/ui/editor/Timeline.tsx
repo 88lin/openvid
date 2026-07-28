@@ -10,6 +10,7 @@ import { AudioFragmentTrackItem } from "./AudioFragmentTrackItem";
 import { VideoClipTrackItem } from "./VideoClipTrackItem";
 import { Icon } from "@iconify/react";
 import { useTranslations } from "next-intl";
+import { MockupMotionTrackItem } from "./MockupMotionTrackItem";
 
 const DEFAULT_ZOOM_FRAGMENT_DURATION = 2;
 
@@ -40,6 +41,12 @@ export function Timeline({
     selectedAudioTrackId,
     onSelectAudioTrack,
     onUpdateAudioTrack,
+    mockupMotionFragments = [],
+    selectedMockupMotionFragmentId,
+    onSelectMockupMotionFragment,
+    onUpdateMockupMotionFragment,
+    onDeleteMockupMotionFragment,
+    onActivateMotionTool,
     globalSpeed = 1,
     isPlaying = false,
     onZoomChange,
@@ -362,9 +369,18 @@ export function Timeline({
 
     return (
         <div ref={containerRef} className="flex flex-col w-full pr-2">
-            <div className="h-38 shrink-0 bg-[#0D0D11] border-t border-white/10 flex flex-col font-mono text-[11px]">
+            <div className={`${(audioTracks.length > 0 && mockupMotionFragments.length > 0)
+                    ? 'h-64'
+                    : (audioTracks.length > 0 || mockupMotionFragments.length > 0)
+                        ? 'h-50'
+                        : 'h-38'
+                } shrink-0 bg-[#0D0D11] border-t border-white/10 flex flex-col font-mono text-[11px]`}>
+
                 <div className="flex-1 flex flex-col relative overflow-hidden">
-                    <LabelSidebar audioTracksCount={audioTracks.length} />
+                    <LabelSidebar
+                        audioTracksCount={audioTracks.length}
+                        motionTracksCount={mockupMotionFragments.length}
+                    />
 
                     <div
                         ref={trackRef}
@@ -411,7 +427,7 @@ export function Timeline({
                             </motion.div>
 
                             <div
-                                className="h-[22px] border-b border-white/10 relative shrink-0 cursor-pointer bg-zinc-900/40 select-none overflow-hidden"
+                                className="h-[18px] border-b border-white/10 relative shrink-0 cursor-pointer bg-zinc-900/40 select-none overflow-hidden"
                                 onClick={handleTrackClick}
                             >
                                 <div
@@ -549,7 +565,7 @@ export function Timeline({
                                 </div>
 
                                 <div
-                                    className="h-[55px] shrink-0 w-full flex items-center relative"
+                                    className="min-h-[55px] shrink-0 w-full flex items-center relative"
                                     onMouseMove={(e) => {
                                         if (isDraggingZoomFragment) return;
                                         const rect = e.currentTarget.getBoundingClientRect();
@@ -603,7 +619,7 @@ export function Timeline({
                                         ))}
                                         {ghostState?.validPosition && (
                                             <motion.div
-                                                className="absolute top-[10%] h-[80%] pointer-events-none"
+                                                className="absolute top-[5%] h-[90%] pointer-events-none"
                                                 initial={false}
                                                 animate={{
                                                     left: (ghostState.validPosition.startTime / scaledDuration) * contentWidth,
@@ -631,7 +647,7 @@ export function Timeline({
                                 </div>
 
                                 {audioTracks.length > 0 && (
-                                    <div className="h-[55px] shrink-0 w-full flex items-center relative">
+                                    <div className="min-h-[55px] shrink-0 w-full flex items-center relative">
                                         <div className="h-full w-full flex items-center relative">
                                             {audioTracks.map((track) => {
                                                 const audio = uploadedAudios?.find(a => a.id === track.audioId);
@@ -651,6 +667,35 @@ export function Timeline({
                                                     />
                                                 );
                                             })}
+                                        </div>
+                                    </div>
+                                )}
+                                {mockupMotionFragments.length > 0 && (
+                                    <div
+                                        className="min-h-[55px] shrink-0 w-full flex items-center relative"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            onSelectMockupMotionFragment?.(null);
+                                        }}
+                                    >
+                                        <div className="h-full w-full relative">
+                                            {mockupMotionFragments.map((fragment) => (
+                                                <MockupMotionTrackItem
+                                                    key={fragment.id}
+                                                    fragment={fragment}
+                                                    isSelected={fragment.id === selectedMockupMotionFragmentId}
+                                                    contentWidth={contentWidth}
+                                                    videoDuration={scaledDuration}
+                                                    contentDuration={validDuration}
+                                                    otherFragments={mockupMotionFragments.filter((f) => f.id !== fragment.id)}
+                                                    onSelect={() => {
+                                                        onSelectMockupMotionFragment?.(fragment.id);
+                                                        onActivateMotionTool?.();
+                                                    }}
+                                                    onUpdate={(updates) => onUpdateMockupMotionFragment?.(fragment.id, updates)}
+                                                    onDelete={() => onDeleteMockupMotionFragment?.(fragment.id)}
+                                                />
+                                            ))}
                                         </div>
                                     </div>
                                 )}

@@ -174,16 +174,13 @@ export function EditorTopBar({
                     <DropdownMenu.Root>
                         <DropdownMenu.Trigger asChild>
                             <button
-                                className="flex items-center gap-2 pl-2 border-white/10 hover:opacity-80 transition-opacity focus:outline-none"
+                                className="flex items-center gap-1.5 px-2 border-white/10 hover:opacity-80 transition-opacity focus:outline-none"
                                 aria-label={t("auth.userMenu")}
                             >
-                                <div className="hidden sm:flex flex-col items-end leading-none">
-                                    <span className="text-[11px] font-medium text-white max-w-20 truncate">{displayName}</span>
-                                    <span className="text-[11px] text-neutral-500 max-w-30 truncate">{user.email}</span>
-                                </div>
                                 <div className="h-8 w-8 rounded-full border border-white/10 bg-neutral-900 overflow-hidden shrink-0 relative">
                                     <Image src={avatarUrl} alt={displayName} fill sizes="32px" className="object-cover" unoptimized />
                                 </div>
+                                <Icon icon="mdi:chevron-down" width="16" className="text-white/70" />
                             </button>
                         </DropdownMenu.Trigger>
 
