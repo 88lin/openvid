@@ -128,7 +128,7 @@ export function MotionMenu({
       </div>
 
       {selectedFragment && (
-        <div className="flex flex-col gap-4 pt-4 border-t border-white/5">
+        <div className="flex flex-col gap-4">
           <SliderControl
             icon="mdi:tune-variant"
             label={t("controls.intensity")}
