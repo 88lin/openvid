@@ -219,7 +219,7 @@ export function VideoClipTrackItem({
     return (
         <motion.div
             ref={containerRef}
-            className={`absolute top-0 bottom-0 rounded-md cursor-grab active:cursor-grabbing overflow-hidden group transition-colors duration-200 ${isSelected ? 'ring-[1.5px] ring-[#4ade80] shadow-[0_0_12px_rgba(74,222,128,0.3)] z-10' : ''
+            className={`absolute top-0 bottom-0 rounded-md cursor-grab active:cursor-grabbing overflow-hidden group transition-colors duration-200 ${isSelected ? 'ring-[1px] ring-[#4ade80] shadow-[0_0_12px_rgba(74,222,128,0.3)] z-10' : ''
                 } ${isInteracting ? 'z-10' : 'z-0'}`}
             style={{
                 x: clipX,

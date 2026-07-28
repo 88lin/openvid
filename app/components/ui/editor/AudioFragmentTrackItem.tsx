@@ -160,7 +160,7 @@ export function AudioFragmentTrackItem({
     return (
         <motion.div
             ref={containerRef}
-            className={`absolute h-[95%] top-[5%] rounded-md flex items-center border transition-shadow select-none
+            className={`absolute h-[95%] top-[5%] rounded-md flex items-center border transition-shadow select-none focus:outline-none
                 ${isSelected || isInteracting
                     ? 'bg-violet-500/30 border-violet-400/70 shadow-[0_0_10px_rgba(139,92,246,0.3)] z-10'
                     : 'bg-violet-600/20 border-violet-500/35 hover:border-violet-500/60'

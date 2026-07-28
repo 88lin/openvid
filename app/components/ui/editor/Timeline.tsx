@@ -392,7 +392,7 @@ export function Timeline({
                             style={{ width: timelineWidth > 0 ? timelineWidth : '100%', minWidth: '100%' }}
                         >
                             <motion.div
-                                className="absolute top-0 bottom-0 z-20 flex flex-col items-center cursor-ew-resize group select-none"
+                                className="absolute top-0 bottom-0 z-20 flex flex-col items-center cursor-ew-resize group select-none focus:outline-none"
                                 style={{ x: playheadX, translateX: "-50%" }}
                                 role="slider"
                                 aria-label={`Playhead at ${formatTime(currentTime)}`}

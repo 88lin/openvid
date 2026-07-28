@@ -20,10 +20,10 @@ interface ExtendedToolsSidebarProps extends ToolsSidebarProps {
     selectedElementId?: string | null;
     newVideosCount?: number;
     editorMode?: EditorMode;
-    // Photo mode props
     onImageUpload?: (file: File) => void;
     onScreenCapture?: () => void;
     isCapturing?: boolean;
+    hasCamera?: boolean;
 }
 
 export function ToolsSidebar({
@@ -31,17 +31,16 @@ export function ToolsSidebar({
     onToolChange,
     onVideoUpload,
     isUploading = false,
-    isCursorEnabled = false,
     selectedZoomFragmentId,
     selectedAudioTrackId,
     selectedVideoClipId,
     selectedElementId,
     newVideosCount = 0,
     editorMode = "video",
-    // Photo mode props
     onImageUpload,
     onScreenCapture,
     isCapturing = false,
+    hasCamera = false,
 }: ExtendedToolsSidebarProps) {
     const t = useTranslations("toolsSidebar");
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -51,13 +50,14 @@ export function ToolsSidebar({
     const videosToolRef = useRef<HTMLButtonElement>(null);
     const cameraToolRef = useRef<HTMLButtonElement>(null);
     const elementsToolRef = useRef<HTMLButtonElement>(null);
+
     const [isDragging, setIsDragging] = useState(false);
     const [isImageDragging, setIsImageDragging] = useState(false);
+
     const { startCountdown, isIdle, isRecording, isCountdown, isProcessing } = useRecording();
     const [showMobileAlert, setShowMobileAlert] = useState(false);
     const [setupDialogOpen, setSetupDialogOpen] = useState(false);
 
-    // Determine if we're in photo mode to hide video-specific tools
     const isPhotoMode = editorMode === "photo";
 
     useEffect(() => {
@@ -108,7 +108,6 @@ export function ToolsSidebar({
         fileInputRef.current?.click();
     };
 
-    // Photo mode handlers
     const handleImageFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file && onImageUpload) {
@@ -235,7 +234,6 @@ export function ToolsSidebar({
             >
                 <div className="flex flex-col gap-4 w-full overflow-y-auto px-2 custom-scrollbar mask-y-from-85% mask-y-to-99%">
                     <div className="shrink-0 h-12" aria-hidden="true" />
-
                     <SidebarTool
                         icon="solar:gallery-wide-linear"
                         label={t("tools.background")}
@@ -247,7 +245,6 @@ export function ToolsSidebar({
                             videoSrc: "/videos/preview-background.mp4"
                         }}
                     />
-
                     <SidebarTool
                         icon="hugeicons:ai-browser"
                         label={t("tools.mockup")}
@@ -262,37 +259,47 @@ export function ToolsSidebar({
                         badgeStyle="premium"
                     />
 
-                     {!isPhotoMode && (
-                        <SidebarTool
-                            icon="mage:box-3d"
-                            label={t("tools.motion")}
-                            isActive={activeTool === "motion"}
-                            onClick={() => onToolChange("motion")}
-                            popover={{
-                                title: t("popovers.motion.title"),
-                                description: t("popovers.motion.description"),
-                                videoSrc: "/videos/preview-motion.mp4"
-                            }}
-                            badge={t("tools.newTool")}
-                            badgeStyle="premium"
-                        />
-                    )}
-
-                    {/* Video-specific tools - hidden in photo mode */}
                     {!isPhotoMode && (
-                        <SidebarTool
-                            icon="solar:video-library-outline"
-                            label={t("tools.videos")}
-                            isActive={activeTool === "video"}
-                            onClick={() => onToolChange("video")}
-                            ref={videosToolRef}
-                            badgeCount={newVideosCount}
-                            popover={{
-                                title: t("popovers.videos.title"),
-                                description: t("popovers.videos.description"),
-                                videoSrc: "/videos/preview-videos.mp4"
-                            }}
-                        />
+                        <>
+                            <SidebarTool
+                                icon="mage:box-3d"
+                                label={t("tools.motion")}
+                                isActive={activeTool === "motion"}
+                                onClick={() => onToolChange("motion")}
+                                popover={{
+                                    title: t("popovers.motion.title"),
+                                    description: t("popovers.motion.description"),
+                                    videoSrc: "/videos/preview-motion.mp4"
+                                }}
+                                badge={t("tools.newTool")}
+                                badgeStyle="premium"
+                            />
+                            <SidebarTool
+                                icon="iconamoon:zoom-in-bold"
+                                label={t("tools.zoom")}
+                                isActive={activeTool === "zoom"}
+                                onClick={() => onToolChange("zoom")}
+                                ref={zoomToolRef}
+                                popover={{
+                                    title: t("popovers.zoom.title"),
+                                    description: t("popovers.zoom.description"),
+                                    videoSrc: "/videos/preview-zoom.mp4"
+                                }}
+                            />
+                            <SidebarTool
+                                icon="solar:video-library-outline"
+                                label={t("tools.videos")}
+                                isActive={activeTool === "video"}
+                                onClick={() => onToolChange("video")}
+                                ref={videosToolRef}
+                                badgeCount={newVideosCount}
+                                popover={{
+                                    title: t("popovers.videos.title"),
+                                    description: t("popovers.videos.description"),
+                                    videoSrc: "/videos/preview-videos.mp4"
+                                }}
+                            />
+                        </>
                     )}
 
                     <SidebarTool
@@ -306,14 +313,14 @@ export function ToolsSidebar({
                             videoSrc: "/videos/preview-elements.mp4"
                         }}
                         icon={
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="transition-colors duration-200" >
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="transition-colors duration-200">
                                 <path d="M11 13.5V21.5H3V13.5H11ZM9 15.5H5V19.5H9V15.5ZM12 2L17.5 11H6.5L12 2ZM12 5.86L10.08 9H13.92L12 5.86Z" fill="currentColor" stroke="currentColor" strokeWidth="0.2" />
                                 <path fillRule="evenodd" clipRule="evenodd" d="M13.7667 13.8246C13.7667 13.6323 13.8431 13.4479 13.9791 13.312C14.115 13.176 14.2994 13.0996 14.4917 13.0996H20.2917C20.484 13.0996 20.6684 13.176 20.8044 13.312C20.9403 13.4479 21.0167 13.6323 21.0167 13.8246V14.7913C21.0167 14.9836 20.9403 15.168 20.8044 15.3039C20.6684 15.4399 20.484 15.5163 20.2917 15.5163C20.0994 15.5163 19.915 15.4399 19.7791 15.3039C19.6431 15.168 19.5667 14.9836 19.5667 14.7913V14.5496H18.1167V20.3496H18.3584C18.5507 20.3496 18.7351 20.426 18.871 20.562C19.007 20.6979 19.0834 20.8823 19.0834 21.0746C19.0834 21.2669 19.007 21.4513 18.871 21.5873C18.7351 21.7232 18.5507 21.7996 18.3584 21.7996H16.4251C16.2328 21.7996 16.0484 21.7232 15.9124 21.5873C15.7764 21.4513 15.7001 21.2669 15.7001 21.0746C15.7001 20.8823 15.7764 20.6979 15.9124 20.562C16.0484 20.426 16.2328 20.3496 16.4251 20.3496H16.6667V14.5496H15.2167V14.7913C15.2167 14.9836 15.1403 15.168 15.0044 15.3039C14.8684 15.4399 14.684 15.5163 14.4917 15.5163C14.2994 15.5163 14.115 15.4399 13.9791 15.3039C13.8431 15.168 13.7667 14.9836 13.7667 14.7913V13.8246Z" fill="currentColor" stroke="currentColor" strokeWidth="0.5" />
                             </svg>
                         }
                     />
-                    {isPhotoMode && (
 
+                    {isPhotoMode && (
                         <SidebarTool
                             icon="material-symbols:history"
                             label={t("photo.library")}
@@ -341,32 +348,20 @@ export function ToolsSidebar({
                                     videoSrc: "/videos/preview-audio.mp4"
                                 }}
                             />
-
-                            <SidebarTool
-                                icon="iconamoon:zoom-in-bold"
-                                label={t("tools.zoom")}
-                                isActive={activeTool === "zoom"}
-                                onClick={() => onToolChange("zoom")}
-                                ref={zoomToolRef}
-                                popover={{
-                                    title: t("popovers.zoom.title"),
-                                    description: t("popovers.zoom.description"),
-                                    videoSrc: "/videos/preview-zoom.mp4"
-                                }}
-                            />
-
-                            <SidebarTool
-                                icon="solar:videocamera-record-bold-duotone"
-                                label={t("tools.camera")}
-                                isActive={activeTool === "camera"}
-                                onClick={() => onToolChange("camera")}
-                                ref={cameraToolRef}
-                                popover={{
-                                    title: t("popovers.camera.title"),
-                                    description: t("popovers.camera.description"),
-                                    videoSrc: "/videos/preview-camera.mp4"
-                                }}
-                            />
+                            {hasCamera && (
+                                <SidebarTool
+                                    icon="solar:videocamera-record-bold-duotone"
+                                    label={t("tools.camera")}
+                                    isActive={activeTool === "camera"}
+                                    onClick={() => onToolChange("camera")}
+                                    ref={cameraToolRef}
+                                    popover={{
+                                        title: t("popovers.camera.title"),
+                                        description: t("popovers.camera.description"),
+                                        videoSrc: "/videos/preview-camera.mp4"
+                                    }}
+                                />
+                            )}
                         </>
                     )}
                     <div className="shrink-0 h-12" aria-hidden="true" />
@@ -391,10 +386,12 @@ export function ToolsSidebar({
                             <button
                                 onClick={handleStartRecording}
                                 disabled={!isIdle}
-                                className={`w-full flex flex-col items-center text-center justify-center gap-1.5 p-2 rounded-xl cursor-pointer transition-all group border-2 border-transparent disabled:cursor-not-allowed ${!isIdle ? "opacity-70" : "hover:bg-red-500/10"}`}
+                                className={`w-full flex flex-col items-center text-center justify-center gap-1.5 p-2 rounded-xl cursor-pointer transition-all group border-2 border-transparent disabled:cursor-not-allowed ${!isIdle ? "opacity-70" : "hover:bg-red-500/10"
+                                    }`}
                             >
                                 <Icon icon={recordButtonContent.icon} width="24" height="24" className={`transition-colors ${recordButtonContent.className}`} />
-                                <span className={`text-xs font-medium transition-colors ${!isIdle ? recordButtonContent.className : "text-white/70 group-hover:text-red-400"}`}>
+                                <span className={`text-xs font-medium transition-colors ${!isIdle ? recordButtonContent.className : "text-white/70 group-hover:text-red-400"
+                                    }`}>
                                     {recordButtonContent.text}
                                 </span>
                             </button>
@@ -404,7 +401,10 @@ export function ToolsSidebar({
                             <button
                                 onClick={handleUploadClick}
                                 disabled={isUploading}
-                                className={`w-full flex flex-col items-center text-center justify-center gap-1.5 p-2 rounded-xl cursor-pointer transition-all group disabled:opacity-50 disabled:cursor-not-allowed border-2 ${isDragging ? "bg-blue-500/20 text-blue-400 border-dashed border-blue-400/50 scale-105" : "border-transparent text-white/70 hover:bg-blue-500/20 hover:text-blue-400"}`}
+                                className={`w-full flex flex-col items-center text-center justify-center gap-1.5 p-2 rounded-xl cursor-pointer transition-all group disabled:opacity-50 disabled:cursor-not-allowed border-2 ${isDragging
+                                    ? "bg-blue-500/20 text-blue-400 border-dashed border-blue-400/50 scale-105"
+                                    : "border-transparent text-white/70 hover:bg-blue-500/20 hover:text-blue-400"
+                                    }`}
                                 aria-label={isUploading ? t("upload.buttonUploading") : t("upload.button")}
                             >
                                 {isUploading ? (
@@ -446,7 +446,8 @@ export function ToolsSidebar({
                             <button
                                 onClick={onScreenCapture}
                                 disabled={isCapturing}
-                                className={`w-full flex flex-col items-center text-center justify-center gap-1.5 p-2 rounded-xl cursor-pointer transition-all group border-2 border-transparent disabled:cursor-not-allowed ${isCapturing ? "opacity-70" : "hover:bg-cyan-500/10"}`}
+                                className={`w-full flex flex-col items-center text-center justify-center gap-1.5 p-2 rounded-xl cursor-pointer transition-all group border-2 border-transparent disabled:cursor-not-allowed ${isCapturing ? "opacity-70" : "hover:bg-cyan-500/10"
+                                    }`}
                                 aria-label={isCapturing ? t("photo.capturing") : t("photo.capture")}
                             >
                                 <Icon
@@ -456,7 +457,8 @@ export function ToolsSidebar({
                                     height="24"
                                     className={`transition-colors ${isCapturing ? "text-cyan-400" : "text-white/70 group-hover:text-cyan-400"}`}
                                 />
-                                <span className={`text-xs font-medium transition-colors ${isCapturing ? "text-cyan-400" : "text-white/70 group-hover:text-cyan-400"}`}>
+                                <span className={`text-xs font-medium transition-colors ${isCapturing ? "text-cyan-400" : "text-white/70 group-hover:text-cyan-400"
+                                    }`}>
                                     {isCapturing ? t("photo.capturing") : t("photo.capture")}
                                 </span>
                             </button>
@@ -466,7 +468,10 @@ export function ToolsSidebar({
                             <button
                                 onClick={handleImageUploadClick}
                                 disabled={isUploading}
-                                className={`w-full flex flex-col items-center text-center justify-center gap-1.5 p-2 rounded-xl cursor-pointer transition-all group disabled:opacity-50 disabled:cursor-not-allowed border-2 ${isImageDragging ? "bg-blue-500/20 text-blue-400 border-dashed border-blue-400/50 scale-105" : "border-transparent text-white/70 hover:bg-blue-500/20 hover:text-blue-400"}`}
+                                className={`w-full flex flex-col items-center text-center justify-center gap-1.5 p-2 rounded-xl cursor-pointer transition-all group disabled:opacity-50 disabled:cursor-not-allowed border-2 ${isImageDragging
+                                    ? "bg-blue-500/20 text-blue-400 border-dashed border-blue-400/50 scale-105"
+                                    : "border-transparent text-white/70 hover:bg-blue-500/20 hover:text-blue-400"
+                                    }`}
                             >
                                 {isUploading ? (
                                     <>

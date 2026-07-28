@@ -8,6 +8,7 @@ import type { ZoomFragmentEditorProps } from "@/types/zoom.types";
 import { formatZoomTime, zoomLevelToFactor, speedToTransitionMs, calculateHoldDuration } from "@/types/zoom.types";
 import { TooltipAction } from "@/components/ui/tooltip-action";
 import { DetailPageHeader } from "@/components/ui/DetailHeaderMenu";
+import { Toggle } from "@/components/ui/toggle";
 
 export function ZoomFragmentEditor({
     fragment, videoUrl, videoThumbnail, currentTime = 0,
@@ -198,9 +199,11 @@ export function ZoomFragmentEditor({
                                 <p className="text-[11px] text-white/40">{t("movement.subtitle")}</p>
                             </div>
                         </div>
-                        <button onClick={handleToggleMovement} className={`relative w-11 h-6 rounded-full transition-colors ${movementEnabled ? 'bg-emerald-500' : 'bg-white/15'}`}>
-                            <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${movementEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
-                        </button>
+                        <Toggle
+                            checked={movementEnabled ?? false}
+                            onChange={handleToggleMovement}
+                            activeColor="bg-emerald-500"
+                        />
                     </div>
 
                     {movementEnabled && (() => {
@@ -318,9 +321,11 @@ export function ZoomFragmentEditor({
                                     <p className="text-[11px] text-white/40">{tCommon("effect3d.subtitle")}</p>
                                 </div>
                             </div>
-                            <button onClick={handleToggle3D} className={`relative w-11 h-6 rounded-full transition-colors ${fragment.enable3D ? 'bg-gray-400' : 'bg-white/15'}`}>
-                                <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${fragment.enable3D ? 'translate-x-6' : 'translate-x-1'}`} />
-                            </button>
+                            <Toggle
+                                checked={fragment.enable3D ?? false}
+                                onChange={handleToggle3D}
+                                activeColor="bg-gray-400"
+                            />
                         </div>
 
                         {fragment.enable3D && (

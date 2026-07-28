@@ -147,7 +147,7 @@ export function MockupMotionTrackItem({
 
   return (
     <motion.div
-      className={`absolute h-[90%] top-[5%] rounded-md flex items-center border transition-shadow select-none ${isSelected || isInteracting
+      className={`absolute h-[90%] top-[5%] rounded-md flex items-center border transition-shadow select-none focus:outline-none ${isSelected || isInteracting
         ? "bg-orange-500/30 border-orange-400/70 shadow-[0_0_10px_rgba(251,146,60,0.35)] z-10"
         : "bg-orange-600/20 border-orange-500/35 hover:border-orange-500/60"
         } ${isDragging ? "cursor-grabbing" : "cursor-grab"}`}
