@@ -388,7 +388,6 @@ export default function Editor() {
 
     const handleSelectMockupMotionFragment = useCallback((id: string | null) => {
         setSelectedMockupMotionFragmentId(id);
-        // exclusividad mutua con las otras selecciones del timeline
         setSelectedZoomFragmentId(null);
         setSelectedAudioTrackId(null);
         setSelectedVideoClipId(null);
