@@ -28,7 +28,7 @@ const QUALITY_PRESETS: Record<ThumbnailQuality, number | null> = {
     native: null,
 };
 
-// Low quality preset for fast initial loading
+// Low quality preset for fastinitial loading
 const LOW_QUALITY_WIDTH = 480;
 
 export interface UseVideoThumbnailsReturn {
@@ -39,13 +39,6 @@ export interface UseVideoThumbnailsReturn {
     regenerate: () => void;
 }
 
-/**
- * Hook to generate high-quality video thumbnails for smooth scrubbing preview
- * Features:
- * - IndexedDB caching (doesn't regenerate if cached)
- * - Progressive loading (low quality first, then high quality)
- * - Background processing using requestIdleCallback
- */
 export function useVideoThumbnails(
     videoUrl: string | null,
     duration: number,
@@ -312,13 +305,22 @@ export function useVideoThumbnails(
         };
     }, [videoUrl, duration, videoId, generateThumbnails]);
 
+    const lowQualityThumbnailsRef = useRef<VideoThumbnail[]>([]);
+    const highQualityThumbnailsRef = useRef<VideoThumbnail[]>([]);
+
+    useEffect(() => {
+        lowQualityThumbnailsRef.current = lowQualityThumbnails;
+    }, [lowQualityThumbnails]);
+
+    useEffect(() => {
+        highQualityThumbnailsRef.current = highQualityThumbnails;
+    }, [highQualityThumbnails]);
+
     const getThumbnailForTime = useCallback((time: number): VideoThumbnail | null => {
         const findNearest = (thumbs: VideoThumbnail[]): VideoThumbnail | null => {
             if (thumbs.length === 0) return null;
-
             let left = 0;
             let right = thumbs.length - 1;
-
             while (left < right) {
                 const mid = Math.floor((left + right) / 2);
                 if (thumbs[mid].time < time) {
@@ -327,7 +329,6 @@ export function useVideoThumbnails(
                     right = mid;
                 }
             }
-
             if (left > 0) {
                 const prevDiff = Math.abs(thumbs[left - 1].time - time);
                 const currDiff = Math.abs(thumbs[left].time - time);
@@ -335,11 +336,13 @@ export function useVideoThumbnails(
                     return thumbs[left - 1];
                 }
             }
-
             return thumbs[left];
         };
 
-        const highThumb = findNearest(highQualityThumbnails);
+        const highThumbs = highQualityThumbnailsRef.current;
+        const lowThumbs = lowQualityThumbnailsRef.current;
+
+        const highThumb = findNearest(highThumbs);
         if (highThumb) {
             const timeDiff = Math.abs(highThumb.time - time);
             if (timeDiff <= interval * 1.5) {
@@ -347,16 +350,14 @@ export function useVideoThumbnails(
             }
         }
 
-        const lowThumb = findNearest(lowQualityThumbnails);
-
+        const lowThumb = findNearest(lowThumbs);
         if (highThumb && lowThumb) {
             const highDiff = Math.abs(highThumb.time - time);
             const lowDiff = Math.abs(lowThumb.time - time);
             return highDiff <= lowDiff ? highThumb : lowThumb;
         }
-
         return highThumb || lowThumb;
-    }, [lowQualityThumbnails, highQualityThumbnails, interval]);
+    }, [interval]);
 
     const regenerate = useCallback(() => {
         generateThumbnails(true);
