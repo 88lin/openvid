@@ -258,118 +258,116 @@ export function VideosMenu({
               )}
             </Button>
 
-            <AnimatePresence mode="popLayout">
-              {videos.map((video) => (
-                <motion.div
-                  key={video.id}
-                  layout
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, x: -20, scale: 0.95 }}
-                  className={`group relative rounded-lg border overflow-hidden transition-all duration-200 aspect-[16/10] w-full bg-[#000] ${videosInTrackIds.includes(video.id)
-                    ? "border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.15)]"
-                    : "border-neutral-800 hover:border-neutral-700"
-                    }`}
-                >
-                  <div
-                    className="absolute inset-0 w-full h-full cursor-pointer"
-                    onClick={() => {
-                      if (!addingId) {
-                        videosInTrackIds.includes(video.id)
-                          ? onRemoveFromTrack?.(video.id)
-                          : handleAddToTrack(video.id);
-                      }
-                    }}
-                  >
-                    {video.thumbnailUrl ? (
-                      <img
-                        src={video.thumbnailUrl}
-                        alt={video.fileName}
-                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-neutral-950">
-                        <Icon icon="solar:play-bold" width="32" className="text-neutral-800" />
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="absolute top-2 right-2 px-1.5 py-0.5 bg-black/80 border border-neutral-800 rounded text-[10px] font-mono text-neutral-400 z-10">
-                    {formatVideoDuration(video.duration)}
-                  </div>
-
-                  <div
-                    className={`absolute inset-0 flex items-center justify-center transition-opacity z-10 pointer-events-none ${videosInTrackIds.includes(video.id) || addingId === video.id
-                      ? "opacity-100"
-                      : "opacity-0 group-hover:opacity-100"
+            <div className="grid grid-cols-2 gap-3">
+              <AnimatePresence mode="popLayout">
+                {videos.map((video) => (
+                  <motion.div
+                    key={video.id}
+                    layout
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    className={`group flex flex-col rounded-lg border overflow-hidden transition-all duration-200 bg-neutral-950 w-full ${videosInTrackIds.includes(video.id)
+                      ? "border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.15)]"
+                      : "border-neutral-800 hover:border-neutral-700"
                       }`}
                   >
-                    {addingId === video.id ? (
-                      <div className="p-3 rounded-full bg-black/60 backdrop-blur-sm border border-neutral-800">
-                        <Icon icon="svg-spinners:ring-resize" width="24" className="text-white" />
-                      </div>
-                    ) : videosInTrackIds.includes(video.id) ? (
-                      <div className="p-2.5 rounded-full bg-blue-500/10 backdrop-blur-sm border border-blue-500/50">
-                        <Icon icon="solar:check-circle-bold" width="28" className="text-white" />
-                      </div>
-                    ) : (
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-[1px]">
-                        <div className="flex items-center gap-1 px-3 py-1 bg-white text-black rounded-full shadow-xl">
-                          <Icon icon="material-symbols:add-rounded" width="16" />
-                          <span className="text-[11px] font-bold">{t("actions.add")}</span>
+                    <div
+                      className="relative w-full aspect-video cursor-pointer overflow-hidden border-b border-neutral-800/50 bg-black"
+                      onClick={() => {
+                        if (!addingId) {
+                          videosInTrackIds.includes(video.id)
+                            ? onRemoveFromTrack?.(video.id)
+                            : handleAddToTrack(video.id);
+                        }
+                      }}
+                    >
+                      {video.thumbnailUrl ? (
+                        <img
+                          src={video.thumbnailUrl}
+                          alt="Video thumbnail"
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Icon icon="solar:play-bold" width="28" className="text-neutral-800" />
                         </div>
-                      </div>
-                    )}
-                  </div>
+                      )}
 
-                  <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-black via-black/80 to-transparent z-10 pointer-events-none" />
-
-                  <div className="absolute bottom-0 left-0 right-0 p-3 flex items-end justify-between gap-3 z-20">
-                    <div className="flex-1 min-w-0 flex flex-col gap-0.5">
-                      <p className="text-xs font-semibold text-white truncate drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]" title={video.fileName}>
-                        {video.fileName}
-                      </p>
-                      <div className="flex items-center gap-1.5 text-[10px] text-neutral-300 drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)] font-medium">
-                        <span>{formatFileSize(video.fileSize)}</span>
-                        <span>•</span>
-                        <span>{video.width}×{video.height}</span>
+                      <div
+                        className={`absolute inset-0 flex items-center justify-center transition-opacity z-10 pointer-events-none ${videosInTrackIds.includes(video.id) || addingId === video.id
+                          ? "opacity-100"
+                          : "opacity-0 group-hover:opacity-100"
+                          }`}
+                      >
+                        {addingId === video.id ? (
+                          <div className="p-2.5 rounded-full bg-black/60 backdrop-blur-sm border border-neutral-800">
+                            <Icon icon="svg-spinners:ring-resize" width="20" className="text-white" />
+                          </div>
+                        ) : videosInTrackIds.includes(video.id) ? (
+                          <div className="p-2 rounded-full bg-blue-500/20 backdrop-blur-sm border border-blue-500/50">
+                            <Icon icon="solar:check-circle-bold" width="24" className="text-blue-400" />
+                          </div>
+                        ) : (
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/20 backdrop-blur-[1px]">
+                            <div className="flex items-center gap-1 px-3 py-1.5 bg-white text-black rounded-full shadow-xl">
+                              <Icon icon="material-symbols:add-rounded" width="16" />
+                              <span className="text-[11px] font-bold">{t("actions.add")}</span>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-0.5 shrink-0 pointer-events-auto opacity-0 group-hover:opacity-100 transition-opacity duration-150">
-                      <TooltipAction label={video.hasAudio === false ? t("actions.unmute") : t("actions.mute")}>
-                        <button
-                          onClick={() => handleToggleAudio(video.id, video.hasAudio)}
-                          disabled={video.originalHasAudio === false}
-                          className={`p-1.5 rounded-md backdrop-blur-sm border transition-colors ${video.originalHasAudio === false
-                            ? "text-neutral-500 border-transparent cursor-not-allowed"
-                            : video.hasAudio === false
-                              ? "text-red-400 bg-red-500/20 border-red-500/50"
-                              : "text-neutral-300 bg-neutral-900/50 hover:text-white hover:bg-neutral-800 border-neutral-700/50"
-                            }`}
-                        >
-                          <Icon icon={video.hasAudio === false ? "solar:volume-cross-outline" : "solar:volume-loud-outline"} width="15" />
-                        </button>
-                      </TooltipAction>
+                    <div className="flex items-center justify-between px-2.5">
+                      <span className="text-[11px] font-mono font-medium text-neutral-400">
+                        {formatVideoDuration(video.duration)}
+                      </span>
 
-                      <TooltipAction label={t("actions.delete")}>
-                        <button
-                          onClick={() => handleDelete(video.id)}
-                          disabled={deletingId === video.id}
-                          className="p-1.5 rounded-md backdrop-blur-sm bg-neutral-900/50 hover:text-red-400 hover:bg-red-500/20 border border-neutral-700/50 hover:border-red-500/50 text-neutral-300 transition-colors disabled:opacity-50"
-                        >
-                          {deletingId === video.id ? (
-                            <Icon icon="svg-spinners:ring-resize" width="15" />
-                          ) : (
-                            <Icon icon="solar:trash-bin-trash-outline" width="15" />
-                          )}
-                        </button>
-                      </TooltipAction>
+                      <div className="flex items-center gap-1">
+                        <TooltipAction label={video.hasAudio === false ? t("actions.unmute") : t("actions.mute")}>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleToggleAudio(video.id, video.hasAudio);
+                            }}
+                            disabled={video.originalHasAudio === false}
+                            className={`p-1.5 rounded-md transition-colors ${video.originalHasAudio === false
+                              ? "text-neutral-500 cursor-not-allowed"
+                              : video.hasAudio === false
+                                ? "text-red-400 hover:bg-red-500/10"
+                                : "text-neutral-400 hover:text-white hover:bg-neutral-800"
+                              }`}
+                          >
+                            <Icon
+                              icon={video.hasAudio === false ? "solar:volume-cross-outline" : "solar:volume-loud-outline"}
+                              width="14"
+                            />
+                          </button>
+                        </TooltipAction>
+
+                        <TooltipAction label={t("actions.delete")}>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(video.id);
+                            }}
+                            disabled={deletingId === video.id}
+                            className="p-1.5 rounded-md text-neutral-400 hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-50"
+                          >
+                            {deletingId === video.id ? (
+                              <Icon icon="svg-spinners:ring-resize" width="14" />
+                            ) : (
+                              <Icon icon="solar:trash-bin-trash-outline" width="14" />
+                            )}
+                          </button>
+                        </TooltipAction>
+                      </div>
                     </div>
-                  </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
           </div>
         )}
       </div>

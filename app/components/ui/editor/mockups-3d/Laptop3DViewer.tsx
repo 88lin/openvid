@@ -15,7 +15,6 @@ import {
 import type { OrbitControls as OrbitControlsType } from 'three-stdlib';
 import { EnvironmentPreset, HDRI_FILES } from "@/lib/viewer-controls3d";
 import { GetMediaMaskStyles } from "@/lib/media-mask.utils";
-
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { OutlinePass } from "three/examples/jsm/postprocessing/OutlinePass.js";
@@ -23,8 +22,8 @@ import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 
 THREE.Cache.enabled = true;
 
-const LAPTOP_W = 1500;
-const LAPTOP_H = 1035;
+export const LAPTOP_W = 1500;
+export const LAPTOP_H = 1035;
 const RENDER_MULTIPLIER = 3;
 const RENDER_W = LAPTOP_W * RENDER_MULTIPLIER;
 const RENDER_H = LAPTOP_H * RENDER_MULTIPLIER;
@@ -86,17 +85,9 @@ function loadLaptopGltf(): Promise<THREE.Group> {
   return gltfCachePromise;
 }
 
-function ModelScene({
-  imageUrl, imageMaskConfig, cropArea, openingProgress = 1,
-  initialRotationX = 43.23, initialRotationY = -37.82, initialRotationZ = 0,
-  onRotationChange, rootRef, cameraRef, zoom = 1, onApi, onLoaded, videoElement,
-  autoRotate = false, rotationSpeed = 3.5, glow = 1.0, environment = "forest",
-  isSelected = false, isHovered = false, shadowIntensity = 0,
-}: Props & {
-  rootRef: React.MutableRefObject<THREE.Group | null>;
-  cameraRef: React.MutableRefObject<THREE.PerspectiveCamera | null>;
-  onLoaded?: () => void;
-}) {
+export function LaptopScene({
+  imageUrl, imageMaskConfig, cropArea, openingProgress = 1, initialRotationX = 43.23, initialRotationY = -37.82, initialRotationZ = 0, onRotationChange, rootRef, cameraRef, zoom = 1, onApi, onLoaded, videoElement, autoRotate = false, rotationSpeed = 3.5, glow = 1.0, environment = "forest", isSelected = false, isHovered = false, shadowIntensity = 0,
+}: Props & { rootRef: React.MutableRefObject<THREE.Group | null>; cameraRef: React.MutableRefObject<THREE.PerspectiveCamera | null>; onLoaded?: () => void; }) {
   const { gl, scene, camera, invalidate, size } = useThree();
   const orbitRef = useRef<OrbitControlsType | null>(null);
 
@@ -346,22 +337,23 @@ function ModelScene({
     applyTexture();
   }, [applyTexture]);
 
+  const initialOpeningRef = useRef(openingProgress);
+  const onLoadedRef = useRef(onLoaded);
+  const applyVideoRef = useRef(applyVideoTextureIfReady);
+
+  useLayoutEffect(() => {
+    onLoadedRef.current = onLoaded;
+    applyVideoRef.current = applyVideoTextureIfReady;
+  });
+
   useEffect(() => {
     let isMounted = true;
-    const darkPlasticMaterial = new THREE.MeshStandardMaterial({
-      color: 0x000000,
-      roughness: 0.9,
-      metalness: 0.9
-    });
+    const darkPlasticMaterial = new THREE.MeshStandardMaterial({ color: 0x000000, roughness: 0.9, metalness: 0.9 });
     const cameraMaterial = new THREE.MeshBasicMaterial({ color: 0x333333 });
     const logoMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
-    const baseMetalMaterial = new THREE.MeshStandardMaterial({
-      color: 0xcecfd3,
-      roughness: 0.25,
-      metalness: 0.85
-    });
+    const baseMetalMaterial = new THREE.MeshStandardMaterial({ color: 0xcecfd3, roughness: 0.25, metalness: 0.85 });
 
-    const tStart = Math.max(0, Math.min(1, openingProgress));
+    const tStart = Math.max(0, Math.min(1, initialOpeningRef.current));
     const screenMaterial = new THREE.MeshBasicMaterial({
       map: null,
       transparent: true,
@@ -371,14 +363,12 @@ function ModelScene({
       toneMapped: false,
     });
     screenMatRef.current = screenMaterial;
-    applyVideoTextureIfReady();
+
+    applyVideoRef.current();
 
     const textLoader = new THREE.TextureLoader();
-    const keyboardMaterial = new THREE.MeshBasicMaterial({
-      color: 0xffffff,
-      transparent: true,
-      toneMapped: false
-    });
+    const keyboardMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, toneMapped: false });
+
     textLoader.load("/images/pages/keyboard-overlay.png", (tex) => {
       tex.anisotropy = gl.capabilities.getMaxAnisotropy();
       keyboardMaterial.alphaMap = tex;
@@ -392,7 +382,7 @@ function ModelScene({
       setTimeout(() => {
         if (!isMounted) return;
         applyTextureRef.current();
-        onLoaded?.();
+        onLoadedRef.current?.();
         invalidate();
       }, 50);
     };
@@ -422,11 +412,12 @@ function ModelScene({
               if (!(obj instanceof THREE.Mesh)) return;
               const m = obj as THREE.Mesh;
               if (m.name === "base") m.material = baseMetalMaterial;
-              else if (["legs", "keyboard", "inner"].includes(m.name))
-                m.material = darkPlasticMaterial;
+              else if (["legs", "keyboard", "inner"].includes(m.name)) m.material = darkPlasticMaterial;
             });
           }
         });
+
+        lidGroup.rotation.x = lerp(LID_CLOSED_X, LID_OPEN_X, tStart);
 
         root.add(lidGroup);
         root.add(bottomGroup);
@@ -444,7 +435,7 @@ function ModelScene({
           new THREE.PlaneGeometry(screenSize[0], screenSize[1]),
           darkPlasticMaterial
         );
-        darkScreen.position.set(0, 10.5, -0.111);
+        darkScreen.position.set(0, 10.5, -0.15);
         darkScreen.rotation.set(Math.PI, Math.PI, 0);
         lidGroup.add(darkScreen);
 
@@ -473,7 +464,7 @@ function ModelScene({
         screenMatRef.current.dispose();
       }
     };
-  }, [openingProgress, applyVideoTextureIfReady, onLoaded, gl, invalidate]);
+  }, [gl, invalidate]);
 
   const prevRotationRef = useRef<{ x: number; y: number } | null>(null);
 
@@ -645,7 +636,7 @@ function CanvasWithLoader(
         }}
       >
         <Suspense fallback={null}>
-          <ModelScene {...props} onLoaded={handleLoaded} />
+          <LaptopScene {...props} onLoaded={handleLoaded} />
         </Suspense>
       </Canvas>
       {!loaded && (

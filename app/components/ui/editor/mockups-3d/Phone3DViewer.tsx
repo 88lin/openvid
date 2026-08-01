@@ -104,33 +104,9 @@ function applyMetalMaterial(m: THREE.MeshStandardMaterial, matName: string): voi
     m.envMapIntensity = 2.0;
   }
 }
-
-function ModelScene({
-  imageUrl,
-  imageMaskConfig,
-  cropArea,
-  initialRotationX = -58.23,
-  initialRotationY = -29,
-  initialRotationZ = 0,
-  onRotationChange,
-  rootRef,
-  cameraRef,
-  zoom = 1,
-  modelUrl,
-  onApi,
-  onLoaded,
-  videoElement,
-  autoRotate = false,
-  rotationSpeed = 3.5,
-  glow = 1.0,
-  environment = "studio",
-  isSelected = false,
-  isHovered = false,
-}: Props & {
-  rootRef: React.MutableRefObject<THREE.Group | null>;
-  cameraRef: React.MutableRefObject<THREE.PerspectiveCamera | null>;
-  onLoaded?: () => void;
-}) {
+export function Phone3DScene({
+  imageUrl, imageMaskConfig, cropArea, initialRotationX = -58.23, initialRotationY = -29, initialRotationZ = 0, onRotationChange, rootRef, cameraRef, zoom = 1, modelUrl, onApi, onLoaded, videoElement, autoRotate = false, rotationSpeed = 3.5, glow = 1.0, environment = "studio", isSelected = false, isHovered = false,
+}: Props & { rootRef: React.MutableRefObject<THREE.Group | null>; cameraRef: React.MutableRefObject<THREE.PerspectiveCamera | null>; onLoaded?: () => void; }) {
   const { gl, scene, camera, invalidate, size } = useThree();
   const orbitRef = useRef<OrbitControlsType | null>(null);
   const screenMatRef = useRef<THREE.MeshBasicMaterial | null>(null);
@@ -744,7 +720,7 @@ function CanvasWithLoader(
         }}
       >
         <Suspense fallback={null}>
-          <ModelScene {...props} onLoaded={handleLoaded} />
+          <Phone3DScene {...props} onLoaded={handleLoaded} />
         </Suspense>
       </Canvas>
       {!loaded && (

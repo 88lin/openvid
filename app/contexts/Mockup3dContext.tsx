@@ -35,9 +35,9 @@ interface Mockup3dState {
   /** Perspective (px) for the 3D transform on the phone mockup */
   imagePhonePerspective: number;
   setImagePhonePerspective: (v: number) => void;
-  /** Which 3D device model is active: the default phone JSON, iPhone 15 Pro Max, Samsung S25 Ultra, or single macOS laptop */
-  imagePhoneDevice: 'phone' | 'iphone' | 'iphone-13-pro-max' | 'iphone-17-pro-max' | 'double_iphone_13_pro' | 'samsung' | 'laptop' | 'ipad_mini_6_2021';
-  setImagePhoneDevice: (d: 'phone' | 'iphone' | 'iphone-13-pro-max' | 'iphone-17-pro-max' | 'double_iphone_13_pro' | 'samsung' | 'laptop' | 'ipad_mini_6_2021') => void;
+  /** Which 3D device model is active: the default phone JSON, iPhone 15 Pro Max, or single macOS laptop */
+  imagePhoneDevice: 'phone' | 'iphone' | 'iphone-13-pro-max' | 'iphone-17-pro-max' | 'double_iphone_13_pro' | 'laptop' | 'ipad_mini_6_2021';
+  setImagePhoneDevice: (d: 'phone' | 'iphone' | 'iphone-13-pro-max' | 'iphone-17-pro-max' | 'double_iphone_13_pro' | 'laptop' | 'ipad_mini_6_2021') => void;
   imagePhonePresetId: string;
   setImagePhonePresetId: (id: string) => void;
   /** Laptop opening animation progress (0 = closed, 1 = fully open) */
@@ -68,7 +68,7 @@ export function Mockup3dProvider({ children }: { children: ReactNode }) {
   const [imagePhoneRotY, setImagePhoneRotY] = useState(0);
   const [imagePhoneRotZ, setImagePhoneRotZ] = useState(0);
   const [imagePhonePerspective, setImagePhonePerspective] = useState(600);
-  const [imagePhoneDevice, setImagePhoneDevice] = useState<'phone' | 'iphone' | 'iphone-13-pro-max' | 'iphone-17-pro-max' | 'double_iphone_13_pro' | 'samsung' | 'laptop' | 'ipad_mini_6_2021'>('phone');
+  const [imagePhoneDevice, setImagePhoneDevice] = useState<'phone' | 'iphone' | 'iphone-13-pro-max' | 'iphone-17-pro-max' | 'double_iphone_13_pro' | 'laptop' | 'ipad_mini_6_2021'>('phone');
   const [imagePhonePresetId, setImagePhonePresetId] = useState('custom');
   const [imagePhoneOpening, setImagePhoneOpening] = useState(1);
   const [imagePhoneShadow, setImagePhoneShadow] = useState(0.6);

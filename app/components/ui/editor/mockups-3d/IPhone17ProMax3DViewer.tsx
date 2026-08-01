@@ -45,25 +45,58 @@ interface Props {
     onSelectChange?: (isSelected: boolean) => void;
 }
 
-const TEX_W = 1284 * 2;
-const TEX_H = 2778 * 2;
+const TEX_W = 1284;
+const TEX_H = 2778;
 const PLACEHOLDER_PHONE_URL = "/images/mockups-3d/placeholder-phone.avif";
 const DEFAULT_CAMERA_POS: [number, number, number] = [0, 0, 1.5];
 const DRACO_URL = "/draco/";
 
 useGLTF.preload("/models/iphone-17-pro-max.glb", DRACO_URL);
 
-function ModelScene({
-    imageUrl, imageMaskConfig, cropArea, initialRotationX, initialRotationY, initialRotationZ, onRotationChange,
-    rootRef, cameraRef, zoom, onApi, onLoaded, videoElement, shadowIntensity = 0, shadowColor = "#000000",
-    autoRotate = false, rotationSpeed = 3.5, glow = 1.0, environment = "studio", isSelected = false, isHovered = false,
+export function IPhone17ProMaxScene({
+  imageUrl = null,
+  imageMaskConfig = null,
+  cropArea = null,
+  initialRotationX = -58.23,
+  initialRotationY = -29.82,
+  initialRotationZ = 0,
+  onRotationChange,
+  rootRef,
+  cameraRef,
+  zoom = 1,
+  onApi,
+  onLoaded,
+  videoElement,
+  shadowIntensity = 0,
+  shadowColor = "#000000",
+  autoRotate = false,
+  rotationSpeed = 3.5,
+  glow = 1.0,
+  environment = "studio",
+  isSelected = false,
+  isHovered = false,
 }: {
-    imageUrl: string | null; imageMaskConfig: ImageMaskConfigLike | null; cropArea: { x: number; y: number; width: number; height: number } | null;
-    initialRotationX: number; initialRotationY: number; initialRotationZ: number; onRotationChange?: (rx: number, ry: number) => void;
-    rootRef: React.MutableRefObject<THREE.Group | null>; cameraRef: React.MutableRefObject<THREE.PerspectiveCamera | null>; zoom: number;
-    onApi?: (api: IPhone17ProMax3DApi | null) => void; onLoaded?: () => void; videoElement?: HTMLVideoElement | null;
-    shadowIntensity?: number; shadowColor?: string; autoRotate?: boolean; rotationSpeed?: number; glow?: number; environment?: EnvironmentPreset;
-    isSelected?: boolean; isHovered?: boolean;
+  imageUrl?: string | null;
+  imageMaskConfig?: ImageMaskConfigLike | null;
+  cropArea?: { x: number; y: number; width: number; height: number } | null;
+  initialRotationX?: number;
+  initialRotationY?: number;
+  initialRotationZ?: number;
+  onRotationChange?: (rx: number, ry: number) => void;
+  rootRef: React.MutableRefObject<THREE.Group | null>;
+  cameraRef: React.MutableRefObject<THREE.PerspectiveCamera | null>;
+  zoom?: number;
+  onApi?: (api: IPhone17ProMax3DApi | null) => void;
+  onLoaded?: () => void;
+  videoElement?: HTMLVideoElement | null;
+  shadowIntensity?: number;
+  shadowColor?: string;
+  autoRotate?: boolean;
+  rotationSpeed?: number;
+  glow?: number;
+  environment?: EnvironmentPreset;
+  isSelected?: boolean;
+  isHovered?: boolean;
 }) {
     const { gl, scene, camera, invalidate, size } = useThree();
     const gltf = useGLTF("/models/iphone-17-pro-max.glb", DRACO_URL);
@@ -495,7 +528,7 @@ function CanvasWithLoader({
                 }}
             >
                 <Suspense fallback={null}>
-                    <ModelScene
+                    <IPhone17ProMaxScene
                         imageUrl={imageUrl} imageMaskConfig={imageMaskConfig} cropArea={cropArea} initialRotationX={initialRotationX}
                         initialRotationY={initialRotationY} initialRotationZ={initialRotationZ} onRotationChange={onRotationChange}
                         rootRef={rootRef} cameraRef={cameraRef} zoom={zoom} onApi={onApi} onLoaded={handleLoaded} videoElement={videoElement}
