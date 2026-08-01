@@ -45,8 +45,8 @@ interface Props {
   onSelectChange?: (isSelected: boolean) => void;
 }
 
-const TEX_W = 1284 * 2;
-const TEX_H = 2778 * 2;
+const TEX_W = 1284;
+const TEX_H = 2778;
 const PLACEHOLDER_PHONE_URL = "/images/mockups-3d/placeholder-phone.avif";
 const DEFAULT_CAMERA_POS: [number, number, number] = [0, 0, 1.5];
 const DRACO_URL = "/draco/";
@@ -108,17 +108,17 @@ interface GLTFMaterials {
   "Material.002": THREE.Material;
 }
 
-function ModelScene({
-  imageUrl,
-  imageMaskConfig,
-  cropArea,
-  initialRotationX,
-  initialRotationY,
-  initialRotationZ,
+export function IPhone13ProMaxScene({
+  imageUrl = null,
+  imageMaskConfig = null,
+  cropArea = null,
+  initialRotationX = -58.23,
+  initialRotationY = -29.82,
+  initialRotationZ = 0,
   onRotationChange,
   rootRef,
   cameraRef,
-  zoom,
+  zoom = 1,
   onApi,
   onLoaded,
   videoElement,
@@ -131,16 +131,16 @@ function ModelScene({
   isSelected = false,
   isHovered = false,
 }: {
-  imageUrl: string | null;
-  imageMaskConfig: ImageMaskConfigLike | null;
-  cropArea: { x: number; y: number; width: number; height: number } | null;
-  initialRotationX: number;
-  initialRotationY: number;
-  initialRotationZ: number;
+  imageUrl?: string | null;
+  imageMaskConfig?: ImageMaskConfigLike | null;
+  cropArea?: { x: number; y: number; width: number; height: number } | null;
+  initialRotationX?: number;
+  initialRotationY?: number;
+  initialRotationZ?: number;
   onRotationChange?: (rx: number, ry: number) => void;
   rootRef: React.MutableRefObject<THREE.Group | null>;
   cameraRef: React.MutableRefObject<THREE.PerspectiveCamera | null>;
-  zoom: number;
+  zoom?: number;
   onApi?: (api: IPhone13ProMax3DApi | null) => void;
   onLoaded?: () => void;
   videoElement?: HTMLVideoElement | null;
@@ -694,7 +694,7 @@ function CanvasWithLoader({
         }}
       >
         <Suspense fallback={null}>
-          <ModelScene
+          <IPhone13ProMaxScene
             imageUrl={imageUrl}
             imageMaskConfig={imageMaskConfig}
             cropArea={cropArea}
@@ -804,8 +804,6 @@ export function IPhone13ProMax3DViewer({
           transformOrigin: "top center",
           width: 480,
           height: 1000 + (hasShadow ? computedBlur * 0.8 : 0),
-          marginBottom: "300px",
-          marginRight: "250px",
         }}
       >
         <div style={{ position: "relative", width: 480, height: 1000 }}>

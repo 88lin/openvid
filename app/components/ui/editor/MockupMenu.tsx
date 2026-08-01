@@ -139,7 +139,7 @@ export function MockupMenu({
       if (id === "iphone-13-pro-max") {
         setImagePhoneRotX(-58.23);
         setImagePhoneRotY(-29.82);
-        setImagePhoneScale(1.2);
+        setImagePhoneScale(1.6);
       } else if (id === "double_iphone_13_pro") {
         setImagePhoneRotX(-30.23);
         setImagePhoneRotY(-60.82);
