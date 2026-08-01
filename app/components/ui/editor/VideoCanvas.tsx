@@ -11,7 +11,7 @@ import { speedToTransitionMs, ZOOM_EASING, calculateZoomPhaseState, zoomLevelToF
 import type { ZoomFragment } from "@/types/zoom.types";
 import PlaceholderEditor from "../PlaceholderEditor";
 import { MockupWrapper } from "./mockups/MockupWrapper";
-import { DEFAULT_MOCKUP_CONFIG } from "@/types/mockup.types";
+import { DEFAULT_MOCKUP_CONFIG, type ImageDeviceId } from "@/types/mockup.types";
 import { calculateSmoothZoom } from "@/lib/canvas.utils";
 import { VIDEO_Z_INDEX } from "@/lib/constants";
 import { applyPerspective3D, disposePerspective3D } from "@/lib/perspective3d";
@@ -35,6 +35,7 @@ import { drawMaskedImage } from "@/lib/masked-image-draw.utils";
 import { drawMockupAndMedia, type MockupDrawContext } from "@/lib/mockup-media-draw.utils";
 import { drawPhone3DCompositeWithZoom, type Phone3DCompositeContext } from "@/lib/phone3d-composite-draw.utils";
 import { buildMockupMotionCss, MockupMotionTransform, REST_MOCKUP_MOTION, sampleCombinedMockupMotion } from "@/lib/mockup-motion";
+import { Mockup3DFrame } from "./mockups-3d/Mockup3DFrame";
 
 export type { VideoCanvasHandle, VideoCanvasProps };
 
@@ -195,7 +196,7 @@ function VideoCanvasInner({
         hasBuiltInShadow?: boolean;
         getVisualSize?: () => { width: number; height: number; offsetY?: number } | null; // ← offsetY
     } | null>(null);
-    const [activePhoneDevice, setActivePhoneDevice] = useState<string | null>(null);
+    const [activePhoneDevice, setActivePhoneDevice] = useState<ImageDeviceId | null>(null);
     const [phoneTransitioning, setPhoneTransitioning] = useState(false);
     const rafDragRef = useRef<number | null>(null);
     const pendingUpdateRef = useRef<{ id: string; x: number; y: number } | null>(null);
@@ -1421,7 +1422,7 @@ function VideoCanvasInner({
             focusPxX = (zoomState.focusX / 100) * canvasWidth;
             focusPxY = (zoomState.focusY / 100) * canvasHeight;
         }
-      
+
         const activeFragment = zoomFragments.find(
             f => frameTime >= f.startTime && frameTime <= f.endTime
         ) ?? zoomFragments
@@ -2316,156 +2317,31 @@ function VideoCanvasInner({
                                                         : "none",
                                                 }}
                                             >
-                                                {phoneTransitioning || !activePhoneDevice ? (
+                                                {!imagePhoneActive || !imagePhoneDevice ? (
                                                     <div
                                                         style={{ width: PHONE_W, height: PHONE_H }}
                                                         className="flex items-center justify-center"
                                                     >
                                                         <div className="w-6 h-6 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
                                                     </div>
-                                                ) : activePhoneDevice === "laptop" ? (
-                                                    <Laptop3DViewer
-                                                        key="laptop"
-                                                        imageUrl={imageUrl}
-                                                        videoElement={activeVideoElement ?? undefined}
-                                                        openingProgress={imagePhoneOpening}
-                                                        imageMaskConfig={effectivePhoneMaskConfig}
-                                                        cropArea={cropArea}
-                                                        initialRotationX={imagePhoneRotX}
-                                                        initialRotationY={imagePhoneRotY}
-                                                        initialRotationZ={imagePhoneRotZ}
-                                                        onRotationChange={handlePhoneRotationChange}
-                                                        onMount={handlePhoneMount}
-                                                        onApi={handlePhoneApi}
-                                                        scale={1}
-                                                        zoom={1}
-                                                        shadowIntensity={imagePhoneShadow}
-                                                        shadowColor={imagePhoneShadowColor}
-                                                        autoRotate={viewer3D.autoRotate}
-                                                        rotationSpeed={viewer3D.rotationSpeed}
-                                                        glow={viewer3D.glow}
-                                                        environment={viewer3D.environment}
-                                                        isSelected={isVideoSelected}
-                                                        isHovered={isVideoHovered}
-                                                        onSelectChange={(value) => setIsVideoSelected(value)}
-                                                    />
-                                                ) : activePhoneDevice === "iphone-13-pro-max" ? (
-                                                    <IPhone13ProMax3DViewer
-                                                        key="iphone-13-pro-max"
-                                                        imageUrl={imageUrl}
-                                                        videoElement={activeVideoElement ?? undefined}
-                                                        imageMaskConfig={effectivePhoneMaskConfig}
-                                                        cropArea={cropArea}
-                                                        initialRotationX={imagePhoneRotX}
-                                                        initialRotationY={imagePhoneRotY}
-                                                        initialRotationZ={imagePhoneRotZ}
-                                                        onRotationChange={handlePhoneRotationChange}
-                                                        onMount={handlePhoneMount}
-                                                        onApi={handlePhoneApi}
-                                                        scale={1}
-                                                        zoom={1}
-                                                        shadowIntensity={imagePhoneShadow}
-                                                        shadowColor={imagePhoneShadowColor}
-                                                        autoRotate={viewer3D.autoRotate}
-                                                        rotationSpeed={viewer3D.rotationSpeed}
-                                                        glow={viewer3D.glow}
-                                                        environment={viewer3D.environment}
-                                                        isSelected={isVideoSelected}
-                                                        isHovered={isVideoHovered}
-                                                        onSelectChange={(value) => setIsVideoSelected(value)}
-                                                    />
-                                                ) : activePhoneDevice === "iphone-17-pro-max" ? (
-                                                    <IPhone17ProMax3DViewer
-                                                        key="iphone-17-pro-max"
-                                                        imageUrl={imageUrl}
-                                                        videoElement={activeVideoElement ?? undefined}
-                                                        imageMaskConfig={effectivePhoneMaskConfig}
-                                                        cropArea={cropArea}
-                                                        initialRotationX={imagePhoneRotX}
-                                                        initialRotationY={imagePhoneRotY}
-                                                        initialRotationZ={imagePhoneRotZ}
-                                                        onRotationChange={handlePhoneRotationChange}
-                                                        onMount={handlePhoneMount}
-                                                        onApi={handlePhoneApi}
-                                                        scale={1}
-                                                        zoom={1}
-                                                        shadowIntensity={imagePhoneShadow}
-                                                        shadowColor={imagePhoneShadowColor}
-                                                        autoRotate={viewer3D.autoRotate}
-                                                        rotationSpeed={viewer3D.rotationSpeed}
-                                                        glow={viewer3D.glow}
-                                                        environment={viewer3D.environment}
-                                                        isSelected={isVideoSelected}
-                                                        isHovered={isVideoHovered}
-                                                        onSelectChange={(value) => setIsVideoSelected(value)}
-                                                    />
-                                                ) : activePhoneDevice === "double_iphone_13_pro" ? (
-                                                    <DoubleIPhone3DViewer
-                                                        key="double_iphone_13_pro"
-                                                        imageUrl={imageUrl}
-                                                        videoElement={activeVideoElement ?? undefined}
-                                                        imageMaskConfig={effectivePhoneMaskConfig}
-                                                        cropArea={cropArea}
-                                                        initialRotationX={imagePhoneRotX}
-                                                        initialRotationY={imagePhoneRotY}
-                                                        initialRotationZ={imagePhoneRotZ}
-                                                        onRotationChange={handlePhoneRotationChange}
-                                                        onMount={handlePhoneMount}
-                                                        onApi={handlePhoneApi}
-                                                        zoom={1}
-                                                        shadowIntensity={imagePhoneShadow}
-                                                        shadowColor={imagePhoneShadowColor}
-                                                        autoRotate={viewer3D.autoRotate}
-                                                        rotationSpeed={viewer3D.rotationSpeed}
-                                                        glow={viewer3D.glow}
-                                                        environment={viewer3D.environment}
-                                                        isSelected={isVideoSelected}
-                                                        isHovered={isVideoHovered}
-                                                        onSelectChange={(value) => setIsVideoSelected(value)}
-                                                    />
-                                                ) : activePhoneDevice === "ipad_mini_6_2021" ? (
-                                                    <IPadMini63DViewer
-                                                        key="ipad_mini_6_2021"
-                                                        imageUrl={imageUrl}
-                                                        videoElement={activeVideoElement ?? undefined}
-                                                        imageMaskConfig={effectivePhoneMaskConfig}
-                                                        cropArea={cropArea}
-                                                        initialRotationX={imagePhoneRotX}
-                                                        initialRotationY={imagePhoneRotY}
-                                                        initialRotationZ={imagePhoneRotZ}
-                                                        onRotationChange={handlePhoneRotationChange}
-                                                        onMount={handlePhoneMount}
-                                                        onApi={handlePhoneApi}
-                                                        zoom={1}
-                                                        shadowIntensity={imagePhoneShadow}
-                                                        shadowColor={imagePhoneShadowColor}
-                                                        autoRotate={viewer3D.autoRotate}
-                                                        rotationSpeed={viewer3D.rotationSpeed}
-                                                        glow={viewer3D.glow}
-                                                        environment={viewer3D.environment}
-                                                        isSelected={isVideoSelected}
-                                                        isHovered={isVideoHovered}
-                                                        onSelectChange={(value) => setIsVideoSelected(value)}
-                                                    />
-
                                                 ) : (
-                                                    <Phone3DViewer
-                                                        key={imagePhoneDevice}
+                                                    <Mockup3DFrame
+                                                        device={imagePhoneDevice}
                                                         imageUrl={imageUrl}
                                                         videoElement={activeVideoElement ?? undefined}
+                                                        openingProgress={imagePhoneDevice === "laptop" ? imagePhoneOpening : undefined}
+                                                        modelUrl={imagePhoneDevice === "phone" || imagePhoneDevice === "iphone" ? imagePhoneModelUrl : undefined}
                                                         imageMaskConfig={effectivePhoneMaskConfig}
                                                         cropArea={cropArea}
                                                         initialRotationX={imagePhoneRotX}
                                                         initialRotationY={imagePhoneRotY}
                                                         initialRotationZ={imagePhoneRotZ}
-                                                        modelUrl={imagePhoneModelUrl}
-                                                        scale={1}
-                                                        zoom={1}
-                                                        shadowIntensity={imagePhoneShadow}
-                                                        shadowColor={imagePhoneShadowColor}
                                                         onRotationChange={handlePhoneRotationChange}
                                                         onMount={handlePhoneMount}
                                                         onApi={handlePhoneApi}
+                                                        zoom={1}
+                                                        shadowIntensity={imagePhoneShadow}
+                                                        shadowColor={imagePhoneShadowColor}
                                                         autoRotate={viewer3D.autoRotate}
                                                         rotationSpeed={viewer3D.rotationSpeed}
                                                         glow={viewer3D.glow}

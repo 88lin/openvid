@@ -63,7 +63,7 @@ const DEFAULT_CAMERA_POS: [number, number, number] = [0, 0, 1.5];
 
 useGLTF.preload(MODEL_URL, DRACO_URL);
 
-function ModelScene({
+export function DoubleIPhoneScene({
   imageUrl,
   imageMaskConfig,
   cropArea,
@@ -526,7 +526,7 @@ function CanvasWithLoader(
         }}
       >
         <Suspense fallback={null}>
-          <ModelScene {...props} onLoaded={handleLoaded} />
+          <DoubleIPhoneScene {...props} onLoaded={handleLoaded} />
         </Suspense>
       </Canvas>
       {!loaded && (

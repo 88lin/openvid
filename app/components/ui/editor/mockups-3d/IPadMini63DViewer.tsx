@@ -60,33 +60,9 @@ const TARGET_H = 1500;
 
 useGLTF.preload(MODEL_URL, DRACO_URL);
 
-function ModelScene({
-  imageUrl,
-  imageMaskConfig,
-  cropArea,
-  initialRotationX = -58.23,
-  initialRotationY = -29.82,
-  initialRotationZ = 0,
-  onRotationChange,
-  rootRef,
-  cameraRef,
-  zoom = 1,
-  onApi,
-  onLoaded,
-  videoElement,
-  shadowIntensity = 0,
-  shadowColor = "#000000",
-  autoRotate = false,
-  rotationSpeed = 3.5,
-  glow = 1.0,
-  environment = "studio",
-  isSelected = false,
-  isHovered = false,
-}: Props & {
-  rootRef: React.MutableRefObject<THREE.Group | null>;
-  cameraRef: React.MutableRefObject<THREE.PerspectiveCamera | null>;
-  onLoaded?: () => void;
-}) {
+export function IPadMiniScene({
+  imageUrl, imageMaskConfig, cropArea, initialRotationX = -58.23, initialRotationY = -29.82, initialRotationZ = 0, onRotationChange, rootRef, cameraRef, zoom = 1, onApi, onLoaded, videoElement, shadowIntensity = 0, shadowColor = "#000000", autoRotate = false, rotationSpeed = 3.5, glow = 1.0, environment = "studio", isSelected = false, isHovered = false,
+}: Props & { rootRef: React.MutableRefObject<THREE.Group | null>; cameraRef: React.MutableRefObject<THREE.PerspectiveCamera | null>; onLoaded?: () => void; }) {
   const { gl, scene, camera, invalidate, size } = useThree();
   const gltf = useGLTF(MODEL_URL, DRACO_URL);
   
@@ -523,7 +499,7 @@ function CanvasWithLoader(
         }}
       >
         <Suspense fallback={null}>
-          <ModelScene {...props} onLoaded={handleLoaded} />
+          <IPadMiniScene {...props} onLoaded={handleLoaded} />
         </Suspense>
       </Canvas>
       {!loaded && (
