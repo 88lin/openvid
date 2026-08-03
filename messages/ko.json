@@ -791,11 +791,13 @@
     "preview": {
       "alt": "동영상 미리보기",
       "dragAB": "A와 B를 드래그하세요",
-      "dragOrClick": "드래그 또는 클릭"
+      "dragOrClick": "드래그 또는 클릭",
+      "orbitalPath": "Autozoom 커서 경로"
     },
     "movement": {
       "title": "카메라 이동",
       "subtitle": "확대 중 화면 이동",
+      "orbitalDescription": "Autozoom이 생성한 커서 경로입니다. 미리보기와 내보내기에서 그대로 유지됩니다.",
       "tooShort": "구간이 너무 짧아 이동을 적용할 수 없습니다. 길이를 늘리거나 전환 속도를 줄이세요.",
       "timeline": {
         "title": "이동 타임라인",
@@ -1339,6 +1341,23 @@
     "controls": {
       "intensity": "강도",
       "speed": "속도"
+    }
+  },
+  "autozoomOverlay": {
+    "eyebrow": "Auto zoom",
+    "title": "Preparing your video",
+    "finishingTitle": "Adding your video to the editor",
+    "failedTitle": "We could not process this video",
+    "finishingDescription": "Your zoom timeline is ready. Setting up the editor…",
+    "failedDescription": "Your video was not changed. You can try again.",
+    "progress": "Progress",
+    "processingFile": "Processing video",
+    "hint": "Keep this tab open while we prepare the video and automatic zooms.",
+    "error": "Error: {message}",
+    "retry": "Try again",
+    "dismiss": "Close",
+    "status": {
+      "validating": "Checking the video before upload…", "upload": "Uploading the original video securely…", "queued": "Video uploaded. Starting the analysis…", "download": "Downloading the video for processing…", "probe": "Reading video details…", "convert": "Optimizing the video format…", "sample": "Sampling frames…", "detect_cursor": "Detecting cursor movement…", "segment": "Finding moments worth highlighting…", "fragments": "Building the zoom timeline…", "done": "Finalizing automatic zooms…"
     }
   }
 }
