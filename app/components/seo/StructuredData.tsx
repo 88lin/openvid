@@ -150,6 +150,9 @@ export function generateOrganizationSchema(): OrganizationSchema {
     logo: 'https://openvid.dev/images/metadata/favicon.svg',
     sameAs: [
       'https://x.com/openvid',
+      'https://www.tiktok.com/@openvid',
+      'https://www.instagram.com/openvidink',
+      'https://www.youtube.com/@openvidink',
       'https://github.com/CristianOlivera1/openvid',
     ],
     contactPoint: {

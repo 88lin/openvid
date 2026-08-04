@@ -32,11 +32,6 @@ type Props = {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   const baseUrl = 'https://openvid.dev';
-  
-  const languages: Record<string, string> = {};
-  locales.forEach((loc) => {
-    languages[loc] = `${baseUrl}/${loc}`;
-  });
 
   const ogLocaleMap: Record<string, string> = {
     en: 'en_US',
@@ -97,10 +92,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       "msapplication-TileColor": "#000000",
       "format-detection": "telephone=no",
     },
-    alternates: {
-      canonical: `${baseUrl}/${locale}`,
-      languages,
-    },
     openGraph: {
       type: "website",
       siteName: "OpenVid",
@@ -149,6 +140,7 @@ export default async function LocaleLayout({
           antialiased dark
         `}
       >
+        <meta httpEquiv="content-language" content={locale} />
         <NextIntlClientProvider key={locale} messages={messages} locale={locale}>
           <TooltipProvider delayDuration={200}>
             {children}
