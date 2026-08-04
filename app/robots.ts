@@ -11,6 +11,11 @@ export default function robots(): MetadataRoute.Robots {
         disallow: [
           '/api/',
           '/auth/callback',
+          '/*/auth/callback',
+          '/editor',
+          '/*/editor',
+          '/login',
+          '/*/login',
         ],
       },
     ],

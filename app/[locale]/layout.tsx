@@ -5,6 +5,7 @@ import { locales, type Locale } from '@/i18n';
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Inter, Roboto, Poppins, Montserrat, DM_Sans } from "next/font/google";
 import type { Metadata, Viewport } from 'next';
+import { GoogleAnalytics } from '@next/third-parties/google';
 import "../globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
@@ -32,11 +33,6 @@ type Props = {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   const baseUrl = 'https://openvid.dev';
-  
-  const languages: Record<string, string> = {};
-  locales.forEach((loc) => {
-    languages[loc] = `${baseUrl}/${loc}`;
-  });
 
   const ogLocaleMap: Record<string, string> = {
     en: 'en_US',
@@ -91,15 +87,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     twitter: {
       card: "summary_large_image",
       creator: "@cristianolivera",
-      site: "@openviddev",
+      site: "@openvid",
     },
     other: {
       "msapplication-TileColor": "#000000",
       "format-detection": "telephone=no",
-    },
-    alternates: {
-      canonical: `${baseUrl}/${locale}`,
-      languages,
     },
     openGraph: {
       type: "website",
@@ -123,7 +115,6 @@ export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
 }
 
-// 5. Layout Principal
 export default async function LocaleLayout({
   children,
   params
@@ -139,6 +130,8 @@ export default async function LocaleLayout({
 
   setRequestLocale(locale);
   const messages = await getMessages();
+  const isProduction = process.env.NODE_ENV === 'production';
+  const gaId = process.env.NEXT_PUBLIC_GA_ID;
 
   return (
     <html lang={locale}>
@@ -149,12 +142,14 @@ export default async function LocaleLayout({
           antialiased dark
         `}
       >
+        <meta httpEquiv="content-language" content={locale} />
         <NextIntlClientProvider key={locale} messages={messages} locale={locale}>
           <TooltipProvider delayDuration={200}>
             {children}
           </TooltipProvider>
         </NextIntlClientProvider>
       </body>
+      {isProduction && gaId && <GoogleAnalytics gaId={gaId} />}
     </html>
   );
 }

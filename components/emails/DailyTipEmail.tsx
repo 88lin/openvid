@@ -53,11 +53,11 @@ export default function DailyTipEmail({ firstName }: DailyTipEmailProps) {
                         <Text className="text-gray-300 text-[14px] leading-[24px]">
                             Next time you jump into the editor, try placing your recording inside one of our 3D mockups and add a camera pan. It only takes a couple of clicks, but the final output looks incredibly professional.
                         </Text>
-                        
+
                         <Text className="text-gray-300 text-[14px] leading-[24px]">
                             The best part is that everything runs directly in your browser, so you can export the final result in 4K within seconds.
                         </Text>
-                        
+
                         <Section className="mt-[32px] mb-[32px]">
                             <Button
                                 href="https://openvid.dev/en/editor"
@@ -73,6 +73,7 @@ export default function DailyTipEmail({ firstName }: DailyTipEmailProps) {
                             <Row>
                                 <Column align="left">
                                     <Link
+                                        style={{ color: "#9ca3af" }}
                                         className="text-gray-400 text-[12px] underline transition-colors hover:text-gray-300"
                                         href="https://openvid.dev/en"
                                     >
@@ -81,6 +82,7 @@ export default function DailyTipEmail({ firstName }: DailyTipEmailProps) {
                                 </Column>
                                 <Column align="center">
                                     <Link
+                                        style={{ color: "#9ca3af" }}
                                         className="text-gray-400 text-[12px] underline transition-colors hover:text-gray-300"
                                         href="https://discord.com/invite/aBu5A2tBXb"
                                     >
@@ -89,6 +91,7 @@ export default function DailyTipEmail({ firstName }: DailyTipEmailProps) {
                                 </Column>
                                 <Column align="right">
                                     <Link
+                                        style={{ color: "#9ca3af" }}
                                         className="text-gray-400 text-[12px] underline transition-colors hover:text-gray-300"
                                         href="https://github.com/CristianOlivera1/openvid"
                                     >

@@ -60,8 +60,6 @@ export default function Editor() {
     // Editor mode (video/photo) from URL params
     const { mode: editorMode, isVideoMode, isPhotoMode } = useEditorMode();
 
-    // Auth — needed for building production-ready Recipe JSON
-    const { user } = useAuth();
     const {
         imagePhoneActive, setImagePhoneActive,
         imagePhoneX, setImagePhoneX,
@@ -135,16 +133,8 @@ export default function Editor() {
     const [selectedPreviewId, setSelectedPreviewId] = useState<string>("front");
     const [canvasImageUrl, setCanvasImageUrl] = useState<string | null>(null);
     const [imageZoomScale, setImageZoomScale] = useState<number>(1);
-    const [imageTransform, setImageTransform] = useState<Preview3DConfig>({
-        id: "front",
-        label: "Front",
-        rotateX: 0,
-        rotateY: 0,
-        rotateZ: 0,
-        translateY: 0,
-        scale: 0.9,
-        perspective: 600,
-    });
+    const [imageTransform, setImageTransform] = useState<Preview3DConfig>(PREVIEW_CONFIGS[0]);
+
     const [apply3DToBackground, setApply3DToBackground] = useState(false);
     const [imageDimensions, setImageDimensions] = useState<{ width: number; height: number } | null>(null);
     const [imageMaskConfig, setImageMaskConfig] = useState<ImageMaskConfig>(DEFAULT_MASK_CONFIG);
@@ -321,65 +311,43 @@ export default function Editor() {
         };
     }, []);
 
-    const autoSaveCurrentProject = useCallback(async () => {
-        if (!isPhotoMode || !imageUrl || !currentProject) return;
-        if (isRestoringProjectRef.current) return;
-
-        if (autoSaveTimeoutRef.current) {
-            clearTimeout(autoSaveTimeoutRef.current);
-        }
-
-        autoSaveTimeoutRef.current = setTimeout(async () => {
-            try {
-                await saveCurrentProject({
-                    backgroundTab,
-                    selectedWallpaper,
-                    backgroundBlur,
-                    selectedImageUrl,
-                    backgroundColorConfig,
-                    padding,
-                    roundedCorners,
-                    shadows,
-                    aspectRatio,
-                    customDimensions,
-                    cropArea,
-                    mockupId,
-                    mockupConfig,
-                    canvasElements,
-                    imageTransform: {
-                        rotation: videoTransform.rotation,
-                        translateX: videoTransform.translateX,
-                        translateY: videoTransform.translateY,
-                    },
-                    imagePreview3D: imageTransform,
-                    apply3DToBackground,
-                    imageMaskConfig,
-                    imageZoomScale,
-                    imagePhoneActive,
-                });
-            } catch (error) {
-                console.error("Auto-save failed:", error);
-            }
-        }, 3000); // 3 second debounce
-    }, [
-        isPhotoMode, imageUrl, currentProject, saveCurrentProject,
+    const buildPhotoProjectSnapshot = useCallback(() => ({
         backgroundTab, selectedWallpaper, backgroundBlur, selectedImageUrl,
         backgroundColorConfig, padding, roundedCorners, shadows, aspectRatio,
         customDimensions, cropArea, mockupId, mockupConfig, canvasElements,
-        videoTransform, imageTransform, apply3DToBackground, imageMaskConfig, imageZoomScale
+        imageTransform: {
+            rotation: videoTransform.rotation,
+            translateX: videoTransform.translateX,
+            translateY: videoTransform.translateY,
+        },
+        imagePreview3D: imageTransform,
+        apply3DToBackground,
+        imageMaskConfig,
+    }), [
+        backgroundTab, selectedWallpaper, backgroundBlur, selectedImageUrl,
+        backgroundColorConfig, padding, roundedCorners, shadows, aspectRatio,
+        customDimensions, cropArea, mockupId, mockupConfig, canvasElements,
+        videoTransform, imageTransform, apply3DToBackground, imageMaskConfig,
     ]);
+
+    const autoSaveCurrentProject = useCallback(async () => {
+        if (!isPhotoMode || !imageUrl || !currentProject) return;
+        if (isRestoringProjectRef.current) return;
+        if (autoSaveTimeoutRef.current) clearTimeout(autoSaveTimeoutRef.current);
+        autoSaveTimeoutRef.current = setTimeout(async () => {
+            try {
+                await saveCurrentProject({ ...buildPhotoProjectSnapshot(), imageZoomScale, imagePhoneActive });
+            } catch (error) {
+                console.error("Auto-save failed:", error);
+            }
+        }, 3000);
+    }, [isPhotoMode, imageUrl, currentProject, saveCurrentProject, buildPhotoProjectSnapshot, imageZoomScale, imagePhoneActive]);
 
     useEffect(() => {
         if (currentProject && isPhotoMode && !isRestoringProjectRef.current) {
             autoSaveCurrentProject();
         }
-    }, [
-        backgroundTab, selectedWallpaper, backgroundBlur, selectedImageUrl,
-        backgroundColorConfig, padding, roundedCorners, shadows, aspectRatio,
-        customDimensions, cropArea, mockupId, mockupConfig, canvasElements,
-        videoTransform, imageTransform, apply3DToBackground, imageMaskConfig, imageZoomScale,
-        currentProject, isPhotoMode, autoSaveCurrentProject,
-    ]);
+    }, [autoSaveCurrentProject, currentProject, isPhotoMode]);
 
     const selectedMockupMotionFragment = useMemo(
         () => mockupMotionFragments.find((f) => f.id === selectedMockupMotionFragmentId) ?? null,
@@ -431,7 +399,7 @@ export default function Editor() {
             }
 
             const newFragment: MockupMotionFragment = {
-                id: `motion_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
+                id: `motion_${crypto.randomUUID()}`,
                 presetId,
                 intensity,
                 speed,
@@ -535,7 +503,7 @@ export default function Editor() {
             setSelectedWallpaper(8);
             setBackgroundBlur(0);
             setPadding(10);
-            setRoundedCorners(10);
+            setRoundedCorners(15);
             setShadows(10);
             setAspectRatio("auto");
             setCustomDimensions(null);
@@ -543,125 +511,38 @@ export default function Editor() {
             setMockupId("none");
             setMockupConfig(DEFAULT_MOCKUP_CONFIG);
             setCanvasElements([]);
-            setImageTransform({ id: "front", label: "Front", rotateX: 0, rotateY: 0, rotateZ: 0, translateY: 0, scale: 0.9, perspective: 600 });
             setApply3DToBackground(false);
             setImageMaskConfig(DEFAULT_MASK_CONFIG);
             setImageZoomScale(1);
+            setImageTransform(PREVIEW_CONFIGS[0]);
         }
     }, [currentProject, removeProject]);
 
-    const handleUploadImageToHistory = useCallback(async (file: File) => {
+    const createImageProjectFromFile = useCallback(async (file: File, errorLabel: string) => {
         try {
             const img = await createImageBitmap(file);
-            const project = await createProject(
-                file,
-                file.name,
-                img.width,
-                img.height,
-                {
-                    backgroundTab, selectedWallpaper, backgroundBlur, selectedImageUrl,
-                    backgroundColorConfig, padding, roundedCorners, shadows, aspectRatio,
-                    customDimensions, cropArea, mockupId, mockupConfig, canvasElements,
-                    imageTransform: {
-                        rotation: videoTransform.rotation,
-                        translateX: videoTransform.translateX,
-                        translateY: videoTransform.translateY,
-                    },
-                    imagePreview3D: imageTransform,
-                    apply3DToBackground,
-                    imageMaskConfig,
-                }
-            );
+            const project = await createProject(file, file.name, img.width, img.height, buildPhotoProjectSnapshot());
             if (project) {
                 setImageUrl(project.imageDataUrl);
                 setImageDimensions({ width: img.width, height: img.height });
             }
         } catch (error) {
-            console.error("Failed to upload image to history:", error);
+            console.error(`Failed to ${errorLabel}:`, error);
         }
-    }, [
-        createProject, backgroundTab, selectedWallpaper, backgroundBlur, selectedImageUrl,
-        backgroundColorConfig, padding, roundedCorners, shadows, aspectRatio,
-        customDimensions, cropArea, mockupId, mockupConfig, canvasElements,
-        videoTransform, imageTransform, apply3DToBackground, imageMaskConfig
-    ]);
+    }, [createProject, buildPhotoProjectSnapshot]);
 
-    // Screen capture handler - now creates a project
+    const handleImageUploadToCanvas = useCallback(
+        (file: File) => createImageProjectFromFile(file, "upload image"),
+        [createImageProjectFromFile]
+    );
+    const handleUploadImageToHistory = handleImageUploadToCanvas;
+
     const handleScreenCapture = useCallback(async () => {
         const blob = await captureScreen();
-        if (blob) {
-            try {
-                const file = new File([blob], `Screenshot ${new Date().toLocaleString()}.png`, { type: "image/png" });
-                const img = await createImageBitmap(blob);
-                const project = await createProject(
-                    file,
-                    file.name,
-                    img.width,
-                    img.height,
-                    {
-                        backgroundTab, selectedWallpaper, backgroundBlur, selectedImageUrl,
-                        backgroundColorConfig, padding, roundedCorners, shadows, aspectRatio,
-                        customDimensions, cropArea, mockupId, mockupConfig, canvasElements,
-                        imageTransform: {
-                            rotation: videoTransform.rotation,
-                            translateX: videoTransform.translateX,
-                            translateY: videoTransform.translateY,
-                        },
-                        imagePreview3D: imageTransform,
-                        apply3DToBackground,
-                        imageMaskConfig,
-                    }
-                );
-                if (project) {
-                    setImageUrl(project.imageDataUrl);
-                    setImageDimensions({ width: img.width, height: img.height });
-                }
-            } catch (error) {
-                console.error("Failed to create project from screenshot:", error);
-            }
-        }
-    }, [
-        captureScreen, createProject, backgroundTab, selectedWallpaper, backgroundBlur, selectedImageUrl,
-        backgroundColorConfig, padding, roundedCorners, shadows, aspectRatio,
-        customDimensions, cropArea, mockupId, mockupConfig, canvasElements,
-        videoTransform, imageTransform, apply3DToBackground, imageMaskConfig
-    ]);
-
-    const handleImageUploadToCanvas = useCallback(async (file: File) => {
-        try {
-            const img = await createImageBitmap(file);
-            const project = await createProject(
-                file,
-                file.name,
-                img.width,
-                img.height,
-                {
-                    backgroundTab, selectedWallpaper, backgroundBlur, selectedImageUrl,
-                    backgroundColorConfig, padding, roundedCorners, shadows, aspectRatio,
-                    customDimensions, cropArea, mockupId, mockupConfig, canvasElements,
-                    imageTransform: {
-                        rotation: videoTransform.rotation,
-                        translateX: videoTransform.translateX,
-                        translateY: videoTransform.translateY,
-                    },
-                    imagePreview3D: imageTransform,
-                    apply3DToBackground,
-                    imageMaskConfig,
-                }
-            );
-            if (project) {
-                setImageUrl(project.imageDataUrl);
-                setImageDimensions({ width: img.width, height: img.height });
-            }
-        } catch (error) {
-            console.error("Failed to upload image:", error);
-        }
-    }, [
-        createProject, backgroundTab, selectedWallpaper, backgroundBlur, selectedImageUrl,
-        backgroundColorConfig, padding, roundedCorners, shadows, aspectRatio,
-        customDimensions, cropArea, mockupId, mockupConfig, canvasElements,
-        videoTransform, imageTransform, apply3DToBackground, imageMaskConfig
-    ]);
+        if (!blob) return;
+        const file = new File([blob], `Screenshot ${new Date().toLocaleString()}.png`, { type: "image/png" });
+        await createImageProjectFromFile(file, "create project from screenshot");
+    }, [captureScreen, createImageProjectFromFile]);
 
     // Handler for drag & drop images on canvas (photo mode only)
     const handleImageDrop = useCallback(async (files: FileList | File[]) => {
@@ -685,6 +566,7 @@ export default function Editor() {
             setActiveTool("elements");
         }
     }, []);
+
     // Image export handler - using html-to-image with fixed dimensions
     const handleImageExport = useCallback(async (
         format: ImageExportFormat,
@@ -1138,7 +1020,7 @@ export default function Editor() {
 
         const newElement = {
             ...copiedElement,
-            id: `${copiedElement.type}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+            id: `${copiedElement.type}-${crypto.randomUUID()}`,
             x: copiedElement.x + 5,
             y: copiedElement.y + 5,
             zIndex: VIDEO_Z_INDEX + 1,
@@ -1179,10 +1061,10 @@ export default function Editor() {
         }
     }, [canvasElements, updateCanvasElement]);
 
+    const MAX_AUDIO_TRACKS = 5;
     // Audio handlers
     const handleAudioUpload = useCallback(async (file: File) => {
         try {
-            const MAX_AUDIO_TRACKS = 5;
             if (audioTracks.length >= MAX_AUDIO_TRACKS) {
                 alert(`Máximo ${MAX_AUDIO_TRACKS} pistas de audio permitidas.`);
                 return;
@@ -1197,7 +1079,7 @@ export default function Editor() {
             });
 
             const newAudio: import("@/types/audio.types").UploadedAudio = {
-                id: `audio-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+                id: `audio-${crypto.randomUUID()}`,
                 name: file.name,
                 url,
                 duration: audio.duration,
@@ -1210,7 +1092,7 @@ export default function Editor() {
             const lastTrackEnd = audioTracks.reduce((max, track) =>
                 Math.max(max, track.startTime + track.duration), 0);
 
-            const trackId = `track-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+            const trackId = `track-${crypto.randomUUID()}`;
 
             if (audio.duration > videoDuration) {
                 setPendingAudioUpload({ audio: newAudio, trackId });
@@ -1254,7 +1136,6 @@ export default function Editor() {
         const audio = uploadedAudios.find(a => a.id === audioId);
         if (!audio) return;
 
-        const MAX_AUDIO_TRACKS = 5;
         if (audioTracks.length >= MAX_AUDIO_TRACKS) {
             alert(`Máximo ${MAX_AUDIO_TRACKS} pistas de audio permitidas.`);
             return;
@@ -1269,7 +1150,7 @@ export default function Editor() {
             Math.max(max, track.startTime + track.duration), 0);
 
         const newTrack: import("@/types/audio.types").AudioTrack = {
-            id: `track-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+            id: `track-${crypto.randomUUID()}`,
             audioId,
             name: audio.name,
             startTime: lastTrackEnd,
@@ -1457,103 +1338,32 @@ export default function Editor() {
     const isDraggingPlayheadRef = useRef(isDraggingPlayhead);
     const trimRangeRef = useRef(trimRange);
     const syncAudioPlaybackRef = useRef(syncAudioPlayback);
+    const [globalSpeed, setGlobalSpeed] = useState<number>(1);
+    const globalSpeedRef = useRef<number>(1);
+    useEffect(() => { globalSpeedRef.current = globalSpeed; }, [globalSpeed]);
+
     useEffect(() => { isPlayingRef.current = isPlaying; }, [isPlaying]);
     useEffect(() => { isDraggingPlayheadRef.current = isDraggingPlayhead; }, [isDraggingPlayhead]);
     useEffect(() => { trimRangeRef.current = trimRange; }, [trimRange]);
     useEffect(() => { syncAudioPlaybackRef.current = syncAudioPlayback; }, [syncAudioPlayback]);
+
     const currentTimeRef = useRef<number>(0);
     useEffect(() => {
         currentTimeRef.current = currentTime;
     }, [currentTime]);
 
-    const handleExport = (quality: ExportQuality) => {
-        /* console.log("=== RECIPE JSON PARA BACKEND (PRUEBAS) ===");
-         const userId = user?.id ?? "USER-ID-NO-DISPONIBLE";
-         const appOrigin = window.location.origin;
-          console.log(JSON.stringify({
-              quality,
-              trim: trimRange.end > trimRange.start
-                  ? { start: trimRange.start, end: trimRange.end }
-                  : null,
-              clips: videoClips.map(clip => ({
-                  id: clip.id,
-                  libraryVideoId: clip.libraryVideoId,
-                  storageKey: `source-videos/${userId}/${clip.libraryVideoId}.mp4`,
-                  name: clip.name,
-                  startTime: clip.startTime,
-                  trimStart: clip.trimStart,
-                  trimEnd: clip.trimEnd,
-                  duration: clip.trimEnd - clip.trimStart,
-                  hasAudio: clipAudioStateRef.current.get(clip.libraryVideoId) !== false,
-                  hasCamera: clip.hasCamera ?? false,
-              })),
-              muteOriginalAudio,
-              masterVolume,
-              videoHasAudioTrack,
-              audioTracks: audioTracks.map(track => {
-                  const audio = uploadedAudios.find(a => a.id === track.audioId);
-                  return {
-                      audioId: track.audioId,
-                      audioStorageKey: `source-audios/${userId}/${track.audioId}`,
-                      name: audio?.name ?? track.name,
-                      startTime: track.startTime,
-                      duration: track.duration,
-                      trimStart: track.trimStart ?? 0,
-                      volume: track.volume,
-                      loop: track.loop,
-                  };
-              }),
-              backgroundTab,
-              selectedWallpaper,
-              // URL completa del wallpaper seleccionado (vacío si no se usa wallpaper)
-              wallpaperUrl: backgroundTab === "wallpaper" && selectedWallpaper >= 0
-                  ? `${appOrigin}${getWallpaperUrl(selectedWallpaper)}`
-                  : null,
-              backgroundBlur,
-              // dataUrl si el usuario subió imagen propia | URL https si es Unsplash/Pexels | "" si no hay
-              selectedImageUrl,
-              backgroundColorConfig,
-              aspectRatio,
-              customDimensions,
-              // Native video dimensions — used by the backend to compute output size when aspectRatio is 'auto'
-              sourceDimensions: videoDimensions ?? null,
-              cropArea,
-              padding,
-              roundedCorners,
-              shadows,
-              videoTransform,
-              mockupId,
-              mockupConfig,
-              zoomFragments,
-              canvasElements: canvasElements.map(el => {
-                  // Resolver imagePath de elementos built-in a URLs completas
-                  if (el.type === "image") {
-                      const imgEl = el as import("@/types/canvas-elements.types").ImageElement;
-                      if (imgEl.imagePath?.startsWith("/")) {
-                          return { ...el, imagePath: `${appOrigin}${imgEl.imagePath}` };
-                      }
-                  }
-                  return el;
-              }),
-              cameraConfig,
-              cameraStorageKey: null,
-              videoMaskConfig,
-          }, null, 2));
-         console.log("==========================================");
-         // ── FIN BACKEND TESTING ──*/
-
+    const handleExport = useCallback((quality: ExportQuality) => {
         isExportingRef.current = true;
         for (const audioEl of audioElementsRef.current.values()) {
             audioEl.pause();
         }
-
         exportVideo({
             quality,
             videoBlob: videoBlob ?? undefined,
             transparentBackground: selectedWallpaper === -1,
             trim: trimRange.end > trimRange.start ? { start: trimRange.start, end: trimRange.end } : undefined,
             muteOriginalAudio,
-            videoHasAudioTrack: videoHasAudioTrack,
+            videoHasAudioTrack,
             audioTracks: audioTracks.map(track => {
                 const audio = uploadedAudios.find(a => a.id === track.audioId);
                 return {
@@ -1569,11 +1379,11 @@ export default function Editor() {
             videoClips: videoClips.length > 0 ? videoClips : undefined,
             videoClipBlobs: videoClips.length > 1 ? videoBlobsRef.current : undefined,
             clipAudioStates: Object.fromEntries(clipAudioStateRef.current),
-            speed: globalSpeed
+            speed: globalSpeed,
         }).finally(() => {
             isExportingRef.current = false;
         });
-    };
+    }, [videoBlob, selectedWallpaper, trimRange, muteOriginalAudio, videoHasAudioTrack, audioTracks, uploadedAudios, masterVolume, videoClips, globalSpeed, exportVideo]);
 
     const showNewVideosBadge = useCallback((count: number) => {
         if (newVideosBadgeTimeoutRef.current) {
@@ -1686,10 +1496,6 @@ export default function Editor() {
         };
     }, []);
 
-    const [globalSpeed, setGlobalSpeed] = useState<number>(1);
-    const globalSpeedRef = useRef<number>(1);
-    useEffect(() => { globalSpeedRef.current = globalSpeed; }, [globalSpeed]);
-
     const handleGlobalSpeedChange = useCallback((speed: number) => {
         setGlobalSpeed(speed);
         if (videoRef.current) {
@@ -1699,7 +1505,7 @@ export default function Editor() {
 
     // Handler to add video from library to the track (concatenate)
     const handleAddVideoToTrack = useCallback(async (videoId: string, blob: Blob, duration: number) => {
-        const libraryVideo = await import("@/lib/videos-library").then(m => m.getLibraryVideo(videoId));
+        const libraryVideo = await getLibraryVideo(videoId);
         if (!libraryVideo) return;
 
         clipAudioStateRef.current.set(videoId, libraryVideo.hasAudio !== false);
@@ -1769,20 +1575,20 @@ export default function Editor() {
         });
     }, [clearHistory, showNewVideosBadge, setClipUrl]);
 
-    const activeClipForDims = useMemo(
-        () => (videoClips.length > 0 ? getClipAtTime(videoClips, currentTime) : null),
+    const activeClipAtPlayhead = useMemo(
+        () => getClipAtTime(videoClips, currentTime),
         [videoClips, currentTime]
     );
 
     const activeMediaAspect = useMemo(() => {
-        if (!activeClipForDims?.width || !activeClipForDims?.height) return null;
-        return activeClipForDims.width / activeClipForDims.height;
-    }, [activeClipForDims]);
+        if (!activeClipAtPlayhead?.width || !activeClipAtPlayhead?.height) return null;
+        return activeClipAtPlayhead.width / activeClipAtPlayhead.height;
+    }, [activeClipAtPlayhead]);
 
     const activeClipUrl = useMemo(() => {
-        if (!activeClipForDims) return videoUrl;
-        return videoUrlsMap.get(activeClipForDims.libraryVideoId) ?? videoUrl;
-    }, [activeClipForDims, videoUrl, videoUrlsMap]);
+        if (!activeClipAtPlayhead) return videoUrl;
+        return videoUrlsMap.get(activeClipAtPlayhead.libraryVideoId) ?? videoUrl;
+    }, [activeClipAtPlayhead, videoUrl, videoUrlsMap]);
 
     // Handlers for video clip management
     const handleSelectVideoClip = useCallback((clipId: string | null) => {
@@ -1879,11 +1685,8 @@ export default function Editor() {
         setActiveTool("video");
     }, []);
 
-    const activeClipForSplit = useMemo(
-        () => getClipAtTime(videoClips, currentTime),
-        [videoClips, currentTime]
-    );
-    const canSplitClip = !!activeClipForSplit && splitClipAtTime(activeClipForSplit, currentTime) !== null;
+    const canSplitClip =
+        !!activeClipAtPlayhead && splitClipAtTime(activeClipAtPlayhead, currentTime) !== null;
 
     // Handler to remove video from track when deleted from library (cascade delete)
     const handleDeleteVideoFromLibrary = useCallback((libraryVideoId: string) => {
@@ -2059,24 +1862,24 @@ export default function Editor() {
                     getUploadedVideo(),
                 ]);
                 let videoToLoad: typeof uploadedData | typeof recordedData = null;
-                let videoBlob: Blob | null = null;
+                let resolvedBlob: Blob | null = null;
 
                 if (uploadedData && recordedData) {
                     videoToLoad = uploadedData.timestamp > recordedData.timestamp ? uploadedData : recordedData;
                     if (uploadedData.timestamp > recordedData.timestamp && cachedUpload) {
-                        videoBlob = cachedUpload.blob;
+                        resolvedBlob = cachedUpload.blob;
                     } else if ('blob' in recordedData && recordedData.blob) {
-                        videoBlob = recordedData.blob;
+                        resolvedBlob = recordedData.blob;
                     }
                 } else if (uploadedData) {
                     videoToLoad = uploadedData;
                     if (cachedUpload) {
-                        videoBlob = cachedUpload.blob;
+                        resolvedBlob = cachedUpload.blob;
                     }
                 } else if (recordedData) {
                     videoToLoad = recordedData;
                     if ('blob' in recordedData && recordedData.blob) {
-                        videoBlob = recordedData.blob;
+                        resolvedBlob = recordedData.blob;
                     }
                 }
 
@@ -2101,8 +1904,8 @@ export default function Editor() {
                             }
                         }
 
-                        if (videoBlob && videoBlob.size > 0) {
-                            setVideoBlob(videoBlob);
+                        if (resolvedBlob && resolvedBlob.size > 0) {
+                            setVideoBlob(resolvedBlob);
 
                             const fileName = 'fileName' in videoToLoad
                                 ? (videoToLoad.fileName as string)
@@ -2111,11 +1914,11 @@ export default function Editor() {
                             const height = 'height' in videoToLoad ? (videoToLoad.height as number) : 1080;
 
                             try {
-                                let libraryVideo = await findExistingVideo(fileName, videoBlob.size);
+                                let libraryVideo = await findExistingVideo(fileName, resolvedBlob.size);
 
                                 if (!libraryVideo) {
                                     libraryVideo = await addVideoToLibraryWithMetadata({
-                                        blob: videoBlob,
+                                        blob: resolvedBlob,
                                         fileName,
                                         duration: videoToLoad.duration,
                                         width,
@@ -2123,7 +1926,7 @@ export default function Editor() {
                                     });
                                 }
 
-                                videoBlobsRef.current.set(libraryVideo.id, videoBlob);
+                                videoBlobsRef.current.set(libraryVideo.id, resolvedBlob);
                                 setClipUrl(libraryVideo.id, videoToLoad.url);
                                 const originalHasAudio = libraryVideo.originalHasAudio !== false;
                                 clipAudioStateRef.current.set(libraryVideo.id, libraryVideo.hasAudio !== false);
@@ -2798,20 +2601,17 @@ export default function Editor() {
         reader.readAsDataURL(file);
     }, []);
 
-    const handleImageSelect = (url: string) => {
-        if (backgroundTab === "wallpaper") {
-            setUnsplashBgUrl(url);
-        } else {
-            setSelectedImageUrl(url);
-        }
-    };
+    const handleImageSelect = useCallback((url: string) => {
+        if (backgroundTab === "wallpaper") setUnsplashBgUrl(url);
+        else setSelectedImageUrl(url);
+    }, [backgroundTab]);
 
-    const handleWallpaperSelect = (index: number) => {
+    const handleWallpaperSelect = useCallback((index: number) => {
         setSelectedWallpaper(index);
         setUnsplashBgUrl("");
-    };
+    }, []);
 
-    const handleImageRemove = (url: string) => {
+    const handleImageRemove = useCallback((url: string) => {
         const id = bgImgUrlToIdRef.current.get(url);
         if (id) {
             bgImagesDelete(id).catch(err => console.error("Error deleting bg image:", err));
@@ -2819,17 +2619,13 @@ export default function Editor() {
         }
         setUploadedImages(prev => prev.filter(img => img !== url));
         if (selectedImageUrl === url) setSelectedImageUrl("");
-    };
+    }, [selectedImageUrl]);
 
     // Background tab change handler
-    const handleBackgroundTabChange = (tab: BackgroundTab) => {
-        setBackgroundTab(tab);
-    };
+    const handleBackgroundTabChange = useCallback((tab: BackgroundTab) => setBackgroundTab(tab), []);
 
     // Handler para cambio de color/gradiente
-    const handleBackgroundColorChange = (config: BackgroundColorConfig) => {
-        setBackgroundColorConfig(config);
-    };
+    const handleBackgroundColorChange = useCallback((config: BackgroundColorConfig) => setBackgroundColorConfig(config), []);
 
     // Zoom fragment handlers
     const handleSelectZoomFragment = useCallback((fragmentId: string | null) => {
@@ -2910,7 +2706,7 @@ export default function Editor() {
 
         const newFragment: ZoomFragment = {
             ...copiedZoomFragment,
-            id: `zoom_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+            id: `zoom_${crypto.randomUUID()}`,
             startTime: position.startTime,
             endTime: position.endTime,
         };
@@ -2919,7 +2715,6 @@ export default function Editor() {
         setActiveTool("zoom");
     }, [copiedZoomFragment, selectedZoomFragmentId, currentTime, videoDuration]);
 
-    // Calcular el CSS del background actual - memoized
     const backgroundColorCss = useMemo((): string | undefined => {
         if (backgroundTab === "color" && backgroundColorConfig) {
             if (backgroundColorConfig.type === "solid") {
@@ -3162,11 +2957,7 @@ export default function Editor() {
     ]);
 
     // Only show camera if the active clip has camera support
-    const activeClip = useMemo(
-        () => getClipAtTime(videoClips, currentTime),
-        [videoClips, currentTime]
-    );
-    const shouldShowCamera = activeClip?.hasCamera === true;
+    const shouldShowCamera = activeClipAtPlayhead?.hasCamera === true;
     const effectiveCameraUrl = shouldShowCamera ? cameraUrl : null;
 
     return (

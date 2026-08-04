@@ -1,14 +1,46 @@
-"use client";
-
+import type { Metadata } from "next";
 import { Icon } from "@iconify/react";
-import Link from "next/link";
-import { useLocale, useTranslations } from "next-intl";
+import { getLocale, getTranslations, setRequestLocale } from "next-intl/server";
+import { Link } from "@/navigation";
+import { getRouteAlternates, SEO_BASE_URL } from "@/lib/seo";
 
-export default function TermsPage() {
-    const t = useTranslations("terms");
-    const locale = useLocale();
+type Props = {
+  params: Promise<{ locale: string }>;
+};
 
-    const lastUpdatedDate = new Date().toLocaleDateString(locale, {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations("terms");
+  const description = t.raw("description.content") as string;
+  const url = getRouteAlternates(locale, "/terms");
+
+  return {
+    title: t("title"),
+    description,
+    alternates: url,
+    openGraph: {
+      title: t("title"),
+      description,
+      url: url.canonical,
+      images: [
+        {
+          url: `${SEO_BASE_URL}/images/metadata/preview-openvid.jpg`,
+          width: 1200,
+          height: 630,
+          alt: "OpenVid - Terms of Service",
+        },
+      ],
+    },
+  };
+}
+
+export default async function TermsPage({ params }: Props) {
+    const { locale } = await params;
+    setRequestLocale(locale);
+    const t = await getTranslations("terms");
+    const currentLocale = await getLocale();
+
+    const lastUpdatedDate = new Date().toLocaleDateString(currentLocale, {
         day: "numeric",
         month: "long",
         year: "numeric",

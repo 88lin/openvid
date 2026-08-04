@@ -747,11 +747,13 @@
     "preview": {
       "alt": "Vista previa del video",
       "dragAB": "Arrastra A y B",
-      "dragOrClick": "Arrastra o click"
+      "dragOrClick": "Arrastra o click",
+      "orbitalPath": "Trayectoria del cursor de Autozoom"
     },
     "movement": {
       "title": "Movimiento de cámara",
       "subtitle": "Desplazamiento durante el zoom",
+      "orbitalDescription": "Trayectoria del cursor generada por Autozoom. Se conserva en la vista previa y la exportación.",
       "tooShort": "Fragmento muy corto para movimiento. Aumenta la duración o reduce la velocidad de transición.",
       "timeline": {
         "title": "Timeline de movimiento",
@@ -1317,6 +1319,33 @@
     "controls": {
       "intensity": "Intensidad",
       "speed": "Velocidad"
+    }
+  },
+  "autozoomOverlay": {
+    "eyebrow": "Auto zoom",
+    "title": "Preparando tu video",
+    "finishingTitle": "Agregando tu video al editor",
+    "failedTitle": "No pudimos procesar este video",
+    "finishingDescription": "La línea de tiempo de zoom está lista. Configurando el editor…",
+    "failedDescription": "Tu video no fue modificado. Puedes intentarlo nuevamente.",
+    "progress": "Progreso",
+    "processingFile": "Procesando video",
+    "hint": "Puedes mantener esta pestaña abierta mientras preparamos el video y sus zooms automáticos.",
+    "error": "Error: {message}",
+    "retry": "Reintentar",
+    "dismiss": "Cerrar",
+    "status": {
+      "validating": "Comprobando el video antes de subirlo…",
+      "upload": "Subiendo el video original de forma segura…",
+      "queued": "Video subido. Iniciando el análisis…",
+      "download": "Descargando el video para procesarlo…",
+      "probe": "Leyendo los detalles del video…",
+      "convert": "Optimizando el formato del video…",
+      "sample": "Analizando fotogramas…",
+      "detect_cursor": "Detectando el movimiento del cursor…",
+      "segment": "Encontrando los momentos para destacar…",
+      "fragments": "Construyendo la línea de tiempo de zoom…",
+      "done": "Finalizando los zooms automáticos…"
     }
   }
 }

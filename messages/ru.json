@@ -759,11 +759,13 @@
     "preview": {
       "alt": "Предпросмотр видео",
       "dragAB": "Перетащите A и B",
-      "dragOrClick": "Перетащите или нажмите"
+      "dragOrClick": "Перетащите или нажмите",
+      "orbitalPath": "Траектория курсора Autozoom"
     },
     "movement": {
       "title": "Движение камеры",
       "subtitle": "Панорамирование при зуме",
+      "orbitalDescription": "Траектория курсора, созданная Autozoom. Она сохраняется в предпросмотре и экспорте.",
       "tooShort": "Фрагмент слишком короткий для движения. Увеличьте длительность или уменьшите скорость перехода.",
       "timeline": {
         "title": "Таймлайн движения",
@@ -1334,6 +1336,23 @@
     "controls": {
       "intensity": "Интенсивность",
       "speed": "Скорость"
+    }
+  },
+  "autozoomOverlay": {
+    "eyebrow": "Auto zoom",
+    "title": "Preparing your video",
+    "finishingTitle": "Adding your video to the editor",
+    "failedTitle": "We could not process this video",
+    "finishingDescription": "Your zoom timeline is ready. Setting up the editor…",
+    "failedDescription": "Your video was not changed. You can try again.",
+    "progress": "Progress",
+    "processingFile": "Processing video",
+    "hint": "Keep this tab open while we prepare the video and automatic zooms.",
+    "error": "Error: {message}",
+    "retry": "Try again",
+    "dismiss": "Close",
+    "status": {
+      "validating": "Checking the video before upload…", "upload": "Uploading the original video securely…", "queued": "Video uploaded. Starting the analysis…", "download": "Downloading the video for processing…", "probe": "Reading video details…", "convert": "Optimizing the video format…", "sample": "Sampling frames…", "detect_cursor": "Detecting cursor movement…", "segment": "Finding moments worth highlighting…", "fragments": "Building the zoom timeline…", "done": "Finalizing automatic zooms…"
     }
   }
 }
