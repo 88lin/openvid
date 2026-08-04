@@ -45,7 +45,7 @@ export async function POST(request: Request) {
     from: FROM_EMAIL,
     to: [user.email],
     reply_to: REPLY_TO_EMAIL,
-    subject: "Your daily OpenVid reminder",
+    subject: user.first_name ? `${user.first_name}, transform your recordings into 3D mockups today` : "Transform your recordings into 3D mockups today",
     react: DailyTipEmail({ firstName: user.first_name }),
   }));
 
