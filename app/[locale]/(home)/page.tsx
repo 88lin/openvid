@@ -42,12 +42,23 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const { title, description, keywords } = metadata[locale as 'es' | 'en' | 'ru' | 'ko'] || metadata.es;
 
+  const ogLocaleMap: Record<string, string> = {
+    en: 'en_US',
+    es: 'es_ES',
+    ru: 'ru_RU',
+    ko: 'ko_KR',
+  };
+  const currentOgLocale = ogLocaleMap[locale] || 'en_US';
+  const alternateLocales = Object.values(ogLocaleMap).filter(loc => loc !== currentOgLocale);
+
+  const url = `${baseUrl}/${locale}`;
+
   return {
     title,
     description,
     keywords,
     alternates: {
-      canonical: `${baseUrl}/${locale}`,
+      canonical: url,
       languages: {
         es: `${baseUrl}/es`,
         en: `${baseUrl}/en`,
@@ -56,9 +67,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       },
     },
     openGraph: {
+      type: 'website',
+      siteName: 'OpenVid',
+      locale: currentOgLocale,
+      alternateLocale: alternateLocales,
+      url,
       title,
       description,
-      url: `${baseUrl}/${locale}`,
       images: [
         {
           url: `${baseUrl}/images/metadata/preview-openvid.jpg`,
@@ -70,6 +85,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
     twitter: {
       card: 'summary_large_image',
+      site: '@openvid',
+      creator: '@cristianolivera',
       title,
       description,
       images: [`${baseUrl}/images/metadata/preview-openvid.jpg`],
