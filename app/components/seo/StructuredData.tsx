@@ -1,5 +1,3 @@
-import Script from 'next/script';
-
 type WebApplicationSchema = {
   '@context': 'https://schema.org';
   '@type': 'WebApplication';
@@ -13,6 +11,7 @@ type WebApplicationSchema = {
   };
   description: string;
   url: string;
+  inLanguage?: string;
   image?: string;
   author?: {
     '@type': 'Organization' | 'Person';
@@ -36,6 +35,21 @@ type OrganizationSchema = {
   };
 };
 
+type WebSiteSchema = {
+  '@context': 'https://schema.org';
+  '@type': 'WebSite';
+  name: string;
+  alternateName?: string;
+  url: string;
+  inLanguage?: string;
+  publisher?: {
+    '@type': 'Organization';
+    name: string;
+    url: string;
+    logo?: string;
+  };
+};
+
 type BreadcrumbSchema = {
   '@context': 'https://schema.org';
   '@type': 'BreadcrumbList';
@@ -48,16 +62,15 @@ type BreadcrumbSchema = {
 };
 
 type StructuredDataProps = {
-  data: WebApplicationSchema | OrganizationSchema | BreadcrumbSchema | Record<string, unknown>;
+  data: WebApplicationSchema | OrganizationSchema | WebSiteSchema | BreadcrumbSchema | Record<string, unknown>;
 };
 
 export function StructuredData({ data }: StructuredDataProps) {
   return (
-    <Script
+    <script
       id={`structured-data-${data['@type']}`}
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
-      strategy="beforeInteractive"
     />
   );
 }
@@ -131,6 +144,7 @@ export function generateWebAppSchema(locale: 'es' | 'en' | 'ru' | 'ko'): WebAppl
     },
     description,
     url: baseUrl,
+    inLanguage: locale,
     image: `${baseUrl}/images/metadata/preview-openvid.jpg`,
     author: {
       '@type': 'Person',
@@ -141,8 +155,7 @@ export function generateWebAppSchema(locale: 'es' | 'en' | 'ru' | 'ko'): WebAppl
   };
 }
 
-export function generateOrganizationSchema(): OrganizationSchema {
-  return {
+export function generateOrganizationSchema(): OrganizationSchema {  return {
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: 'openvid',
@@ -159,6 +172,23 @@ export function generateOrganizationSchema(): OrganizationSchema {
       '@type': 'ContactPoint',
       contactType: 'Customer Support',
       email: 'oliverachavezcristian@gmail.com',
+    },
+  };
+}
+
+export function generateWebSiteSchema(locale: 'es' | 'en' | 'ru' | 'ko'): WebSiteSchema {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'OpenVid',
+    alternateName: 'openvid',
+    url: 'https://openvid.dev',
+    inLanguage: locale,
+    publisher: {
+      '@type': 'Organization',
+      name: 'openvid',
+      url: 'https://openvid.dev',
+      logo: 'https://openvid.dev/images/metadata/favicon.svg',
     },
   };
 }

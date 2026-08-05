@@ -1,6 +1,6 @@
 import Hero from "@/app/components/ui/home/Hero";
 import InteractiveRecordingSteps from "@/app/components/ui/home/RecordingSteps";
-import { StructuredData, generateWebAppSchema, generateOrganizationSchema } from "@/app/components/seo/StructuredData";
+import { StructuredData, generateWebAppSchema, generateOrganizationSchema, generateWebSiteSchema } from "@/app/components/seo/StructuredData";
 import type { Metadata } from 'next';
 import DonationCard from "@/app/components/ui/home/DonationCard";
 import VideoHero from "@/app/components/ui/home/VideoHero";
@@ -100,6 +100,7 @@ export default async function Home({ params }: Props) {
   return (
     <>
       <StructuredData data={generateWebAppSchema(locale as 'en' | 'es' | 'ru' | 'ko')} />
+      <StructuredData data={generateWebSiteSchema(locale as 'en' | 'es' | 'ru' | 'ko')} />
       <StructuredData data={generateOrganizationSchema()} />
 
       <div className="flex flex-col">
