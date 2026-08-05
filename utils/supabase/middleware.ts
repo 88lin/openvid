@@ -39,16 +39,9 @@ export const updateSession = async (request: NextRequest) => {
     },
   });
 
-  let user = null;
-  const hasSessionCookie = request.cookies
-    .getAll()
-    .some((cookie) => cookie.name.startsWith("sb-") && cookie.name.endsWith("-auth-token"));
-  if (hasSessionCookie) {
-    const {
-      data: { user: sessionUser },
-    } = await supabase.auth.getUser();
-    user = sessionUser;
-  }
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user && isVideoEditor) {
     const url = request.nextUrl.clone();
