@@ -130,7 +130,20 @@ export default async function LocaleLayout({
   }
 
   setRequestLocale(locale);
-  const messages = await getMessages();
+  const messages = (await getMessages()) as Record<string, unknown>;
+  const publicMessages = {
+    header: messages.header,
+    footer: messages.footer,
+    userMenu: messages.userMenu,
+    recording: messages.recording,
+    hero: messages.hero,
+    demo: messages.demo,
+    featuresShowcase: messages.featuresShowcase,
+    featuresGrid: messages.featuresGrid,
+    socialReactions: messages.socialReactions,
+    donation: messages.donation,
+    notFound: messages.notFound,
+  };
   const isProduction = process.env.NODE_ENV === 'production';
   const gaId = process.env.NEXT_PUBLIC_GA_ID;
 
@@ -144,7 +157,7 @@ export default async function LocaleLayout({
         `}
       >
         <meta httpEquiv="content-language" content={locale} />
-        <NextIntlClientProvider key={locale} messages={messages} locale={locale}>
+        <NextIntlClientProvider key={locale} messages={publicMessages} locale={locale}>
           <TooltipProvider delayDuration={200}>
             {children}
           </TooltipProvider>
