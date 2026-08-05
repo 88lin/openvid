@@ -16,7 +16,10 @@ export default async function proxy(request: NextRequest) {
   const intlResponse = intlMiddleware(request);
   intlResponse.headers.set('x-user-country', country);
 
-   const supabaseResponse = await updateSession(request);
+  const supabaseResponse = await updateSession(request);
+  if (supabaseResponse.headers.has('location')) {
+    return supabaseResponse;
+  }
   supabaseResponse.cookies.getAll().forEach((cookie) => {
     intlResponse.cookies.set(cookie.name, cookie.value);
   });
