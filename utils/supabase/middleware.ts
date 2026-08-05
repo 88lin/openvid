@@ -50,12 +50,17 @@ export const updateSession = async (request: NextRequest) => {
     user = sessionUser;
   }
 
-  // if (!user && request.nextUrl.pathname.startsWith("/editor")) {
-  //   const url = request.nextUrl.clone();
-  //   url.pathname = "/login";
-  //   url.searchParams.set("redirectedFrom", request.nextUrl.pathname);
-  //   return NextResponse.redirect(url);
-  // }
+  if (!user && isVideoEditor) {
+    const url = request.nextUrl.clone();
+    const redirectedFrom = `${request.nextUrl.pathname}${request.nextUrl.search}`;
+    url.pathname = pathname.replace(/\/editor$/, "/login");
+    url.search = "";
+    url.searchParams.set("redirectedFrom", redirectedFrom);
+    if (request.nextUrl.searchParams.get("autoupload") === "1") {
+      url.searchParams.set("autoupload", "1");
+    }
+    return NextResponse.redirect(url);
+  }
 
   if (user && pathname.endsWith("/login")) {
     const url = request.nextUrl.clone();
