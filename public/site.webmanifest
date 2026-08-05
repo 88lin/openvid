@@ -1,0 +1,26 @@
+{
+  "name": "OpenVid - Professional Video Editor",
+  "short_name": "OpenVid",
+  "description": "Free AI-powered online video editor. Screen recorder, cinematic zooms, professional mockups, and HD export. No watermark.",
+  "start_url": "/en",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "categories": ["productivity", "photo_and_video"],
+  "icons": [
+    {
+      "src": "/images/metadata/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/images/metadata/apple.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

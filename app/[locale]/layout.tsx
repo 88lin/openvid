@@ -54,6 +54,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     applicationName: "OpenVid",
     generator: "Next.js",
     category: "design tool",
+    manifest: "/site.webmanifest",
     keywords: [
       "openvid", "product demo creator", "browser video editor", "screen recorder", 
       "3D device mockups", "cinematic video zooms", "local video rendering", 
