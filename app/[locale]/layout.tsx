@@ -136,6 +136,7 @@ export default async function LocaleLayout({
     footer: messages.footer,
     userMenu: messages.userMenu,
     recording: messages.recording,
+    recordingSetup: messages.recordingSetup,
     hero: messages.hero,
     demo: messages.demo,
     featuresShowcase: messages.featuresShowcase,
