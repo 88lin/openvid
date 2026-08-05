@@ -9,6 +9,15 @@ if (!supabaseUrl || !supabaseKey) {
 }
 
 export const updateSession = async (request: NextRequest) => {
+  const pathname = request.nextUrl.pathname;
+
+  const isVideoEditor = pathname.endsWith("/editor") && request.nextUrl.searchParams.get("mode") !== "photo";
+  const isLogin = pathname.endsWith("/login");
+
+  if (!isVideoEditor && !isLogin) {
+    return NextResponse.next({ request });
+  }
+
   let supabaseResponse = NextResponse.next({
     request,
   });
@@ -30,11 +39,16 @@ export const updateSession = async (request: NextRequest) => {
     },
   });
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  
-  const pathname = request.nextUrl.pathname;
+  let user = null;
+  const hasSessionCookie = request.cookies
+    .getAll()
+    .some((cookie) => cookie.name.startsWith("sb-") && cookie.name.endsWith("-auth-token"));
+  if (hasSessionCookie) {
+    const {
+      data: { user: sessionUser },
+    } = await supabase.auth.getUser();
+    user = sessionUser;
+  }
 
   // if (!user && request.nextUrl.pathname.startsWith("/editor")) {
   //   const url = request.nextUrl.clone();
