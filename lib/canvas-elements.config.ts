@@ -67,7 +67,6 @@ export const PINNED_IMAGE_ITEMS = [
     { id: "sticker-70", name: "Sticker 70", imagePath: "/elements/images/stickers/sticker-70.webp" },
     { id: "sticker-71", name: "Sticker 71", imagePath: "/elements/images/stickers/sticker-71.webp" },
     { id: "sticker-72", name: "Sticker 72", imagePath: "/elements/images/stickers/sticker-72.webp" },
-    { id: "sticker-73", name: "Sticker 73", imagePath: "/elements/images/stickers/sticker-73.webp" },
 ];
 
 export const SVG_CATEGORIES: SvgCategory[] = [

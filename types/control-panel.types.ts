@@ -16,7 +16,6 @@ export interface ControlPanelProps {
     padding: number;
     roundedCorners: number;
     shadows: number;
-    uploadedImages: string[];
     selectedImageUrl: string;
     backgroundColorConfig: BackgroundColorConfig | null;
     backgroundColorCss?: string;
@@ -26,9 +25,7 @@ export interface ControlPanelProps {
     onPaddingChange: (value: number) => void;
     onRoundedCornersChange: (value: number) => void;
     onShadowsChange: (value: number) => void;
-    onImageUpload: (file: File) => void;
     onImageSelect: (url: string) => void;
-    onImageRemove: (url: string) => void;
     onBackgroundColorChange: (config: BackgroundColorConfig) => void;
     zoomFragments?: ZoomFragment[];
     selectedZoomFragment?: ZoomFragment | null;

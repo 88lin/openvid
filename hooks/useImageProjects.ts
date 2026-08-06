@@ -99,23 +99,11 @@ const DEFAULT_PROJECT_STATE: ImageProjectState = {
     imagePhoneRefWidth: 0,
     imageZoomScale: 1,
 };
-
 export function useImageProjects() {
     const [projects, setProjects] = useState<ImageProjectPreview[]>([]);
     const [currentProject, setCurrentProject] = useState<ImageProject | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
-
-    useEffect(() => {
-        loadProjects();
-    }, []);
-
-    useEffect(() => {
-        const currentId = getCurrentProjectId();
-        if (currentId && !currentProject) {
-            loadProject(currentId);
-        }
-    }, []);
 
     const loadProjects = useCallback(async (showLoading = true) => {
         if (showLoading) {
@@ -148,6 +136,32 @@ export function useImageProjects() {
         } finally {
             setIsLoading(false);
         }
+    }, []);
+
+    useEffect(() => {
+        let cancelled = false;
+        queueMicrotask(() => {
+            if (!cancelled) {
+                loadProjects();
+            }
+        });
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+
+    useEffect(() => {
+        let cancelled = false;
+        queueMicrotask(() => {
+            if (cancelled) return;
+            const currentId = getCurrentProjectId();
+            if (currentId && !currentProject) {
+                loadProject(currentId);
+            }
+        });
+        return () => {
+            cancelled = true;
+        };
     }, []);
 
     const createProject = useCallback(async (
