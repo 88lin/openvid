@@ -1,4 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
+import { type User } from "@supabase/supabase-js";
 import { type NextRequest, NextResponse } from "next/server";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -8,33 +9,69 @@ if (!supabaseUrl || !supabaseKey) {
   throw new Error("Missing Supabase environment variables");
 }
 
-export const updateSession = async (request: NextRequest) => {
-  const pathname = request.nextUrl.pathname;
+type CookieToSet = {
+  name: string;
+  value: string;
+  options?: Parameters<NextResponse["cookies"]["set"]>[2];
+};
 
-  const isVideoEditor = pathname.endsWith("/editor") && request.nextUrl.searchParams.get("mode") !== "photo";
-  const isLogin = pathname.endsWith("/login");
+export type SessionUpdateResult = {
+  user: User | null;
+  applyAuthCookies: (target: NextResponse) => boolean;
+};
 
-  if (!isVideoEditor && !isLogin) {
-    return NextResponse.next({ request });
+function isVideoEditorPath(pathname: string, searchParams: URLSearchParams) {
+  return pathname.endsWith("/editor") && searchParams.get("mode") !== "photo";
+}
+
+function isLoginPath(pathname: string) {
+  return pathname.endsWith("/login");
+}
+
+export function hasSupabaseAuthCookie(request: NextRequest): boolean {
+  return request.cookies
+    .getAll()
+    .some((cookie) => cookie.name.includes("-auth-token"));
+}
+
+export function shouldRefreshSession(request: NextRequest): boolean {
+  const { pathname, searchParams } = request.nextUrl;
+  if (isVideoEditorPath(pathname, searchParams) || isLoginPath(pathname)) {
+    return true;
   }
+  return hasSupabaseAuthCookie(request);
+}
 
-  let supabaseResponse = NextResponse.next({
-    request,
-  });
+export function getSafeInternalPath(
+  value: string | null | undefined,
+  fallback: string,
+): string {
+  if (!value) return fallback;
+  if (!value.startsWith("/") || value.startsWith("//") || value.includes("://")) {
+    return fallback;
+  }
+  return value;
+}
 
-  const supabase = createServerClient(supabaseUrl, supabaseKey, {
+export async function updateSession(
+  request: NextRequest,
+): Promise<SessionUpdateResult> {
+  const cookiesToApply: CookieToSet[] = [];
+
+  const supabase = createServerClient(supabaseUrl!, supabaseKey!, {
     cookies: {
       getAll() {
         return request.cookies.getAll();
       },
       setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-        supabaseResponse = NextResponse.next({
-          request,
+        cookiesToSet.forEach(({ name, value }) => {
+          request.cookies.set(name, value);
         });
-        cookiesToSet.forEach(({ name, value, options }) =>
-          supabaseResponse.cookies.set(name, value, options)
-        );
+
+        cookiesToApply.length = 0;
+        cookiesToSet.forEach(({ name, value, options }) => {
+          cookiesToApply.push({ name, value, options });
+        });
       },
     },
   });
@@ -43,24 +80,54 @@ export const updateSession = async (request: NextRequest) => {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user && isVideoEditor) {
+  const applyAuthCookies = (target: NextResponse): boolean => {
+    if (cookiesToApply.length === 0) return false;
+
+    cookiesToApply.forEach(({ name, value, options }) => {
+      target.cookies.set(name, value, options);
+    });
+    return true;
+  };
+
+  return { user, applyAuthCookies };
+}
+
+export function enforceAuthRoutes(
+  request: NextRequest,
+  user: User | null,
+): NextResponse | null {
+  const pathname = request.nextUrl.pathname;
+  const { searchParams } = request.nextUrl;
+
+  if (!user && isVideoEditorPath(pathname, searchParams)) {
     const url = request.nextUrl.clone();
-    const redirectedFrom = `${request.nextUrl.pathname}${request.nextUrl.search}`;
+    const redirectedFrom = `${pathname}${request.nextUrl.search}`;
+
     url.pathname = pathname.replace(/\/editor$/, "/login");
     url.search = "";
     url.searchParams.set("redirectedFrom", redirectedFrom);
-    if (request.nextUrl.searchParams.get("autoupload") === "1") {
+
+    if (searchParams.get("autoupload") === "1") {
       url.searchParams.set("autoupload", "1");
     }
+
     return NextResponse.redirect(url);
   }
 
-  if (user && pathname.endsWith("/login")) {
+  if (user && isLoginPath(pathname)) {
+    const fallback = pathname.replace(/\/login$/, "/editor");
+    const destination = getSafeInternalPath(
+      searchParams.get("redirectedFrom"),
+      fallback,
+    );
+
     const url = request.nextUrl.clone();
-    url.pathname = pathname.replace("/login", "/editor");
+    const destUrl = new URL(destination, request.nextUrl.origin);
+    url.pathname = destUrl.pathname;
+    url.search = destUrl.search;
 
     return NextResponse.redirect(url);
   }
 
-  return supabaseResponse;
-};
+  return null;
+}
