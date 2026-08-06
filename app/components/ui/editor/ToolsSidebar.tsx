@@ -242,7 +242,7 @@ export function ToolsSidebar({
                         popover={{
                             title: t("popovers.background.title"),
                             description: t("popovers.background.description"),
-                            videoSrc: "/videos/preview-background.mp4"
+                            videoSrc: "/videos/preview-menu/background.mp4"
                         }}
                     />
                     <SidebarTool
@@ -253,7 +253,7 @@ export function ToolsSidebar({
                         popover={{
                             title: t("popovers.mockup.title"),
                             description: t("popovers.mockup.description"),
-                            videoSrc: "/videos/preview-mockup.mp4"
+                            videoSrc: "/videos/preview-menu/mockup.mp4"
                         }}
                         badge={t("tools.newTool")}
                         badgeStyle="premium"
@@ -269,7 +269,7 @@ export function ToolsSidebar({
                                 popover={{
                                     title: t("popovers.motion.title"),
                                     description: t("popovers.motion.description"),
-                                    videoSrc: "/videos/preview-motion.mp4"
+                                    videoSrc: "/videos/preview-menu/motion.mp4"
                                 }}
                                 badge={t("tools.newTool")}
                                 badgeStyle="premium"
@@ -283,7 +283,7 @@ export function ToolsSidebar({
                                 popover={{
                                     title: t("popovers.zoom.title"),
                                     description: t("popovers.zoom.description"),
-                                    videoSrc: "/videos/preview-zoom.mp4"
+                                    videoSrc: "/videos/preview-menu/zoom.mp4"
                                 }}
                             />
                             <SidebarTool
@@ -296,7 +296,7 @@ export function ToolsSidebar({
                                 popover={{
                                     title: t("popovers.videos.title"),
                                     description: t("popovers.videos.description"),
-                                    videoSrc: "/videos/preview-videos.mp4"
+                                    videoSrc: "/videos/preview-menu/videos.mp4"
                                 }}
                             />
                         </>
@@ -310,7 +310,7 @@ export function ToolsSidebar({
                         popover={{
                             title: t("popovers.elements.title"),
                             description: t("popovers.elements.description"),
-                            videoSrc: "/videos/preview-elements.mp4"
+                            videoSrc: "/videos/preview-menu/elements.mp4"
                         }}
                         icon={
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="transition-colors duration-200">
@@ -329,7 +329,7 @@ export function ToolsSidebar({
                             popover={{
                                 title: t("popovers.history.title"),
                                 description: t("popovers.history.description"),
-                                videoSrc: "/videos/preview-history.mp4"
+                                videoSrc: "/videos/preview-menu/history.mp4"
                             }}
                         />
                     )}
@@ -345,7 +345,7 @@ export function ToolsSidebar({
                                 popover={{
                                     title: t("popovers.audio.title"),
                                     description: t("popovers.audio.description"),
-                                    videoSrc: "/videos/preview-audio.mp4"
+                                    videoSrc: "/videos/preview-menu/audio.mp4"
                                 }}
                             />
                             {hasCamera && (
@@ -358,7 +358,7 @@ export function ToolsSidebar({
                                     popover={{
                                         title: t("popovers.camera.title"),
                                         description: t("popovers.camera.description"),
-                                        videoSrc: "/videos/preview-camera.mp4"
+                                        videoSrc: "/videos/preview-menu/camera.mp4"
                                     }}
                                 />
                             )}
