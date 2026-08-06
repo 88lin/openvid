@@ -1,13 +1,24 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { Icon } from "@iconify/react";
+
 import { SliderControl } from "../../../../components/ui/SliderControl";
 import { HANDLE_R, ImageDeviceId, PAD_H, X_HALF, Y_HALF } from "@/types/mockup.types";
 import { Button } from "@/components/ui/button";
 import { DetailPageHeader } from "@/components/ui/DetailHeaderMenu";
 import { Position3DPresetsEditor } from "@/components/ui/Position3DPresetsEditor";
+import { ENVIRONMENT_OPTIONS, type EnvironmentPreset } from "@/lib/viewer-controls3d";
+
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { Toggle } from "@/components/ui/toggle";
 
 function PositionPad({
     x,
@@ -36,17 +47,20 @@ function PositionPad({
     const pctX = (cx + X_HALF) / (X_HALF * 2);
     const hy = ((cy + Y_HALF) / (Y_HALF * 2)) * PAD_H;
 
-    const fromEvent = useCallback((e: React.PointerEvent) => {
-        if (!rectCache.current) return;
+    const fromEvent = useCallback(
+        (e: React.PointerEvent) => {
+            if (!rectCache.current) return;
+            const rect = rectCache.current;
+            const currentWidth = rect.width;
 
-        const rect = rectCache.current;
-        const currentWidth = rect.width;
-        const rx = Math.max(0, Math.min(currentWidth, e.clientX - rect.left));
-        const ry = Math.max(0, Math.min(PAD_H, e.clientY - rect.top));
+            const rx = Math.max(0, Math.min(currentWidth, e.clientX - rect.left));
+            const ry = Math.max(0, Math.min(PAD_H, e.clientY - rect.top));
 
-        onChangeX(Math.round((rx / currentWidth) * X_HALF * 2 - X_HALF));
-        onChangeY(Math.round((ry / PAD_H) * Y_HALF * 2 - Y_HALF));
-    }, [onChangeX, onChangeY]);
+            onChangeX(Math.round((rx / currentWidth) * X_HALF * 2 - X_HALF));
+            onChangeY(Math.round((ry / PAD_H) * Y_HALF * 2 - Y_HALF));
+        },
+        [onChangeX, onChangeY]
+    );
 
     const bgLayerStyle: React.CSSProperties = backgroundUrl
         ? {
@@ -99,22 +113,13 @@ function PositionPad({
                     <div className="absolute inset-0 pointer-events-none rounded-[14px] ring-2 ring-cyan-400/30 animate-pulse" />
                 )}
                 <div className="absolute inset-0 pointer-events-none opacity-10 bg-[radial-gradient(#a1a1aa_1px,transparent_1px)] bg-size-[14px_14px]" />
-                <div
-                    className="absolute top-0 bottom-0 w-px bg-linear-to-b from-transparent via-white/10 to-transparent -translate-x-1/2"
-                    style={{ left: "50%" }}
-                />
-                <div
-                    className="absolute left-0 right-0 h-px bg-linear-to-r from-transparent via-white/10 to-transparent -translate-y-1/2"
-                    style={{ top: "50%" }}
-                />
-                <div
-                    className="absolute pointer-events-none bg-white/10 transition-opacity -translate-x-1/2"
-                    style={{ left: `${pctX * 100}%`, top: 0, bottom: 0, width: "1px" }}
-                />
-                <div
-                    className="absolute pointer-events-none bg-white/10 transition-opacity -translate-y-1/2"
-                    style={{ top: hy, left: 0, right: 0, height: "1px" }}
-                />
+
+                <div className="absolute top-0 bottom-0 w-px bg-linear-to-b from-transparent via-white/10 to-transparent -translate-x-1/2" style={{ left: "50%" }} />
+                <div className="absolute left-0 right-0 h-px bg-linear-to-r from-transparent via-white/10 to-transparent -translate-y-1/2" style={{ top: "50%" }} />
+
+                <div className="absolute pointer-events-none bg-white/10 transition-opacity -translate-x-1/2" style={{ left: `${pctX * 100}%`, top: 0, bottom: 0, width: "1px" }} />
+                <div className="absolute pointer-events-none bg-white/10 transition-opacity -translate-y-1/2" style={{ top: hy, left: 0, right: 0, height: "1px" }} />
+
                 <div
                     className={`absolute bg-white border border-white/40 rounded-full shadow-[0_0_20px_4px_rgba(255,255,255,0.12),0_4px_12px_rgba(0,0,0,0.6)] mix-blend-screen flex items-center justify-center pointer-events-auto transition-transform duration-75`}
                     style={{
@@ -131,94 +136,6 @@ function PositionPad({
     );
 }
 
-function ActiveDevicePreview({ tpl }: { tpl: ActiveDeviceTpl }) {
-    const videoRef = useRef<HTMLVideoElement | null>(null);
-    const [isHovering, setIsHovering] = useState(false);
-    const [videoReady, setVideoReady] = useState(false);
-
-    useEffect(() => {
-        const video = videoRef.current;
-        if (!video) return;
-
-        let isMounted = true;
-
-        if (isHovering) {
-            const playVideo = async () => {
-                try {
-                    await video.play();
-                } catch {
-                }
-            };
-            if (isMounted) playVideo();
-        } else {
-            video.pause();
-            video.currentTime = 0;
-        }
-
-        return () => {
-            isMounted = false;
-        };
-    }, [isHovering]);
-
-    return (
-        <div
-            className="relative w-full h-86 overflow-hidden squircle-element-camera border"
-            style={{ borderColor: `${tpl.accentColor}44` }}
-            onMouseEnter={() => setIsHovering(true)}
-            onMouseLeave={() => setIsHovering(false)}
-        >
-            <div className="absolute inset-0 bg-[#0d0d10]" />
-            <div
-                className="absolute inset-0 z-10 pointer-events-none"
-                style={{
-                    background: `linear-gradient(135deg, ${tpl.accentColor}22 0%, transparent 70%)`,
-                }}
-            />
-            {tpl.posterUrl ? (
-                <img
-                    src={tpl.posterUrl}
-                    alt={tpl.title}
-                    draggable={false}
-                    className={`absolute inset-0 h-full w-full object-cover transition-all duration-500 ${isHovering ? "scale-105 opacity-0" : "scale-100 opacity-100"
-                        }`}
-                />
-            ) : (
-                <div className="absolute inset-0 flex items-center justify-center">
-                    <Icon icon={tpl.icon} width="48" style={{ color: `${tpl.accentColor}cc` }} />
-                </div>
-            )}
-            {tpl.videoUrl && (
-                <video
-                    ref={videoRef}
-                    src={tpl.videoUrl}
-                    poster={tpl.posterUrl}
-                    muted
-                    loop
-                    playsInline
-                    preload="metadata"
-                    onLoadedData={() => setVideoReady(true)}
-                    className={`absolute inset-0 h-full w-full object-cover transition-all duration-500 ${isHovering && videoReady ? "scale-105 opacity-100" : "scale-100 opacity-0"
-                        }`}
-                />
-            )}
-            <div
-                className={`absolute inset-0 z-20 bg-black/20 transition-opacity duration-300 ${isHovering ? "opacity-100" : "opacity-0"
-                    }`}
-            />
-            <div className=" flex items-center gap-2 absolute bottom-0 left-0 right-0 px-3 py-2 bg-gradient-to-t from-black/80 to-transparent z-30">
-                <Icon icon={tpl.icon} width={14} />
-                <span className="text-[11px] font-bold text-white/90 tracking-wide">{tpl.title}</span>
-            </div>
-            <div
-                className="absolute top-2 right-2 size-5 rounded-full flex items-center justify-center z-30"
-                style={{ background: tpl.accentColor }}
-            >
-                <Icon icon="mdi:check-bold" width={11} className="text-white" />
-            </div>
-        </div>
-    );
-}
-
 export interface ActiveDeviceTpl {
     id: ImageDeviceId;
     title: string;
@@ -226,7 +143,6 @@ export interface ActiveDeviceTpl {
     icon: string;
     modelUrl: string;
     posterUrl?: string;
-    videoUrl?: string;
 }
 
 export interface Mockup3dMenuProps {
@@ -257,6 +173,14 @@ export interface Mockup3dMenuProps {
     imagePhonePresetId: string;
     setImagePhonePresetId: (id: string) => void;
     mediaType: "video" | "image";
+    viewer3DAutoRotate: boolean;
+    setViewer3DAutoRotate: (v: boolean) => void;
+    viewer3DRotationSpeed: number;
+    setViewer3DRotationSpeed: (v: number) => void;
+    viewer3DGlow: number;
+    setViewer3DGlow: (v: number) => void;
+    viewer3DEnvironment: EnvironmentPreset;
+    setViewer3DEnvironment: (v: EnvironmentPreset) => void;
 }
 
 export function Mockup3dMenu({
@@ -287,6 +211,14 @@ export function Mockup3dMenu({
     imagePhonePresetId,
     setImagePhonePresetId,
     mediaType,
+    viewer3DAutoRotate,
+    setViewer3DAutoRotate,
+    viewer3DRotationSpeed,
+    setViewer3DRotationSpeed,
+    viewer3DGlow,
+    setViewer3DGlow,
+    viewer3DEnvironment,
+    setViewer3DEnvironment,
 }: Mockup3dMenuProps) {
     const t = useTranslations("mockupMenu");
 
@@ -325,7 +257,7 @@ export function Mockup3dMenu({
         setImagePhoneOpening,
         setImagePhoneShadow,
         setImagePhoneShadowColor,
-        setImagePhonePresetId
+        setImagePhonePresetId,
     ]);
 
     return (
@@ -333,10 +265,11 @@ export function Mockup3dMenu({
             <div className="flex items-center gap-2 p-3 border-b border-white/6 shrink-0">
                 <DetailPageHeader label={t("device3DTitle")} icon="mage:box-3d" onBack={onBack} />
             </div>
-            <div className="flex-1 overflow-y-auto custom-scrollbar px-4 py-4 space-y-5">
-                {activeDeviceTpl && <ActiveDevicePreview tpl={activeDeviceTpl} />}
 
-                <div className="flex flex-col gap-4">
+            <div className="flex-1 overflow-y-auto custom-scrollbar px-4 py-4 space-y-6">
+
+                <div className="flex flex-col gap-6">
+
                     <div className="flex items-center justify-between">
                         <span className="text-[11px] font-semibold text-white/60 uppercase tracking-wider">
                             {t("configuration")}
@@ -350,88 +283,157 @@ export function Mockup3dMenu({
                             {t("reset")}
                         </button>
                     </div>
-                    {mediaType === "video" && (
-                        <Position3DPresetsEditor
-                            device={imagePhoneDevice}
-                            isLaptop={isLaptop}
-                            selectedPresetId={imagePhonePresetId}
-                            onSelectPreset={(preset) => {
-                                setImagePhoneX(preset.x);
-                                setImagePhoneY(preset.y);
-                                setImagePhoneScale(preset.scale);
-                                setImagePhoneRotX(preset.rotateX);
-                                setImagePhoneRotY(preset.rotateY);
-                                setImagePhoneRotZ(preset.rotateZ);
-                                setImagePhonePresetId(preset.id);
-                                if ("imagePhoneOpening" in preset) {
-                                    setImagePhoneOpening(preset.imagePhoneOpening);
-                                }
-                            }}
-                            rotateX={imagePhoneRotX}
-                            rotateY={imagePhoneRotY}
-                            onRotationXYChange={(rX, rY) => {
-                                setImagePhoneRotX(rX);
-                                setImagePhoneRotY(rY);
-                            }}
-                            rotateZ={imagePhoneRotZ}
-                            onRotateZChange={setImagePhoneRotZ}
-                            onCustomReset={handleReset}
-                        />
-                    )}
 
-                    <SliderControl
-                        icon="solar:scale-linear"
-                        label={t("scale")}
-                        value={Math.round(imagePhoneScale * 100)}
-                        min={30}
-                        max={300}
-                        step={1}
-                        onChange={(v) => {
-                            setImagePhoneScale(v / 100);
-                        }}
-                        suffix="%"
-                    />
-                    {isLaptop && (
+                    <div className="flex flex-col gap-4">
+                        {mediaType === "video" && (
+                            <Position3DPresetsEditor
+                                device={imagePhoneDevice}
+                                isLaptop={isLaptop}
+                                selectedPresetId={imagePhonePresetId}
+                                onSelectPreset={(preset) => {
+                                    setImagePhoneX(preset.x);
+                                    setImagePhoneY(preset.y);
+                                    setImagePhoneScale(preset.scale);
+                                    setImagePhoneRotX(preset.rotateX);
+                                    setImagePhoneRotY(preset.rotateY);
+                                    setImagePhoneRotZ(preset.rotateZ);
+                                    setImagePhonePresetId(preset.id);
+                                    if ("imagePhoneOpening" in preset) {
+                                        setImagePhoneOpening(preset.imagePhoneOpening);
+                                    }
+                                }}
+                                rotateX={imagePhoneRotX}
+                                rotateY={imagePhoneRotY}
+                                onRotationXYChange={(rX, rY) => {
+                                    setImagePhoneRotX(rX);
+                                    setImagePhoneRotY(rY);
+                                }}
+                                rotateZ={imagePhoneRotZ}
+                                onRotateZChange={setImagePhoneRotZ}
+                                onCustomReset={handleReset}
+                            />
+                        )}
+
                         <SliderControl
-                            icon="material-symbols:laptop-chromebook-outline"
-                            label={t("laptopOpening")}
-                            value={Math.round(imagePhoneOpening * 100)}
+                            icon="solar:scale-linear"
+                            label={t("scale")}
+                            value={Math.round(imagePhoneScale * 100)}
+                            min={30}
+                            max={300}
+                            step={1}
+                            onChange={(v) => setImagePhoneScale(v / 100)}
+                            suffix="%"
+                        />
+
+                        <div className="flex flex-col gap-2">
+                            <span className="text-[11px] font-semibold text-white/60 uppercase tracking-wider">
+                                {t("position")}
+                            </span>
+                            <PositionPad
+                                x={imagePhoneX}
+                                y={imagePhoneY}
+                                onChangeX={setImagePhoneX}
+                                onChangeY={setImagePhoneY}
+                                backgroundUrl={backgroundUrl}
+                                backgroundColorCss={backgroundColorCss}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col gap-4 pt-4 border-t border-white/6">
+                        {isLaptop && (
+                            <SliderControl
+                                icon="material-symbols:laptop-chromebook-outline"
+                                label={t("laptopOpening")}
+                                value={Math.round(imagePhoneOpening * 100)}
+                                min={0}
+                                max={100}
+                                step={1}
+                                onChange={(v) => setImagePhoneOpening(v / 100)}
+                                suffix="%"
+                            />
+                        )}
+
+                        <SliderControl
+                            icon="mdi:blur"
+                            label={t("shadow")}
+                            value={Math.round(imagePhoneShadow * 100)}
                             min={0}
                             max={100}
                             step={1}
-                            onChange={(v) => {
-                                setImagePhoneOpening(v / 100);
-                            }}
+                            onChange={(v) => setImagePhoneShadow(v / 100)}
                             suffix="%"
                         />
-                    )}
-                    <SliderControl
-                        icon="mdi:blur"
-                        label={t("shadow")}
-                        value={Math.round(imagePhoneShadow * 100)}
-                        min={0}
-                        max={100}
-                        step={1}
-                        onChange={(v) => {
-                            setImagePhoneShadow(v / 100);
-                        }}
-                        suffix="%"
-                    />
+                    </div>
 
-                    <div className="flex flex-col gap-2">
-                        <span className="text-[11px] font-semibold text-white/60 uppercase tracking-wider">{t("position")}</span>
-                        <PositionPad
-                            x={imagePhoneX}
-                            y={imagePhoneY}
-                            onChangeX={setImagePhoneX}
-                            onChangeY={setImagePhoneY}
-                            backgroundUrl={backgroundUrl}
-                            backgroundColorCss={backgroundColorCss}
+                    <div className="flex flex-col gap-4 pt-4 border-t border-white/6">
+                        <span className="text-[11px] font-semibold text-white/60 uppercase tracking-wider">
+                            {t("viewer3d")}
+                        </span>
+
+                        <div className="flex flex-col gap-2">
+                            <span className="text-[11px] font-medium text-white/50 flex items-center gap-2">
+                                {t("environment")}
+                            </span>
+                            <Select
+                                value={viewer3DEnvironment}
+                                onValueChange={(val) => setViewer3DEnvironment(val as EnvironmentPreset)}
+                            >
+                                <SelectTrigger className="w-full bg-white/3 border-white/[0.07] text-white/80 h-9" textSize="xs">
+                                    <SelectValue placeholder={t("environment")} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {ENVIRONMENT_OPTIONS.map((opt) => (
+                                        <SelectItem key={opt} value={opt} textSize="xs">
+                                            {t(`environments.${opt}`)}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <SliderControl
+                            icon="mdi:white-balance-sunny"
+                            label={t("glow")}
+                            value={Math.round(viewer3DGlow * 100)}
+                            min={0}
+                            max={500}
+                            step={10}
+                            onChange={(v) => setViewer3DGlow(v / 100)}
+                            suffix="%"
                         />
+
+                        <div
+                            className={`flex items-center justify-between px-3 py-2 squircle-element border transition-all ${viewer3DAutoRotate
+                                ? "bg-blue-500/10 border-blue-500/40 text-blue-300"
+                                : "bg-white/3 border-white/[0.07] text-white/60 hover:border-white/20"
+                                }`}
+                        >
+                            <span className="flex items-center gap-2 text-[12px] font-medium">
+                                <Icon icon="mdi:orbit-variant" width="14" />
+                                {t("autoRotate")}
+                            </span>
+                            <Toggle
+                                checked={viewer3DAutoRotate}
+                                onChange={setViewer3DAutoRotate}
+                            />
+                        </div>
+
+                        {viewer3DAutoRotate && (
+                            <SliderControl
+                                icon="mdi:speedometer"
+                                label={t("rotationSpeed")}
+                                value={viewer3DRotationSpeed}
+                                min={0.1}
+                                max={10}
+                                step={0.1}
+                                onChange={setViewer3DRotationSpeed}
+                            />
+                        )}
                     </div>
                 </div>
 
-                <Button onClick={onRemove} variant="outline" className="w-full text-xs mt-2">
+                <Button onClick={onRemove} variant="outline" className="w-full text-xs mt-4">
                     <Icon icon="ph:trash-bold" width="13" aria-hidden="true" />
                     {t("removeFrame")}
                 </Button>

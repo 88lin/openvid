@@ -21,9 +21,9 @@ export const HDRI_FILES: Record<EnvironmentPreset, string> = {
     warehouse: "/hdri/empty_warehouse_01_1k.hdr",
 };
 
-const ENVIRONMENT_OPTIONS = [
-    'sunset', 'dawn', 'night', 'warehouse', 'forest',
-    'apartment', 'studio', 'city', 'park', 'lobby',
+export const ENVIRONMENT_OPTIONS = [
+  "sunset", "dawn", "night", "warehouse", "forest",
+  "apartment", "studio", "city", "park", "lobby",
 ] as const;
 
 export interface Viewer3DControls {
@@ -34,19 +34,14 @@ export interface Viewer3DControls {
 }
 
 export function ViewerControls3D({ defaultEnvironment = "studio", defaultGlow = 1.0 }: ViewerControlsOptions = {}): Viewer3DControls {
-    const [controls, set] = useControls("Configuration 3D", () => ({
-        autoRotate: false,
-        rotationSpeed: { value: 3.5, min: 0.1, max: 10, step: 0.1 },
-        glow: { value: defaultGlow, min: 0.0, max: 5.0, step: 0.1 },
-        environment: {
-            options: ENVIRONMENT_OPTIONS,
-            value: defaultEnvironment
-        }
-    }));
-
-    useEffect(() => {
-        set({ environment: defaultEnvironment, glow: defaultGlow });
-    }, [defaultEnvironment, defaultGlow, set]);
-
-    return controls as Viewer3DControls;
+  const [controls, set] = useControls("Configuration 3D", () => ({
+    autoRotate: false,
+    rotationSpeed: { value: 3.5, min: 0.1, max: 10, step: 0.1 },
+    glow: { value: defaultGlow, min: 0.0, max: 5.0, step: 0.1 },
+    environment: { options: ENVIRONMENT_OPTIONS, value: defaultEnvironment }
+  }));
+  useEffect(() => {
+    set({ environment: defaultEnvironment, glow: defaultGlow });
+  }, [defaultEnvironment, defaultGlow, set]);
+  return controls as Viewer3DControls;
 }

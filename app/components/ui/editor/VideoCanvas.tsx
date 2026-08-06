@@ -19,11 +19,8 @@ import { CanvasElementsLayer, ElementResizeStart } from "./CanvasElementsLayer";
 import { EditorHoverTooltip } from "./EditorHoverTooltip";
 import { LayersPanel } from "./LayersPanel";
 import { useMockup3dContext } from "@/app/contexts/Mockup3dContext";
-import { PHONE_H, PHONE_W, DEVICE_3D_DIMENSIONS, DEVICE_VIEWER_DEFAULTS, PHONE_DEVICE_URLS } from "@/lib/phone3d.utils";
-import { Viewer3DControls } from "@/lib/viewer-controls3d";
-import { ControlsPopup } from "@/components/ui/ControlsPopup";
+import { PHONE_H, PHONE_W, DEVICE_3D_DIMENSIONS, PHONE_DEVICE_URLS } from "@/lib/phone3d.utils";
 import { CanvasContextMenu } from "@/components/ui/CanvasContextMenu";
-import { Viewer3DControlsBridge } from "@/components/ui/Viewer3DControlsBridge";
 import { GetMediaMaskStyles } from "@/lib/media-mask.utils";
 import { MediaContent } from "@/components/ui/MediaContent";
 import { RotationGuideLine } from "@/components/ui/RotationGuideLine";
@@ -114,15 +111,13 @@ function VideoCanvasInner({
 
     // Motion 3D phone overlay state (reads from shared MotionContext)
     const {
-        imagePhoneActive, imagePhoneX, imagePhoneY,
-        imagePhoneScale, setImagePhoneScale,
-        setImagePhoneX, setImagePhoneY,
+        imagePhoneActive, imagePhoneX, imagePhoneY, imagePhoneScale,
+        setImagePhoneScale, setImagePhoneX, setImagePhoneY,
         imagePhoneRotX, setImagePhoneRotX, imagePhoneRotY, setImagePhoneRotY,
-        imagePhoneRotZ,
-        imagePhoneDevice,
-        imagePhoneOpening,
+        imagePhoneRotZ, imagePhoneDevice, imagePhoneOpening,
         imagePhoneShadow, imagePhoneShadowColor,
-        imagePhoneRefWidth, setImagePhoneRefWidth
+        imagePhoneRefWidth, setImagePhoneRefWidth,
+        viewer3DAutoRotate, viewer3DRotationSpeed, viewer3DGlow, viewer3DEnvironment,
     } = useMockup3dContext();
 
     // 3D phone overlay is active in both video and image mode
@@ -482,15 +477,6 @@ function VideoCanvasInner({
 
         return () => observer.disconnect();
     }, [aspectRatio, customAspectRatio]);
-
-    const deviceDefaults = DEVICE_VIEWER_DEFAULTS[imagePhoneDevice] ?? { environment: "studio", glow: 1.0 };
-
-    const [viewer3D, setViewer3D] = useState<Viewer3DControls>({
-        autoRotate: false,
-        rotationSpeed: 3.5,
-        glow: deviceDefaults.glow,
-        environment: deviceDefaults.environment,
-    });
 
     const prevAspectKeyRef = useRef<string | null>(null);
     const pendingAspectRescaleRef = useRef(false);
@@ -2226,12 +2212,6 @@ function VideoCanvasInner({
                                     {/* ── 3D phone overlay (video & image mode) ── */}
                                     {imagePhoneActive && (
                                         <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 155, overflow: "visible" }}>
-                                            <Viewer3DControlsBridge
-                                                environment={deviceDefaults.environment}
-                                                glow={deviceDefaults.glow}
-                                                onChange={setViewer3D}
-                                            />
-                                            <ControlsPopup />
                                             <div
                                                 className="absolute animate-in fade-in zoom-in-95 duration-300"
                                                 style={{
@@ -2318,10 +2298,10 @@ function VideoCanvasInner({
                                                         zoom={1}
                                                         shadowIntensity={imagePhoneShadow}
                                                         shadowColor={imagePhoneShadowColor}
-                                                        autoRotate={viewer3D.autoRotate}
-                                                        rotationSpeed={viewer3D.rotationSpeed}
-                                                        glow={viewer3D.glow}
-                                                        environment={viewer3D.environment}
+                                                        autoRotate={viewer3DAutoRotate}
+                                                        rotationSpeed={viewer3DRotationSpeed}
+                                                        glow={viewer3DGlow}
+                                                        environment={viewer3DEnvironment}
                                                         isSelected={isVideoSelected}
                                                         isHovered={isVideoHovered}
                                                         onSelectChange={(value) => setIsVideoSelected(value)}

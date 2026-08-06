@@ -64,12 +64,23 @@ export function MockupMenu({
   const [gridLoaded, setGridLoaded] = useState(false);
 
   const {
-    imagePhoneActive, setImagePhoneActive, imagePhoneX, setImagePhoneX, imagePhoneY, setImagePhoneY,
-    imagePhoneScale, setImagePhoneScale, imagePhoneRotX, imagePhoneRotY, setImagePhoneRotX, setImagePhoneRotY,
-    imagePhoneRotZ, setImagePhoneRotZ, imagePhoneDevice, setImagePhoneDevice, imagePhoneOpening, setImagePhoneOpening,
-    imagePhoneShadow, setImagePhoneShadow, imagePhoneShadowColor, imagePhonePresetId, setImagePhonePresetId, setImagePhoneShadowColor
+    imagePhoneActive, setImagePhoneActive,
+    imagePhoneX, setImagePhoneX,
+    imagePhoneY, setImagePhoneY,
+    imagePhoneScale, setImagePhoneScale,
+    imagePhoneRotX, imagePhoneRotY, setImagePhoneRotX, setImagePhoneRotY,
+    imagePhoneRotZ, setImagePhoneRotZ,
+    imagePhoneDevice, setImagePhoneDevice,
+    imagePhoneOpening, setImagePhoneOpening,
+    imagePhoneShadow, setImagePhoneShadow,
+    imagePhoneShadowColor,
+    imagePhonePresetId, setImagePhonePresetId,
+    setImagePhoneShadowColor,
+    viewer3DAutoRotate, setViewer3DAutoRotate,
+    viewer3DRotationSpeed, setViewer3DRotationSpeed,
+    viewer3DGlow, setViewer3DGlow,
+    viewer3DEnvironment, setViewer3DEnvironment,
   } = useMockup3dContext();
-
 
   const filteredMockups = useMemo(() => {
     return selectedCategory === "all"
@@ -281,10 +292,18 @@ export function MockupMenu({
         setImagePhoneRotZ={setImagePhoneRotZ}
         imagePhonePresetId={imagePhonePresetId}
         setImagePhonePresetId={setImagePhonePresetId}
+        viewer3DAutoRotate={viewer3DAutoRotate}
+        setViewer3DAutoRotate={setViewer3DAutoRotate}
+        viewer3DRotationSpeed={viewer3DRotationSpeed}
+        setViewer3DRotationSpeed={setViewer3DRotationSpeed}
+        viewer3DGlow={viewer3DGlow}
+        setViewer3DGlow={setViewer3DGlow}
+        viewer3DEnvironment={viewer3DEnvironment}
+        setViewer3DEnvironment={setViewer3DEnvironment}
       />
     );
   }
-
+  
   return (
     <div className="p-4 flex flex-col gap-6">
       <div className="flex items-center gap-2 text-white font-medium">

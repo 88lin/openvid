@@ -1,6 +1,8 @@
 "use client";
 
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useRef, type ReactNode } from "react";
+import { DEVICE_VIEWER_DEFAULTS } from "@/lib/phone3d.utils";
+import type { EnvironmentPreset } from "@/lib/viewer-controls3d";
 
 interface Mockup3dState {
   selectedTemplateId: string | null;
@@ -51,6 +53,14 @@ interface Mockup3dState {
   setImagePhoneShadowColor: (v: string) => void;
   imagePhoneRefWidth: number;
   setImagePhoneRefWidth: (v: number) => void;
+  viewer3DAutoRotate: boolean;
+  setViewer3DAutoRotate: (v: boolean) => void;
+  viewer3DRotationSpeed: number;
+  setViewer3DRotationSpeed: (v: number) => void;
+  viewer3DGlow: number;
+  setViewer3DGlow: (v: number) => void;
+  viewer3DEnvironment: EnvironmentPreset;
+  setViewer3DEnvironment: (v: EnvironmentPreset) => void;
 }
 
 const Mockup3dContext = createContext<Mockup3dState | null>(null);
@@ -74,6 +84,21 @@ export function Mockup3dProvider({ children }: { children: ReactNode }) {
   const [imagePhoneShadow, setImagePhoneShadow] = useState(0.6);
   const [imagePhoneShadowColor, setImagePhoneShadowColor] = useState("#000000");
   const [imagePhoneRefWidth, setImagePhoneRefWidth] = useState(0);
+  const [viewer3DAutoRotate, setViewer3DAutoRotate] = useState(false);
+  const [viewer3DRotationSpeed, setViewer3DRotationSpeed] = useState(3.5);
+  const [viewer3DGlow, setViewer3DGlow] = useState(1.0);
+  const [viewer3DEnvironment, setViewer3DEnvironment] = useState<EnvironmentPreset>("studio");
+
+  // Al cambiar de dispositivo, reponer glow/environment a los defaults de ese dispositivo
+  // (esto reemplaza el useEffect que antes vivía en ViewerControls3D vía Leva)
+  const prevViewerDeviceRef = useRef(imagePhoneDevice);
+  useEffect(() => {
+    if (prevViewerDeviceRef.current === imagePhoneDevice) return;
+    prevViewerDeviceRef.current = imagePhoneDevice;
+    const defaults = DEVICE_VIEWER_DEFAULTS[imagePhoneDevice] ?? { environment: "studio" as EnvironmentPreset, glow: 1.0 };
+    setViewer3DGlow(defaults.glow);
+    setViewer3DEnvironment(defaults.environment);
+  }, [imagePhoneDevice]);
 
   return (
     <Mockup3dContext.Provider value={{
@@ -94,6 +119,10 @@ export function Mockup3dProvider({ children }: { children: ReactNode }) {
       imagePhoneShadow, setImagePhoneShadow,
       imagePhoneShadowColor, setImagePhoneShadowColor,
       imagePhoneRefWidth, setImagePhoneRefWidth,
+      viewer3DAutoRotate, setViewer3DAutoRotate,
+      viewer3DRotationSpeed, setViewer3DRotationSpeed,
+      viewer3DGlow, setViewer3DGlow,
+      viewer3DEnvironment, setViewer3DEnvironment,
     }}>
       {children}
     </Mockup3dContext.Provider>
