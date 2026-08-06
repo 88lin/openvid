@@ -15,12 +15,12 @@ export interface ElementResizeStart {
     id: string;
     corner: Corner;
     width: number;
-    height: number; 
-    centerXPercent: number; 
-    centerYPercent: number; 
-    rotation: number; 
+    height: number;
+    centerXPercent: number;
+    centerYPercent: number;
+    rotation: number;
     isText: boolean;
-    fontSize: number; 
+    fontSize: number;
 }
 
 function InlineTextEditor({
@@ -38,7 +38,7 @@ function InlineTextEditor({
     const commit = useCallback((node: HTMLElement) => {
         if (committed.current) return;
         committed.current = true;
-        onEnd(node.textContent ?? "");
+        onEnd(node.innerText ?? "");
     }, [onEnd]);
 
     useEffect(() => {
@@ -408,7 +408,7 @@ export function CanvasElementsLayer({
                                 {expandedHitArea}
 
                                 <div
-                                    className="whitespace-nowrap pointer-events-none"
+                                    className="whitespace-pre pointer-events-none"
                                     style={{
                                         fontSize: refSize > 0 ? `${element.fontSize * (refSize / 1080)}px` : `${element.fontSize}px`,
                                         fontFamily: element.fontFamily,
@@ -514,7 +514,7 @@ export function CanvasElementsLayer({
                                 />
                             ) : (
                                 <div
-                                    className="whitespace-nowrap"
+                                    className="whitespace-pre"
                                     style={{
                                         fontSize: refSize > 0 ? `${element.fontSize * (refSize / 1080)}px` : `${element.fontSize}px`,
                                         fontFamily: element.fontFamily,

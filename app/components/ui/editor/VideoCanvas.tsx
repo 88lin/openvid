@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, useEffect, useImperativeHandle, useMemo, useState, useCallback, memo } from "react";
-import dynamic from "next/dynamic";
 import type { VideoCanvasHandle, VideoCanvasProps, VideoThumbnail } from "@/types";
 import type { ImageElement } from "@/types/canvas-elements.types";
 import { ASPECT_RATIO_DIMENSIONS } from "@/types";
@@ -38,36 +37,6 @@ import { buildMockupMotionCss, MockupMotionTransform, REST_MOCKUP_MOTION, sample
 import { Mockup3DFrame } from "./mockups-3d/Mockup3DFrame";
 
 export type { VideoCanvasHandle, VideoCanvasProps };
-
-const Phone3DViewer = dynamic(
-    () => import("./mockups-3d/Phone3DViewer").then((m) => ({ default: m.Phone3DViewer })),
-    { ssr: false }
-);
-
-const Laptop3DViewer = dynamic(
-    () => import("./mockups-3d/Laptop3DViewer").then((m) => ({ default: m.Laptop3DViewer })),
-    { ssr: false }
-);
-
-const IPhone13ProMax3DViewer = dynamic(
-    () => import("./mockups-3d/IPhone13ProMax3DViewer").then((m) => ({ default: m.IPhone13ProMax3DViewer })),
-    { ssr: false }
-);
-
-const DoubleIPhone3DViewer = dynamic(
-    () => import("./mockups-3d/DoubleIPhone3DViewer").then((m) => ({ default: m.DoubleIPhone3DViewer })),
-    { ssr: false }
-);
-
-const IPhone17ProMax3DViewer = dynamic(
-    () => import("./mockups-3d/IPhone17ProMax3DViewer").then((m) => ({ default: m.IPhone17ProMax3DViewer })),
-    { ssr: false }
-);
-
-const IPadMini63DViewer = dynamic(
-    () => import("./mockups-3d/IPadMini63DViewer").then((m) => ({ default: m.IPadMini63DViewer })),
-    { ssr: false }
-);
 
 function VideoCanvasInner({
     activeTool: _activeTool,
@@ -134,7 +103,11 @@ function VideoCanvasInner({
     otherSelectionActive = false,
     mockupMotionFragments = [],
     videoDuration = 0,
-}: VideoCanvasProps & { ref?: React.Ref<VideoCanvasHandle> }) {
+    onSelectedElementIdsChange,
+}: VideoCanvasProps & {
+    ref?: React.Ref<VideoCanvasHandle>;
+    onSelectedElementIdsChange?: (ids: string[]) => void;
+}) {
     const wallpaperUrl = getWallpaperUrl(selectedWallpaper);
 
     const hasMedia = mediaType === "video" ? !!videoUrl : !!imageUrl;
@@ -332,6 +305,9 @@ function VideoCanvasInner({
 
     // Multi-select and canvas right-click context menu
     const [canvasSelectedIds, setCanvasSelectedIds] = useState<string[]>([]);
+    useEffect(() => {
+        onSelectedElementIdsChange?.(canvasSelectedIds);
+    }, [canvasSelectedIds, onSelectedElementIdsChange]);
     const [canvasCtxMenu, setCanvasCtxMenu] = useState<{ x: number; y: number; isVideo?: boolean } | null>(null);
     const [videoContainerSize, setVideoContainerSize] = useState({ width: 0, height: 0 });
 

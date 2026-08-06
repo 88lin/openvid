@@ -40,7 +40,6 @@ import { canAddFragmentAt, findValidFragmentPosition } from "@/app/components/ui
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { TimelineSkeleton } from "@/app/components/ui/Skeleton";
 import { AudioTrimModal } from "@/app/components/ui/editor/AudioTrimModal";
-import { useAuth } from "@/app/contexts/useAuth";
 import { useMockup3dContext } from "@/app/contexts/Mockup3dContext";
 import { VIDEO_Z_INDEX } from "@/lib/constants";
 import Image from "next/image";
@@ -273,6 +272,7 @@ export default function Editor() {
     // Canvas elements state
     const [canvasElements, setCanvasElements] = useState<CanvasElement[]>([]);
     const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
+    const [multiSelectedElementIds, setMultiSelectedElementIds] = useState<string[]>([]);
 
     // Audio state
     const [uploadedAudios, setUploadedAudios] = useState<import("@/types/audio.types").UploadedAudio[]>([]);
@@ -1005,31 +1005,69 @@ export default function Editor() {
         setSelectedElementId(prev => prev && idsSet.has(prev) ? null : prev);
     }, []);
 
-    const [copiedElement, setCopiedElement] = useState<CanvasElement | null>(null);
+    const [copiedElements, setCopiedElements] = useState<CanvasElement[]>([]);
+    const lastCopyActionRef = useRef<'element' | 'zoom' | null>(null);
+
+    useEffect(() => {
+        const handleWindowFocus = () => {
+            lastCopyActionRef.current = null;
+        };
+        window.addEventListener('focus', handleWindowFocus);
+        return () => window.removeEventListener('focus', handleWindowFocus);
+    }, []);
 
     const copySelectedElement = useCallback(() => {
-        if (!selectedElementId) return;
-        const element = canvasElements.find(el => el.id === selectedElementId);
-        if (element) {
-            setCopiedElement(element);
+        const idsToCopy = multiSelectedElementIds.length > 1 ? multiSelectedElementIds : (selectedElementId ? [selectedElementId] : []);
+        if (idsToCopy.length === 0) return;
+        const elements = canvasElements.filter(el => idsToCopy.includes(el.id));
+        if (elements.length > 0) {
+            setCopiedElements(elements);
+            lastCopyActionRef.current = 'element';
         }
-    }, [selectedElementId, canvasElements]);
+    }, [selectedElementId, multiSelectedElementIds, canvasElements]);
 
     const pasteElement = useCallback(() => {
-        if (!copiedElement) return;
+        if (copiedElements.length === 0) return;
 
-        const newElement = {
-            ...copiedElement,
-            id: `${copiedElement.type}-${crypto.randomUUID()}`,
-            x: copiedElement.x + 5,
-            y: copiedElement.y + 5,
-            zIndex: VIDEO_Z_INDEX + 1,
-        } as CanvasElement;
+        let nextBehindZ = Math.max(
+            VIDEO_Z_INDEX - 100,
+            ...canvasElements.filter(e => e.zIndex < VIDEO_Z_INDEX).map(e => e.zIndex)
+        );
+        let nextAboveZ = Math.max(
+            VIDEO_Z_INDEX - 1,
+            ...canvasElements.filter(e => e.zIndex >= VIDEO_Z_INDEX).map(e => e.zIndex)
+        );
 
-        setCanvasElements(prev => [...prev, newElement]);
-        setSelectedElementId(newElement.id);
+        const idMap = new Map<string, string>();
+        copiedElements.forEach(el => idMap.set(el.id, `${el.type}-${crypto.randomUUID()}`));
+        const groupIdMap = new Map<string, string>();
+
+        const newElements = copiedElements.map(el => {
+            const isBehindVideo = el.zIndex < VIDEO_Z_INDEX;
+            const zIndex = isBehindVideo ? ++nextBehindZ : ++nextAboveZ;
+
+            let newGroupId: string | undefined;
+            if (el.groupId) {
+                if (!groupIdMap.has(el.groupId)) groupIdMap.set(el.groupId, crypto.randomUUID());
+                newGroupId = groupIdMap.get(el.groupId);
+            }
+
+            return {
+                ...el,
+                id: idMap.get(el.id)!,
+                x: el.x + 5,
+                y: el.y + 5,
+                zIndex,
+                groupId: newGroupId,
+            } as CanvasElement;
+        });
+
+        setCanvasElements(prev => [...prev, ...newElements]);
+        const newIds = newElements.map(el => el.id);
+        setSelectedElementId(newIds[0] ?? null);
+        setMultiSelectedElementIds(newIds);
         setActiveTool("elements");
-    }, [copiedElement]);
+    }, [copiedElements, canvasElements]);
 
     const bringToFront = useCallback((id: string) => {
         // Get elements that are above the video (zIndex >= VIDEO_Z_INDEX)
@@ -2043,29 +2081,80 @@ export default function Editor() {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [handleUndo, handleRedo, canUndo, canRedo]);
 
-    // Keyboard listener for Ctrl+V image paste (photo mode only)
+    const [copiedZoomFragment, setCopiedZoomFragment] = useState<Omit<ZoomFragment, 'id' | 'startTime' | 'endTime'> | null>(null);
+
+    // Default duration for new zoom fragments
+    const DEFAULT_ZOOM_FRAGMENT_DURATION = 2;
+
+    const pasteZoomFragment = useCallback(() => {
+        if (!copiedZoomFragment) return;
+        const original = selectedZoomFragmentId
+            ? zoomFragmentsRef.current.find(f => f.id === selectedZoomFragmentId)
+            : null;
+        const duration = original ? original.endTime - original.startTime : DEFAULT_ZOOM_FRAGMENT_DURATION;
+        const hintTime = original ? original.endTime : currentTime;
+        const position = findValidFragmentPosition(hintTime, duration, zoomFragmentsRef.current, videoDuration);
+        if (!position) return;
+
+        const newFragment: ZoomFragment = {
+            ...copiedZoomFragment,
+            id: `zoom_${crypto.randomUUID()}`,
+            startTime: position.startTime,
+            endTime: position.endTime,
+        };
+        setZoomFragments(prev => [...prev, newFragment].sort((a, b) => a.startTime - b.startTime));
+        setSelectedZoomFragmentId(newFragment.id);
+        setActiveTool("zoom");
+    }, [copiedZoomFragment, selectedZoomFragmentId, currentTime, videoDuration]);
+
     useEffect(() => {
-        if (!isPhotoMode) return;
-
         const handlePaste = async (e: ClipboardEvent) => {
-            const items = e.clipboardData?.items;
-            if (!items) return;
+            const target = e.target as HTMLElement;
+            const isInputFocused = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
+            if (isInputFocused) return;
 
-            for (const item of Array.from(items)) {
-                if (item.type.startsWith('image/')) {
-                    e.preventDefault();
-                    const file = item.getAsFile();
-                    if (file) {
-                        handleImageUploadToCanvas(file);
+            if (lastCopyActionRef.current === 'zoom' && activeTool === 'zoom' && copiedZoomFragment) {
+                e.preventDefault();
+                pasteZoomFragment();
+                return;
+            }
+            if (lastCopyActionRef.current === 'element' && copiedElements.length > 0) {
+                e.preventDefault();
+                pasteElement();
+                return;
+            }
+
+            const items = e.clipboardData?.items;
+            if (items) {
+                const wantedPrefix = isPhotoMode ? 'image/' : 'video/';
+                for (const item of Array.from(items)) {
+                    if (item.type.startsWith(wantedPrefix)) {
+                        e.preventDefault();
+                        const file = item.getAsFile();
+                        if (!file) break;
+                        if (isPhotoMode) {
+                            handleImageUploadToCanvas(file);
+                        } else {
+                            await handleVideoUpload(file, { forceReplace: true });
+                        }
+                        return;
                     }
-                    break;
                 }
             }
-        };
 
+            if (activeTool === 'zoom' && copiedZoomFragment) {
+                e.preventDefault();
+                pasteZoomFragment();
+                return;
+            }
+            if (copiedElements.length > 0) {
+                e.preventDefault();
+                pasteElement();
+            }
+        };
         window.addEventListener('paste', handlePaste);
         return () => window.removeEventListener('paste', handlePaste);
-    }, [isPhotoMode, handleImageUploadToCanvas]);
+    }, [isPhotoMode, handleImageUploadToCanvas, handleVideoUpload, activeTool, copiedZoomFragment, pasteZoomFragment, copiedElements, pasteElement]);
 
     const togglePlayPause = useCallback(() => {
         if (videoRef.current) {
@@ -2640,9 +2729,6 @@ export default function Editor() {
         setActiveTool("zoom");
     }, []);
 
-    // Default duration for new zoom fragments
-    const DEFAULT_ZOOM_FRAGMENT_DURATION = 2;
-
     const handleAddZoomFragment = useCallback((hintTime: number) => {
         const validPosition = findValidFragmentPosition(
             hintTime,
@@ -2686,34 +2772,12 @@ export default function Editor() {
         [zoomFragments, selectedZoomFragmentId]
     );
 
-    const [copiedZoomFragment, setCopiedZoomFragment] = useState<Omit<ZoomFragment, 'id' | 'startTime' | 'endTime'> | null>(null);
-
     const copySelectedZoomFragment = useCallback(() => {
         if (!selectedZoomFragment) return;
         const { id, startTime, endTime, ...config } = selectedZoomFragment;
         setCopiedZoomFragment(config);
+        lastCopyActionRef.current = 'zoom';
     }, [selectedZoomFragment]);
-
-    const pasteZoomFragment = useCallback(() => {
-        if (!copiedZoomFragment) return;
-        const original = selectedZoomFragmentId
-            ? zoomFragmentsRef.current.find(f => f.id === selectedZoomFragmentId)
-            : null;
-        const duration = original ? original.endTime - original.startTime : DEFAULT_ZOOM_FRAGMENT_DURATION;
-        const hintTime = original ? original.endTime : currentTime;
-        const position = findValidFragmentPosition(hintTime, duration, zoomFragmentsRef.current, videoDuration);
-        if (!position) return;
-
-        const newFragment: ZoomFragment = {
-            ...copiedZoomFragment,
-            id: `zoom_${crypto.randomUUID()}`,
-            startTime: position.startTime,
-            endTime: position.endTime,
-        };
-        setZoomFragments(prev => [...prev, newFragment].sort((a, b) => a.startTime - b.startTime));
-        setSelectedZoomFragmentId(newFragment.id);
-        setActiveTool("zoom");
-    }, [copiedZoomFragment, selectedZoomFragmentId, currentTime, videoDuration]);
 
     const backgroundColorCss = useMemo((): string | undefined => {
         if (backgroundTab === "color" && backgroundColorConfig) {
@@ -2768,7 +2832,7 @@ export default function Editor() {
             }
 
             if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
-                if (selectedElementId) {
+                if (selectedElementId || multiSelectedElementIds.length > 0) {
                     e.preventDefault();
                     copySelectedElement();
                     return;
@@ -2779,24 +2843,13 @@ export default function Editor() {
                     return;
                 }
             }
-
-            if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
-                if (activeTool === 'zoom' && copiedZoomFragment) {
-                    e.preventDefault();
-                    pasteZoomFragment();
-                    return;
-                }
-                if (isPhotoMode && !copiedElement) {
-                    return;
-                }
+            // Ctrl+V se maneja por completo en el listener de 'paste' (más abajo
+            // en este archivo), para no competir por el mismo atajo con el
+            // pegado de archivos del portapapeles del sistema.
+            if ((e.key === "Delete" || e.key === "Backspace") && (selectedElementId || multiSelectedElementIds.length > 0)) {
                 e.preventDefault();
-                pasteElement();
-                return;
-            }
-
-            if ((e.key === "Delete" || e.key === "Backspace") && selectedElementId) {
-                e.preventDefault();
-                deleteCanvasElement(selectedElementId);
+                const idsToDelete = multiSelectedElementIds.length > 1 ? multiSelectedElementIds : selectedElementId;
+                if (idsToDelete) deleteCanvasElement(idsToDelete);
                 return;
             }
 
@@ -2836,7 +2889,7 @@ export default function Editor() {
 
         document.addEventListener("keydown", handleKeyDown);
         return () => document.removeEventListener("keydown", handleKeyDown);
-    }, [selectedElementId, selectedZoomFragmentId, selectedAudioTrackId, selectedVideoClipId, selectedMockupMotionFragmentId, deleteCanvasElement, handleDeleteZoomFragment, handleDeleteAudioTrack, handleDeleteVideoClip, handleDeleteMockupMotionFragment, copySelectedElement, pasteElement, isPhotoMode, copiedElement, textToolActive, copySelectedZoomFragment, pasteZoomFragment, copiedZoomFragment, activeTool]);
+    }, [selectedElementId, multiSelectedElementIds, selectedZoomFragmentId, selectedAudioTrackId, selectedVideoClipId, selectedMockupMotionFragmentId, deleteCanvasElement, handleDeleteZoomFragment, handleDeleteAudioTrack, handleDeleteVideoClip, handleDeleteMockupMotionFragment, copySelectedElement, textToolActive, copySelectedZoomFragment, activeTool]);
 
     const wasMobileRef = useRef<boolean | null>(null);
     const otherSelectionActive = !!(selectedZoomFragmentId || selectedAudioTrackId || selectedVideoClipId || selectedMockupMotionFragmentId);
@@ -3169,6 +3222,7 @@ export default function Editor() {
                         onElementUpdate={updateCanvasElement}
                         onElementSelect={selectCanvasElement}
                         onElementDelete={deleteCanvasElement}
+                        onSelectedElementIdsChange={setMultiSelectedElementIds}
                         onAddElement={addCanvasElement}
                         textToolActive={textToolActive}
                         onTextToolDeactivate={() => setTextToolActive(false)}
