@@ -174,7 +174,7 @@ export function HeroScrollMask() {
                 className="w-[90vw] sm:w-full max-w-370 rounded-xl sm:rounded-none shadow-[0_0_40px_rgba(0,163,255,0.15)] sm:shadow-none border border-white/10 sm:border-none h-auto max-h-[80svh] sm:max-h-full object-contain"
                 aria-label={t("title")}
               >
-                <source src="/images/pages/demo-scroll2.mp4" type="video/mp4" />
+                <source src="/videos/hero/demo-scroll2.mp4" type="video/mp4" />
               </video>
               <div className="hidden sm:block absolute bottom-0 left-0 right-0 h-40 z-20 bg-linear-to-t from-[#0B0B0B] via-[#0B0B0B]/80 to-transparent pointer-events-none" />
             </div>
