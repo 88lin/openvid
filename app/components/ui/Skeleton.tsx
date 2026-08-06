@@ -311,25 +311,6 @@ export function BackgroundColorSkeleton() {
     );
 }
 
-export function ImageBackgroundSkeleton() {
-    return (
-        <div className="space-y-6">
-            <div className="border-2 border-dashed border-white/10 rounded-lg p-6 flex flex-col items-center gap-2">
-                <Skeleton width={32} height={32} variant="circle" />
-                <Skeleton height={10} width="70%" />
-            </div>
-
-            <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                    <Skeleton width={14} height={14} variant="circle" />
-                    <Skeleton height={10} width={70} />
-                </div>
-                <SkeletonGrid columns={4} rows={2} gap={2} itemHeight={72} variant="square" />
-            </div>
-        </div>
-    );
-}
-
 export function TimelineSkeleton() {
     return (
         <div className="h-38 shrink-0 bg-[#0D0D11] border-t border-white/10 flex flex-col font-mono text-[11px]">

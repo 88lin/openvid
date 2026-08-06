@@ -10,19 +10,7 @@ import Image from "next/image";
 import { lazy, Suspense, useState } from "react";
 import { useTranslations } from "next-intl";
 
-import {
-    ElementsMenuSkeleton,
-    ZoomGlobalConfigSkeleton,
-    MockupMenuSkeleton,
-    WallpaperSkeleton,
-    BackgroundColorSkeleton,
-    ImageBackgroundSkeleton,
-    ZoomFragmentEditorSkeleton,
-    AudioMenuSkeleton,
-    VideosMenuSkeleton,
-    HistoryMenuSkeleton,
-    MotionMenuSkeleton
-} from "../Skeleton";
+import { ElementsMenuSkeleton, ZoomGlobalConfigSkeleton, MockupMenuSkeleton, WallpaperSkeleton, BackgroundColorSkeleton, ZoomFragmentEditorSkeleton, AudioMenuSkeleton, VideosMenuSkeleton, HistoryMenuSkeleton, MotionMenuSkeleton } from "../Skeleton";
 
 import { ElementsMenu } from "./ElementsMenu";
 import { TooltipAction } from "@/components/ui/tooltip-action";
@@ -30,7 +18,6 @@ import { CameraMenu } from "./CameraMenu";
 import { useMockup3dContext } from "@/app/contexts/Mockup3dContext";
 import { MotionMenu } from "./MotionMenu";
 
-const ImageRecentBackgroundGrid = lazy(() => import("../ImageRecentBackgroundGrid").then(mod => ({ default: mod.ImageRecentBackgroundGrid })));
 const BackgroundColorEditor = lazy(() => import("../BackgroundColorEditor").then(mod => ({ default: mod.BackgroundColorEditor })));
 const ZoomFragmentEditor = lazy(() => import("./ZoomFragmentEditor").then(mod => ({ default: mod.ZoomFragmentEditor })));
 const ZoomGlobalConfig = lazy(() => import("./ZoomGlobalConfig").then(mod => ({ default: mod.ZoomGlobalConfig })));
@@ -55,7 +42,6 @@ export function ControlPanel({
     padding,
     roundedCorners,
     shadows,
-    uploadedImages,
     selectedImageUrl,
     backgroundColorConfig,
     backgroundColorCss,
@@ -67,9 +53,7 @@ export function ControlPanel({
     onPaddingChange,
     onRoundedCornersChange,
     onShadowsChange,
-    onImageUpload,
     onImageSelect,
-    onImageRemove,
     onBackgroundColorChange,
     onTogglePanel,
     elementsTextTabTrigger = 0,
@@ -184,21 +168,8 @@ export function ControlPanel({
                                 <span>{t("screenshot.background")}</span>
                             </div>
                             <div className="flex bg-[#09090B] rounded-lg p-1 text-xs font-medium">
-                                <TabButton
-                                    label={t("screenshot.tabs.wallpaper")}
-                                    isActive={backgroundTab === "wallpaper"}
-                                    onClick={() => onBackgroundTabChange("wallpaper")}
-                                />
-                                <TabButton
-                                    label={t("screenshot.tabs.color")}
-                                    isActive={backgroundTab === "color"}
-                                    onClick={() => onBackgroundTabChange("color")}
-                                />
-                                <TabButton
-                                    label={t("screenshot.tabs.image")}
-                                    isActive={backgroundTab === "image"}
-                                    onClick={() => onBackgroundTabChange("image")}
-                                />
+                                <TabButton label={t("screenshot.tabs.wallpaper")} isActive={backgroundTab === "wallpaper"} onClick={() => onBackgroundTabChange("wallpaper")} />
+                                <TabButton label={t("screenshot.tabs.color")} isActive={backgroundTab === "color"} onClick={() => onBackgroundTabChange("color")} />
                             </div>
                         </div>
 
@@ -217,6 +188,10 @@ export function ControlPanel({
                                                     onWallpaperSelect?.(-2);
                                                     onImageSelect?.(url);
                                                 }}
+                                                onCustomImageSelect={(url) => {
+                                                    onWallpaperSelect?.(-2);
+                                                    onImageSelect?.(url);
+                                                }}
                                             />
                                         </div>
                                         <WallpaperCatalogGrid
@@ -230,18 +205,6 @@ export function ControlPanel({
                                             }}
                                         />
                                     </div>
-                                </Suspense>
-                            )}
-
-                            {backgroundTab === "image" && (
-                                <Suspense fallback={<ImageBackgroundSkeleton />}>
-                                    <ImageRecentBackgroundGrid
-                                        images={uploadedImages?.filter(url => typeof url === 'string' && url.trim() !== "") || []}
-                                        selectedUrl={selectedImageUrl}
-                                        onSelect={onImageSelect}
-                                        onRemove={onImageRemove}
-                                        onUpload={onImageUpload}
-                                    />
                                 </Suspense>
                             )}
 

@@ -5,14 +5,13 @@ import { useState, useEffect, useRef, startTransition, useCallback, useLayoutEff
 import { useTranslations } from "next-intl";
 import { SliderControl } from "../../../../components/ui/SliderControl";
 import { SVG_CATEGORIES, IMAGE_CATEGORIES, PINNED_SVG_ITEMS, PINNED_IMAGE_ITEMS, getImagePreviewPath } from "@/lib/canvas-elements.config";
-import { SvgElement, TextElement, ImageElement, ElementsMenuProps, PRESET_COLORS, TEXT_PRESETS, FONT_FAMILIES, FONT_WEIGHTS, UploadedImage, ACCEPTED_FORMATS, MAX_FILE_SIZE } from "@/types/canvas-elements.types";
+import { SvgElement, TextElement, ImageElement, ElementsMenuProps, PRESET_COLORS, TEXT_PRESETS, FONT_FAMILIES, FONT_WEIGHTS, ACCEPTED_FORMATS, MAX_FILE_SIZE } from "@/types/canvas-elements.types";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { SVG_COMPONENTS } from "@/components/canvas-svg";
 import { TooltipAction } from "@/components/ui/tooltip-action";
 import { ProgressiveImg } from "@/components/ui/ProgressiveImg";
-import { canvasUploadsClear, canvasUploadsDelete, canvasUploadsGetAll, canvasUploadsSave } from "@/lib/canvas-uploads-idb";
 
 interface ExtendedElementsMenuProps extends ElementsMenuProps {
     textTabTrigger?: number;
@@ -30,7 +29,7 @@ export function ElementsMenu({
 }: ExtendedElementsMenuProps) {
     const t = useTranslations("elementsMenu");
 
-    const [mode, setMode] = useState<"text" | "elements" | "uploads">("elements");
+    const [mode, setMode] = useState<"text" | "elements">("elements");
     const [shapeColor, setShapeColor] = useState("#FFFFFF");
     const [shapeOpacity, setShapeOpacity] = useState(100);
     const [textContent, setTextContent] = useState("Texto");
@@ -47,9 +46,7 @@ export function ElementsMenu({
         onUpdateElementRef.current = onUpdateElement;
     });
 
-    const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
     const [isUploading, setIsUploading] = useState(false);
-
     const isSyncing = useRef(false);
     const lastSelectedId = useRef<string | null>(null);
 
@@ -120,16 +117,9 @@ export function ElementsMenu({
     }, [textContent, textFontSize, textColor, textOpacity, textFontFamily,
         textFontWeight, selectedElement?.id, selectedElement?.type]);
 
-    useEffect(() => {
-        canvasUploadsGetAll()
-            .then(entries => setUploadedImages(entries))
-            .catch(err => console.error("Error loading canvas uploads:", err));
-    }, []);
-
     const handleImageUpload = useCallback(async (files: FileList | null) => {
         if (!files || files.length === 0) return;
         setIsUploading(true);
-        const newImages: UploadedImage[] = [];
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
             if (!ACCEPTED_FORMATS.includes(file.type)) continue;
@@ -141,65 +131,43 @@ export function ElementsMenu({
                     reader.onerror = reject;
                     reader.readAsDataURL(file);
                 });
-                const uploadedImage: UploadedImage = {
-                    id: `upload-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-                    name: file.name, dataUrl, uploadedAt: Date.now(),
-                };
-                canvasUploadsSave(uploadedImage).catch(err => console.error("Error saving canvas upload:", err));
-                newImages.push(uploadedImage);
+
+                let width = DEFAULT_IMAGE_SIZE;
+                let height = DEFAULT_IMAGE_SIZE;
+                await new Promise<void>((resolve) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        if (img.naturalWidth && img.naturalHeight) {
+                            const ar = img.naturalWidth / img.naturalHeight;
+                            if (ar >= 1) { height = DEFAULT_IMAGE_SIZE / ar; } else { width = DEFAULT_IMAGE_SIZE * ar; }
+                        }
+                        resolve();
+                    };
+                    img.onerror = () => resolve();
+                    img.src = dataUrl;
+                });
+
                 const timestamp = Date.now() + i;
                 const newElement: ImageElement = {
                     id: `image-${timestamp}-${Math.random().toString(36).substring(2, 9)}`,
-                    type: "image", category: "uploads", x: 50, y: 50,
-                    width: DEFAULT_IMAGE_SIZE, height: DEFAULT_IMAGE_SIZE, rotation: 0,
-                    opacity: imageOpacity / 100, zIndex: timestamp, imagePath: dataUrl,
+                    type: "image",
+                    category: "uploads",
+                    x: 50,
+                    y: 50,
+                    width,
+                    height,
+                    rotation: 0,
+                    opacity: imageOpacity / 100,
+                    zIndex: timestamp,
+                    imagePath: dataUrl,
                 };
                 onAddElement(newElement);
-            } catch (error) { console.error(`Error uploading ${file.name}:`, error); }
+            } catch (error) {
+                console.error(`Error uploading ${file.name}:`, error);
+            }
         }
-        if (newImages.length > 0) setUploadedImages(prev => [...prev, ...newImages]);
         setIsUploading(false);
     }, [imageOpacity, onAddElement]);
-
-    const handleDeleteUploadedImage = useCallback((id: string) => {
-        canvasUploadsDelete(id).catch(err => console.error("Error deleting canvas upload:", err));
-        setUploadedImages(prev => prev.filter(img => img.id !== id));
-    }, []);
-
-    const handleAddUploadedImage = useCallback(async (image: UploadedImage) => {
-        const timestamp = Date.now();
-        let width = DEFAULT_IMAGE_SIZE;
-        let height = DEFAULT_IMAGE_SIZE;
-        await new Promise<void>((resolve) => {
-            const img = new Image();
-            img.onload = () => {
-                if (img.naturalWidth && img.naturalHeight) {
-                    const ar = img.naturalWidth / img.naturalHeight;
-                    if (ar >= 1) { height = DEFAULT_IMAGE_SIZE / ar; }
-                    else { width = DEFAULT_IMAGE_SIZE * ar; }
-                }
-                resolve();
-            };
-            img.onerror = () => resolve();
-            img.src = image.dataUrl;
-        });
-        const newElement: ImageElement = {
-            id: `image-${timestamp}-${Math.random().toString(36).substring(2, 9)}`,
-            type: "image", category: "uploads", x: 50, y: 50,
-            width, height, rotation: 0,
-            opacity: imageOpacity / 100, zIndex: timestamp, imagePath: image.dataUrl,
-        };
-        onAddElement(newElement);
-    }, [imageOpacity, onAddElement]);
-
-    const handleDragOver = useCallback((e: React.DragEvent<HTMLLabelElement>) => {
-        e.preventDefault(); e.stopPropagation();
-    }, []);
-
-    const handleDrop = useCallback((e: React.DragEvent<HTMLLabelElement>) => {
-        e.preventDefault(); e.stopPropagation();
-        handleImageUpload(e.dataTransfer.files);
-    }, [handleImageUpload]);
 
     const filteredSvgItems = selectedSvgCategory === "all"
         ? SVG_CATEGORIES.flatMap(cat => cat.items.map(item => ({ ...item, category: cat.id })))
@@ -257,7 +225,7 @@ export function ElementsMenu({
                 <span>{t("title")}</span>
             </div>
 
-            <div className="grid grid-cols-3 bg-[#09090B] squircle-element p-1 text-xs font-medium border border-white/5" role="tablist" aria-label={t("title")}>
+            <div className="grid grid-cols-2 bg-[#09090B] squircle-element p-1 text-xs font-medium border border-white/5" role="tablist" aria-label={t("title")}>
                 <button className={`flex justify-center items-center gap-1.5 py-1.5 rounded transition ${mode === "elements" ? "bg-white/10 text-white" : "text-white/60 hover:text-white/80"}`} onClick={() => setMode("elements")} role="tab" aria-selected={mode === "elements"} aria-controls="elements-panel">
                     <Icon icon="iconoir:hexagon" width="14" aria-hidden="true" />
                     {t("tabs.elements")}
@@ -265,10 +233,6 @@ export function ElementsMenu({
                 <button className={`flex justify-center items-center gap-1.5 py-1.5 rounded transition ${mode === "text" ? "bg-white/10 text-white" : "text-white/60 hover:text-white/80"}`} onClick={() => setMode("text")} role="tab" aria-selected={mode === "text"} aria-controls="text-panel">
                     <Icon icon="iconoir:text-size" width="14" aria-hidden="true" />
                     {t("tabs.text")}
-                </button>
-                <button className={`flex justify-center items-center gap-1.5 py-1.5 rounded transition ${mode === "uploads" ? "bg-white/10 text-white" : "text-white/60 hover:text-white/80"}`} onClick={() => setMode("uploads")} role="tab" aria-selected={mode === "uploads"} aria-controls="uploads-panel">
-                    <Icon icon="ph:upload-simple-bold" width="14" aria-hidden="true" />
-                    {t("tabs.uploads")}
                 </button>
             </div>
 
@@ -340,15 +304,15 @@ export function ElementsMenu({
                     <div className="space-y-2">
                         <div className="text-[11px] uppercase tracking-widest text-white/70 font-semibold">{t("sections.images")}</div>
                         <div className="grid grid-cols-6 gap-1.5">
+                            <UploadImageButton onUpload={handleImageUpload} isUploading={isUploading} />
                             {PINNED_IMAGE_ITEMS.map((item) => (
                                 <button key={item.id} onClick={() => handleAddImage(item)} className="aspect-square bg-white/3 hover:bg-white/8 border border-white/[0.07] hover:border-white/20 squircle-element flex items-center justify-center transition-all active:scale-90 overflow-hidden group">
                                     <ProgressiveImg src={getImagePreviewPath(item)} alt={item.name} className="w-full h-full object-cover group-hover:scale-110" />
                                 </button>
                             ))}
-                            {Array.from({ length: Math.max(0, 11 - PINNED_IMAGE_ITEMS.length) }).map((_, i) => (
+                            {Array.from({ length: Math.max(0, 10 - PINNED_IMAGE_ITEMS.length) }).map((_, i) => (
                                 <div key={`empty-${i}`} className="aspect-square" />
                             ))}
-
                             <Popover>
                                 <TooltipAction label={t("tooltips.allImages")}>
                                     <PopoverTrigger asChild>
@@ -518,75 +482,42 @@ export function ElementsMenu({
                 </div>
             )}
 
-            {mode === "uploads" && (
-                <div className="flex flex-col gap-5 animate-in fade-in duration-150">
-                    <div className="space-y-2">
-                        <div className="text-[11px] uppercase tracking-widest text-white/70 font-semibold">{t("uploads.title")}</div>
-                        <label className={`group flex flex-col items-center justify-center w-full bg-[#09090B] border border-dashed border-white/10 hover:border-white/30 hover:bg-white/3 squircle-element p-8 text-center cursor-pointer transition-all ${isUploading ? "opacity-50 pointer-events-none" : ""}`} onDragOver={handleDragOver} onDrop={handleDrop}>
-                            {isUploading ? (
-                                <div className="flex flex-col items-center justify-center w-full">
-                                    <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-4 transition-transform">
-                                        <Icon icon="svg-spinners:180-ring-with-bg" width="24" className="text-white/60" />
-                                    </div>
-                                    <p className="text-sm font-medium text-white/70 mb-1">{t("uploads.uploading")}</p>
-                                    <p className="text-xs text-white/40">{t("uploads.processing")}</p>
-                                </div>
-                            ) : (
-                                <div className="flex flex-col items-center justify-center w-full">
-                                    <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-4 group-hover:scale-105 transition-transform">
-                                        <Icon icon="solar:upload-minimalistic-outline" width="24" className="text-white/40 group-hover:text-white/70 transition-colors" />
-                                    </div>
-                                    <p className="text-sm font-medium text-white/70 mb-1">{t("uploads.title")}</p>
-                                    <p className="text-xs text-white/40 mb-5">{t("uploads.instruction")}</p>
-                                    <div className="inline-flex items-center justify-center gap-2 whitespace-nowrap squircle-element font-medium transition-all border border-white/10 bg-transparent hover:bg-white/10 h-9 px-4 py-2 w-full text-xs text-white/70 group-hover:text-white shadow-xs">
-                                        <span>{t("uploads.selectFile")}</span>
-                                    </div>
-                                </div>
-                            )}
-                            <input type="file" className="hidden" accept="image/png,image/jpeg,image/jpg,image/webp,image/gif" multiple onChange={(e) => handleImageUpload(e.target.files)} disabled={isUploading} />
-                        </label>
-                    </div>
-
-                    <div className="space-y-2">
-                        <div className="flex justify-between items-center">
-                            <div className="text-[11px] uppercase tracking-widest text-white/70 font-semibold">
-                                {t("uploads.gallery", { count: uploadedImages.length })}
-                            </div>
-                            {uploadedImages.length > 0 && (
-                                <button onClick={() => {
-                                    canvasUploadsClear().catch(err => console.error("Error clearing canvas uploads:", err));
-                                    setUploadedImages([]);
-                                }} className="text-[11px] text-red-400/70 hover:text-red-400 transition-colors">
-                                    {t("uploads.clearAll")}
-                                </button>
-                            )}
-                        </div>
-                        <div className="grid grid-cols-3 gap-2">
-                            {uploadedImages.length === 0 ? (
-                                <div className="col-span-3 py-10 flex flex-col items-center justify-center text-center bg-[#09090B] border border-dashed border-white/10 squircle-element">
-                                    <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-3">
-                                        <Icon icon="mynaui:image" width="20" className="text-white/40" />
-                                    </div>
-                                    <span className="text-xs font-medium text-white/70 mb-0.5">{t("uploads.emptyTitle")}</span>
-                                    <span className="text-[11px] text-white/40">{t("uploads.emptySubtitle")}</span>
-                                </div>
-                            ) : (
-                                uploadedImages.map((image) => (
-                                    <div key={image.id} className="group relative aspect-square rounded-lg overflow-hidden border border-white/10 bg-white/5 hover:border-white/30 transition-all cursor-pointer" onClick={() => handleAddUploadedImage(image)} title={image.name}>
-                                        <img src={image.dataUrl} alt={image.name} className="w-full h-full object-cover" />
-                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                            <Icon icon="ph:plus-circle-bold" width="24" className="text-white" />
-                                        </div>
-                                        <button onClick={(e) => { e.stopPropagation(); handleDeleteUploadedImage(image.id); }} className="absolute top-1 right-1 p-1 rounded bg-black/60 hover:bg-red-500/80 text-white/70 hover:text-white opacity-0 group-hover:opacity-100 transition-all z-10">
-                                            <Icon icon="ph:trash-bold" width="12" />
-                                        </button>
-                                    </div>
-                                ))
-                            )}
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
+    );
+}
+
+
+function UploadImageButton({ onUpload, isUploading }: { onUpload: (files: FileList | null) => void; isUploading: boolean }) {
+    const t = useTranslations("elementsMenu");
+    const inputRef = useRef<HTMLInputElement>(null);
+    return (
+        <>
+            <input
+                ref={inputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/jpg,image/webp,image/gif"
+                multiple
+                className="hidden"
+                onChange={(e) => {
+                    onUpload(e.target.files);
+                    e.target.value = "";
+                }}
+                aria-label={t("uploads.selectFile")}
+            />
+            <TooltipAction label={t("uploads.selectFile")}>
+                <button
+                    onClick={() => inputRef.current?.click()}
+                    disabled={isUploading}
+                    className="aspect-square bg-white/3 hover:bg-white/8 border border-dashed border-white/30 squircle-element flex items-center justify-center transition-all active:scale-90 group disabled:opacity-50"
+                    aria-label={t("uploads.selectFile")}
+                >
+                    {isUploading ? (
+                        <Icon icon="svg-spinners:180-ring-with-bg" width="16" className="text-white/60" aria-hidden="true" />
+                    ) : (
+                        <Icon icon="hugeicons:image-upload" width="24" className="text-white-70 group-hover:text-white transition-colors" aria-hidden="true" />
+                    )}
+                </button>
+            </TooltipAction>
+        </>
     );
 }

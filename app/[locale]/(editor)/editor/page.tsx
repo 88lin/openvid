@@ -45,7 +45,6 @@ import { VIDEO_Z_INDEX } from "@/lib/constants";
 import Image from "next/image";
 import Link from "next/link";
 import { TooltipAction } from "@/components/ui/tooltip-action";
-import { bgImagesDelete, bgImagesGetAll, bgImagesSave } from "@/lib/bg-images-idb";
 import { DEFAULT_MOCKUP_MOTION_CONFIG, findValidMotionPlacement, MockupMotionFragment, MockupMotionPresetId } from "@/lib/mockup-motion";
 
 const ControlPanel = lazy(() => import("@/app/components/ui/editor/ControlPanel").then(mod => ({ default: mod.ControlPanel })));
@@ -163,8 +162,6 @@ export default function Editor() {
         translateY: 0,
     });
 
-    const [uploadedImages, setUploadedImages] = useState<string[]>([]);
-    const bgImgUrlToIdRef = useRef<Map<string, string>>(new Map());
     const [selectedImageUrl, setSelectedImageUrl] = useState<string>("");
     const [unsplashBgUrl, setUnsplashBgUrl] = useState<string>("");
 
@@ -2037,15 +2034,6 @@ export default function Editor() {
     }, [loadUploadedVideo, clearHistory, isPhotoMode, setClipUrl]);
 
     useEffect(() => {
-        bgImagesGetAll()
-            .then(entries => {
-                setUploadedImages(entries.map(e => e.dataUrl));
-                entries.forEach(e => bgImgUrlToIdRef.current.set(e.dataUrl, e.id));
-            })
-            .catch(err => console.error("Error loading bg images:", err));
-    }, []);
-
-    useEffect(() => {
         if (videoRef.current) {
             videoRef.current.muted = muteOriginalAudio;
         }
@@ -2673,23 +2661,6 @@ export default function Editor() {
         }
     }, [isDraggingPlayhead, isPlaying, syncAudioPlayback, findActiveClipAtTime, timelineToClipTime, scheduleUpdateFrame]);
 
-    // Handler for background image upload (for ControlPanel)
-    const handleImageUpload = useCallback(async (file: File) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const dataUrl = e.target?.result as string;
-            if (dataUrl) {
-                const id = crypto.randomUUID();
-                bgImgUrlToIdRef.current.set(dataUrl, id);
-                bgImagesSave({ id, dataUrl, uploadedAt: Date.now() })
-                    .catch(err => console.error("Error saving bg image:", err));
-                setUploadedImages(prev => [dataUrl, ...prev]);
-                setSelectedImageUrl(dataUrl);
-            }
-        };
-        reader.readAsDataURL(file);
-    }, []);
-
     const handleImageSelect = useCallback((url: string) => {
         if (backgroundTab === "wallpaper") setUnsplashBgUrl(url);
         else setSelectedImageUrl(url);
@@ -2699,16 +2670,6 @@ export default function Editor() {
         setSelectedWallpaper(index);
         setUnsplashBgUrl("");
     }, []);
-
-    const handleImageRemove = useCallback((url: string) => {
-        const id = bgImgUrlToIdRef.current.get(url);
-        if (id) {
-            bgImagesDelete(id).catch(err => console.error("Error deleting bg image:", err));
-            bgImgUrlToIdRef.current.delete(url);
-        }
-        setUploadedImages(prev => prev.filter(img => img !== url));
-        if (selectedImageUrl === url) setSelectedImageUrl("");
-    }, [selectedImageUrl]);
 
     // Background tab change handler
     const handleBackgroundTabChange = useCallback((tab: BackgroundTab) => setBackgroundTab(tab), []);
@@ -3065,11 +3026,8 @@ export default function Editor() {
                                         onRoundedCornersChange={handleRoundedCornersChange}
                                         shadows={shadows}
                                         onShadowsChange={setShadows}
-                                        uploadedImages={uploadedImages}
                                         selectedImageUrl={selectedImageUrl}
-                                        onImageUpload={handleImageUpload}
                                         onImageSelect={handleImageSelect}
-                                        onImageRemove={handleImageRemove}
                                         backgroundColorConfig={backgroundColorConfig}
                                         backgroundColorCss={backgroundColorCss}
                                         onBackgroundColorChange={handleBackgroundColorChange}
@@ -3360,11 +3318,8 @@ export default function Editor() {
                 onRoundedCornersChange={handleRoundedCornersChange}
                 shadows={shadows}
                 onShadowsChange={setShadows}
-                uploadedImages={uploadedImages}
                 selectedImageUrl={selectedImageUrl}
-                onImageUpload={handleImageUpload}
                 onImageSelect={handleImageSelect}
-                onImageRemove={handleImageRemove}
                 backgroundColorConfig={backgroundColorConfig}
                 onBackgroundColorChange={handleBackgroundColorChange}
                 zoomFragments={zoomFragments}

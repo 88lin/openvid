@@ -1,6 +1,5 @@
 "use client";
-
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Icon } from "@iconify/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { WALLPAPER_CATEGORIES, type WallpaperCategory, type WallpaperItem } from "@/lib/wallpaper.catalog";
@@ -15,30 +14,73 @@ interface WallpaperGridProps {
   selectedIndex?: number;
   onSelect?: (index: number) => void;
   onUnsplashSelect?: (url: string) => void;
+  onCustomImageSelect?: (url: string) => void;
   showAll?: boolean;
   onShowAllChange?: (value: boolean) => void;
 }
 
-export function OptionsGrid({ selectedIndex = -1, onSelect, onUnsplashSelect }: WallpaperGridProps) {
+function CustomImagePickerButton({ onSelect }: { onSelect?: (url: string) => void }) {
   const t = useTranslations("wallpapers");
+  const inputRef = useRef<HTMLInputElement>(null);
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !file.type.startsWith("image/")) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const dataUrl = ev.target?.result as string;
+      if (dataUrl) onSelect?.(dataUrl);
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
+
+  return (
+    <>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleChange}
+        aria-label={t("options.upload")}
+      />
+      <TooltipAction label={t("options.upload")}>
+        <button
+          onClick={() => inputRef.current?.click()}
+          className="aspect-square bg-white/3 hover:bg-white/8 border border-dashed border-white/30 squircle-element flex items-center justify-center transition-all active:scale-90 group disabled:opacity-50"
+          aria-label={t("options.upload")}
+        >
+          <Icon icon="hugeicons:image-upload" width="24" className="text-white-70 group-hover:text-white transition-colors" aria-hidden="true" />
+        </button>
+      </TooltipAction>
+    </>
+  );
+}
+
+export function OptionsGrid({ selectedIndex = -1, onSelect, onUnsplashSelect, onCustomImageSelect }: WallpaperGridProps) {
+  const t = useTranslations("wallpapers");
   return (
     <div className="grid grid-cols-6 gap-2">
       <TooltipAction label={t("options.none")}>
         <button
           onClick={() => onSelect?.(-1)}
-          className={`aspect-square squircle-element cursor-pointer transition-all flex items-center justify-center relative overflow-hidden ${selectedIndex === -1 ? "ring-2 ring-white/90 shadow-lg shadow-black/40" : "hover:ring-2 ring-white/60"
+          className={`aspect-square squircle-element cursor-pointer transition-all flex items-center justify-center relative overflow-hidden ${selectedIndex === -1
+            ? "ring-2 ring-white/90 shadow-lg shadow-black/40"
+            : "hover:ring-2 ring-white/60"
             }`}
           style={{
-            backgroundImage: "linear-gradient(45deg,#444 25%,transparent 25%),linear-gradient(-45deg,#444 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#444 75%),linear-gradient(-45deg,transparent 75%,#444 75%)",
+            backgroundImage:
+              "linear-gradient(45deg,#444 25%,transparent 25%),linear-gradient(-45deg,#444 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#444 75%),linear-gradient(-45deg,transparent 75%,#444 75%)",
             backgroundSize: "12px 12px",
             backgroundPosition: "0 0,0 6px,6px -6px,-6px 0",
-            backgroundColor: "#ccc",
+            backgroundColor: "#FFFFFF",
           }}
           aria-label={t("options.none")}
           aria-pressed={selectedIndex === -1}
         />
       </TooltipAction>
+      <CustomImagePickerButton onSelect={onCustomImageSelect} />
       <PhotoPickerPopover onSelect={(url) => onUnsplashSelect?.(url)} />
     </div>
   );
@@ -47,9 +89,7 @@ export function OptionsGrid({ selectedIndex = -1, onSelect, onUnsplashSelect }: 
 function CategoryPopover({ category, selectedIndex, onSelect }: { category: WallpaperCategory; selectedIndex: number; onSelect?: (index: number) => void; }) {
   const [open, setOpen] = useState(false);
   const t = useTranslations("wallpapers");
-
   const categoryName = t(`categories.${category.id}`);
-
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <TooltipAction label={t("popover.seeMore", { name: categoryName })}>
@@ -59,7 +99,6 @@ function CategoryPopover({ category, selectedIndex, onSelect }: { category: Wall
           </button>
         </PopoverTrigger>
       </TooltipAction>
-
       <PopoverContent side="right" align="start" sideOffset={12} className="w-126 p-0 border-0 shadow-2xl">
         <div className="flex flex-col bg-[#111113] border border-white/10 rounded-xl overflow-hidden shadow-2xl">
           <div className="flex items-center gap-2 px-4 py-3 border-b border-white/10 bg-white/2">
@@ -85,7 +124,6 @@ function CategoryPopover({ category, selectedIndex, onSelect }: { category: Wall
 function PrimaryCategoryGrid({ category, selectedIndex, onSelect }: { category: WallpaperCategory; selectedIndex: number; onSelect?: (index: number) => void; }) {
   const t = useTranslations("wallpapers");
   const visible = category.items.slice(0, PREVIEW_LIMIT);
-
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-widest text-white/70 font-bold">
@@ -105,7 +143,6 @@ function PrimaryCategoryGrid({ category, selectedIndex, onSelect }: { category: 
 function SecondaryCategoryGrid({ category, selectedIndex, onSelect }: { category: WallpaperCategory; selectedIndex: number; onSelect?: (index: number) => void; }) {
   const t = useTranslations("wallpapers");
   const visible = category.items.slice(0, PREVIEW_LIMIT);
-
   return (
     <motion.div
       initial={{ opacity: 0, height: 0, marginTop: 0 }}
@@ -137,7 +174,6 @@ export function WallpaperCatalogGrid({
   onShowAllChange,
 }: WallpaperGridProps) {
   const t = useTranslations("wallpapers");
-
   const primary = WALLPAPER_CATEGORIES.filter((c) => c.primary);
   const secondary = WALLPAPER_CATEGORIES.filter((c) => !c.primary);
 
@@ -146,7 +182,6 @@ export function WallpaperCatalogGrid({
       {primary.map((cat) => (
         <PrimaryCategoryGrid key={cat.id} category={cat} selectedIndex={selectedIndex} onSelect={onSelect} />
       ))}
-
       {secondary.length > 0 && (
         <motion.button
           onClick={() => onShowAllChange?.(!showAll)}
@@ -160,7 +195,6 @@ export function WallpaperCatalogGrid({
           <span>{showAll ? t("options.showLess") : t("options.showMore")}</span>
         </motion.button>
       )}
-
       <AnimatePresence mode="sync">
         {showAll && secondary.map((cat) => (
           <SecondaryCategoryGrid key={cat.id} category={cat} selectedIndex={selectedIndex} onSelect={onSelect} />
@@ -174,7 +208,9 @@ function WallpaperThumb({ item, isSelected, onSelect }: { item: WallpaperItem; i
   return (
     <button
       onClick={() => onSelect?.(item.index)}
-      className={`aspect-square squircle-element cursor-pointer transition-all bg-cover bg-center border ${isSelected ? "ring-2 ring-white/90 border-white/40 shadow-md shadow-black/50" : "border-white/10 hover:border-white/30 hover:ring-1 ring-white/20"
+      className={`aspect-square squircle-element cursor-pointer transition-all bg-cover bg-center border ${isSelected
+        ? "ring-2 ring-white/90 border-white/40 shadow-md shadow-black/50"
+        : "border-white/10 hover:border-white/30 hover:ring-1 ring-white/20"
         }`}
       style={{ backgroundImage: `url('${item.previewUrl}')` }}
       aria-label={item.filename}
@@ -188,7 +224,9 @@ function WallpaperThumbProgressive({ item, isSelected, onSelect }: { item: Wallp
   return (
     <button
       onClick={() => onSelect?.(item.index)}
-      className={`aspect-square squircle-element cursor-pointer transition-all bg-cover bg-center border overflow-hidden relative ${isSelected ? "ring-2 ring-white/90 border-white/40 shadow-md shadow-black/50" : "border-white/10 hover:border-white/30 hover:ring-1 ring-white/20"
+      className={`aspect-square squircle-element cursor-pointer transition-all bg-cover bg-center border overflow-hidden relative ${isSelected
+        ? "ring-2 ring-white/90 border-white/40 shadow-md shadow-black/50"
+        : "border-white/10 hover:border-white/30 hover:ring-1 ring-white/20"
         }`}
       aria-label={item.filename}
       aria-pressed={isSelected}
