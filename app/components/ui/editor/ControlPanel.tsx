@@ -135,10 +135,10 @@ export function ControlPanel({
                     href="/"
                     onClick={() => { window.location.href = "/"; }}
                     className="flex items-center gap-2 group pl-2"
-                    aria-label="OpenVid home"
+                    aria-label="Openvid home"
                 >
                     <Image src="/svg/logo-openvid.svg" alt="" width={30} height={30} />
-                    <Image src="/svg/openvid.svg" alt="OpenVid" width={70} height={50} />
+                    <Image src="/svg/openvid.svg" alt="Openvid" width={70} height={50} />
                 </Link>
 
                 <TooltipAction label={t("header.close")} side="right">

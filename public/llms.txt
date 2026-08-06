@@ -1,8 +1,8 @@
-# OpenVid
+# Openvid
 > Free, AI-powered online video editor for crafting cinematic product demos and 3D device mockups entirely in the browser.
 
 ## Overview
-OpenVid transforms standard screen recordings into highly polished, professional product demos without the need for complex software like After Effects. By leveraging WebAssembly and WebGL, it ensures 100% privacy and local processing—your videos never leave your device. Users can add smooth zooms, interactive 3D device mockups (Rotato-style), cinematic camera tilts, and custom backgrounds to export a high-fidelity demo ready for launch.
+Openvid transforms standard screen recordings into highly polished, professional product demos without the need for complex software like After Effects. By leveraging WebAssembly and WebGL, it ensures 100% privacy and local processing—your videos never leave your device. Users can add smooth zooms, interactive 3D device mockups (Rotato-style), cinematic camera tilts, and custom backgrounds to export a high-fidelity demo ready for launch.
 
 ## Key Capabilities
 

@@ -19,7 +19,7 @@ export default function Loading() {
 
         <img 
           src="/svg/logo-openvid.svg" 
-          alt="Cargando OpenVid..."
+          alt="Cargando Openvid..."
           className="relative size-30 object-contain select-none filter drop-shadow-[0_0_35px_rgba(6,182,212,0.4)]"
           draggable={false}
         />

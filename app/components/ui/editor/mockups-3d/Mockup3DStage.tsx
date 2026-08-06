@@ -8,7 +8,7 @@ import { Phone3DApi, Phone3DScene } from "./Phone3DViewer";
 import { Laptop3DApi, LaptopScene } from "./Laptop3DViewer";
 import { IPhone17ProMax3DApi, IPhone17ProMaxScene } from "./IPhone17ProMax3DViewer";
 import { IPadMini63DApi, IPadMiniScene } from "./IPadMini63DViewer";
-import { PHONE_W, PHONE_H, ImageMaskConfigLike } from "@/lib/phone3d.utils";
+import { ImageMaskConfigLike } from "@/lib/phone3d.utils";
 import type { ImageDeviceId } from "@/types/mockup.types";
 import { EnvironmentPreset } from "@/lib/viewer-controls3d";
 

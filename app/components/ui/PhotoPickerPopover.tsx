@@ -229,7 +229,7 @@ export function PhotoPickerPopover({ onSelect }: PhotoPickerPopoverProps) {
         <Popover open={open} onOpenChange={setOpen}>
             <TooltipAction label={t("tooltip")}>
                 <PopoverTrigger asChild>
-                    <button className="aspect-square squircle-element bg-gray-100 border border-white/10 bg-linear-to-br from-indigo-500 via-purple-500 to-pink-500 bg-[url('/svg/ppu.svg')] bg-cover bg-center flex items-center justify-center hover:opacity-80 transition group relative overflow-hidden" aria-label={t("tooltip")} />
+                    <button className="aspect-square squircle-element bg-gray-100 border border-white/10 bg-[url('/svg/ppu.svg')] bg-cover bg-center flex items-center justify-center hover:opacity-80 transition group relative overflow-hidden" aria-label={t("tooltip")} />
                 </PopoverTrigger>
             </TooltipAction>
             <PopoverContent side="right" align="start" sideOffset={12} className="w-115 p-0 border-0 shadow-2xl">

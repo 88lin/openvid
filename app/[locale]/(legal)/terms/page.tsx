@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     path: "/terms",
     title: t("title"),
     description,
-    imageAlt: "OpenVid — Terms of Service",
+    imageAlt: "Openvid — Terms of Service",
   });
 }
 

@@ -48,10 +48,10 @@ function CustomImagePickerButton({ onSelect }: { onSelect?: (url: string) => voi
       <TooltipAction label={t("options.upload")}>
         <button
           onClick={() => inputRef.current?.click()}
-          className="aspect-square bg-white/3 hover:bg-white/8 border border-dashed border-white/30 squircle-element flex items-center justify-center transition-all active:scale-90 group disabled:opacity-50"
+          className="aspect-square bg-[#F3F4F6] border border-white/30 squircle-element flex items-center justify-center transition-all active:scale-90 group disabled:opacity-50 hover:opacity-80"
           aria-label={t("options.upload")}
         >
-          <Icon icon="hugeicons:image-upload" width="24" className="text-white-70 group-hover:text-white transition-colors" aria-hidden="true" />
+          <Icon icon="hugeicons:image-upload" width="24" className="text-black transition-colors" aria-hidden="true" />
         </button>
       </TooltipAction>
     </>
@@ -74,7 +74,7 @@ export function OptionsGrid({ selectedIndex = -1, onSelect, onUnsplashSelect, on
               "linear-gradient(45deg,#444 25%,transparent 25%),linear-gradient(-45deg,#444 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#444 75%),linear-gradient(-45deg,transparent 75%,#444 75%)",
             backgroundSize: "12px 12px",
             backgroundPosition: "0 0,0 6px,6px -6px,-6px 0",
-            backgroundColor: "#FFFFFF",
+            backgroundColor: "#F3F4F6",
           }}
           aria-label={t("options.none")}
           aria-pressed={selectedIndex === -1}

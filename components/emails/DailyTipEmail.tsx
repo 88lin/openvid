@@ -37,7 +37,7 @@ export default function DailyTipEmail({ firstName }: DailyTipEmailProps) {
                             <Img
                                 src="https://openvid.dev/images/pages/openvid.svg"
                                 height="32"
-                                alt="OpenVid Logo"
+                                alt="Openvid Logo"
                                 className="block"
                             />
                         </Section>

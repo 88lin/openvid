@@ -8,7 +8,7 @@ export const SEO_OG_IMAGE = {
   width: 1200,
   height: 630,
   type: "image/jpeg",
-  alt: "OpenVid — free browser video editor with cinematic zooms and 3D mockups",
+  alt: "Openvid — free browser video editor with cinematic zooms and 3D mockups",
 } as const;
 
 export const OG_LOCALE_MAP: Record<string, string> = {
@@ -95,7 +95,7 @@ export function buildPageMetadata({
         },
     openGraph: {
       type: "website",
-      siteName: "OpenVid",
+      siteName: "Openvid",
       locale: ogLocale,
       alternateLocale,
       url: alternates.canonical,

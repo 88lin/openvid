@@ -180,7 +180,7 @@ export function generateWebSiteSchema(locale: 'es' | 'en' | 'ru' | 'ko'): WebSit
   return {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: 'OpenVid',
+    name: 'Openvid',
     alternateName: 'openvid',
     url: `https://openvid.dev/${locale}`,
     inLanguage: locale,

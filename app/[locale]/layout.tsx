@@ -70,17 +70,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     ...defaults,
     metadataBase: new URL(SEO_BASE_URL),
     title: {
-      default: "OpenVid | Create Cinematic Product Demos in Your Browser",
-      template: "%s | OpenVid",
+      default: "Openvid | Create Cinematic Product Demos in Your Browser",
+      template: "%s | Openvid",
     },
-    applicationName: "OpenVid",
+    applicationName: "Openvid",
     category: "design tool",
     manifest: "/site.webmanifest",
     authors: [
       { name: "Cristian Olivera", url: "https://github.com/CristianOlivera1" },
     ],
     creator: "Cristian Olivera",
-    publisher: "OpenVid",
+    publisher: "Openvid",
     icons: {
       icon: [
         { url: "/images/metadata/favicon.svg", type: "image/svg+xml" },
@@ -89,7 +89,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       apple: "/images/metadata/apple.svg",
     },
     appleWebApp: {
-      title: "OpenVid",
+      title: "Openvid",
       statusBarStyle: "black-translucent",
       capable: true,
     },

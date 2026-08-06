@@ -92,7 +92,7 @@ export function MobileMenu() {
 
               <Link href="/" onClick={closeMenu} className="flex items-center gap-2">
                 <Image src="/svg/logo-openvid.svg" alt="Logo" width={32} height={32} />
-                <Image src="/svg/openvid.svg" alt="OpenVid" width={80} height={20} />
+                <Image src="/svg/openvid.svg" alt="Openvid" width={80} height={20} />
               </Link>
             </div>
             <Dialog.Close asChild>
