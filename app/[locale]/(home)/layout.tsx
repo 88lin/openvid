@@ -6,7 +6,6 @@ import RecordingOverlay from "@/app/components/ui/RecordingOverlay";
 import { RecordingProvider } from "@/app/contexts/RecordingContext";
 import { AuthProvider } from "@/app/contexts/useAuth";
 import { ReactLenis } from "lenis/react";
-import "../../globals.css";
 
 export default function HomeLayout({ children }: { children: React.ReactNode }) {
     return (

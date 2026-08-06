@@ -143,7 +143,7 @@ export function generateWebAppSchema(locale: 'es' | 'en' | 'ru' | 'ko'): WebAppl
       priceCurrency: 'USD',
     },
     description,
-    url: baseUrl,
+    url: `${baseUrl}/${locale}`,
     inLanguage: locale,
     image: `${baseUrl}/images/metadata/preview-openvid.jpg`,
     author: {
@@ -182,7 +182,7 @@ export function generateWebSiteSchema(locale: 'es' | 'en' | 'ru' | 'ko'): WebSit
     '@type': 'WebSite',
     name: 'OpenVid',
     alternateName: 'openvid',
-    url: 'https://openvid.dev',
+    url: `https://openvid.dev/${locale}`,
     inLanguage: locale,
     publisher: {
       '@type': 'Organization',

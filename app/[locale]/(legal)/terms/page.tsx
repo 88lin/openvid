@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Icon } from "@iconify/react";
 import { getLocale, getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/navigation";
-import { getRouteAlternates, SEO_BASE_URL } from "@/lib/seo";
+import { buildPageMetadata } from "@/lib/seo";
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -12,26 +12,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations("terms");
   const description = t.raw("description.content") as string;
-  const url = getRouteAlternates(locale, "/terms");
 
-  return {
+  return buildPageMetadata({
+    locale,
+    path: "/terms",
     title: t("title"),
     description,
-    alternates: url,
-    openGraph: {
-      title: t("title"),
-      description,
-      url: url.canonical,
-      images: [
-        {
-          url: `${SEO_BASE_URL}/images/metadata/preview-openvid.jpg`,
-          width: 1200,
-          height: 630,
-          alt: "OpenVid - Terms of Service",
-        },
-      ],
-    },
-  };
+    imageAlt: "OpenVid — Terms of Service",
+  });
 }
 
 export default async function TermsPage({ params }: Props) {

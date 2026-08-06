@@ -2,7 +2,7 @@ import { headers } from "next/headers";
 import { getTranslations } from "next-intl/server";
 import type { Metadata } from "next";
 import DonateClient from "./DonateClient";
-import { getRouteAlternates, SEO_BASE_URL } from "@/lib/seo";
+import { buildPageMetadata } from "@/lib/seo";
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -11,28 +11,14 @@ type Props = {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations("donation.page");
-  const title = t("title");
-  const description = t("description");
-  const url = getRouteAlternates(locale, "/donate");
 
-  return {
-    title,
-    description,
-    alternates: url,
-    openGraph: {
-      title,
-      description,
-      url: url.canonical,
-      images: [
-        {
-          url: `${SEO_BASE_URL}/images/metadata/preview-openvid.jpg`,
-          width: 1200,
-          height: 630,
-          alt: "OpenVid - Support the project",
-        },
-      ],
-    },
-  };
+  return buildPageMetadata({
+    locale,
+    path: "/donate",
+    title: t("title"),
+    description: t("description"),
+    imageAlt: "OpenVid — Support the project",
+  });
 }
 
 export interface DonationMethod {

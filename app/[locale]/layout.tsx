@@ -1,18 +1,31 @@
-import { NextIntlClientProvider } from 'next-intl';
-import { getMessages, setRequestLocale } from 'next-intl/server';
-import { notFound } from 'next/navigation';
-import { locales, type Locale } from '@/i18n';
+import { NextIntlClientProvider } from "next-intl";
+import { getMessages, setRequestLocale } from "next-intl/server";
+import { notFound } from "next/navigation";
+import { defaultLocale, locales, type Locale } from "@/i18n";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Inter, Roboto, Poppins, Montserrat, DM_Sans } from "next/font/google";
-import type { Metadata, Viewport } from 'next';
-import { GoogleAnalytics } from '@next/third-parties/google';
+import { Inter, Roboto } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { GoogleAnalytics } from "@next/third-parties/google";
+import {
+  buildPageMetadata,
+  getOgLocales,
+  getRouteAlternates,
+  SEO_BASE_URL,
+  SEO_OG_IMAGE,
+} from "@/lib/seo";
 import "../globals.css";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
-const roboto = Roboto({ subsets: ["latin"], weight: ["400", "500", "700"], variable: "--font-roboto", display: "swap" });
-const poppins = Poppins({ subsets: ["latin"], weight: ["400", "500", "700"], variable: "--font-poppins", display: "swap" });
-const montserrat = Montserrat({ subsets: ["latin"], weight: ["400", "500", "700"], variable: "--font-montserrat", display: "swap" });
-const dmSans = DM_Sans({ subsets: ["latin"], weight: ["400", "500", "700"], variable: "--font-dm-sans", display: "swap" });
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
+const roboto = Roboto({
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  variable: "--font-roboto",
+  display: "swap",
+});
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -32,51 +45,46 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
-  const baseUrl = 'https://openvid.dev';
+  const { locale: ogLocale, alternateLocale } = getOgLocales(locale);
+  const alternates = getRouteAlternates(locale);
 
-  const ogLocaleMap: Record<string, string> = {
-    en: 'en_US',
-    es: 'es_ES',
-    ru: 'ru_RU',
-    ko: 'ko_KR'
-  };
-
-  const currentOgLocale = ogLocaleMap[locale] || 'en_US';
-  const alternateLocales = locales.filter(l => l !== locale).map(l => ogLocaleMap[l]);
+  const defaults = buildPageMetadata({
+    locale,
+    title: "Create Cinematic Product Demos in Your Browser",
+    description:
+      "Free, privacy-first, browser-based video editor. Turn screen recordings into professional product demos with 3D mockups, cinematic zooms, and 4K export.",
+    keywords: [
+      "openvid",
+      "product demo creator",
+      "browser video editor",
+      "screen recorder",
+      "3D device mockups",
+      "cinematic video zooms",
+      "local video rendering",
+      "privacy-first video tool",
+      "SaaS marketing video",
+    ],
+  });
 
   return {
-    metadataBase: new URL(baseUrl),
+    ...defaults,
+    metadataBase: new URL(SEO_BASE_URL),
     title: {
       default: "OpenVid | Create Cinematic Product Demos in Your Browser",
       template: "%s | OpenVid",
     },
-    description: "Free, privacy-first, browser-based video editor. Turn standard screen recordings into professional product demos with 3D device mockups, cinematic zooms, and 4K export.",
     applicationName: "OpenVid",
-    generator: "Next.js",
     category: "design tool",
     manifest: "/site.webmanifest",
-    keywords: [
-      "openvid", "product demo creator", "browser video editor", "screen recorder", 
-      "3D device mockups", "cinematic video zooms", "local video rendering", 
-      "privacy-first video tool", "ffmpeg.wasm editor", "SaaS marketing video", "Cristian Olivera"
+    authors: [
+      { name: "Cristian Olivera", url: "https://github.com/CristianOlivera1" },
     ],
-    authors: [{ name: "Cristian Olivera", url: "https://github.com/CristianOlivera1" }],
     creator: "Cristian Olivera",
     publisher: "OpenVid",
-    robots: {
-      index: true,
-      follow: true,
-      nocache: false,
-      googleBot: {
-        index: true,
-        follow: true,
-        "max-video-preview": -1,
-        "max-image-preview": "large",
-        "max-snippet": -1,
-      },
-    },
     icons: {
-      icon: "/images/metadata/favicon.svg",
+      icon: [
+        { url: "/images/metadata/favicon.svg", type: "image/svg+xml" },
+      ],
       shortcut: "/images/metadata/shortcut.svg",
       apple: "/images/metadata/apple.svg",
     },
@@ -85,29 +93,24 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       statusBarStyle: "black-translucent",
       capable: true,
     },
-    twitter: {
-      card: "summary_large_image",
-      creator: "@cristianolivera",
-      site: "@openvid",
+    alternates,
+    openGraph: {
+      ...defaults.openGraph,
+      locale: ogLocale,
+      alternateLocale,
+      images: [
+        {
+          url: SEO_OG_IMAGE.url,
+          width: SEO_OG_IMAGE.width,
+          height: SEO_OG_IMAGE.height,
+          alt: SEO_OG_IMAGE.alt,
+          type: SEO_OG_IMAGE.type,
+        },
+      ],
     },
     other: {
       "msapplication-TileColor": "#000000",
       "format-detection": "telephone=no",
-    },
-    openGraph: {
-      type: "website",
-      siteName: "OpenVid",
-      images: [
-        {
-          url: "/images/metadata/preview-openvid.jpg",
-          width: 1200,
-          height: 630,
-          alt: "OpenVid - 3D Mockups and Cinematic Demo Creator",
-          type: "image/jpeg",
-        },
-      ],
-      locale: currentOgLocale,
-      alternateLocale: alternateLocales,
     },
   };
 }
@@ -118,7 +121,7 @@ export function generateStaticParams() {
 
 export default async function LocaleLayout({
   children,
-  params
+  params,
 }: {
   children: React.ReactNode;
   params: Promise<{ locale: string }>;
@@ -131,6 +134,9 @@ export default async function LocaleLayout({
 
   setRequestLocale(locale);
   const messages = (await getMessages()) as Record<string, unknown>;
+
+  // Only ship namespaces the marketing chrome actually needs.
+  // Editor pages load their own messages via next-intl where required.
   const publicMessages = {
     header: messages.header,
     footer: messages.footer,
@@ -145,26 +151,24 @@ export default async function LocaleLayout({
     donation: messages.donation,
     notFound: messages.notFound,
   };
-  const isProduction = process.env.NODE_ENV === 'production';
+
+  const isProduction = process.env.NODE_ENV === "production";
   const gaId = process.env.NEXT_PUBLIC_GA_ID;
 
   return (
-    <html lang={locale}>
+    <html lang={locale || defaultLocale} suppressHydrationWarning>
       <body
-        className={`
-          ${inter.variable} ${roboto.variable} ${poppins.variable} 
-          ${montserrat.variable} ${dmSans.variable} ${inter.className} 
-          antialiased dark
-        `}
+        className={`${inter.variable} ${roboto.variable} ${inter.className} antialiased dark`}
       >
-        <meta httpEquiv="content-language" content={locale} />
-        <NextIntlClientProvider key={locale} messages={publicMessages} locale={locale}>
-          <TooltipProvider delayDuration={200}>
-            {children}
-          </TooltipProvider>
+        <NextIntlClientProvider
+          key={locale}
+          messages={publicMessages}
+          locale={locale}
+        >
+          <TooltipProvider delayDuration={200}>{children}</TooltipProvider>
         </NextIntlClientProvider>
       </body>
-      {isProduction && gaId && <GoogleAnalytics gaId={gaId} />}
+      {isProduction && gaId ? <GoogleAnalytics gaId={gaId} /> : null}
     </html>
   );
 }

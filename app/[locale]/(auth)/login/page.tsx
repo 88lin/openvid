@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Icon } from "@iconify/react";
 import Image from "next/image";
 import { Link } from "@/navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
 type OAuthProvider = "google" | "github" | "twitch";
 
@@ -40,8 +40,24 @@ const providers: ProviderConfig[] = [
   },
 ];
 
+function buildOAuthCallbackUrl(locale: string, redirectedFrom: string | null) {
+  const url = new URL(`/${locale}/auth/callback`, window.location.origin);
+
+  if (
+    redirectedFrom &&
+    redirectedFrom.startsWith("/") &&
+    !redirectedFrom.startsWith("//") &&
+    !redirectedFrom.includes("://")
+  ) {
+    url.searchParams.set("next", redirectedFrom);
+  }
+
+  return url.toString();
+}
+
 export default function Login() {
   const t = useTranslations('login');
+  const locale = useLocale();
   const [loading, setLoading] = useState<OAuthProvider | null>(null);
   const [error, setError] = useState<string | null>(null);
   const supabase = createClient();
@@ -51,7 +67,10 @@ export default function Login() {
       setLoading(provider);
       setError(null);
 
-      const redirectUrl = `${window.location.origin}/auth/callback`;
+      const redirectedFrom = new URLSearchParams(window.location.search).get(
+        "redirectedFrom",
+      );
+      const redirectUrl = buildOAuthCallbackUrl(locale, redirectedFrom);
 
       const { error: signInError } = await supabase.auth.signInWithOAuth({
         provider,
