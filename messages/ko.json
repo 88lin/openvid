@@ -699,6 +699,23 @@
         "vertical": "수직 위치",
         "reset": "초기화"
       }
+    },
+    "viewer3d": "3D 뷰어",
+    "autoRotate": "자동 회전",
+    "rotationSpeed": "회전 속도",
+    "glow": "글로우 효과",
+    "environment": "환경",
+    "environments": {
+      "sunset": "일몰",
+      "dawn": "새벽",
+      "night": "야경",
+      "warehouse": "창고",
+      "forest": "숲",
+      "apartment": "아파트",
+      "studio": "스튜디오",
+      "city": "도시",
+      "park": "공원",
+      "lobby": "로비"
     }
   },
   "videosMenu": {
@@ -1358,7 +1375,17 @@
     "retry": "Try again",
     "dismiss": "Close",
     "status": {
-      "validating": "Checking the video before upload…", "upload": "Uploading the original video securely…", "queued": "Video uploaded. Starting the analysis…", "download": "Downloading the video for processing…", "probe": "Reading video details…", "convert": "Optimizing the video format…", "sample": "Sampling frames…", "detect_cursor": "Detecting cursor movement…", "segment": "Finding moments worth highlighting…", "fragments": "Building the zoom timeline…", "done": "Finalizing automatic zooms…"
+      "validating": "Checking the video before upload…",
+      "upload": "Uploading the original video securely…",
+      "queued": "Video uploaded. Starting the analysis…",
+      "download": "Downloading the video for processing…",
+      "probe": "Reading video details…",
+      "convert": "Optimizing the video format…",
+      "sample": "Sampling frames…",
+      "detect_cursor": "Detecting cursor movement…",
+      "segment": "Finding moments worth highlighting…",
+      "fragments": "Building the zoom timeline…",
+      "done": "Finalizing automatic zooms…"
     }
   }
 }

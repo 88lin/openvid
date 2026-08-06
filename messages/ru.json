@@ -668,6 +668,23 @@
         "vertical": "Вертикаль",
         "reset": "Сбросить"
       }
+    },
+    "viewer3d": "3D-просмотрщик",
+    "autoRotate": "Автоповорот",
+    "rotationSpeed": "Скорость вращения",
+    "glow": "Свечение",
+    "environment": "Окружение",
+    "environments": {
+      "sunset": "Закат",
+      "dawn": "Рассвет",
+      "night": "Ночь",
+      "warehouse": "Склад",
+      "forest": "Лес",
+      "apartment": "Квартира",
+      "studio": "Студия",
+      "city": "Город",
+      "park": "Парк",
+      "lobby": "Лобби"
     }
   },
   "videosMenu": {

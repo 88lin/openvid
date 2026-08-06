@@ -699,6 +699,23 @@
         "vertical": "Vertical",
         "reset": "Reset"
       }
+    },
+    "viewer3d": "3D Viewer",
+    "autoRotate": "Auto-rotate",
+    "rotationSpeed": "Rotation speed",
+    "glow": "Glow",
+    "environment": "Environment",
+    "environments": {
+      "sunset": "Sunset",
+      "dawn": "Dawn",
+      "night": "Night",
+      "warehouse": "Warehouse",
+      "forest": "Forest",
+      "apartment": "Apartment",
+      "studio": "Studio",
+      "city": "City",
+      "park": "Park",
+      "lobby": "Lobby"
     }
   },
   "videosMenu": {

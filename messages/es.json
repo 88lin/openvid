@@ -655,6 +655,23 @@
         "vertical": "Vertical",
         "reset": "Restablecer"
       }
+    },
+    "viewer3d": "Visor 3D",
+    "autoRotate": "Auto-rotación",
+    "rotationSpeed": "Velocidad",
+    "glow": "Brillo",
+    "environment": "Ambiente",
+    "environments": {
+      "sunset": "Atardecer",
+      "dawn": "Amanecer",
+      "night": "Noche",
+      "warehouse": "Almacén",
+      "forest": "Bosque",
+      "apartment": "Apartamento",
+      "studio": "Estudio",
+      "city": "Ciudad",
+      "park": "Parque",
+      "lobby": "Recepción"
     }
   },
   "videosMenu": {
