@@ -563,7 +563,8 @@
     "options": {
       "none": "No background",
       "showMore": "Show more",
-      "showLess": "Show less"
+      "showLess": "Show less",
+      "upload": "Upload image"
     },
     "popover": {
       "seeMore": "See more from {name}",

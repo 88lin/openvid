@@ -532,7 +532,8 @@
     "options": {
       "none": "Без фона",
       "showMore": "Показать больше",
-      "showLess": "Показать меньше"
+      "showLess": "Показать меньше",
+      "upload": "Загрузить изображение"
     },
     "popover": {
       "seeMore": "Больше от {name}",
@@ -1353,7 +1354,17 @@
     "retry": "Try again",
     "dismiss": "Close",
     "status": {
-      "validating": "Checking the video before upload…", "upload": "Uploading the original video securely…", "queued": "Video uploaded. Starting the analysis…", "download": "Downloading the video for processing…", "probe": "Reading video details…", "convert": "Optimizing the video format…", "sample": "Sampling frames…", "detect_cursor": "Detecting cursor movement…", "segment": "Finding moments worth highlighting…", "fragments": "Building the zoom timeline…", "done": "Finalizing automatic zooms…"
+      "validating": "Checking the video before upload…",
+      "upload": "Uploading the original video securely…",
+      "queued": "Video uploaded. Starting the analysis…",
+      "download": "Downloading the video for processing…",
+      "probe": "Reading video details…",
+      "convert": "Optimizing the video format…",
+      "sample": "Sampling frames…",
+      "detect_cursor": "Detecting cursor movement…",
+      "segment": "Finding moments worth highlighting…",
+      "fragments": "Building the zoom timeline…",
+      "done": "Finalizing automatic zooms…"
     }
   }
 }

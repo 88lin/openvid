@@ -519,7 +519,8 @@
     "options": {
       "none": "Sin fondo",
       "showMore": "Mostrar más",
-      "showLess": "Mostrar menos"
+      "showLess": "Mostrar menos",
+      "upload": "Subir imagen"
     },
     "popover": {
       "seeMore": "Ver más de {name}",

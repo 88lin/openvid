@@ -563,7 +563,8 @@
     "options": {
       "none": "배경 없음",
       "showMore": "더 보기",
-      "showLess": "간략히 보기"
+      "showLess": "간략히 보기",
+      "upload": "이미지 업로드"
     },
     "popover": {
       "seeMore": "{name}의 다른 작품 더 보기",
