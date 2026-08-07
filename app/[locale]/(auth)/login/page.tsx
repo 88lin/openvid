@@ -36,13 +36,12 @@ const providers: ProviderConfig[] = [
     icon: "mdi:twitch",
     provider: "twitch",
     bgClass: "border-white/10 bg-transparent hover:bg-white/5",
-    iconColor: "text-[#9146FF]"
+    iconColor: "text-[#9146FF]",
   },
 ];
 
 function buildOAuthCallbackUrl(locale: string, redirectedFrom: string | null) {
   const url = new URL(`/${locale}/auth/callback`, window.location.origin);
-
   if (
     redirectedFrom &&
     redirectedFrom.startsWith("/") &&
@@ -51,12 +50,11 @@ function buildOAuthCallbackUrl(locale: string, redirectedFrom: string | null) {
   ) {
     url.searchParams.set("next", redirectedFrom);
   }
-
   return url.toString();
 }
 
 export default function Login() {
-  const t = useTranslations('login');
+  const t = useTranslations("login");
   const locale = useLocale();
   const [loading, setLoading] = useState<OAuthProvider | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -66,9 +64,8 @@ export default function Login() {
     try {
       setLoading(provider);
       setError(null);
-
       const redirectedFrom = new URLSearchParams(window.location.search).get(
-        "redirectedFrom",
+        "redirectedFrom"
       );
       const redirectUrl = buildOAuthCallbackUrl(locale, redirectedFrom);
 
@@ -88,19 +85,16 @@ export default function Login() {
       }
     } catch (err) {
       console.error(`Error signing in with ${provider}:`, err);
-      setError(
-        err instanceof Error
-          ? err.message
-          : t('errors.generic')
-      );
+      setError(err instanceof Error ? err.message : t("errors.generic"));
       setLoading(null);
     }
   };
-
   return (
-    <div className="min-h-screen w-full bg-[#030303] grid lg:grid-cols-2 text-white selection:bg-white/30" role="main">
+    <div
+      className="min-h-screen w-full bg-[#030303] grid lg:grid-cols-2 text-white selection:bg-white/30"
+      role="main"
+    >
       <div className="relative flex flex-col justify-center px-8 sm:px-16 lg:px-24 xl:px-32">
-
         <div className="absolute top-8 left-8 sm:left-12 lg:left-16">
           <Button
             variant="ghost"
@@ -110,23 +104,31 @@ export default function Login() {
           >
             <Link href="/">
               <Icon icon="solar:arrow-left-linear" className="mr-2" width="16" />
-              {t('backToHome')}
+              {t("backToHome")}
             </Link>
           </Button>
         </div>
-
         <div className="w-full max-w-sm mx-auto mt-16 lg:mt-0">
           <div className="mb-10">
-            <Image src="/svg/logo-openvid.svg" alt="openvid logo" width={60} height={60} className="mb-4" />
+            <Image
+              src="/svg/logo-openvid.svg"
+              alt="openvid logo"
+              width={60}
+              height={60}
+              className="mb-4"
+            />
             <h1 className="text-3xl sm:text-4xl font-light tracking-tighter text-white mb-3">
-              {t('title')}
+              {t("title")}
             </h1>
             <p className="text-neutral-300 text-md font-light tracking-wide">
-              {t('subtitle')}
+              {t("subtitle")}
             </p>
           </div>
-
-          <div className="space-y-4" role="group" aria-label={t('providers.groupLabel') || 'Sign in options'}>
+          <div
+            className="space-y-4"
+            role="group"
+            aria-label={t("providers.groupLabel") || "Sign in options"}
+          >
             {providers.map((providerConfig) => (
               <Button
                 key={providerConfig.provider}
@@ -139,17 +141,15 @@ export default function Login() {
               >
                 {loading === providerConfig.provider ? (
                   <>
-                    <Icon
-                      icon="svg-spinners:ring-resize"
-                      className="w-5 h-5"
-                    />
-                    <span>{t('providers.loading')}</span>
+                    <Icon icon="svg-spinners:ring-resize" className="w-5 h-5" />
+                    <span>{t("providers.loading")}</span>
                   </>
                 ) : (
                   <>
                     <Icon
                       icon={providerConfig.icon}
-                      className={`${providerConfig.iconColor || 'text-white'} size-5`}
+                      className={`${providerConfig.iconColor || "text-white"
+                        } size-5`}
                     />
                     <span>{t(`providers.${providerConfig.provider}`)}</span>
                   </>
@@ -157,52 +157,82 @@ export default function Login() {
               </Button>
             ))}
           </div>
-
           {error && (
-            <div className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded" role="alert" aria-live="polite">
+            <div
+              className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded"
+              role="alert"
+              aria-live="polite"
+            >
               <p className="text-red-400 text-sm">{error}</p>
             </div>
           )}
-
           <p className="mt-12 text-md text-neutral-300 leading-relaxed font-light">
-            {t.rich('disclaimer', {
-              terms: (chunks) => <Link href="/terms" target="_blank" className="text-neutral-300 hover:text-white underline decoration-white/30 underline-offset-4 transition-colors">{chunks}</Link>,
-              privacy: (chunks) => <Link href="/privacy" target="_blank" className="text-neutral-300 hover:text-white underline decoration-white/30 underline-offset-4 transition-colors">{chunks}</Link>
+            {t.rich("disclaimer", {
+              terms: (chunks) => (
+                <Link
+                  href="/terms"
+                  target="_blank"
+                  className="text-neutral-300 hover:text-white underline decoration-white/30 underline-offset-4 transition-colors"
+                >
+                  {chunks}
+                </Link>
+              ),
+              privacy: (chunks) => (
+                <Link
+                  href="/privacy"
+                  target="_blank"
+                  className="text-neutral-300 hover:text-white underline decoration-white/30 underline-offset-4 transition-colors"
+                >
+                  {chunks}
+                </Link>
+              ),
             })}
           </p>
         </div>
       </div>
-      <div className="hidden lg:block relative w-full h-full border-l border-white/10 bg-[#020203] overflow-hidden group" aria-hidden="true">
-        <div className="absolute -top-[10%] -left-[10%] w-[70%] h-[70%] bg-cyan-600/20 rounded-full blur-[80px] pointer-events-none group-hover:bg-cyan-500/30 transition-colors duration-1000"></div>
-        <div className="absolute -bottom-[10%] -right-[10%] w-[60%] h-[60%] bg-purple-900/10 rounded-full blur-[80px] pointer-events-none group-hover:bg-purple-700/50 transition-colors duration-1000"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(white_0.5px,transparent_0.5px)] bg-size-[40px_40px] opacity-[0.4] pointer-events-none"></div>
-        <div className="absolute inset-0 transition-transform duration-1000 ease-in-out scale-110 group-hover:scale-125">
-          <img
-            src="/images/pages/openvid-login.webp"
-            alt=""
-            className="absolute inset-0 w-full h-full object-contain mix-blend-luminosity opacity-70 transition-all duration-1000 ease-in-out [clip-path:inset(0_0_0_50%)] group-hover:opacity-0"
-          />
-          <img
-            src="/images/pages/openvid-login.webp"
-            alt=""
-            className="absolute inset-0 w-full h-full object-contain transition-all duration-1000 ease-in-out [clip-path:inset(0_50%_0_0)] group-hover:[clip-path:inset(0_0_0_0%)]"
+      <div
+        className="hidden lg:block relative w-full h-full border-l border-white/10 bg-[#020203] overflow-hidden"
+        aria-hidden="true"
+      >
+        <div className="absolute inset-0 w-full h-full flex items-center justify-center pointer-events-none">
+          <div
+            className="absolute inset-0 w-full h-full mix-blend-hard-light blur-[100px] xl:blur-[140px] opacity-70"
+            style={{
+              background:
+                "linear-gradient(rgba(0,0,0,0) 0%, rgba(150,150,150,0.1) 30%, rgb(100,100,100) 50%, rgb(180,180,180) 80%, rgb(240,240,240) 100%)",
+            }}
           />
           <div
-            className="absolute inset-0 pointer-events-none mix-blend-screen opacity-40 transition-opacity duration-1000"
+            className="absolute inset-0 w-full h-full mix-blend-soft-light blur-[100px] xl:blur-[140px] opacity-80"
             style={{
-              background: 'linear-gradient(130deg, rgba(0, 210, 255, 0.4), rgba(58, 123, 213, 0.4) 41.07%, rgba(106, 17, 203, 0.4) 76.05%)',
-              maskImage: 'url(/images/pages/openvid-login.webp)',
-              maskSize: 'contain',
-              maskRepeat: 'no-repeat',
-              maskPosition: 'center'
+              background:
+                "linear-gradient(rgba(242, 228, 228, 0) 0%, rgba(252, 247, 247, 0.15) 35%, rgb(249, 241, 241) 70%, rgb(247, 243, 243) 85%, rgb(255,255,255) 100%)",
             }}
           />
         </div>
-        <div className="absolute inset-0 bg-[radial-gradient(#ffffff22_1px,transparent_1px)] bg-size-[24px_24px] opacity-20 pointer-events-none z-10"></div>
-        <div className="absolute inset-0 bg-linear-to-t from-black via-transparent to-black/60 pointer-events-none z-10"></div>
-        <div className="absolute top-0 left-1/2 w-px h-full bg-white/20 group-hover:bg-transparent transition-colors duration-1000 pointer-events-none z-20"></div>
-      </div>
+        <div className="absolute inset-0 bg-[radial-gradient(#ffffff11_1px,transparent_1px)] bg-[size:24px_24px] opacity-40 pointer-events-none"></div>
+        <div className="absolute top-1/2 -translate-y-1/2 left-6 lg:left-10 w-[130%] xl:w-[140%] max-w-none aspect-[16/9.5] z-10 animate-fade-in-up">
+          <div
+            aria-hidden="true"
+            className="absolute -inset-6 blur-3xl -z-10 bg-linear-to-b from-white/10 via-white/5 to-transparent"
+          />
+          <div className="relative w-full h-full p-1 squircle-element-2xl border border-white/10 bg-white/5 backdrop-blur-md shadow-[0_0_0_1px_rgba(255,255,255,0.05),0_30px_100px_rgba(0,0,0,0.5)] transition-transform duration-700 hover:-translate-x-2">
+            <div className="relative w-full h-full overflow-hidden squircle-element-2xl border border-black/50 bg-[#0a0a0c]">
+              <div className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-white/50 to-transparent z-20" />
+              <div className="absolute inset-x-0 top-0 h-40 bg-linear-to-b from-white/10 to-transparent z-10 pointer-events-none" />
+              <Image
+                src="/images/pages/openvid-login.avif"
+                alt="OpenVid Editor Preview"
+                fill
+                priority
+                className="object-cover opacity-95 transition-opacity duration-700 hover:opacity-100"
+                sizes="(max-width: 1024px) 100vw, 80vw"
+              />
+            </div>
+          </div>
+        </div>
 
+      </div>
     </div>
   );
 }
