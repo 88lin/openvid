@@ -248,7 +248,7 @@ export function ZoomFragmentEditor({
                         };
 
                         return holdDuration > 0.1 ? (
-                            <div className="space-y-3 p-3 bg-[#0A0A0A] border border-[#262626] rounded-xl group transition-all">
+                            <div className="space-y-3 p-3 bg-[#0A0A0A] border border-[#262626] squircle-element-camera group transition-all">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2 text-[11px] font-medium text-white/60">
                                         <span>{t("movement.timeline.title")}</span>

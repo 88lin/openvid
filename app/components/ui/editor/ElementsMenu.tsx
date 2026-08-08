@@ -266,7 +266,7 @@ export function ElementsMenu({
                                     </PopoverTrigger>
                                 </TooltipAction>
                                 <PopoverContent side="right" align="start" sideOffset={12} className="w-120 p-0 border-0 shadow-2xl">
-                                    <div className="flex flex-col bg-[#111113] border border-white/10 rounded-xl overflow-hidden shadow-2xl max-h-125">
+                                    <div className="flex flex-col bg-[#111113] border border-white/10 squircle-element-camera overflow-hidden shadow-2xl max-h-125">
                                         <div className="flex items-center gap-2 px-4 py-3 border-b border-white/10 bg-white/2 flex-wrap">
                                             <button onClick={() => setSelectedSvgCategory("all")} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium uppercase tracking-wider transition-all ${selectedSvgCategory === "all" ? "bg-blue-500/20 text-blue-400 border border-blue-500/40" : "bg-white/5 text-white/60 hover:text-white/70 border border-transparent hover:border-white/10"}`}>
                                                 <Icon icon="ph:grid-four-bold" width="12" />
@@ -322,7 +322,7 @@ export function ElementsMenu({
                                     </PopoverTrigger>
                                 </TooltipAction>
                                 <PopoverContent side="right" align="start" sideOffset={12} className="w-130 p-0 border-0 shadow-2xl">
-                                    <div className="flex flex-col bg-[#111113] border border-white/10 rounded-xl overflow-hidden shadow-2xl max-h-125">
+                                    <div className="flex flex-col bg-[#111113] border border-white/10 squircle-element-camera overflow-hidden shadow-2xl max-h-125">
                                         <div className="flex items-center gap-2 px-4 py-3 border-b border-white/10 bg-white/2 flex-wrap">
                                             <button onClick={() => setSelectedImageCategory("all")} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium uppercase tracking-wider transition-all ${selectedImageCategory === "all" ? "bg-blue-500/20 text-blue-400 border border-blue-500/40" : "bg-white/5 text-white/60 hover:text-white/70 border border-transparent hover:border-white/10"}`}>
                                                 <Icon icon="ph:grid-four-bold" width="12" />
@@ -514,7 +514,7 @@ function UploadImageButton({ onUpload, isUploading }: { onUpload: (files: FileLi
                     {isUploading ? (
                         <Icon icon="svg-spinners:180-ring-with-bg" width="16" className="text-white/60" aria-hidden="true" />
                     ) : (
-                        <Icon icon="hugeicons:image-upload" width="24" className="text-white-70 group-hover:text-white transition-colors" aria-hidden="true" />
+                        <Icon icon="material-symbols:upload-rounded" width="24" className="text-white-70 group-hover:text-white transition-colors" aria-hidden="true" />
                     )}
                 </button>
             </TooltipAction>

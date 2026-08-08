@@ -298,7 +298,7 @@ const CustomSocialCard = memo(({ data }: { data: SocialPost }) => {
       {data.content.mediaUrl && (
         <div
           onClick={handleRedirect}
-          className="mt-3 overflow-hidden rounded-xl border border-neutral-800 shrink-0 cursor-pointer transition hover:opacity-95"
+          className="mt-3 overflow-hidden squircle-element-camera border border-neutral-800 shrink-0 cursor-pointer transition hover:opacity-95"
         >
           <img
             src={data.content.mediaUrl}

@@ -277,7 +277,7 @@ export function AudioTrimModal({
             >
                 <div className="flex items-start justify-between mb-6">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+                        <div className="p-2 bg-blue-500/10 border border-blue-500/20 squircle-element-camera">
                             <Icon icon="mdi:content-cut" className="text-blue-400" width="24" aria-hidden="true" />
                         </div>
                         <div>
@@ -297,7 +297,7 @@ export function AudioTrimModal({
                         <Icon icon="lucide:x" width="20" aria-hidden="true" />
                     </button>
                 </div>
-                <div className="mb-6 p-4 bg-white/5 border border-white/10 rounded-xl">
+                <div className="mb-6 p-4 bg-white/5 border border-white/10 squircle-element-camera">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2 text-sm text-white/70">
                             <Icon icon="mdi:music-note" width="16" aria-hidden="true" />

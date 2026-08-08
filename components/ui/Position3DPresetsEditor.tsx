@@ -74,7 +74,7 @@ export function Position3DPresetsEditor({
       </TooltipAction>
       <PopoverContent
         align="start"
-        className="w-80 h-130 bg-[#0A0A0A] border-white/10 shadow-2xl p-0 rounded-xl overflow-hidden"
+        className="w-80 h-130 bg-[#0A0A0A] border-white/10 shadow-2xl p-0 squircle-element-camera overflow-hidden"
       >
         <div className="flex flex-col">
           <PopoverHeader className="px-4 py-3 border-b border-white/10 bg-white/5">

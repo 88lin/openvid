@@ -37,7 +37,7 @@ function PermissionRow({
 
 export function BrowserPermissionUI() {
     return (
-        <div className="w-85 flex flex-col border border-white/10 rounded-xl shadow-2xl overflow-hidden font-sans select-none">
+        <div className="w-85 flex flex-col border border-white/10 squircle-element-camera shadow-2xl overflow-hidden font-sans select-none">
             
             <div className="bg-white px-3 py-2 flex items-center gap-2 border-b border-[#8AB4F8]/20">
                 <Icon icon="solar:info-circle-bold" className="size-4 text-gray-600 shrink-0" />
@@ -48,7 +48,7 @@ export function BrowserPermissionUI() {
 
             <div className="flex items-center gap-3 px-3 py-1.5 bg-[#252529] border-b border-white/5 text-[13px]">
                 <div className="relative cursor-pointer group">
-                    <div className="absolute inset-0 bg-[#8AB4F8] rounded-xl animate-ping opacity-20"></div>
+                    <div className="absolute inset-0 bg-[#8AB4F8] squircle-element-camera animate-ping opacity-20"></div>
                     <div className="relative flex items-center justify-center p-1.5 rounded-sm bg-[#8AB4F8]/20 border border-[#8AB4F8]/30">
                         <Icon icon="mdi:tune-variant" className="size-3.75 text-[#8AB4F8]" />
                     </div>

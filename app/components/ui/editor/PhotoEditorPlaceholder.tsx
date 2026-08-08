@@ -131,7 +131,7 @@ export function PhotoEditorPlaceholder({
         style={{ height: "180px" }}
       >
         <div className="flex flex-col items-center gap-3 text-white/40">
-          <div className="p-3 rounded-xl bg-white/5 border border-white/10">
+          <div className="p-3 squircle-element-camera bg-white/5 border border-white/10">
             <Icon icon="lucide:image" width={28} height={28} aria-hidden="true" />
           </div>
           <div className="text-center">
@@ -295,7 +295,7 @@ export function PhotoEditorPlaceholder({
           <PopoverContent
             align="start"
             sideOffset={12}
-            className="w-64 bg-[#0A0A0A] border-white/10 shadow-2xl p-4 space-y-4 rounded-xl z-50"
+            className="w-64 bg-[#0A0A0A] border-white/10 shadow-2xl p-4 space-y-4 squircle-element-camera z-50"
           >
             <PopoverHeader className="mb-2">
               <PopoverTitle className="text-xs font-semibold text-white/80 tracking-wide uppercase flex items-center gap-2">

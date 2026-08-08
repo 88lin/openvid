@@ -34,7 +34,7 @@ export default function ContextMenu({
     <div
       ref={menuRef}
       data-ctx-menu
-      className="fixed z-9999 bg-black border border-white/15 rounded-xl shadow-2xl py-1 min-w-43 overflow-hidden"
+      className="fixed z-9999 bg-black border border-white/15 squircle-element-camera shadow-2xl py-1 min-w-43 overflow-hidden"
       style={{ left: pos.x, top: pos.y }}
     >
       {!isMulti && (

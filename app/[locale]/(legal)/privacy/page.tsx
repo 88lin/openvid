@@ -90,7 +90,7 @@ export default async function PrivacyPage({ params }: Props) {
                     </section>
 
                     <section>
-                        <div className="flex items-start gap-3 p-4 bg-cyan-500/5 border border-cyan-500/20 rounded-xl mt-4">
+                        <div className="flex items-start gap-3 p-4 bg-cyan-500/5 border border-cyan-500/20 squircle-element-camera mt-4">
                             <Icon
                                 icon="lucide:cpu"
                                 className="text-cyan-400 shrink-0 mt-0.5"

@@ -51,7 +51,7 @@ function CustomImagePickerButton({ onSelect }: { onSelect?: (url: string) => voi
           className="aspect-square bg-[#F3F4F6] border border-white/30 squircle-element flex items-center justify-center transition-all active:scale-90 group disabled:opacity-50 hover:opacity-80"
           aria-label={t("options.upload")}
         >
-          <Icon icon="hugeicons:image-upload" width="24" className="text-black transition-colors" aria-hidden="true" />
+          <Icon icon="material-symbols:upload-rounded" width="24" className="text-black transition-colors" aria-hidden="true" />
         </button>
       </TooltipAction>
     </>
@@ -100,7 +100,7 @@ function CategoryPopover({ category, selectedIndex, onSelect }: { category: Wall
         </PopoverTrigger>
       </TooltipAction>
       <PopoverContent side="right" align="start" sideOffset={12} className="w-126 p-0 border-0 shadow-2xl">
-        <div className="flex flex-col bg-[#111113] border border-white/10 rounded-xl overflow-hidden shadow-2xl">
+        <div className="flex flex-col bg-[#111113] border border-white/10 squircle-element-camera overflow-hidden shadow-2xl">
           <div className="flex items-center gap-2 px-4 py-3 border-b border-white/10 bg-white/2">
             <Icon icon={category.icon} width="14" className="text-white/60" aria-hidden="true" />
             <span className="text-[11px] font-medium uppercase tracking-[0.15em] text-white/60">

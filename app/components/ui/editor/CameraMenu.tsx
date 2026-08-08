@@ -138,7 +138,7 @@ export function CameraMenu({ cameraUrl, cameraConfig, onCameraConfigChange }: Pr
           />
         </div>
 
-        <label className="flex items-center justify-between rounded-xl border border-white/10 bg-white/3 px-3 py-2.5 cursor-pointer">
+        <label className="flex items-center justify-between squircle-element-camera border border-white/10 bg-white/3 px-3 py-2.5 cursor-pointer">
           <div className="flex items-center gap-2.5">
             <Icon icon="solar:reflection-horisontal-bold" className="size-4 text-neutral-400" />
             <span className="text-sm text-neutral-200">{t("mirror")}</span>

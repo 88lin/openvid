@@ -386,7 +386,7 @@ export function ToolsSidebar({
                             <button
                                 onClick={handleStartRecording}
                                 disabled={!isIdle}
-                                className={`w-full flex flex-col items-center text-center justify-center gap-1.5 p-2 rounded-xl cursor-pointer transition-all group border-2 border-transparent disabled:cursor-not-allowed ${!isIdle ? "opacity-70" : "hover:bg-red-500/10"
+                                className={`w-full flex flex-col items-center text-center justify-center gap-1.5 p-2 squircle-element-camera cursor-pointer transition-all group border-2 border-transparent disabled:cursor-not-allowed ${!isIdle ? "opacity-70" : "hover:bg-red-500/10"
                                     }`}
                             >
                                 <Icon icon={recordButtonContent.icon} width="24" height="24" className={`transition-colors ${recordButtonContent.className}`} />
@@ -401,7 +401,7 @@ export function ToolsSidebar({
                             <button
                                 onClick={handleUploadClick}
                                 disabled={isUploading}
-                                className={`w-full flex flex-col items-center text-center justify-center gap-1.5 p-2 rounded-xl cursor-pointer transition-all group disabled:opacity-50 disabled:cursor-not-allowed border-2 ${isDragging
+                                className={`w-full flex flex-col items-center text-center justify-center gap-1.5 p-2 squircle-element-camera cursor-pointer transition-all group disabled:opacity-50 disabled:cursor-not-allowed border-2 ${isDragging
                                     ? "bg-blue-500/20 text-blue-400 border-dashed border-blue-400/50 scale-105"
                                     : "border-transparent text-white/70 hover:bg-blue-500/20 hover:text-blue-400"
                                     }`}
@@ -446,7 +446,7 @@ export function ToolsSidebar({
                             <button
                                 onClick={onScreenCapture}
                                 disabled={isCapturing}
-                                className={`w-full flex flex-col items-center text-center justify-center gap-1.5 p-2 rounded-xl cursor-pointer transition-all group border-2 border-transparent disabled:cursor-not-allowed ${isCapturing ? "opacity-70" : "hover:bg-cyan-500/10"
+                                className={`w-full flex flex-col items-center text-center justify-center gap-1.5 p-2 squircle-element-camera cursor-pointer transition-all group border-2 border-transparent disabled:cursor-not-allowed ${isCapturing ? "opacity-70" : "hover:bg-cyan-500/10"
                                     }`}
                                 aria-label={isCapturing ? t("photo.capturing") : t("photo.capture")}
                             >
@@ -468,7 +468,7 @@ export function ToolsSidebar({
                             <button
                                 onClick={handleImageUploadClick}
                                 disabled={isUploading}
-                                className={`w-full flex flex-col items-center text-center justify-center gap-1.5 p-2 rounded-xl cursor-pointer transition-all group disabled:opacity-50 disabled:cursor-not-allowed border-2 ${isImageDragging
+                                className={`w-full flex flex-col items-center text-center justify-center gap-1.5 p-2 squircle-element-camera cursor-pointer transition-all group disabled:opacity-50 disabled:cursor-not-allowed border-2 ${isImageDragging
                                     ? "bg-blue-500/20 text-blue-400 border-dashed border-blue-400/50 scale-105"
                                     : "border-transparent text-white/70 hover:bg-blue-500/20 hover:text-blue-400"
                                     }`}

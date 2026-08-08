@@ -44,7 +44,7 @@ export function ExportOverlay({ exportProgress, onCancel, isTransparentExport }:
 
     return (
         <div className="fixed inset-0 z-999999 flex items-center justify-center bg-black/20 backdrop-blur-md transition-all duration-500">
-            <div className="p-10 bg-black border border-white/10 rounded-2xl shadow-[0_0_80px_-15px_rgba(0,0,0,1)] w-full max-w-lg mx-4">
+            <div className="p-10 bg-black border border-white/10 squircle-element-camera shadow-[0_0_80px_-15px_rgba(0,0,0,1)] w-full max-w-lg mx-4">
 
                 <div className="flex justify-center mb-8">
                     <div className="flex items-center gap-2.5 px-3 py-1 bg-white/3 border border-white/10 rounded-full">
@@ -81,15 +81,25 @@ export function ExportOverlay({ exportProgress, onCancel, isTransparentExport }:
                         </p>
                     </div>
 
-                    <div className="flex items-start gap-3 p-4 bg-white/5 border border-white/10 rounded-xl">
+                    <div className="flex items-start gap-3 p-4 bg-white/5 border border-white/10 squircle-element-camera">
                         <Icon icon="lucide:alert-circle" className="text-blue-500 shrink-0 mt-0.5" width="18" />
                         <p className="text-md text-white/70 leading-relaxed">
                             {t.rich("warnings.performance", {
                                 highlight: (chunks) => (
-                                    <span className="relative font-bold text-white px-1">
+                                    <span className="relative inline-block whitespace-nowrap font-bold text-white px-1">
                                         {chunks}
-                                        <svg className="absolute -bottom-1 left-0 w-full h-2 text-blue-500/90" viewBox="0 0 100 10" preserveAspectRatio="none">
-                                            <path d="M0 5 Q 25 0, 50 5 T 100 5" stroke="currentColor" strokeWidth="2" fill="transparent" strokeLinecap="round" />
+                                        <svg
+                                            className="absolute -bottom-1 left-0 w-full h-2 text-blue-500/90"
+                                            viewBox="0 0 100 10"
+                                            preserveAspectRatio="none"
+                                        >
+                                            <path
+                                                d="M0 5 Q 25 0, 50 5 T 100 5"
+                                                stroke="currentColor"
+                                                strokeWidth="2"
+                                                fill="transparent"
+                                                strokeLinecap="round"
+                                            />
                                         </svg>
                                     </span>
                                 )
@@ -98,7 +108,7 @@ export function ExportOverlay({ exportProgress, onCancel, isTransparentExport }:
                     </div>
 
                     {isTransparentExport && (
-                        <div className="flex items-start gap-3 p-4 bg-cyan-500/5 border border-cyan-500/20 rounded-xl">
+                        <div className="flex items-start gap-3 p-4 bg-cyan-500/5 border border-cyan-500/20 squircle-element-camera">
                             <Icon icon="lucide:clock" className="text-cyan-400 shrink-0 mt-0.5" width="18" />
                             <p className="text-md text-cyan-400/80 leading-relaxed">
                                 {t.rich("warnings.transparency", {
@@ -112,7 +122,7 @@ export function ExportOverlay({ exportProgress, onCancel, isTransparentExport }:
                 <Button
                     variant="outline"
                     onClick={onCancel}
-                    className="w-full h-12 bg-transparent hover:bg-red-500/5 border border-white/10 hover:border-red-500/20 text-white/70 hover:text-red-400 text-sm font-medium transition-all duration-300 rounded-xl"
+                    className="w-full h-12 bg-transparent hover:bg-red-500/5 border border-white/10 hover:border-red-500/20 text-white/70 hover:text-red-400 text-sm font-medium transition-all duration-300 squircle-element-camera"
                 >
                     <Icon icon="iconoir:cancel" width="16" className="mr-2" />
                     {t("actions.cancel")}

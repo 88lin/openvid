@@ -364,7 +364,7 @@ export function MockupMenu({
           </PopoverTrigger>
 
           <PopoverContent side="right" align="start" sideOffset={12} className="w-125 p-0 border-0 shadow-2xl">
-            <div className="flex flex-col bg-[#111113] border border-white/10 rounded-xl overflow-hidden shadow-2xl max-h-150">
+            <div className="flex flex-col bg-[#111113] border border-white/10 squircle-element-camera overflow-hidden shadow-2xl max-h-150">
               <div className="flex items-center gap-2 px-4 py-3 border-b border-white/10 bg-white/2 flex-wrap">
                 {MOCKUP_CATEGORIES.map((cat) => (
                   <button
@@ -437,7 +437,7 @@ export function MockupMenu({
 
         <div className="space-y-2">
           <div className="grid grid-cols-3 gap-2">
-            {["none", "outline", "macos", "macos-glass", "brave", "macos-dark-ide"].map((id) => {
+            {["none", "outline", "macos", "macos-glass", "brave", "macbook-photo"].map((id) => {
               const mockup = MOCKUPS.find((m) => m.id === id);
               if (!mockup) return null;
 

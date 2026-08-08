@@ -37,7 +37,7 @@ export default function DonateClient({ methods, defaultMethod }: DonateClientPro
           <p className="text-white/60 text-sm leading-relaxed max-w-lg">{t("description")}</p>
         </div>
 
-        <div className="flex flex-col bg-[#0A0A0A] border border-white/10 rounded-xl overflow-hidden shadow-2xl" role="region" aria-label={t("methods")}>
+        <div className="flex flex-col bg-[#0A0A0A] border border-white/10 squircle-element-camera overflow-hidden shadow-2xl" role="region" aria-label={t("methods")}>
           <div className="px-5 py-3 border-b border-white/10 bg-white/5 flex items-center justify-between">
             <span className="text-[11px] font-semibold uppercase tracking-[0.15em] text-white/60">
               {t("methods")}
@@ -133,7 +133,7 @@ export default function DonateClient({ methods, defaultMethod }: DonateClientPro
                 <Icon icon="lucide:x" width="18" aria-hidden="true" />
               </button>
             </div>
-            <div className="w-full aspect-square bg-white rounded-xl overflow-hidden flex items-center justify-center p-2">
+            <div className="w-full aspect-square bg-white squircle-e overflow-hidden flex items-center justify-center p-2">
               <img src={qrModalSrc} alt="QR code enlarged for scanning" className="w-full h-full object-contain" />
             </div>
             <button onClick={() => setQrModalSrc(null)} className="mt-6 w-full py-2.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 text-sm font-medium text-white transition-colors">

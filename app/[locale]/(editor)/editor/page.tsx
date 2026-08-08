@@ -980,7 +980,6 @@ export default function Editor() {
         setMockupConfig(prev => ({ ...prev, cornerRadius: value }));
     }, []);
 
-    // Text tool (Figma-style T key) — activates crosshair + canvas click to place text
     const [textToolActive, setTextToolActive] = useState(false);
 
     // Canvas elements handlers

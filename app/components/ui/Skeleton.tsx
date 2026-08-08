@@ -284,7 +284,7 @@ export function BackgroundColorSkeleton() {
 
             <div className="space-y-3">
                 <Skeleton height={10} width={90} />
-                <div className="space-y-2 p-3 rounded-xl border border-white/5 bg-white/3">
+                <div className="space-y-2 p-3 squircle-element-camera border border-white/5 bg-white/3">
                     <div className="flex gap-2">
                         <Skeleton height={34} className="flex-1" variant="square" />
                         <Skeleton height={34} className="flex-1" variant="square" />
@@ -541,7 +541,7 @@ export function MotionMenuSkeleton() {
                 {Array.from({ length: count }).map((_, i) => (
                   <div
                     key={i}
-                    className="rounded-xl border border-neutral-800 bg-black p-2 flex flex-col gap-2"
+                    className="squircle-element-camera border border-neutral-800 bg-black p-2 flex flex-col gap-2"
                   >
                     <Skeleton
                       variant="square"

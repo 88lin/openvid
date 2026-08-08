@@ -60,13 +60,13 @@
 //                   <img
 //                     src="/images/pages/openvid2.webp"
 //                     alt="openvid Editor Preview"
-//                     className="w-full h-auto object-cover rounded-xl"
+//                     className="w-full h-auto object-cover squircle-element-camera"
 //                     loading="lazy"
 //                     data-atropos-offset="3"
 //                   />
 
 //                   <div
-//                     className="absolute inset-0 pointer-events-none rounded-xl bg-[linear-gradient(to_bottom,#bf29f000_24%,#0095ED4D)]"
+//                     className="absolute inset-0 pointer-events-none squircle-element-camera bg-[linear-gradient(to_bottom,#bf29f000_24%,#0095ED4D)]"
 //                     data-atropos-offset="4"
 //                   ></div>
 //                 </div>

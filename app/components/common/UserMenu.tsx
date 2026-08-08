@@ -72,7 +72,7 @@ export function UserMenu() {
 
       <DropdownMenu.Portal>
         <DropdownMenu.Content
-          className="min-w-50 bg-black border border-white/25 rounded-xl p-1 shadow-2xl z-50 animate-in fade-in slide-in-from-top-2 duration-200"
+          className="min-w-50 bg-black border border-white/25 squircle-element-camera p-1 shadow-2xl z-50 animate-in fade-in slide-in-from-top-2 duration-200"
           sideOffset={8}
           align="end"
         >

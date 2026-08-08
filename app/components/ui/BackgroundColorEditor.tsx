@@ -333,7 +333,7 @@ export function BackgroundColorEditor({ value, onChange }: BackgroundColorEditor
                                     </PopoverTrigger>
                                 </TooltipAction>
                                 <PopoverContent side="right" align="start" sideOffset={12} className="w-72 p-0 border-0 shadow-2xl">
-                                    <div className="flex flex-col bg-[#111113] border border-white/10 rounded-xl overflow-hidden shadow-2xl">
+                                    <div className="flex flex-col bg-[#111113] border border-white/10 squircle-element-camera overflow-hidden shadow-2xl">
                                         <div className="flex items-center gap-2 px-4 py-3 border-b border-white/10 bg-white/2">
                                             <Icon icon="mdi:palette" width="14" className="text-white/60" aria-hidden="true" />
                                             <span className="text-[11px] font-medium uppercase tracking-[0.15em] text-white/60">{t("sections.moreColors")}</span>
@@ -357,7 +357,7 @@ export function BackgroundColorEditor({ value, onChange }: BackgroundColorEditor
                         </div>
                     </div>
 
-                    <div className="bg-[#09090B] rounded-xl border border-white/10 p-3 space-y-3">
+                    <div className="bg-[#09090B] squircle-element-camera border border-white/10 p-3 space-y-3">
                         <div className="text-[11px] uppercase tracking-widest text-white/70 font-bold">{t("sections.customize")}</div>
                         <div className="flex items-center gap-3">
                             <div className="w-12 h-12 squircle-element border border-white/20 shadow-lg shrink-0 relative overflow-hidden group">
@@ -404,7 +404,7 @@ export function BackgroundColorEditor({ value, onChange }: BackgroundColorEditor
                                     </PopoverTrigger>
                                 </TooltipAction>
                                 <PopoverContent side="right" align="start" sideOffset={12} className="w-72 p-0 border-0 shadow-2xl">
-                                    <div className="flex flex-col bg-[#111113] border border-white/10 rounded-xl overflow-hidden shadow-2xl">
+                                    <div className="flex flex-col bg-[#111113] border border-white/10 squircle-element-camera overflow-hidden shadow-2xl">
                                         <div className="flex items-center gap-2 px-4 py-3 border-b border-white/10 bg-white/2">
                                             <Icon icon="mdi:gradient-horizontal" width="14" className="text-white/60" aria-hidden="true" />
                                             <span className="text-[11px] font-medium uppercase tracking-[0.15em] text-white/60">

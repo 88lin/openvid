@@ -229,11 +229,21 @@ export function PhotoPickerPopover({ onSelect }: PhotoPickerPopoverProps) {
         <Popover open={open} onOpenChange={setOpen}>
             <TooltipAction label={t("tooltip")}>
                 <PopoverTrigger asChild>
-                    <button className="aspect-square squircle-element bg-gray-100 border border-white/10 bg-[url('/svg/ppu.svg')] bg-cover bg-center flex items-center justify-center hover:opacity-80 transition group relative overflow-hidden" aria-label={t("tooltip")} />
+                    <button
+                        className="aspect-square bg-[#F3F4F6] border border-white/30 squircle-element flex items-center justify-center transition-all active:scale-90 group disabled:opacity-50 hover:opacity-80"
+                        aria-label={t("tooltip")}
+                    >
+                        <Icon
+                            icon="ri:unsplash-fill"
+                            width="24"
+                            className="text-black transition-colors"
+                            aria-hidden="true"
+                        />
+                    </button>
                 </PopoverTrigger>
             </TooltipAction>
             <PopoverContent side="right" align="start" sideOffset={12} className="w-115 p-0 border-0 shadow-2xl">
-                <div className="flex flex-col bg-black border border-white/10 rounded-xl overflow-hidden shadow-2xl max-h-150">
+                <div className="flex flex-col bg-black border border-white/10 squircle-element-camera overflow-hidden shadow-2xl max-h-150">
                     <div className="px-4 py-3 border-b border-white/10 bg-white/5 shrink-0">
                         <div className="flex items-center gap-2">
                             <Icon icon="ph:images-bold" width="13" className="text-white/60" aria-hidden="true" />
@@ -271,8 +281,8 @@ export function PhotoPickerPopover({ onSelect }: PhotoPickerPopoverProps) {
                                     key={badge.id}
                                     onClick={() => handleBadgeClick(badge.id)}
                                     className={`px-2.5 py-0.5 rounded-full text-[11px] transition-all border ${activeQuery === badge.id
-                                            ? "bg-white/15 border-white/30 text-white/90"
-                                            : "bg-white/5 border-white/10 text-white/60 hover:text-white/70 hover:border-white/20"
+                                        ? "bg-white/15 border-white/30 text-white/90"
+                                        : "bg-white/5 border-white/10 text-white/60 hover:text-white/70 hover:border-white/20"
                                         }`}
                                 >
                                     {t(`badges.${badge.key}`)}

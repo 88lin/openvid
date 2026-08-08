@@ -141,7 +141,7 @@ export const SidebarTool = forwardRef<HTMLButtonElement, SidebarToolProps>(
                 <PopoverContent
                     side="right"
                     sideOffset={16}
-                    className="w-85 p-0 bg-[#09090B] border border-white/20 rounded-xl shadow-2xl overflow-hidden group/popover"
+                    className="w-85 p-0 bg-[#09090B] border border-white/20 squircle-element-camera shadow-2xl overflow-hidden group/popover"
                 >
                     <div className="relative w-full aspect-3/4 flex flex-col justify-end overflow-hidden bg-[#0c0c0e]">
                         <div className="absolute inset-0 z-0">

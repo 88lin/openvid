@@ -97,7 +97,7 @@ export function ImageMaskEditor({
                 </PopoverTrigger>
             </TooltipAction>
 
-            <PopoverContent align="end" className="w-100 bg-[#0A0A0A] border-white/10 shadow-2xl p-0 rounded-xl overflow-hidden">
+            <PopoverContent align="end" className="w-100 bg-[#0A0A0A] border-white/10 shadow-2xl p-0 squircle-element-camera overflow-hidden">
                 <div className="flex flex-col">
                     <PopoverHeader className="px-4 py-3 border-b border-white/10 bg-white/5">
                         <div className="flex items-center justify-between">

@@ -45,7 +45,7 @@ export function CanvasContextMenu({
     return (
       <div
         data-canvas-ctx-menu
-        className="fixed z-[9999] bg-black border border-white/15 rounded-xl shadow-2xl py-1 min-w-45 overflow-hidden"
+        className="fixed z-[9999] bg-black border border-white/15 squircle-element-camera shadow-2xl py-1 min-w-45 overflow-hidden"
         style={{
           left: Math.min(canvasCtxMenu.x, window.innerWidth - 196),
           top: Math.min(canvasCtxMenu.y, window.innerHeight - 96),
@@ -83,7 +83,7 @@ export function CanvasContextMenu({
   return (
     <div
       data-canvas-ctx-menu
-      className="fixed z-[9999] bg-black border border-white/15 rounded-xl shadow-2xl py-1 min-w-45 overflow-hidden"
+      className="fixed z-[9999] bg-black border border-white/15 squircle-element-camera shadow-2xl py-1 min-w-45 overflow-hidden"
       style={{
         left: Math.min(canvasCtxMenu.x, window.innerWidth - 196),
         top: Math.min(canvasCtxMenu.y, window.innerHeight - 160),

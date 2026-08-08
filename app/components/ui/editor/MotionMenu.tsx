@@ -98,7 +98,7 @@ export function MotionMenu({
                       <button
                         key={preset.id}
                         onClick={() => onAddOrReplacePreset(preset.id)}
-                        className={`group flex flex-col gap-2 rounded-xl border p-2 text-left transition-all duration-200 hover:scale-[1.015] active:scale-[0.98] ${isActive ? "border-orange-600/50 bg-orange-[0.05]" : "border-neutral-800 bg-black hover:border-neutral-700 hover:bg-neutral-900"}`}
+                        className={`group flex flex-col gap-2 squircle-element-camera border p-2 text-left transition-all duration-200 hover:scale-[1.015] active:scale-[0.98] ${isActive ? "border-orange-600/50 bg-orange-[0.05]" : "border-neutral-800 bg-black hover:border-neutral-700 hover:bg-neutral-900"}`}
                       >
                         <div className="relative w-full aspect-[16/10] rounded-lg overflow-hidden">
                           <MotionPresetIcon

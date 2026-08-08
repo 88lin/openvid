@@ -270,7 +270,7 @@ export default function InteractiveRecordingSteps() {
           <div className="absolute top-1/2 left-0 w-full h-px bg-white/5"></div>
           <div className="absolute top-0 left-1/2 w-px h-full bg-white/5"></div>
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-auto w-full px-4 sm:px-0 sm:w-auto">
-            <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 bg-[#1E1E20] border border-white/10 rounded-2xl sm:rounded-full py-3 sm:pl-5 sm:pr-2 sm:py-2 shadow-2xl mx-auto max-w-[200px] sm:max-w-none">
+            <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 bg-[#1E1E20] border border-white/10 squircle-element-camera sm:rounded-full py-3 sm:pl-5 sm:pr-2 sm:py-2 shadow-2xl mx-auto max-w-[200px] sm:max-w-none">
               <div className="flex items-center justify-center gap-2 sm:gap-3 w-full sm:w-auto pb-2 sm:pb-0 border-b sm:border-b-0 sm:border-r border-white/10 sm:pr-2">
                 <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-red-500 animate-pulse" />
                 <span className="text-[11px] sm:text-[11px] text-white font-medium">{t('step4.visual.recording')}</span>
@@ -278,7 +278,7 @@ export default function InteractiveRecordingSteps() {
                   00:42
                 </span>
               </div>
-              <button className="group flex items-center justify-center gap-2 sm:gap-3 px-3 sm:px-4 py-1.5 sm:bg-red-500/10 sm:hover:bg-red-500/20 sm:border border-transparent sm:border-red-500/30 hover:border-red-500/50 rounded-full transition-all w-full sm:w-auto cursor-default!">
+              <button className="group flex items-center justify-center gap-2 sm:gap-3 px-3 sm:px-4 py-1.5 sm:bg-red-500/10 sm:hover:bg-red-500/20 sm:border border-transparent sm:border-red-500/30 hover:border-red-500/50 squircle-element-camera transition-all w-full sm:w-auto cursor-default!">
                 <div className="flex items-center gap-2 text-red-400 text-xs sm:text-sm font-medium">
                   <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-red-500 rounded-sm group-hover:scale-110 transition-transform" />
                   {t('step4.visual.stop')}

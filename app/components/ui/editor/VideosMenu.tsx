@@ -166,7 +166,7 @@ export function VideosMenu({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-[#09090B]/90 backdrop-blur-sm border-2 border-blue-500 border-dashed rounded-xl m-2"
+            className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-[#09090B]/90 backdrop-blur-sm border-2 border-blue-500 border-dashed squircle-element-camera m-2"
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
           >

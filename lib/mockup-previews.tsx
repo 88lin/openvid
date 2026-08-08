@@ -23,7 +23,7 @@ export function MacosPreview() {
                         <div className="w-2 h-2 bg-gray-200 rounded-sm"></div>
                     </div>
                 </div>
-                 <div className="flex-1 max-w-[50%] mx-2">
+                <div className="flex-1 max-w-[50%] mx-2">
                     <div className="bg-white rounded h-3 w-full flex items-center px-1.5 gap-1 border border-gray-300/50 shadow-sm">
                         <div className="w-1.5 h-1.5 bg-gray-300 rounded-full flex-shrink-0"></div>
                         <div className="w-full h-1 bg-gray-200 rounded"></div>
@@ -40,13 +40,13 @@ export function MacosPreview() {
 }
 
 export function OutlinePreview() {
-  return (
-    <div className="absolute top-6 left-5 w-[160%] h-[155%] bg-[#f9f9f9] rounded-tl-xl shadow-[0_10px_40px_rgba(0,0,0,0.12)] flex flex-col overflow-hidden outline-1 outline-gray-300 outline-offset-7">
-      
-      <div className="flex-1 bg-[#f9f9f9] relative"></div>
-      
-    </div>
-  );
+    return (
+        <div className="absolute top-6 left-5 w-[160%] h-[155%] bg-[#f9f9f9] rounded-tl-xl shadow-[0_10px_40px_rgba(0,0,0,0.12)] flex flex-col overflow-hidden outline-1 outline-gray-300 outline-offset-7">
+
+            <div className="flex-1 bg-[#f9f9f9] relative"></div>
+
+        </div>
+    );
 }
 
 export function MacosGlassPreview() {
@@ -86,7 +86,7 @@ export function MacosGlassPreview() {
 export function GlassUIContainerPreview() {
     return (
         <div className="absolute top-4 left-4 w-[160%] h-[160%] rounded-tl-2xl border-t border-l border-white/30 shadow-[0_0_30px_rgba(0,0,0,0.5)] flex flex-col p-1.5" style={{ background: "rgba(255,255,255,0.2)" }}>
-            <div className="flex-1 bg-[#f9f9f9] rounded-xl border border-white/10 shadow-inner"></div>
+            <div className="flex-1 bg-[#f9f9f9] squircle-element-camera border border-white/10 shadow-inner"></div>
         </div>
     );
 }
@@ -347,7 +347,7 @@ export function ChromeGlassPreview() {
 
 export function IphoneSlimPreview() {
     return (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 w-[75px] h-[150px] bg-neutral-800 rounded-xl p-[2.5px] shadow-2xl border border-neutral-700 flex flex-col z-20">
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 w-[75px] h-[150px] bg-neutral-800 squircle-element-camera p-[2.5px] shadow-2xl border border-neutral-700 flex flex-col z-20">
             <div className="absolute -left-[1px] top-6 w-[1.5px] h-3 bg-neutral-700 rounded-l-sm border-y border-l border-neutral-800 shadow-sm"></div>
             <div className="absolute -left-[1px] top-10 w-[1.5px] h-6 bg-neutral-700 rounded-l-sm border-y border-l border-neutral-800 shadow-sm"></div>
             <div className="absolute -right-[1px] top-12 w-[1.5px] h-8 bg-neutral-700 rounded-r-sm border-y border-r border-neutral-800 shadow-sm"></div>
@@ -387,43 +387,43 @@ export function GlassCurvePreview() {
     );
 }
 export function GlassFullPreview() {
-  return (
-    <div className="absolute top-4 left-1/2 -translate-x-1/2 w-[75px] h-[150px] bg-white/40 backdrop-blur-xl rounded-xl p-[2.5px] shadow-2xl border border-white/70 flex flex-col z-20">
-      
-      {/* Botones de Volumen (Izquierda) */}
-      <div className="absolute -left-[2px] top-7 w-[2px] h-3 bg-white/60 rounded-l-sm border-y border-l border-white/40 shadow-sm z-10"></div>
-      <div className="absolute -left-[2px] top-11 w-[2px] h-6 bg-white/60 rounded-l-sm border-y border-l border-white/40 shadow-sm z-10"></div>
-      
-      {/* Botón de Encendido (Derecha) */}
-      <div className="absolute -right-[2px] top-14 w-[2px] h-9 bg-white/60 rounded-r-sm border-y border-r border-white/40 shadow-sm z-10"></div>
+    return (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 w-[75px] h-[150px] bg-white/40 backdrop-blur-xl squircle-element-camera p-[2.5px] shadow-2xl border border-white/70 flex flex-col z-20">
 
-      {/* Cuerpo Interno */}
-      <div className="relative w-full h-full bg-[#f9f9f9] rounded-[9px] overflow-hidden shadow-inner border border-black/5 flex flex-col">
-        
-        {/* Notch / Sensores */}
-        <div className="absolute top-1 left-1/2 -translate-x-1/2 w-6 h-1.5 bg-black/5 rounded-full z-20 flex items-center justify-between px-0.5">
-          <div className="w-0.5 h-0.5 bg-neutral-400 rounded-full"></div>
-          <div className="w-0.5 h-0.5 bg-indigo-400/50 rounded-full blur-[0.2px]"></div>
-        </div>
+            {/* Botones de Volumen (Izquierda) */}
+            <div className="absolute -left-[2px] top-7 w-[2px] h-3 bg-white/60 rounded-l-sm border-y border-l border-white/40 shadow-sm z-10"></div>
+            <div className="absolute -left-[2px] top-11 w-[2px] h-6 bg-white/60 rounded-l-sm border-y border-l border-white/40 shadow-sm z-10"></div>
 
-        {/* Status Bar */}
-        <div className="absolute top-0 w-full h-3 flex items-center justify-between px-2 z-20">
-          <span className="text-[4px] font-bold text-black/40 scale-75 origin-left">9:41</span>
-          <div className="flex items-center gap-0.5 scale-[0.4] origin-right opacity-40">
-            <div className="w-4 h-2 border border-black rounded-[1px] relative">
-              <div className="h-full w-[80%] bg-black rounded-[0.5px]"></div>
+            {/* Botón de Encendido (Derecha) */}
+            <div className="absolute -right-[2px] top-14 w-[2px] h-9 bg-white/60 rounded-r-sm border-y border-r border-white/40 shadow-sm z-10"></div>
+
+            {/* Cuerpo Interno */}
+            <div className="relative w-full h-full bg-[#f9f9f9] rounded-[9px] overflow-hidden shadow-inner border border-black/5 flex flex-col">
+
+                {/* Notch / Sensores */}
+                <div className="absolute top-1 left-1/2 -translate-x-1/2 w-6 h-1.5 bg-black/5 rounded-full z-20 flex items-center justify-between px-0.5">
+                    <div className="w-0.5 h-0.5 bg-neutral-400 rounded-full"></div>
+                    <div className="w-0.5 h-0.5 bg-indigo-400/50 rounded-full blur-[0.2px]"></div>
+                </div>
+
+                {/* Status Bar */}
+                <div className="absolute top-0 w-full h-3 flex items-center justify-between px-2 z-20">
+                    <span className="text-[4px] font-bold text-black/40 scale-75 origin-left">9:41</span>
+                    <div className="flex items-center gap-0.5 scale-[0.4] origin-right opacity-40">
+                        <div className="w-4 h-2 border border-black rounded-[1px] relative">
+                            <div className="h-full w-[80%] bg-black rounded-[0.5px]"></div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Pantalla */}
+                <div className="w-full h-full bg-neutral-50"></div>
+
+                {/* Home Indicator */}
+                <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-black/5 rounded-full z-10"></div>
             </div>
-          </div>
         </div>
-
-        {/* Pantalla */}
-        <div className="w-full h-full bg-neutral-50"></div>
-
-        {/* Home Indicator */}
-        <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-black/5 rounded-full z-10"></div>
-      </div>
-    </div>
-  );
+    );
 }
 
 export function HardShellPreview() {
@@ -553,5 +553,16 @@ export function MacosGhostIdePreview() {
             </div>
             <div className="flex-1 bg-[#1e1e1e]"></div>
         </div>
+    );
+}
+
+export function MacBookPreview() {
+    return (
+        <img
+            src="/images/mockups/macbook-preview.webp"
+            alt="MacBook"
+            draggable={false}
+            className="w-full h-full object-contain scale-90"
+        />
     );
 }
