@@ -616,7 +616,7 @@
     "categories": {
       "all": "Все",
       "browser": "Браузер",
-      "mobile": "Мобильный",
+      "device": "Устройство",
       "ide": "Редактор кода"
     },
     "mockups": {
@@ -640,7 +640,8 @@
       "s24-ultra": "S24 Ultra",
       "vscode": "VS Code",
       "macos-dark-ide": "VS Code MacOS",
-      "macos-ghost-ide": "MacOS Призрак IDE"
+      "macos-ghost-ide": "MacOS Призрак IDE",
+      "macbook-photo": "MacBook Фото"
     },
     "devices": {
       "iphone-13-pro-max": "iPhone 13 Pro",
@@ -685,7 +686,10 @@
       "city": "Город",
       "park": "Парк",
       "lobby": "Лобби"
-    }
+    },
+    "modelProperties": "Свойства модели",
+    "lightingAndEnvironment": "Освещение и окружение",
+    "presentation": "Анимация и показ"
   },
   "videosMenu": {
     "title": "Видео",
@@ -1383,5 +1387,19 @@
       "fragments": "Building the zoom timeline…",
       "done": "Finalizing automatic zooms…"
     }
+  },
+  "MobileTools": {
+    "openMenu": "Открыть меню инструментов",
+    "title": "Инструменты",
+    "close": "Закрыть",
+    "background": "Фон",
+    "mockup": "Макет",
+    "motion": "Движение",
+    "zoom": "Масштаб",
+    "videos": "Видео",
+    "elements": "Элементы",
+    "audio": "Аудио",
+    "uploading": "Загрузка...",
+    "uploadVideo": "Загрузить видео"
   }
 }

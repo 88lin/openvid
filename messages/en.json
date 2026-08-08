@@ -647,7 +647,7 @@
     "categories": {
       "all": "All",
       "browser": "Browser",
-      "mobile": "Mobile",
+      "device": "Mobile",
       "ide": "Code Editor"
     },
     "mockups": {
@@ -671,7 +671,8 @@
       "s24-ultra": "S24 Ultra",
       "vscode": "VS Code",
       "macos-dark-ide": "VS Code MacOS",
-      "macos-ghost-ide": "MacOS Ghost IDE"
+      "macos-ghost-ide": "MacOS Ghost IDE",
+      "macbook-photo": "MacBook"
     },
     "devices": {
       "iphone-13-pro-max": "iPhone 13 Pro",
@@ -716,7 +717,10 @@
       "city": "City",
       "park": "Park",
       "lobby": "Lobby"
-    }
+    },
+    "modelProperties": "Model Properties",
+    "lightingAndEnvironment": "Lighting & Environment",
+    "presentation": "Animation & Display"
   },
   "videosMenu": {
     "title": "Videos",
@@ -1387,5 +1391,19 @@
       "fragments": "Building the zoom timeline…",
       "done": "Finalizing automatic zooms…"
     }
+  },
+  "MobileTools": {
+    "openMenu": "Open tools menu",
+    "title": "Tools",
+    "close": "Close",
+    "background": "Background",
+    "mockup": "Mockup",
+    "motion": "Motion",
+    "zoom": "Zoom",
+    "videos": "Videos",
+    "elements": "Elements",
+    "audio": "Audio",
+    "uploading": "Uploading...",
+    "uploadVideo": "Upload video"
   }
 }

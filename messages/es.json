@@ -603,7 +603,7 @@
     "categories": {
       "all": "Todos",
       "browser": "Navegador",
-      "mobile": "Móvil",
+      "device": "Dispositivo",
       "ide": "Editor de Código"
     },
     "mockups": {
@@ -627,7 +627,8 @@
       "s24-ultra": "S24 Ultra",
       "vscode": "VS Code",
       "macos-dark-ide": "VS Code MacOS",
-      "macos-ghost-ide": "MacOS Fantasma IDE"
+      "macos-ghost-ide": "MacOS Fantasma IDE",
+      "macbook-photo": "MacBook"
     },
     "devices": {
       "iphone-13-pro-max": "iPhone 13 Pro",
@@ -672,7 +673,10 @@
       "city": "Ciudad",
       "park": "Parque",
       "lobby": "Recepción"
-    }
+    },
+    "modelProperties": "Propiedades del modelo",
+    "lightingAndEnvironment": "Entorno e iluminación",
+    "presentation": "Animación y exhibición"
   },
   "videosMenu": {
     "title": "Videos",
@@ -1365,5 +1369,19 @@
       "fragments": "Construyendo la línea de tiempo de zoom…",
       "done": "Finalizando los zooms automáticos…"
     }
+  },
+  "MobileTools": {
+    "openMenu": "Abrir menú de herramientas",
+    "title": "Herramientas",
+    "close": "Cerrar",
+    "background": "Fondo",
+    "mockup": "Mockup",
+    "motion": "Motion",
+    "zoom": "Zoom",
+    "videos": "Videos",
+    "elements": "Elementos",
+    "audio": "Audio",
+    "uploading": "Subiendo...",
+    "uploadVideo": "Subir video"
   }
 }
