@@ -1,4 +1,4 @@
-export type MockupCategory = "browser" | "mobile" | "ide" | "all";
+export type MockupCategory = "browser" | "device" | "ide" | "all";
 export const FRAME_COLORS_DARK = ["#1e1e1e", "#252033", "#16283d", "#2d1c28", "#1b2e24", "#2c302e"];
 
 export const FRAME_COLORS_LIGHT = ["#ffffff", "#fff0f2", "#f0f7ff", "#f2faf6", "#f6f3ff"];

@@ -16,4 +16,5 @@ export interface MockupDrawResult {
     contentY: number;
     contentWidth: number;
     contentHeight: number;
+    contentRadius?: number;
 }
