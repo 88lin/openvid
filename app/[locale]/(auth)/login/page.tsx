@@ -203,20 +203,27 @@ export default function Login() {
             }}
           />
           <div
-            className="absolute inset-0 w-full h-full mix-blend-soft-light blur-[100px] xl:blur-[140px] opacity-80"
+            className="absolute inset-0 w-full h-full mix-blend-multiply blur-[100px] xl:blur-[140px] opacity-90"
             style={{
               background:
-                "linear-gradient(rgba(242, 228, 228, 0) 0%, rgba(252, 247, 247, 0.15) 35%, rgb(249, 241, 241) 70%, rgb(247, 243, 243) 85%, rgb(255,255,255) 100%)",
+                "linear-gradient(rgba(0, 0, 0, 0) 0%, rgba(10, 10, 12, 0.2) 35%, rgb(15, 15, 18) 70%, rgb(8, 8, 10) 85%, rgb(0, 0, 0) 100%)",
             }}
           />
+          <div
+            className="absolute top-12 left-[-10%] w-[50%] h-[50%] rounded-full bg-radial from-white/50 via-white/15 to-transparent blur-[80px] xl:blur-[120px] mix-blend-screen opacity-60 pointer-events-none"
+          />
+          <div
+            className="absolute top-1/2 -translate-y-1/2 left-[-20%] w-[60%] h-[60%] rounded-full bg-radial from-white/10 via-transparent to-transparent blur-[100px] xl:blur-[150px] mix-blend-plus-lighter opacity-50 pointer-events-none"
+          />
         </div>
+
         <div className="absolute inset-0 bg-[radial-gradient(#ffffff11_1px,transparent_1px)] bg-[size:24px_24px] opacity-40 pointer-events-none"></div>
         <div className="absolute top-1/2 -translate-y-1/2 left-6 lg:left-10 w-[130%] xl:w-[140%] max-w-none aspect-[16/9.5] z-10 animate-fade-in-up">
           <div
             aria-hidden="true"
             className="absolute -inset-6 blur-3xl -z-10 bg-linear-to-b from-white/10 via-white/5 to-transparent"
           />
-          <div className="relative w-full h-full p-1 squircle-element-2xl border border-white/10 bg-white/5 backdrop-blur-md shadow-[0_0_0_1px_rgba(255,255,255,0.05),0_30px_100px_rgba(0,0,0,0.5)] transition-transform duration-700 hover:-translate-x-2">
+          <div className="relative w-full h-full p-1 squircle-element-2xl border border-white/10 bg-white/5 backdrop-blur-md shadow-[0_0_0_1px_rgba(255,255,255,0.05),0_30px_100px_rgba(0,0,0,0.5)] transition-transform duration-700 hover:-translate-x-2 mask-r-from-40% mask-r-to-70%">
             <div className="relative w-full h-full overflow-hidden squircle-element-2xl border border-black/50 bg-[#0a0a0c]">
               <div className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-white/50 to-transparent z-20" />
               <div className="absolute inset-x-0 top-0 h-40 bg-linear-to-b from-white/10 to-transparent z-10 pointer-events-none" />
@@ -225,13 +232,12 @@ export default function Login() {
                 alt="OpenVid Editor Preview"
                 fill
                 priority
-                className="object-cover opacity-95 transition-opacity duration-700 hover:opacity-100"
+                className="object-cover"
                 sizes="(max-width: 1024px) 100vw, 80vw"
               />
             </div>
           </div>
         </div>
-
       </div>
     </div>
   );

@@ -11,6 +11,7 @@ import {
   getOgLocales,
   getRouteAlternates,
   SEO_BASE_URL,
+  SEO_ICONS,
   SEO_OG_IMAGE,
 } from "@/lib/seo";
 import "../globals.css";
@@ -82,11 +83,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     creator: "Cristian Olivera",
     publisher: "Openvid",
     icons: {
+      // Dual favicon strategy:
+      // 1) First entry = browser tab → transparent SVG (no background)
+      // 2) Second entry = solid mark → Google SERP / crawlers prefer a solid mark
+      // When you add PNGs, insert favicon-48.png (solid) right after the tab SVG:
+      //   { url: SEO_ICONS.favicon48, sizes: "48x48", type: "image/png" },
+      //   { url: SEO_ICONS.favicon32, sizes: "32x32", type: "image/png" },
       icon: [
-        { url: "/images/metadata/favicon.svg", type: "image/svg+xml" },
+        { url: SEO_ICONS.tab, type: "image/svg+xml", sizes: "any" },
+        { url: SEO_ICONS.solid, type: "image/svg+xml", sizes: "any" },
       ],
-      shortcut: "/images/metadata/shortcut.svg",
-      apple: "/images/metadata/apple.svg",
+      shortcut: [{ url: SEO_ICONS.tab, type: "image/svg+xml" }],
+      // iOS home screen needs a solid background (no transparency).
+      // Swap to SEO_ICONS.appleTouch (PNG 180×180) once you export it.
+      apple: [{ url: SEO_ICONS.apple, sizes: "180x180", type: "image/svg+xml" }],
     },
     appleWebApp: {
       title: "Openvid",
