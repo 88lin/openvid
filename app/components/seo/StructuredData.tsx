@@ -163,8 +163,6 @@ export function generateOrganizationSchema(): OrganizationSchema {
     '@type': 'Organization',
     name: 'openvid',
     url: SEO_BASE_URL,
-    // Solid mark with background — Google Knowledge Panel / rich results.
-    // When you upload logo.png (≥112×112 solid), switch to SEO_ICON_ABSOLUTE.logoPng.
     logo: SEO_ICON_ABSOLUTE.logo,
     sameAs: [
       'https://x.com/openvid',
