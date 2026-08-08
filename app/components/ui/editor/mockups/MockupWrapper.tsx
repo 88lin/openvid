@@ -22,6 +22,7 @@ import { GlassFullMockup } from "./GlassFullMockup";
 import { HardShellMockup } from "./HardShellMockup";
 import { S24UltraMockup } from "./S24UltraMockup";
 import { OutlineMockup } from "./OutlineMockup";
+import { MacBookMockup } from "./MacBookMockup";
 import { memo } from "react";
 
 interface MockupWrapperProps {
@@ -32,17 +33,13 @@ interface MockupWrapperProps {
     shadows?: number;
     className?: string;
     maskStyles?: React.CSSProperties;
+    isSelected?: boolean;
+    isHovered?: boolean;
+    onDeviceHoverChange?: (hovered: boolean) => void;
+    onDeviceRectChange?: (rect: { x: number; y: number; width: number; height: number } | null) => void;
 }
 
-function MockupWrapperInner({
-    mockupId,
-    config,
-    children,
-    roundedCorners = 12,
-    shadows = 20,
-    className = "",
-    maskStyles
-}: MockupWrapperProps) {
+function MockupWrapperInner({ mockupId, config, children, roundedCorners = 12, shadows = 20, className = "", maskStyles, isSelected = false, isHovered = false, onDeviceHoverChange, onDeviceRectChange }: MockupWrapperProps) {
     switch (mockupId) {
         case "none":
             return (
@@ -307,6 +304,20 @@ function MockupWrapperInner({
                 >
                     {children}
                 </MacosGhostIdeMockup>
+            );
+        case "macbook-photo":
+            return (
+                <MacBookMockup
+                    config={config}
+                    shadows={shadows}
+                    className={className}
+                    maskStyles={maskStyles}
+                    isSelected={isSelected}
+                    onDeviceHoverChange={onDeviceHoverChange}
+                    onDeviceRectChange={onDeviceRectChange}
+                >
+                    {children}
+                </MacBookMockup>
             );
 
         default:

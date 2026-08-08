@@ -12,7 +12,7 @@ import PlaceholderEditor from "../PlaceholderEditor";
 import { MockupWrapper } from "./mockups/MockupWrapper";
 import { DEFAULT_MOCKUP_CONFIG, type ImageDeviceId } from "@/types/mockup.types";
 import { calculateSmoothZoom } from "@/lib/canvas.utils";
-import { VIDEO_Z_INDEX } from "@/lib/constants";
+import { PHOTO_MOCKUPS, VIDEO_Z_INDEX } from "@/lib/constants";
 import { applyPerspective3D, disposePerspective3D } from "@/lib/perspective3d";
 import { RotationHandleIcon } from "@/components/ui/RotationHandleIcon";
 import { CanvasElementsLayer, ElementResizeStart } from "./CanvasElementsLayer";
@@ -390,6 +390,7 @@ function VideoCanvasInner({
     const [isDraggingVideo, setIsDraggingVideo] = useState(false);
     const [isDraggingRotation, setIsDraggingRotation] = useState(false);
     const [videoHoverCorner, setVideoHoverCorner] = useState<Corner | null>("top-right");
+    const [photoDeviceRect, setPhotoDeviceRect] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
     const dragStartPos = useRef({ x: 0, y: 0, initialRotation: 0, initialTranslateX: 0, initialTranslateY: 0 });
     const rotationCenterRef = useRef<{ x: number; y: number } | null>(null);
     const rotationStartAngleRef = useRef<number>(0);
@@ -1280,9 +1281,16 @@ function VideoCanvasInner({
         const computeContainer = () => {
             const availableWidth = canvasWidth - scaledPaddingX * 2;
             const availableHeight = canvasHeight - scaledPaddingY * 2;
+            if (PHOTO_MOCKUPS.includes(mockupId)) {
+                return {
+                    containerX: scaledPaddingX,
+                    containerY: scaledPaddingY,
+                    containerWidth: availableWidth,
+                    containerHeight: availableHeight,
+                };
+            }
             let mSrcW = sourceWidth;
             let mSrcH = sourceHeight;
-
             if (cropArea && (cropArea.width < 100 || cropArea.height < 100)) {
                 mSrcW = (cropArea.width / 100) * sourceWidth;
                 mSrcH = (cropArea.height / 100) * sourceHeight;
@@ -1676,13 +1684,15 @@ function VideoCanvasInner({
     }, [hasMockup, mockupId, mockupConfig]);
 
     const mockupBoxSize = useMemo(() => {
-        if (!mediaContainAspect) return null;
         const { width: Wp, height: Hp } = videoContainerSize;
         if (Wp <= 0 || Hp <= 0) return null;
 
+        if (PHOTO_MOCKUPS.includes(mockupId)) {
+            return { width: Wp, height: Hp };
+        }
+        if (!mediaContainAspect) return null;
         const hI = contentInsets.left + contentInsets.right;
         const vI = contentInsets.top + contentInsets.bottom;
-
         if (hI <= 0 && vI <= 0) {
             if (Wp / Hp > mediaContainAspect) {
                 const H = Hp;
@@ -1690,14 +1700,13 @@ function VideoCanvasInner({
             }
             return { width: Wp, height: Wp / mediaContainAspect };
         }
-
         const widthBoundHeight = vI + (Wp - hI) / mediaContainAspect;
         if (widthBoundHeight <= Hp) {
             return { width: Wp, height: widthBoundHeight };
         }
         const heightBoundWidth = hI + mediaContainAspect * (Hp - vI);
         return { width: heightBoundWidth, height: Hp };
-    }, [mediaContainAspect, videoContainerSize, contentInsets]);
+    }, [mediaContainAspect, videoContainerSize, contentInsets, mockupId]);
 
     const mockupChildren = useMemo(() => (
         hasMedia ? (
@@ -1711,6 +1720,7 @@ function VideoCanvasInner({
                     cropArea={cropArea}
                     hasMask={hasMask}
                     hasMockup={!!hasMockup}
+                    objectFit={PHOTO_MOCKUPS.includes(mockupId) ? "cover" : "contain"}
                     maskStyles={maskStyles}
                     currentThumbnail={currentThumbnail}
                     isVideoHovered={isVideoHovered}
@@ -1729,9 +1739,25 @@ function VideoCanvasInner({
             </div>
         )
     ), [
-        hasMedia, mediaType, videoUrl, videoRef, imageUrl, imageRef,
-        cropArea, hasMask, hasMockup, maskStyles, currentThumbnail, isVideoHovered,
-        onTimeUpdate, onLoadedMetadata, onEnded, onVideoUpload, onImageUpload, isUploading,
+        hasMedia,
+        mediaType,
+        videoUrl,
+        videoRef,
+        imageUrl,
+        imageRef,
+        cropArea,
+        hasMask,
+        hasMockup,
+        mockupId,
+        maskStyles,
+        currentThumbnail,
+        isVideoHovered,
+        onTimeUpdate,
+        onLoadedMetadata,
+        onEnded,
+        onVideoUpload,
+        onImageUpload,
+        isUploading,
     ]);
 
     const handleHitTestElementSelect = useCallback((id: string | null) => {
@@ -1837,7 +1863,7 @@ function VideoCanvasInner({
             <div className="flex items-stretch min-h-0 min-w-0 w-full h-full justify-center gap-0">
 
                 <div ref={canvasWrapperRef} className="flex-1 flex items-center justify-center min-h-0 min-w-0 mr-1">
-                    <div className="relative shrink-0 rounded-xl border border-white/20 overflow-hidden">
+                    <div className="relative shrink-0 squircle-element-camera border border-white/20 overflow-hidden">
                         <div
                             ref={previewContainerRef}
                             className="relative shrink-0 transition-all duration-300 overflow-hidden"
@@ -1987,7 +2013,7 @@ function VideoCanvasInner({
                                                     pointerEvents: 'none',
                                                     transformStyle: mediaType === "image" && !apply3DToBackground ? 'preserve-3d' : undefined,
                                                 }}
-                                                onMouseEnter={() => hasMedia && setIsVideoHovered(true)}
+                                                onMouseEnter={() => { if (hasMedia && !PHOTO_MOCKUPS.includes(mockupId)) setIsVideoHovered(true); }}
                                                 onMouseLeave={() => {
                                                     setIsVideoHovered(false);
                                                     if (isDraggingRotation) return;
@@ -2082,11 +2108,15 @@ function VideoCanvasInner({
                                                             roundedCorners={roundedCorners}
                                                             shadows={shadows}
                                                             maskStyles={hasMask ? maskStyles : undefined}
+                                                            isSelected={isVideoSelected}
+                                                            isHovered={isVideoHovered}
+                                                            onDeviceHoverChange={(hovered) => setIsVideoHovered(hovered && hasMedia)}
+                                                            onDeviceRectChange={setPhotoDeviceRect}
                                                         >
                                                             {mockupChildren}
                                                         </MockupWrapper>
 
-                                                        {(isVideoSelected || isVideoHovered) && hasMedia && !isDraggingRotation && !imagePhoneActive && (
+                                                        {(isVideoSelected || isVideoHovered) && hasMedia && !isDraggingRotation && !imagePhoneActive && !PHOTO_MOCKUPS.includes(mockupId) && (
                                                             <div
                                                                 className={`absolute -inset-px border pointer-events-none z-10 opacity-80 ${isVideoSelected ? "border-blue-500" : "border-white"
                                                                     }`}
@@ -2094,48 +2124,62 @@ function VideoCanvasInner({
                                                             />
                                                         )}
 
-                                                        {isVideoSelected && videoHoverCorner && hasMedia && onVideoTransformChange && !isDraggingVideo && (
-                                                            <div
-                                                                data-rotation-handle
-                                                                style={getCornerStyle(videoHoverCorner, -20)}
-                                                                onMouseDown={(e) => {
-                                                                    e.preventDefault();
-                                                                    e.stopPropagation();
-                                                                    const container = videoContainerRef.current;
-                                                                    if (!container) return;
-                                                                    const rect = container.getBoundingClientRect();
-                                                                    const centerX = rect.left + rect.width / 2;
-                                                                    const centerY = rect.top + rect.height / 2;
-                                                                    rotationCenterRef.current = { x: centerX, y: centerY };
-                                                                    rotationStartAngleRef.current = Math.atan2(e.clientY - centerY, e.clientX - centerX) * (180 / Math.PI);
-                                                                    setIsDraggingRotation(true);
-                                                                    dragStartPos.current = {
-                                                                        x: e.clientX,
-                                                                        y: e.clientY,
-                                                                        initialRotation: videoTransform.rotation,
-                                                                        initialTranslateX: videoTransform.translateX,
-                                                                        initialTranslateY: videoTransform.translateY,
-                                                                    };
-                                                                }}
-                                                            >
-                                                                <div
-                                                                    style={{
-                                                                        transform: [
-                                                                            `scale(${(mediaType === "image" && imageTransform && !apply3DToBackground
-                                                                                ? 1 / (imageTransform.scale * imageZoomScale)
-                                                                                : 1) * (hasMockup2DMotion && mockupMotionPreview.scale > 0 ? 1 / mockupMotionPreview.scale : 1)
-                                                                            })`,
-                                                                            hasMockup2DMotion
-                                                                                ? `rotateZ(${-mockupMotionPreview.rotateZ}deg) rotateY(${-mockupMotionPreview.rotateY}deg) rotateX(${-mockupMotionPreview.rotateX}deg)`
-                                                                                : "",
-                                                                        ].filter(Boolean).join(" "),
-                                                                        transformOrigin: "center center",
-                                                                    }}
-                                                                >
-                                                                    <RotationHandleIcon corner={videoHoverCorner} color="#e5e7eb" />
+                                                        {(() => {
+                                                            const isPhotoMockup = PHOTO_MOCKUPS.includes(mockupId);
+                                                            const anchorStyle: React.CSSProperties = isPhotoMockup && photoDeviceRect
+                                                                ? {
+                                                                    position: "absolute",
+                                                                    left: photoDeviceRect.x,
+                                                                    top: photoDeviceRect.y,
+                                                                    width: photoDeviceRect.width,
+                                                                    height: photoDeviceRect.height,
+                                                                    pointerEvents: "none",
+                                                                }
+                                                                : { position: "absolute", inset: 0, pointerEvents: "none" };
+
+                                                            return (
+                                                                <div style={anchorStyle}>
+                                                                    {isVideoSelected && videoHoverCorner && hasMedia && onVideoTransformChange && !isDraggingVideo && (
+                                                                        <div
+                                                                            data-rotation-handle
+                                                                            style={{ ...getCornerStyle(videoHoverCorner, -20), pointerEvents: "auto" }}
+                                                                            onMouseDown={(e) => {
+                                                                                e.preventDefault();
+                                                                                e.stopPropagation();
+                                                                                const container = videoContainerRef.current;
+                                                                                if (!container) return;
+                                                                                const rect = container.getBoundingClientRect();
+                                                                                const centerX = rect.left + rect.width / 2;
+                                                                                const centerY = rect.top + rect.height / 2;
+                                                                                rotationCenterRef.current = { x: centerX, y: centerY };
+                                                                                rotationStartAngleRef.current = Math.atan2(e.clientY - centerY, e.clientX - centerX) * (180 / Math.PI);
+                                                                                setIsDraggingRotation(true);
+                                                                                dragStartPos.current = {
+                                                                                    x: e.clientX,
+                                                                                    y: e.clientY,
+                                                                                    initialRotation: videoTransform.rotation,
+                                                                                    initialTranslateX: videoTransform.translateX,
+                                                                                    initialTranslateY: videoTransform.translateY,
+                                                                                };
+                                                                            }}
+                                                                        >
+                                                                            <div
+                                                                                style={{
+                                                                                    transform: [
+                                                                                        `scale(${(mediaType === "image" && imageTransform && !apply3DToBackground ? 1 / (imageTransform.scale * imageZoomScale) : 1) * (hasMockup2DMotion && mockupMotionPreview.scale > 0 ? 1 / mockupMotionPreview.scale : 1)
+                                                                                        })`,
+                                                                                        hasMockup2DMotion ? `rotateZ(${-mockupMotionPreview.rotateZ}deg) rotateY(${-mockupMotionPreview.rotateY}deg) rotateX(${-mockupMotionPreview.rotateX}deg)` : "",
+                                                                                    ].filter(Boolean).join(" "),
+                                                                                    transformOrigin: "center center",
+                                                                                }}
+                                                                            >
+                                                                                <RotationHandleIcon corner={videoHoverCorner} color="#e5e7eb" />
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
                                                                 </div>
-                                                            </div>
-                                                        )}
+                                                            );
+                                                        })()}
                                                     </div>
                                                 </div>
                                             </div>

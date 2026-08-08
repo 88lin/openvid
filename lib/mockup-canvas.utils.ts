@@ -22,6 +22,7 @@ import { drawGlassFullMockup } from "./mockup-canvas/glass-full";
 import { drawHardShellMockup } from "./mockup-canvas/hard-shell";
 import { drawS24UltraMockup } from "./mockup-canvas/s24-ultra";
 import { drawOutlineMockup } from "./mockup-canvas/outline";
+import { drawMacBookMockup } from "./mockup-canvas/macbook";
 
 interface MockupCanvasContext {
     ctx: CanvasRenderingContext2D;
@@ -44,7 +45,7 @@ export function drawMockupToCanvas(
     canvasWidth: number = 1920,
     canvasHeight: number = 1080
 ): MockupDrawResult {
-    
+
     // Important: all mockup calculations are done in a 1280x720 space to maintain proportions, then scaled to the actual canvas size. This ensures the mockup design stays consistent regardless of canvas size or export resolution.
     const canvasLongSide = Math.max(canvasWidth, canvasHeight);
     const scale = (canvasLongSide / 1280) * 1.2;
@@ -126,6 +127,9 @@ export function drawMockupToCanvas(
         case "s24-ultra":
             rawResult = drawS24UltraMockup(context);
             break;
+        case "macbook-photo":
+            rawResult = drawMacBookMockup(context);
+            break;
         default:
             rawResult = {
                 contentX: x / scale,
@@ -142,6 +146,9 @@ export function drawMockupToCanvas(
         contentY: rawResult.contentY * scale,
         contentWidth: rawResult.contentWidth * scale,
         contentHeight: rawResult.contentHeight * scale,
+        contentRadius: rawResult.contentRadius !== undefined
+            ? rawResult.contentRadius * scale
+            : undefined,
     };
 }
 

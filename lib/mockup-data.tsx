@@ -1,5 +1,5 @@
 import { Mockup, DEFAULT_MOCKUP_FEATURES } from "@/types/mockup.types";
-import { BraveGlassPreview, BravePreview, BrowserTabGlassPreview, ChromeGlassPreview, ChromePreview, GlassCurvePreview, GlassFullPreview, GlassUIContainerPreview, HardShellPreview, IphoneSlimPreview, MacosContainerGlassPreview, MacosDarkPreview, MacosGhostGlassPreview, MacosGhostIdePreview, MacosGhostPreview, MacosGlassPreview, MacosPreview, NonePreview, OutlinePreview, S24UltraPreview, VSCodePreview } from "./mockup-previews";
+import { BraveGlassPreview, BravePreview, BrowserTabGlassPreview, ChromeGlassPreview, ChromePreview, GlassCurvePreview, GlassFullPreview, GlassUIContainerPreview, HardShellPreview, IphoneSlimPreview, MacBookPreview, MacosContainerGlassPreview, MacosDarkPreview, MacosGhostGlassPreview, MacosGhostIdePreview, MacosGhostPreview, MacosGlassPreview, MacosPreview, NonePreview, OutlinePreview, S24UltraPreview, VSCodePreview } from "./mockup-previews";
 
 export const MOCKUPS: Mockup[] = [
     {
@@ -272,11 +272,11 @@ export const MOCKUPS: Mockup[] = [
         ),
     },
 
-    // Mobile Mockups
+    // device Mockups
     {
         id: "iphone-slim",
         name: "iPhone Slim",
-        category: "mobile",
+        category: "device",
         features: {
             hasDarkMode: true,
             hasFrameColor: true,
@@ -298,7 +298,7 @@ export const MOCKUPS: Mockup[] = [
     {
         id: "glass-curve",
         name: "Glass Curve",
-        category: "mobile",
+        category: "device",
         features: {
             hasDarkMode: true,
             hasFrameColor: false,
@@ -320,7 +320,7 @@ export const MOCKUPS: Mockup[] = [
     {
         id: "glass-full",
         name: "Glass Full",
-        category: "mobile",
+        category: "device",
         features: {
             hasDarkMode: true,
             hasFrameColor: false,
@@ -342,7 +342,7 @@ export const MOCKUPS: Mockup[] = [
     {
         id: "hard-shell",
         name: "Hard Shell",
-        category: "mobile",
+        category: "device",
         features: {
             hasDarkMode: true,
             hasFrameColor: false,
@@ -363,7 +363,7 @@ export const MOCKUPS: Mockup[] = [
     {
         id: "s24-ultra",
         name: "S24 Ultra",
-        category: "mobile",
+        category: "device",
         features: {
             hasDarkMode: true,
             hasFrameColor: true,
@@ -381,6 +381,16 @@ export const MOCKUPS: Mockup[] = [
         preview: (
             <S24UltraPreview />
         ),
+    },
+    {
+        id: "macbook-photo",
+        name: "MacBook",
+        category: "device",
+        features: {
+            ...DEFAULT_MOCKUP_FEATURES,
+        },
+        defaultConfig: {},
+        preview: (<MacBookPreview />),
     },
 
     // IDE Mockups
@@ -458,6 +468,6 @@ export const MOCKUPS: Mockup[] = [
 export const MOCKUP_CATEGORIES = [
     { id: "all" as const, label: "Todos", icon: "ph:grid-four-bold" },
     { id: "browser" as const, label: "Browser", icon: "hugeicons:ai-browser", bgUrl: "/images/mockups/bg-browser.avif" },
-    { id: "mobile" as const, label: "Mobile", icon: "ph:device-mobile-bold", bgUrl: "/images/mockups/bg-mobile.avif" },
+    { id: "device" as const, label: "device", icon: "ph:device-device-bold", bgUrl: "/images/mockups/bg-device.avif" },
     { id: "ide" as const, label: "IDE", icon: "ph:code-bold", bgUrl: "/images/mockups/bg-ide.avif" },
 ];

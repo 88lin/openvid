@@ -6,7 +6,7 @@ import {
 } from "@/lib/canvas.utils";
 import { drawMockupToCanvas } from "@/lib/mockup-canvas.utils";
 import { DEFAULT_MOCKUP_CONFIG } from "@/types/mockup.types";
-import { BOTTOM_ONLY_RADIUS_MOCKUPS, SELF_SHADOWING_MOCKUPS } from "@/lib/constants";
+import { BOTTOM_ONLY_RADIUS_MOCKUPS, PHOTO_MOCKUPS, SELF_SHADOWING_MOCKUPS } from "@/lib/constants";
 import { MockupMotionTransform } from "./mockup-motion";
 
 const DEG_TO_RAD = Math.PI / 180;
@@ -71,6 +71,7 @@ export function drawMockupAndMedia(
   const vCY = containerY + containerHeight / 2;
   const txPx = (videoTransform.translateX / 100) * containerWidth;
   const tyPx = (videoTransform.translateY / 100) * containerHeight;
+  const hasMockupLocal = mockupId && mockupId !== "none";
 
   c.save();
   c.translate(vCX + txPx, vCY + tyPx);
@@ -85,7 +86,7 @@ export function drawMockupAndMedia(
     if (!is3DActive) applyPseudo3DTilt(c, mockupMotion.rotateX, mockupMotion.rotateY);
   }
 
-  if (applyImageXform && imageTransform && !apply3DToBackground) {
+  if (applyImageXform && imageTransform && !apply3DToBackground && !hasMockupLocal) {
     if (imageTransform.perspective && imageTransform.perspective > 0 && (imageTransform.rotateX !== 0 || imageTransform.rotateY !== 0)) {
       const rotXR = imageTransform.rotateX * DEG_TO_RAD;
       const rotYR = imageTransform.rotateY * DEG_TO_RAD;
@@ -101,7 +102,7 @@ export function drawMockupAndMedia(
     c.translate(0, iTY / (imageTransform.scale * imageZoomScale));
   }
   c.translate(-vCX, -vCY);
-  if (mockupMotion) c.globalAlpha *= mockupMotion.opacity; // ← nuevo
+  if (mockupMotion) c.globalAlpha *= mockupMotion.opacity;
 
   if (shadows > 0 && !SELF_SHADOWING_MOCKUPS.includes(mockupId)) {
     const shadowKey = `${containerWidth.toFixed(1)}x${containerHeight.toFixed(1)}|${scaledRadius.toFixed(1)}|${scaledShadowBlur.toFixed(1)}`;
@@ -128,15 +129,24 @@ export function drawMockupAndMedia(
     c.restore();
   }
 
-  const hasMockupLocal = mockupId && mockupId !== "none";
   const mockupCfg = mockupConfig || DEFAULT_MOCKUP_CONFIG;
   let vX = containerX, vY = containerY, vW = containerWidth, vH = containerHeight, vR = scaledRadius;
-
   if (hasMockupLocal) {
     const mBlur = SELF_SHADOWING_MOCKUPS.includes(mockupId) ? scaledShadowBlur : 0;
-    const mr = drawMockupToCanvas(c, mockupId, mockupCfg, containerX, containerY, containerWidth, containerHeight, scaledRadius, mBlur, canvasWidth, canvasHeight);
-    vX = mr.contentX; vY = mr.contentY; vW = mr.contentWidth; vH = mr.contentHeight;
-    vR = mockupId === "outline" ? scaledRadius * 1.6 : (mockupId === "iphone-slim" || mockupId === "glass-curve" || mockupId === "glass-full") ? scaledRadius * 2.5 : scaledRadius;
+    const mr = drawMockupToCanvas(
+      c, mockupId, mockupCfg,
+      containerX, containerY, containerWidth, containerHeight,
+      scaledRadius, mBlur, canvasWidth, canvasHeight
+    );
+    vX = mr.contentX;
+    vY = mr.contentY;
+    vW = mr.contentWidth;
+    vH = mr.contentHeight;
+    vR = mr.contentRadius !== undefined
+      ? mr.contentRadius
+      : mockupId === "outline" ? scaledRadius * 1.6
+        : (mockupId === "iphone-slim" || mockupId === "glass-curve" || mockupId === "glass-full") ? scaledRadius * 2.5
+          : scaledRadius;
   }
 
   c.save();
@@ -153,7 +163,6 @@ export function drawMockupAndMedia(
     c.rect(vX, vY, vW, vH);
     c.clip();
   }
-
   if (mediaType === "video") {
     const baseFilter = is3DActive
       ? 'saturate(125%) contrast(110%) brightness(105%)'
@@ -162,14 +171,31 @@ export function drawMockupAndMedia(
     c.filter = baseFilter + motionBlur;
   }
 
+  let baseSX = 0, baseSY = 0, baseSW = sourceWidth, baseSH = sourceHeight;
   if (cropArea && (cropArea.width < 100 || cropArea.height < 100 || cropArea.x > 0 || cropArea.y > 0)) {
-    const sX = (cropArea.x / 100) * sourceWidth;
-    const sY = (cropArea.y / 100) * sourceHeight;
-    const cW2 = (cropArea.width / 100) * sourceWidth;
-    const cH2 = (cropArea.height / 100) * sourceHeight;
-    c.drawImage(source, sX, sY, cW2, cH2, vX, vY, vW, vH);
+    baseSX = (cropArea.x / 100) * sourceWidth;
+    baseSY = (cropArea.y / 100) * sourceHeight;
+    baseSW = (cropArea.width / 100) * sourceWidth;
+    baseSH = (cropArea.height / 100) * sourceHeight;
+  }
+
+  if (PHOTO_MOCKUPS.includes(mockupId)) {
+    
+    
+    const destAspect = vW / vH;
+    const baseAspect = baseSW / baseSH;
+    let coverW = baseSW, coverH = baseSH;
+    if (baseAspect > destAspect) {
+      coverW = baseSH * destAspect;
+    } else {
+      coverH = baseSW / destAspect;
+    }
+    const coverX = baseSX + (baseSW - coverW) / 2;
+    const coverY = baseSY + (baseSH - coverH) / 2;
+    c.drawImage(source, coverX, coverY, coverW, coverH, vX, vY, vW, vH);
   } else {
-    c.drawImage(source, vX, vY, vW, vH);
+    
+    c.drawImage(source, baseSX, baseSY, baseSW, baseSH, vX, vY, vW, vH);
   }
 
   c.restore();
