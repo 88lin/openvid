@@ -14,32 +14,33 @@ export function MacosDarkIdeMockup({
   className = "",
   shadows = 20,
   roundedCorners,
-  maskStyles, 
+  maskStyles,
+  onConfigChange
 }: MacosDarkIdeMockupProps) {
-  const isDark        = config.darkMode;
-  const frameColor    = config.frameColor;
-  const url           = config.url;
-  const cornerRadius  = roundedCorners ?? config.cornerRadius;
+  const isDark = config.darkMode;
+  const frameColor = config.frameColor;
+  const url = config.url;
+  const cornerRadius = roundedCorners ?? config.cornerRadius;
 
   const headerOpacity = config.headerOpacity ?? 100;
-  const headerScale   = (config.headerScale || 100) / 100;
+  const headerScale = (config.headerScale || 100) / 100;
 
-  const headerHeight   = 35 * headerScale;
-  const menuFontSize   = 12 * headerScale;
-  const menuPaddingX   = 8  * headerScale;
-  const menuPaddingY   = 4  * headerScale;
-  const menuGap        = 4  * headerScale;
+  const headerHeight = 35 * headerScale;
+  const menuFontSize = 12 * headerScale;
+  const menuPaddingX = 8 * headerScale;
+  const menuPaddingY = 4 * headerScale;
+  const menuGap = 4 * headerScale;
   const headerPaddingX = 12 * headerScale;
 
-  const searchHeight   = 22 * headerScale;
+  const searchHeight = 22 * headerScale;
   const searchIconSize = 10 * headerScale;
   const searchFontSize = 11 * headerScale;
-  const searchPaddingX = 8  * headerScale;
-  const searchGap      = 6  * headerScale;
+  const searchPaddingX = 8 * headerScale;
+  const searchGap = 6 * headerScale;
 
-  const bgColor      = isDark ? "#1e1e1e" : "#f3f3f3";
-  const borderColor  = isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.1)";
-  const textColor    = isDark ? "#cccccc" : "#333333";
+  const bgColor = isDark ? "#1e1e1e" : "#f3f3f3";
+  const borderColor = isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.1)";
+  const textColor = isDark ? "#cccccc" : "#333333";
   const searchBorder = isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.15)";
   const searchBgBase = deriveSearchBg(frameColor);
 
@@ -67,14 +68,14 @@ export function MacosDarkIdeMockup({
           <div
             className="flex items-center justify-between select-none shrink-0"
             style={{
-              height:               `${headerHeight}px`,
-              paddingLeft:          `${headerPaddingX}px`,
-              paddingRight:         `${headerPaddingX}px`,
-              backgroundColor:      hexToRgba(frameColor, headerOpacity),
-              borderBottom:         `1px solid ${borderColor}`,
-              borderTopLeftRadius:  `${cornerRadius}px`,
+              height: `${headerHeight}px`,
+              paddingLeft: `${headerPaddingX}px`,
+              paddingRight: `${headerPaddingX}px`,
+              backgroundColor: hexToRgba(frameColor, headerOpacity),
+              borderBottom: `1px solid ${borderColor}`,
+              borderTopLeftRadius: `${cornerRadius}px`,
               borderTopRightRadius: `${cornerRadius}px`,
-              color:                textColor,
+              color: textColor,
             }}
           >
             <div className="flex items-center" style={{ gap: `${menuGap * 2}px` }}>
@@ -103,25 +104,33 @@ export function MacosDarkIdeMockup({
               <div
                 className="flex items-center justify-center w-full rounded-md cursor-text"
                 style={{
-                  height:          `${searchHeight}px`,
-                  gap:             `${searchGap}px`,
-                  padding:         `0 ${searchPaddingX}px`,
+                  height: `${searchHeight}px`,
+                  gap: `${searchGap}px`,
+                  padding: `0 ${searchPaddingX}px`,
                   backgroundColor: hexToRgba(searchBgBase, headerOpacity),
-                  border:          `1px solid ${searchBorder}`,
+                  border: `1px solid ${searchBorder}`,
                 }}
               >
                 <svg style={{ width: `${searchIconSize}px`, height: `${searchIconSize}px`, opacity: 0.5, flexShrink: 0 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
-                <span className="truncate" style={{ fontSize: `${searchFontSize}px`, color: textColor }}>
-                  {url || "openvid"}
-                </span>
+                <input
+                  type="text"
+                  value={url || ""}
+                  onChange={(e) => onConfigChange?.({ url: e.target.value })}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => e.stopPropagation()}
+                  placeholder="openvid"
+                  className="truncate flex-1 bg-transparent border-none outline-none w-full text-center placeholder:text-inherit/50 cursor-text"
+                  style={{ fontSize: `${searchFontSize}px`, color: textColor }}
+                />
               </div>
             </div>
 
             <div className="flex items-center justify-end" style={{ width: `${80 * headerScale}px`, color: isDark ? "rgba(163,163,163,0.8)" : "rgba(100,100,100,0.8)" }}>
               <svg style={{ width: `${14 * headerScale}px`, height: `${14 * headerScale}px` }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path d="M4 6h16M4 12h16M4 18h16" strokeWidth="1.5" strokeLinecap="round"/>
+                <path d="M4 6h16M4 12h16M4 18h16" strokeWidth="1.5" strokeLinecap="round" />
               </svg>
             </div>
           </div>

@@ -101,6 +101,7 @@ function VideoCanvasInner({
     mockupMotionFragments = [],
     videoDuration = 0,
     onSelectedElementIdsChange,
+    onMockupConfigChange
 }: VideoCanvasProps & {
     ref?: React.Ref<VideoCanvasHandle>;
     onSelectedElementIdsChange?: (ids: string[]) => void;
@@ -2021,12 +2022,12 @@ function VideoCanvasInner({
                                                 }}
                                                 onMouseDown={(e) => {
                                                     if (!hasMedia || !onVideoTransformChange) return;
-                                                    if ((e.target as HTMLElement).closest('[data-rotation-handle]')) return;
+                                                    const targetEl = e.target as HTMLElement;
+                                                    if (targetEl.closest('[data-rotation-handle]')) return;
+                                                    if (targetEl.closest('input, textarea, [contenteditable="true"]')) return; // 👈 NUEVO
                                                     e.preventDefault();
                                                     wasDragRef.current = false;
-
                                                     const isGroupMember = isVideoSelected && canvasSelectedIds.length > 0;
-
                                                     if (e.shiftKey) {
                                                         setIsVideoSelected((prev) => !prev);
                                                     } else if (isGroupMember) {
@@ -2036,17 +2037,16 @@ function VideoCanvasInner({
                                                         if (onElementSelect) onElementSelect(null);
                                                         setCanvasSelectedIds([]);
                                                     }
-
                                                     setVideoHoverCorner(getNearestCorner(e, videoTransform.rotation));
                                                     setIsDraggingVideo(true);
                                                     dragStartPos.current = {
-                                                        x: e.clientX, y: e.clientY,
+                                                        x: e.clientX,
+                                                        y: e.clientY,
                                                         initialRotation: videoTransform.rotation,
                                                         initialTranslateX: videoTransform.translateX,
                                                         initialTranslateY: videoTransform.translateY,
                                                     };
                                                     clickStartPosRef.current = { x: e.clientX, y: e.clientY };
-
                                                     if (canvasSelectedIds.length > 0) {
                                                         setIsDraggingElement(true);
                                                         elementDragStart.current = { x: e.clientX, y: e.clientY, initialX: 0, initialY: 0, initialRotation: 0 };
@@ -2058,10 +2058,11 @@ function VideoCanvasInner({
                                                     }
                                                 }}
                                                 onClick={(e) => {
-                                                    if ((e.target as HTMLElement).closest('[data-rotation-handle]')) return;
+                                                    const targetEl = e.target as HTMLElement;
+                                                    if (targetEl.closest('[data-rotation-handle]')) return;
+                                                    if (targetEl.closest('input, textarea, [contenteditable="true"]')) return; // 👈 NUEVO
                                                     if (!onMockupClick) return;
                                                     if (mockupId === "none" || mockupId === undefined) return;
-                                                    // Only fire if pointer stayed within CLICK_THRESHOLD (i.e. a click, not a drag)
                                                     const start = clickStartPosRef.current;
                                                     clickStartPosRef.current = null;
                                                     if (!start) return;
@@ -2112,6 +2113,7 @@ function VideoCanvasInner({
                                                             isHovered={isVideoHovered}
                                                             onDeviceHoverChange={(hovered) => setIsVideoHovered(hovered && hasMedia)}
                                                             onDeviceRectChange={setPhotoDeviceRect}
+                                                            onConfigChange={onMockupConfigChange}
                                                         >
                                                             {mockupChildren}
                                                         </MockupWrapper>

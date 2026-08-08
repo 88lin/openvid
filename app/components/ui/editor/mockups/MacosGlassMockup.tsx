@@ -1,6 +1,6 @@
 "use client";
 import { Icon } from "@iconify/react";
-import type { MockupRenderProps } from "@/types/mockup.types";
+import { DEFAULT_MOCKUP_CONFIG, type MockupRenderProps } from "@/types/mockup.types";
 import { hexToRgba } from "@/lib/utils";
 import { deriveSearchBg } from "@/lib/color.utils";
 
@@ -16,6 +16,7 @@ export function MacosGlassMockup({
   shadows = 20,
   roundedCorners,
   maskStyles,
+  onConfigChange
 }: MacosMockupProps) {
   const isDark = config.darkMode;
   const frameColor = config.frameColor;
@@ -53,8 +54,7 @@ export function MacosGlassMockup({
 
   return (
     <div className={`relative w-full h-full flex flex-col ${className}`}>
-      
-      {/* Capa de Sombra interna (evita oscurecer el borde glass exterior) */}
+
       <div
         className="absolute pointer-events-none"
         style={{
@@ -64,7 +64,6 @@ export function MacosGlassMockup({
         }}
       />
 
-      {/* Capa principal */}
       <div
         className="relative w-full h-full overflow-hidden"
         style={{
@@ -116,9 +115,17 @@ export function MacosGlassMockup({
                 }}
               >
                 <Icon icon="mdi:lock" className="opacity-60" style={{ width: `${buttonSize}px`, height: `${buttonSize}px`, flexShrink: 0 }} />
-                <span className="flex-1 text-center font-medium truncate" style={{ fontSize: `${fontSize}px`, padding: `0 ${urlBarPadding}px` }}>
-                  {url}
-                </span>
+                <input
+                  type="text"
+                  value={url}
+                  onChange={(e) => onConfigChange?.({ url: e.target.value })}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => e.stopPropagation()}
+                  placeholder={DEFAULT_MOCKUP_CONFIG.url}
+                  className="flex-1 text-center font-medium truncate bg-transparent border-none outline-none"
+                  style={{ fontSize: `${fontSize}px`, padding: `0 ${urlBarPadding}px`, color: textColor }}
+                />
                 <Icon icon="mdi:refresh" className="opacity-60" style={{ width: `${buttonSize}px`, height: `${buttonSize}px`, flexShrink: 0 }} />
               </div>
             </div>

@@ -15,6 +15,7 @@ export function ChromeGlassMockup({
     shadows = 20,
     roundedCorners,
     maskStyles,
+    onConfigChange
 }: ChromeGlassMockupProps) {
     const isDark = config.darkMode;
     const frameColor = config.frameColor;
@@ -110,9 +111,17 @@ export function ChromeGlassMockup({
                             <svg style={{ width: `${tabIconSz}px`, height: `${tabIconSz}px`, flexShrink: 0, color: "#2563eb" }} fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" />
                             </svg>
-                            <span className="truncate flex-1" style={{ fontSize: `${tabFontSz}px`, color: textColor }}>
-                                {url?.replace(/^https?:\/\//, "") ?? "New tab"}
-                            </span>
+                            <input
+                                type="text"
+                                value={url || ""}
+                                onChange={(e) => onConfigChange?.({ url: e.target.value })}
+                                onMouseDown={(e) => e.stopPropagation()}
+                                onPointerDown={(e) => e.stopPropagation()}
+                                onClick={(e) => e.stopPropagation()}
+                                placeholder="New tab"
+                                className="truncate flex-1 bg-transparent border-none outline-none w-full placeholder:text-inherit/50 cursor-text"
+                                style={{ fontSize: `${tabFontSz}px`, color: textColor }}
+                            />
                             <svg style={{ width: `${tabCloseS}px`, height: `${tabCloseS}px`, flexShrink: 0, color: iconColor, opacity: 0.7 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path d="M6 18L18 6M6 6l12 12" strokeWidth="2.5" strokeLinecap="round" />
                             </svg>
@@ -188,9 +197,16 @@ export function ChromeGlassMockup({
                                 <svg style={{ width: `${iconSz * 0.75}px`, height: `${iconSz * 0.75}px`, flexShrink: 0, opacity: 0.6 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" strokeWidth="2" />
                                 </svg>
-                                <span className="truncate flex-1" style={{ fontSize: `${urlFontSz}px` }}>
-                                    {url?.replace(/^https?:\/\//, "")}
-                                </span>
+                                <input
+                                    type="text"
+                                    value={url || ""}
+                                    onChange={(e) => onConfigChange?.({ url: e.target.value })}
+                                    onMouseDown={(e) => e.stopPropagation()}
+                                    onPointerDown={(e) => e.stopPropagation()}
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="truncate flex-1 bg-transparent border-none outline-none w-full cursor-text"
+                                    style={{ fontSize: `${urlFontSz}px`, color: "inherit" }}
+                                />
                             </div>
                         </div>
                         <div className="flex items-center shrink-0" style={{ gap: `${rightGap}px`, color: iconColor }}>

@@ -37,9 +37,10 @@ interface MockupWrapperProps {
     isHovered?: boolean;
     onDeviceHoverChange?: (hovered: boolean) => void;
     onDeviceRectChange?: (rect: { x: number; y: number; width: number; height: number } | null) => void;
+    onConfigChange?: (config: Partial<MockupConfig>) => void;
 }
 
-function MockupWrapperInner({ mockupId, config, children, roundedCorners = 12, shadows = 20, className = "", maskStyles, isSelected = false, isHovered = false, onDeviceHoverChange, onDeviceRectChange }: MockupWrapperProps) {
+function MockupWrapperInner({ mockupId, config, children, roundedCorners = 12, shadows = 20, className = "", maskStyles, isSelected = false, isHovered = false, onDeviceHoverChange, onDeviceRectChange, onConfigChange }: MockupWrapperProps) {
     switch (mockupId) {
         case "none":
             return (
@@ -61,6 +62,7 @@ function MockupWrapperInner({ mockupId, config, children, roundedCorners = 12, s
                     shadows={shadows}
                     className={className}
                     maskStyles={maskStyles}
+                    onConfigChange={onConfigChange}
                 >
                     {children}
                 </MacosMockup>
@@ -74,6 +76,7 @@ function MockupWrapperInner({ mockupId, config, children, roundedCorners = 12, s
                     shadows={shadows}
                     className={className}
                     maskStyles={maskStyles}
+                    onConfigChange={onConfigChange}
                 >
                     {children}
                 </MacosGlassMockup>
@@ -113,6 +116,7 @@ function MockupWrapperInner({ mockupId, config, children, roundedCorners = 12, s
                     shadows={shadows}
                     className={className}
                     maskStyles={maskStyles}
+                    onConfigChange={onConfigChange}
                 >
                     {children}
                 </MacosGhostMockup>
@@ -125,6 +129,7 @@ function MockupWrapperInner({ mockupId, config, children, roundedCorners = 12, s
                     shadows={shadows}
                     className={className}
                     maskStyles={maskStyles}
+                    onConfigChange={onConfigChange}
                 >
                     {children}
                 </MacosGhostGlassMockup>
@@ -150,6 +155,7 @@ function MockupWrapperInner({ mockupId, config, children, roundedCorners = 12, s
                     shadows={shadows}
                     className={className}
                     maskStyles={maskStyles}
+                    onConfigChange={onConfigChange}
                 >
                     {children}
                 </BraveMockup>
@@ -162,6 +168,7 @@ function MockupWrapperInner({ mockupId, config, children, roundedCorners = 12, s
                     shadows={shadows}
                     className={className}
                     maskStyles={maskStyles}
+                    onConfigChange={onConfigChange}
                 >
                     {children}
                 </BraveGlassMockup>
@@ -174,6 +181,7 @@ function MockupWrapperInner({ mockupId, config, children, roundedCorners = 12, s
                     shadows={shadows}
                     className={className}
                     maskStyles={maskStyles}
+                    onConfigChange={onConfigChange}
                 >
                     {children}
                 </BrowserTabGlassMockup>
@@ -186,6 +194,7 @@ function MockupWrapperInner({ mockupId, config, children, roundedCorners = 12, s
                     shadows={shadows}
                     className={className}
                     maskStyles={maskStyles}
+                    onConfigChange={onConfigChange}
                 >
                     {children}
                 </ChromeMockup>
@@ -199,6 +208,7 @@ function MockupWrapperInner({ mockupId, config, children, roundedCorners = 12, s
                     shadows={shadows}
                     className={className}
                     maskStyles={maskStyles}
+                    onConfigChange={onConfigChange}
                 >
                     {children}
                 </ChromeGlassMockup>
@@ -277,6 +287,7 @@ function MockupWrapperInner({ mockupId, config, children, roundedCorners = 12, s
                     shadows={shadows}
                     className={className}
                     maskStyles={maskStyles}
+                    onConfigChange={onConfigChange}
                 >
                     {children}
                 </VSCodeMockup>
@@ -289,6 +300,7 @@ function MockupWrapperInner({ mockupId, config, children, roundedCorners = 12, s
                     shadows={shadows}
                     className={className}
                     maskStyles={maskStyles}
+                    onConfigChange={onConfigChange}
                 >
                     {children}
                 </MacosDarkIdeMockup>
@@ -301,6 +313,7 @@ function MockupWrapperInner({ mockupId, config, children, roundedCorners = 12, s
                     shadows={shadows}
                     className={className}
                     maskStyles={maskStyles}
+                    onConfigChange={onConfigChange}
                 >
                     {children}
                 </MacosGhostIdeMockup>

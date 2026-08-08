@@ -15,7 +15,8 @@ export function VSCodeMockup({
     className = "",
     shadows = 20,
     roundedCorners,
-    maskStyles, 
+    maskStyles,
+    onConfigChange,
 }: VSCodeMockupProps) {
     const isDark = config.darkMode;
     const frameColor = config.frameColor;
@@ -113,9 +114,17 @@ export function VSCodeMockup({
                                 }}
                             >
                                 <Icon icon="mdi:magnify" className="opacity-50" style={{ width: `${searchIconSize}px`, height: `${searchIconSize}px` }} />
-                                <span className="truncate" style={{ fontSize: `${searchFontSize}px`, color: textColor }}>
-                                    {url || "openvid"}
-                                </span>
+                                <input
+                                    type="text"
+                                    value={url || ""}
+                                    onChange={(e) => onConfigChange?.({ url: e.target.value })}
+                                    onMouseDown={(e) => e.stopPropagation()}
+                                    onPointerDown={(e) => e.stopPropagation()}
+                                    onClick={(e) => e.stopPropagation()}
+                                    placeholder="openvid"
+                                    className="truncate flex-1 bg-transparent border-none outline-none w-full text-center placeholder:text-inherit/50 cursor-text"
+                                    style={{ fontSize: `${searchFontSize}px`, color: textColor }}
+                                />
                             </div>
                         </div>
 

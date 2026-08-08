@@ -3196,6 +3196,7 @@ export default function Editor() {
                         otherSelectionActive={otherSelectionActive}
                         mockupMotionFragments={mockupMotionFragments}
                         videoDuration={videoDuration}
+                        onMockupConfigChange={handleMockupConfigChange}
                     />
 
                     {/* Video mode: Show player controls and timeline */}

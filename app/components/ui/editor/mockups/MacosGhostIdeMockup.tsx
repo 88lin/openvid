@@ -14,7 +14,8 @@ export function MacosGhostIdeMockup({
   className = "",
   shadows = 20,
   roundedCorners,
-  maskStyles, 
+  maskStyles,
+  onConfigChange
 }: MacosGhostIdeMockupProps) {
   const isDark = config.darkMode;
   const frameColor = config.frameColor;
@@ -114,9 +115,17 @@ export function MacosGhostIdeMockup({
                 <svg style={{ width: `${searchIconSize}px`, height: `${searchIconSize}px`, opacity: 0.5, flexShrink: 0 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
-                <span className="truncate" style={{ fontSize: `${searchFontSize}px`, color: textColor }}>
-                  {url || "openvid"}
-                </span>
+                <input
+                  type="text"
+                  value={url || ""}
+                  onChange={(e) => onConfigChange?.({ url: e.target.value })}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => e.stopPropagation()}
+                  placeholder="openvid"
+                  className="truncate flex-1 bg-transparent border-none outline-none w-full text-center placeholder:text-inherit/50 cursor-text"
+                  style={{ fontSize: `${searchFontSize}px`, color: textColor }}
+                />
               </div>
             </div>
 

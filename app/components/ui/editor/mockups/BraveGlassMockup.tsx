@@ -15,6 +15,7 @@ export function BraveGlassMockup({
     shadows = 20,
     roundedCorners,
     maskStyles,
+    onConfigChange
 }: BraveGlassMockupProps) {
     const isDark = config.darkMode;
     const frameColor = config.frameColor;
@@ -147,12 +148,20 @@ export function BraveGlassMockup({
                                         d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
                                     />
                                 </svg>
-                                <span
-                                    className="flex-1 text-center font-medium truncate"
-                                    style={{ fontSize: `${fontSize}px`, padding: `0 ${urlBarPadding}px` }}
-                                >
-                                    {url}
-                                </span>
+                                <input
+                                    type="text"
+                                    value={url}
+                                    onChange={(e) => onConfigChange?.({ url: e.target.value })}
+                                    onMouseDown={(e) => e.stopPropagation()}
+                                    onPointerDown={(e) => e.stopPropagation()}
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="flex-1 text-center font-medium truncate bg-transparent border-none outline-none"
+                                    style={{
+                                        fontSize: `${fontSize}px`,
+                                        padding: `0 ${urlBarPadding}px`,
+                                        color: "inherit"
+                                    }}
+                                />
                                 <svg
                                     style={{ width: `${iconSize * 0.75}px`, height: `${iconSize * 0.75}px`, flexShrink: 0, color: "rgba(234,179,8,0.8)" }}
                                     fill="currentColor"

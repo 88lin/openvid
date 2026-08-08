@@ -12,7 +12,8 @@ export function BrowserTabGlassMockup({
     config,
     className = "",
     shadows = 20,
-    roundedCorners
+    roundedCorners,
+    onConfigChange
 }: BrowserTabGlassMockupProps) {
     const isDark = config.darkMode;
     const url = config.url;
@@ -22,25 +23,25 @@ export function BrowserTabGlassMockup({
 
     const bgColor = isDark ? "#1e1e1e" : "#f9f9f9";
 
-    const tabBg          = isDark ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.8)";
-    const tabBorderColor = isDark ? "rgba(255,255,255,0.2)"  : "rgba(255,255,255,0.9)";
-    const tabTitleColor  = isDark ? "#d1d5db"                : "#374151";
-    const tabCloseColor  = isDark ? "rgba(209,213,219,0.6)"  : "rgba(75,85,99,0.8)";
-    const tabCloseBg     = isDark ? "rgba(255,255,255,0.1)"  : "rgba(156,163,175,0.2)";
+    const tabBg = isDark ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.8)";
+    const tabBorderColor = isDark ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.9)";
+    const tabTitleColor = isDark ? "#d1d5db" : "#374151";
+    const tabCloseColor = isDark ? "rgba(209,213,219,0.6)" : "rgba(75,85,99,0.8)";
+    const tabCloseBg = isDark ? "rgba(255,255,255,0.1)" : "rgba(156,163,175,0.2)";
 
-    const tabBarH      = 24  * headerScale;
-    const dotSize      = 10  * headerScale;
-    const dotGap       = 6   * headerScale;
-    const dotPaddingX  = 4   * headerScale;
-    const tabH         = 28  * headerScale;
-    const tabW         = 184 * headerScale;
-    const tabPaddingX  = 12  * headerScale;
-    const tabIconSize  = 12  * headerScale;
-    const tabFontSize  = 10  * headerScale;
-    const addBtnSize   = 24  * headerScale;
-    const winIconGap   = 24  * headerScale;
-    const winIconMB    = 10  * headerScale;
-    const winIconMR    = 4   * headerScale;
+    const tabBarH = 24 * headerScale;
+    const dotSize = 10 * headerScale;
+    const dotGap = 6 * headerScale;
+    const dotPaddingX = 4 * headerScale;
+    const tabH = 28 * headerScale;
+    const tabW = 184 * headerScale;
+    const tabPaddingX = 12 * headerScale;
+    const tabIconSize = 12 * headerScale;
+    const tabFontSize = 10 * headerScale;
+    const addBtnSize = 24 * headerScale;
+    const winIconGap = 24 * headerScale;
+    const winIconMB = 10 * headerScale;
+    const winIconMR = 4 * headerScale;
 
     return (
         <div
@@ -50,17 +51,17 @@ export function BrowserTabGlassMockup({
                 boxShadow: shadows > 0
                     ? `0 ${shadows * 0.3}px ${shadows}px rgba(0,0,0,1)`
                     : "none",
-                borderTop:  "1px solid rgba(255,255,255,0.6)",
+                borderTop: "1px solid rgba(255,255,255,0.6)",
                 borderLeft: "1px solid rgba(255,255,255,0.6)",
             }}
         >
             <div
                 className="flex items-end justify-between select-none shrink-0 relative z-10"
                 style={{
-                    height:       `${tabBarH}px`,
-                    paddingLeft:  `${16 * headerScale}px`,
-                    paddingRight: `${4  * headerScale}px`,
-                    borderTopLeftRadius:  `${cornerRadius}px`,
+                    height: `${tabBarH}px`,
+                    paddingLeft: `${16 * headerScale}px`,
+                    paddingRight: `${4 * headerScale}px`,
+                    borderTopLeftRadius: `${cornerRadius}px`,
                     borderTopRightRadius: `${cornerRadius}px`,
                 }}
             >
@@ -74,7 +75,7 @@ export function BrowserTabGlassMockup({
                                 key={i}
                                 className="rounded-full"
                                 style={{
-                                    width:  `${dotSize}px`,
+                                    width: `${dotSize}px`,
                                     height: `${dotSize}px`,
                                     backgroundColor: "rgba(255,255,255,0.2)",
                                     border: "1px solid rgba(255,255,255,0.3)",
@@ -86,13 +87,13 @@ export function BrowserTabGlassMockup({
                     <div
                         className="flex items-center justify-between"
                         style={{
-                            width:           `${tabW}px`,
-                            height:          `${tabH}px`,
-                            padding:         `0 ${tabPaddingX}px`,
+                            width: `${tabW}px`,
+                            height: `${tabH}px`,
+                            padding: `0 ${tabPaddingX}px`,
                             backgroundColor: tabBg,
-                            backdropFilter:  "blur(12px)",
-                            borderTop:   `1px solid ${tabBorderColor}`,
-                            borderLeft:  `1px solid ${tabBorderColor}`,
+                            backdropFilter: "blur(12px)",
+                            borderTop: `1px solid ${tabBorderColor}`,
+                            borderLeft: `1px solid ${tabBorderColor}`,
                             borderRight: `1px solid ${tabBorderColor}`,
                             borderRadius: `${8 * headerScale}px ${8 * headerScale}px 0 0`,
                             boxShadow: "-5px 0 15px rgba(0,0,0,0.05)",
@@ -101,7 +102,7 @@ export function BrowserTabGlassMockup({
                         <div className="flex items-center overflow-hidden" style={{ gap: `${8 * headerScale}px` }}>
                             <div
                                 style={{
-                                    width:  `${tabIconSize}px`,
+                                    width: `${tabIconSize}px`,
                                     height: `${tabIconSize}px`,
                                     borderRadius: "50%",
                                     backgroundColor: "#60a5fa",
@@ -109,17 +110,22 @@ export function BrowserTabGlassMockup({
                                     flexShrink: 0,
                                 }}
                             />
-                            <span
-                                className="font-medium truncate"
+                            <input
+                                type="text"
+                                value={url || ""}
+                                onChange={(e) => onConfigChange?.({ url: e.target.value })}
+                                onMouseDown={(e) => e.stopPropagation()}
+                                onPointerDown={(e) => e.stopPropagation()}
+                                onClick={(e) => e.stopPropagation()}
+                                placeholder="Nueva pestaña"
+                                className="font-medium truncate bg-transparent border-none outline-none w-full placeholder:text-inherit/50"
                                 style={{ fontSize: `${tabFontSize}px`, letterSpacing: "-0.02em", color: tabTitleColor }}
-                            >
-                                {url ?? "Nueva pestaña"}
-                            </span>
+                            />
                         </div>
                         <div
                             className="flex items-center justify-center relative flex-shrink-0"
                             style={{
-                                width:  `${8 * headerScale}px`,
+                                width: `${8 * headerScale}px`,
                                 height: `${8 * headerScale}px`,
                                 borderRadius: "50%",
                                 backgroundColor: tabCloseBg,
@@ -134,7 +140,7 @@ export function BrowserTabGlassMockup({
                     <div
                         className="flex items-center justify-center rounded-full"
                         style={{
-                            width:  `${addBtnSize}px`,
+                            width: `${addBtnSize}px`,
                             height: `${addBtnSize}px`,
                             marginBottom: `${4 * headerScale}px`,
                             backgroundColor: "rgba(255,255,255,0.2)",
@@ -164,7 +170,7 @@ export function BrowserTabGlassMockup({
                 className="flex-1 relative overflow-hidden"
                 style={{
                     backgroundColor: bgColor,
-                    borderBottomLeftRadius:  `${Math.max(0, cornerRadius - 3)}px`,
+                    borderBottomLeftRadius: `${Math.max(0, cornerRadius - 3)}px`,
                     borderBottomRightRadius: `${Math.max(0, cornerRadius - 3)}px`,
                 }}
             >

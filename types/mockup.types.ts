@@ -48,6 +48,7 @@ export interface MockupRenderProps {
     config: MockupConfig;
     className?: string;
     maskStyles?: React.CSSProperties;
+    onConfigChange?: (config: Partial<MockupConfig>) => void;
 }
 
 // Default configuration

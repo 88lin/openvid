@@ -1,7 +1,7 @@
 "use client";
 
 import { Icon } from "@iconify/react";
-import type { MockupRenderProps } from "@/types/mockup.types";
+import { DEFAULT_MOCKUP_CONFIG, type MockupRenderProps } from "@/types/mockup.types";
 import { hexToRgba } from "@/lib/utils";
 import { deriveSearchBg } from "@/lib/color.utils";
 
@@ -10,7 +10,7 @@ interface MacosMockupProps extends MockupRenderProps {
   roundedCorners?: number;
 }
 
-export function MacosMockup({ children, config, className = "", shadows = 20, roundedCorners, maskStyles }: MacosMockupProps) {
+export function MacosMockup({ children, config, className = "", shadows = 20, roundedCorners, maskStyles, onConfigChange  }: MacosMockupProps) {
   const isDark = config.darkMode;
   const frameColor = config.frameColor;
   const url = config.url;
@@ -88,15 +88,17 @@ export function MacosMockup({ children, config, className = "", shadows = 20, ro
               }}
             >
               <Icon icon="mdi:lock" className="opacity-60 shrink-0" style={{ width: `${buttonSize}px`, height: `${buttonSize}px` }} />
-              <span
-                className="flex-1 text-center font-medium truncate min-w-0 mt-0.5"
-                style={{
-                  fontSize: `${fontSize}px`,
-                  padding: `0 ${urlBarPadding}px`,
-                }}
-              >
-                {url}
-              </span>
+              <input
+                type="text"
+                value={url}
+                onChange={(e) => onConfigChange?.({ url: e.target.value })}
+                onMouseDown={(e) => e.stopPropagation()}
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
+                placeholder={DEFAULT_MOCKUP_CONFIG.url}
+                className="flex-1 text-center font-medium truncate min-w-0 mt-0.5 bg-transparent border-none outline-none"
+                style={{ fontSize: `${fontSize}px`, padding: `0 ${urlBarPadding}px`, color: textColor }}
+              />
               <Icon icon="mdi:refresh" className="opacity-60 shrink-0" style={{ width: `${buttonSize}px`, height: `${buttonSize}px` }} />
             </div>
           </div>

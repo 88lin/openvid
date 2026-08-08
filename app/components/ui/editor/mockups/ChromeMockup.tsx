@@ -15,6 +15,7 @@ export function ChromeMockup({
   shadows = 20,
   roundedCorners,
   maskStyles,
+  onConfigChange
 }: ChromeMockupProps) {
   const isDark = config.darkMode;
   const frameColor = config.frameColor;
@@ -32,26 +33,26 @@ export function ChromeMockup({
   const textColor = isDark ? "#9ca3af" : "#374151";
   const iconColor = isDark ? "rgba(255,255,255,0.5)" : "rgba(55,65,81,0.7)";
 
-  const tabBarH    = 32 * headerScale;
-  const tabH       = 28 * headerScale;
-  const tabW       = 180 * headerScale;
-  const tabPadX    = 12 * headerScale;
-  const tabFontSz  = 10.5 * headerScale;
-  const tabIconSz  = 12 * headerScale;
-  const tabML      = 8  * headerScale;
-  const tabRadius  = 4  * headerScale;
-  const plusSize   = 14 * headerScale;
-  const plusML     = 4  * headerScale;
-  const winBtnW    = 42 * headerScale;
-  const addrH      = 32 * headerScale;
-  const addrPadX   = 8  * headerScale;
+  const tabBarH = 32 * headerScale;
+  const tabH = 28 * headerScale;
+  const tabW = 180 * headerScale;
+  const tabPadX = 12 * headerScale;
+  const tabFontSz = 10.5 * headerScale;
+  const tabIconSz = 12 * headerScale;
+  const tabML = 8 * headerScale;
+  const tabRadius = 4 * headerScale;
+  const plusSize = 14 * headerScale;
+  const plusML = 4 * headerScale;
+  const winBtnW = 42 * headerScale;
+  const addrH = 32 * headerScale;
+  const addrPadX = 8 * headerScale;
   const navBtnSize = 14 * headerScale;
-  const navGap     = 2  * headerScale;
-  const urlH       = 26 * headerScale;
-  const urlFontSz  = 11 * headerScale;
-  const urlPadX    = 12 * headerScale;
-  const rightGap   = 2  * headerScale;
-  const iconSz     = 14 * headerScale;
+  const navGap = 2 * headerScale;
+  const urlH = 26 * headerScale;
+  const urlFontSz = 11 * headerScale;
+  const urlPadX = 12 * headerScale;
+  const rightGap = 2 * headerScale;
+  const iconSz = 14 * headerScale;
 
   return (
     <div className={`relative w-full h-full ${className}`}>
@@ -101,9 +102,17 @@ export function ChromeMockup({
               <svg style={{ width: `${tabIconSz}px`, height: `${tabIconSz}px`, flexShrink: 0, color: "#2563eb" }} fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" />
               </svg>
-              <span className="truncate flex-1" style={{ fontSize: `${tabFontSz}px`, color: textColor }}>
-                {url?.replace(/^https?:\/\//, "") ?? "New tab"}
-              </span>
+              <input
+                type="text"
+                value={url || ""}
+                onChange={(e) => onConfigChange?.({ url: e.target.value })}
+                onMouseDown={(e) => e.stopPropagation()}
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
+                placeholder="New tab"
+                className="truncate flex-1 bg-transparent border-none outline-none w-full placeholder:text-inherit/50 cursor-text"
+                style={{ fontSize: `${tabFontSz}px`, color: textColor }}
+              />
               <svg style={{ width: `${tabIconSz}px`, height: `${tabIconSz}px`, flexShrink: 0, color: iconColor }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path d="M6 18L18 6M6 6l12 12" strokeWidth="2.5" strokeLinecap="round" />
               </svg>
@@ -179,9 +188,16 @@ export function ChromeMockup({
                 <svg style={{ width: `${iconSz * 0.75}px`, height: `${iconSz * 0.75}px`, flexShrink: 0, opacity: 0.6 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" strokeWidth="2" />
                 </svg>
-                <span className="truncate flex-1" style={{ fontSize: `${urlFontSz}px` }}>
-                  {url?.replace(/^https?:\/\//, "")}
-                </span>
+                <input
+                  type="text"
+                  value={url || ""}
+                  onChange={(e) => onConfigChange?.({ url: e.target.value })}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => e.stopPropagation()}
+                  className="truncate flex-1 bg-transparent border-none outline-none w-full cursor-text"
+                  style={{ fontSize: `${urlFontSz}px`, color: "inherit" }}
+                />
               </div>
             </div>
             <div className="flex items-center shrink-0" style={{ gap: `${rightGap}px`, color: iconColor }}>
