@@ -11,6 +11,26 @@ export const SEO_OG_IMAGE = {
   alt: "Openvid — free browser video editor with cinematic zooms and 3D mockups",
 } as const;
 
+export const SEO_ICONS = {
+  tab: "/images/metadata/icon.svg",
+  solid: "/images/metadata/icon-solid.svg",
+  apple: "/images/metadata/apple.svg",
+  favicon48: "/images/metadata/favicon-48.png",
+  favicon32: "/images/metadata/favicon-32.png",
+  appleTouch: "/images/metadata/apple-touch-icon.png",
+  pwa192: "/images/metadata/icon-192.png",
+  pwa512: "/images/metadata/icon-512.png",
+  logo: "/images/metadata/logo.png",
+} as const;
+
+export const SEO_ICON_ABSOLUTE = {
+  tab: `${SEO_BASE_URL}${SEO_ICONS.tab}`,
+  solid: `${SEO_BASE_URL}${SEO_ICONS.solid}`,
+  logo: `${SEO_BASE_URL}${SEO_ICONS.solid}`,
+  logoPng: `${SEO_BASE_URL}${SEO_ICONS.logo}`,
+  favicon48: `${SEO_BASE_URL}${SEO_ICONS.favicon48}`,
+} as const;
+
 export const OG_LOCALE_MAP: Record<string, string> = {
   en: "en_US",
   es: "es_ES",

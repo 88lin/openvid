@@ -1,3 +1,5 @@
+import { SEO_BASE_URL, SEO_ICON_ABSOLUTE, SEO_OG_IMAGE } from "@/lib/seo";
+
 type WebApplicationSchema = {
   '@context': 'https://schema.org';
   '@type': 'WebApplication';
@@ -76,7 +78,7 @@ export function StructuredData({ data }: StructuredDataProps) {
 }
 
 export function generateWebAppSchema(locale: 'es' | 'en' | 'ru' | 'ko'): WebApplicationSchema {
-  const baseUrl = 'https://openvid.dev';
+  const baseUrl = SEO_BASE_URL;
 
   const content = {
     es: {
@@ -145,7 +147,7 @@ export function generateWebAppSchema(locale: 'es' | 'en' | 'ru' | 'ko'): WebAppl
     description,
     url: `${baseUrl}/${locale}`,
     inLanguage: locale,
-    image: `${baseUrl}/images/metadata/preview-openvid.jpg`,
+    image: SEO_OG_IMAGE.url,
     author: {
       '@type': 'Person',
       name: 'Cristian Olivera',
@@ -155,12 +157,15 @@ export function generateWebAppSchema(locale: 'es' | 'en' | 'ru' | 'ko'): WebAppl
   };
 }
 
-export function generateOrganizationSchema(): OrganizationSchema {  return {
+export function generateOrganizationSchema(): OrganizationSchema {
+  return {
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: 'openvid',
-    url: 'https://openvid.dev',
-    logo: 'https://openvid.dev/images/metadata/favicon.svg',
+    url: SEO_BASE_URL,
+    // Solid mark with background — Google Knowledge Panel / rich results.
+    // When you upload logo.png (≥112×112 solid), switch to SEO_ICON_ABSOLUTE.logoPng.
+    logo: SEO_ICON_ABSOLUTE.logo,
     sameAs: [
       'https://x.com/openvid',
       'https://www.tiktok.com/@openvid',
@@ -182,13 +187,13 @@ export function generateWebSiteSchema(locale: 'es' | 'en' | 'ru' | 'ko'): WebSit
     '@type': 'WebSite',
     name: 'Openvid',
     alternateName: 'openvid',
-    url: `https://openvid.dev/${locale}`,
+    url: `${SEO_BASE_URL}/${locale}`,
     inLanguage: locale,
     publisher: {
       '@type': 'Organization',
       name: 'openvid',
-      url: 'https://openvid.dev',
-      logo: 'https://openvid.dev/images/metadata/favicon.svg',
+      url: SEO_BASE_URL,
+      logo: SEO_ICON_ABSOLUTE.logo,
     },
   };
 }
