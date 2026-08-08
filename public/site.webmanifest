@@ -11,13 +11,19 @@
   "categories": ["productivity", "photo_and_video"],
   "icons": [
     {
-      "src": "/images/metadata/favicon.svg",
+      "src": "/images/metadata/icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
     },
     {
-      "src": "/images/metadata/apple.svg",
+      "src": "/images/metadata/icon-solid.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/images/metadata/icon-solid.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "maskable"
