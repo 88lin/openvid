@@ -27,7 +27,7 @@ export function MotionMenu({
   onAddOrReplacePreset,
   onUpdateSelectedFragment,
   mediaType = "video",
-  isGlobalMotionEnabled = false,
+  isGlobalMotionEnabled = true,
   onToggleGlobalMotion,
 }: MotionMenuProps) {
   const t = useTranslations("motionMenu");

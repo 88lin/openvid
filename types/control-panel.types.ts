@@ -98,4 +98,6 @@ export interface ControlPanelProps {
     onUpdateMockupMotionFragment?: (id: string, updates: Partial<MockupMotionFragment>) => void;
     onSelectMockupMotionFragment?: (id: string | null) => void;
     onDeleteMockupMotionFragment?: (id: string) => void;
+    selectedAudioTrackId?: string | null;
+    setSelectedAudioTrackId?: (trackId: string | null) => void;
 }

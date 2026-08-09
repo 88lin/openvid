@@ -1095,12 +1095,12 @@ export default function Editor() {
         }
     }, [canvasElements, updateCanvasElement]);
 
-    const MAX_AUDIO_TRACKS = 5;
+    const MAX_AUDIO_TRACKS = 8;
     // Audio handlers
     const handleAudioUpload = useCallback(async (file: File) => {
         try {
             if (audioTracks.length >= MAX_AUDIO_TRACKS) {
-                alert(`Máximo ${MAX_AUDIO_TRACKS} pistas de audio permitidas.`);
+                alert(`Maximum of ${MAX_AUDIO_TRACKS} audio tracks allowed.`);
                 return;
             }
 
@@ -1171,7 +1171,7 @@ export default function Editor() {
         if (!audio) return;
 
         if (audioTracks.length >= MAX_AUDIO_TRACKS) {
-            alert(`Máximo ${MAX_AUDIO_TRACKS} pistas de audio permitidas.`);
+            alert(`Maximum of ${MAX_AUDIO_TRACKS} audio tracks allowed.`);
             return;
         }
 
@@ -3097,6 +3097,8 @@ export default function Editor() {
                                         onUpdateMockupMotionFragment={handleUpdateMockupMotionFragment}
                                         onSelectMockupMotionFragment={handleSelectMockupMotionFragment}
                                         onDeleteMockupMotionFragment={handleDeleteMockupMotionFragment}
+                                        selectedAudioTrackId={selectedAudioTrackId}
+                                        setSelectedAudioTrackId={handleSelectAudioTrack}
                                     />
                                 </Suspense>
                             </motion.div>

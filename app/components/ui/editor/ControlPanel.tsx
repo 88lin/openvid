@@ -90,6 +90,8 @@ export function ControlPanel({
     onAudioUpload,
     onUpdateAudioTrack,
     onDeleteAudioTrack,
+    selectedAudioTrackId,
+    setSelectedAudioTrackId,
     videoDuration = 0,
     isRecordedVideo = false,
     // Videos library props
@@ -127,7 +129,7 @@ export function ControlPanel({
 
     const t = useTranslations("controlPanel");
     const { imagePhoneActive } = useMockup3dContext();
-    const [isGlobalMotionEnabled, setIsGlobalMotionEnabled] = useState(false);
+    const [isGlobalMotionEnabled, setIsGlobalMotionEnabled] = useState(true);
     return (
         <div className="relative w-full sm:w-[320px] h-screen bg-[#141417] border-r border-white/10 flex flex-col shrink-0" role="complementary" aria-label="Control panel">
             <header className="flex items-center justify-between h-13 p-2 border-b border-white/10 shrink-0" role="banner">
@@ -327,6 +329,8 @@ export function ControlPanel({
                             onAudioUpload={onAudioUpload || (() => { })}
                             onUpdateAudioTrack={onUpdateAudioTrack || (() => { })}
                             onDeleteAudioTrack={onDeleteAudioTrack || (() => { })}
+                            selectedAudioTrackId={selectedAudioTrackId ?? null}
+                            onSelectAudioTrack={setSelectedAudioTrackId || (() => { })}
                         />
                     </Suspense>
                 )}

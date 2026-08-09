@@ -7,6 +7,7 @@ export interface AudioTrack {
     volume: number;
     loop: boolean;
     trimStart?: number;
+    lane?: number;
 }
 
 export interface UploadedAudio {
@@ -61,6 +62,8 @@ export interface AudioMenuProps {
     onAudioUpload: (file: File) => void;
     onUpdateAudioTrack: (trackId: string, updates: Partial<AudioTrack>) => void;
     onDeleteAudioTrack: (trackId: string) => void;
+    selectedAudioTrackId: string | null;
+    onSelectAudioTrack: (id: string | null) => void;
 }
 
 export const MIN_FRAGMENT_DURATION = 0.1;
@@ -80,4 +83,7 @@ export interface AudioFragmentTrackItemProps {
     onMouseLeave?: () => void;
     contentDuration?: number;
     speed?: number;
+    lane?: number;
+    laneHeight?: number;
+    laneCount?: number;
 }

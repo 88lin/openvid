@@ -11,6 +11,8 @@ import { VideoClipTrackItem } from "./VideoClipTrackItem";
 import { Icon } from "@iconify/react";
 import { useTranslations } from "next-intl";
 import { MockupMotionTrackItem } from "./MockupMotionTrackItem";
+import { assignAudioLanes } from "@/lib/audio.utils";
+import { MIN_VISUAL_WIDTH_PX } from "@/types";
 
 const DEFAULT_ZOOM_FRAGMENT_DURATION = 2;
 
@@ -68,6 +70,7 @@ export function Timeline({
     const ghostRafRef = useRef<number | null>(null);
     const pendingGhostXRef = useRef<number | null>(null);
     const lastValidPositionRef = useRef<{ startTime: number; endTime: number } | null>(null);
+
     const isOverFragment = useMemo(() => {
         return hoveredFragmentId ? zoomFragments.some(f => f.id === hoveredFragmentId) : false;
     }, [hoveredFragmentId, zoomFragments]);
@@ -75,6 +78,7 @@ export function Timeline({
     const isDraggingZoomFragment = useMemo(() => {
         return draggingFragmentId ? zoomFragments.some(f => f.id === draggingFragmentId) : false;
     }, [draggingFragmentId, zoomFragments]);
+
     const validDuration = useMemo(() => {
         if (videoClips.length > 0) {
             const lastClipEnd = Math.max(...videoClips.map(c => c.startTime + (c.trimEnd - c.trimStart)));
@@ -109,9 +113,11 @@ export function Timeline({
     useEffect(() => {
         contentWidthMotion.set(contentWidth);
     }, [contentWidth, contentWidthMotion]);
+
     useEffect(() => {
         timelineWidthMotion.set(timelineWidth);
     }, [timelineWidth, timelineWidthMotion]);
+
     useEffect(() => {
         validDurationMotion.set(validDuration);
     }, [validDuration, validDurationMotion]);
@@ -136,6 +142,18 @@ export function Timeline({
         return (trimRange.end / scaledDuration) * contentWidth;
     }, [trimRange.end, scaledDuration, contentWidth]);
 
+    const audioLanes = useMemo(() => {
+        if (audioTracks.length === 0 || contentWidth === 0 || scaledDuration === 0) {
+            return new Map<string, number>();
+        }
+        const timeToPx = (time: number) => (time / scaledDuration) * contentWidth;
+        return assignAudioLanes(audioTracks, timeToPx, MIN_VISUAL_WIDTH_PX);
+    }, [audioTracks, contentWidth, scaledDuration]);
+
+    const audioLaneCount = useMemo(
+        () => (audioLanes.size > 0 ? Math.max(...audioLanes.values()) + 1 : 1),
+        [audioLanes],
+    );
     useEffect(() => {
         if (!isDraggingTrim) {
             trimStartX.set(trimStartPosition);
@@ -370,10 +388,10 @@ export function Timeline({
     return (
         <div ref={containerRef} className="flex flex-col w-full pr-2">
             <div className={`${(audioTracks.length > 0 && mockupMotionFragments.length > 0)
-                    ? 'h-64'
-                    : (audioTracks.length > 0 || mockupMotionFragments.length > 0)
-                        ? 'h-50'
-                        : 'h-38'
+                ? 'h-64'
+                : (audioTracks.length > 0 || mockupMotionFragments.length > 0)
+                    ? 'h-50'
+                    : 'h-38'
                 } shrink-0 bg-[#0D0D11] border-t border-white/10 flex flex-col font-mono text-[11px]`}>
 
                 <div className="flex-1 flex flex-col relative overflow-hidden">
@@ -647,10 +665,14 @@ export function Timeline({
                                 </div>
 
                                 {audioTracks.length > 0 && (
-                                    <div className="min-h-[55px] shrink-0 w-full flex items-center relative">
-                                        <div className="h-full w-full flex items-center relative">
+                                    <div className="shrink-0 w-full relative" style={{ minHeight: audioLaneCount * 55 }}>
+                                        <div className="h-full w-full relative">
                                             {audioTracks.map((track) => {
                                                 const audio = uploadedAudios?.find(a => a.id === track.audioId);
+                                                const trackLane = audioLanes.get(track.id) ?? 0;
+                                                const sameLaneOtherTracks = audioTracks.filter(
+                                                    (t) => t.id !== track.id && (audioLanes.get(t.id) ?? 0) === trackLane
+                                                );
                                                 return (
                                                     <AudioFragmentTrackItem
                                                         key={track.id}
@@ -661,7 +683,10 @@ export function Timeline({
                                                         videoDuration={scaledDuration}
                                                         contentDuration={validDuration}
                                                         speed={speed}
-                                                        otherTracks={audioTracks.filter(t => t.id !== track.id)}
+                                                        lane={trackLane}
+                                                        laneHeight={55}
+                                                        laneCount={audioLaneCount}
+                                                        otherTracks={sameLaneOtherTracks}
                                                         onSelect={() => onSelectAudioTrack?.(track.id)}
                                                         onUpdate={(updates) => onUpdateAudioTrack?.(track.id, updates)}
                                                     />
