@@ -1192,16 +1192,14 @@
       "unsupportedFormat": "지원하지 않는 오디오 형식입니다. MP3, WAV, OGG, AAC 또는 M4A를 사용하세요.",
       "fileTooLarge": "파일이 너무 큽니다. 최대 용량은 10MB입니다."
     },
-    "audioMenu": {
-      "defaultSounds": "기본 사운드",
-      "categories": {
-        "confirmation": "확인",
-        "alert": "경고",
-        "ui": "인터페이스",
-        "transition": "전환",
-        "ambient": "분위기",
-        "system": "시스템"
-      }
+    "defaultSounds": "기본 사운드",
+    "categories": {
+      "confirmation": "확인",
+      "alert": "경고",
+      "ui": "인터페이스",
+      "transition": "전환",
+      "ambient": "분위기",
+      "system": "시스템"
     }
   },
   "exportOverlay": {

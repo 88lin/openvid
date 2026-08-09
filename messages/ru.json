@@ -1161,16 +1161,14 @@
       "unsupportedFormat": "Неподдерживаемый формат аудио. Используйте MP3, WAV, OGG, AAC или M4A.",
       "fileTooLarge": "Файл слишком большой. Максимальный размер — 10 МБ."
     },
-    "audioMenu": {
-      "defaultSounds": "Стандартные звуки",
-      "categories": {
-        "confirmation": "Подтверждение",
-        "alert": "Оповещение",
-        "ui": "Интерфейс",
-        "transition": "Переход",
-        "ambient": "Атмосфера",
-        "system": "Система"
-      }
+    "defaultSounds": "Стандартные звуки",
+    "categories": {
+      "confirmation": "Подтверждение",
+      "alert": "Оповещение",
+      "ui": "Интерфейс",
+      "transition": "Переход",
+      "ambient": "Атмосфера",
+      "system": "Система"
     }
   },
   "exportOverlay": {
