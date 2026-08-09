@@ -1392,5 +1392,20 @@
     "audio": "Audio",
     "uploading": "Subiendo...",
     "uploadVideo": "Subir video"
+  },
+  "feedback": {
+    "tooltip": "Enviar feedback",
+    "title": "Enviar feedback",
+    "close": "Cerrar",
+    "types": {
+      "bug": "Error",
+      "idea": "Idea",
+      "other": "Otro"
+    },
+    "messagePlaceholder": "Cuéntanos qué pasó o qué te gustaría ver...",
+    "emailPlaceholder": "Tu email (opcional, para responderte)",
+    "submit": "Enviar",
+    "successMessage": "¡Gracias! Recibimos tu feedback.",
+    "errorMessage": "No se pudo enviar. Intenta de nuevo."
   }
 }

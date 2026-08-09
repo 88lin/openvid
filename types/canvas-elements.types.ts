@@ -97,6 +97,5 @@ export interface UploadedImage {
     uploadedAt: number;
 }
 
-
 export const MAX_FILE_SIZE = 5 * 1024 * 1024;
 export const ACCEPTED_FORMATS = ["image/png", "image/jpeg", "image/jpg", "image/webp", "image/gif"];

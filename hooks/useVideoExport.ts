@@ -228,7 +228,7 @@ async function exportWithMediabunny(
     setProgress({
         status: "encoding",
         progress: 2,
-        message: "Configurando archivo de salida...",
+        message: "Configuring output file...",
     });
 
     const outputDuration = duration / speed;
@@ -248,7 +248,7 @@ async function exportWithMediabunny(
         target = new StreamTarget(writableStream);
         isDirectToDisk = true;
     } catch (error) {
-        console.warn("Direct-to-disk cancelado o no soportado. Usando BufferTarget (RAM).", error);
+        console.warn("Direct-to-disk canceled or not supported. Using BufferTarget (RAM).", error);
         target = new BufferTarget();
     }
 
@@ -272,7 +272,7 @@ async function exportWithMediabunny(
 
         await output.start();
     } catch (error) {
-        console.warn("Fallo aceleración por hardware. Usando software fallback.");
+        console.warn("Hardware acceleration failure. Using software fallback.");
 
         output = new Output({
             format: new Mp4OutputFormat({ fastStart: "in-memory" }),
@@ -285,7 +285,7 @@ async function exportWithMediabunny(
             bitrateMode: "variable",
             latencyMode: "quality",
             fullCodecString: "avc1.640033",
-            hardwareAcceleration: "prefer-software", 
+            hardwareAcceleration: "prefer-software",
         });
         output.addVideoTrack(videoSource, { frameRate: fps });
         await output.start();
@@ -298,12 +298,12 @@ async function exportWithMediabunny(
     setProgress({
         status: "encoding",
         progress: 10,
-        message: `Iniciando codificación a ${fps} fps...`,
+        message: `Starting encoding ${fps} fps...`,
     });
 
     for (let frameIndex = 0; frameIndex < totalFrames; frameIndex++) {
         if (cancellation.cancelled) {
-            await output.cancel(); 
+            await output.cancel();
             throw new Error("Export cancelled");
         }
 
@@ -326,7 +326,7 @@ async function exportWithMediabunny(
             setProgress({
                 status: "encoding",
                 progress,
-                message: `Codificando ${frameIndex + 1}/${totalFrames} frames (${fps}fps)...`,
+                message: `Encoding ${frameIndex + 1}/${totalFrames} frames (${fps}fps)...`,
             });
         }
 
@@ -343,7 +343,7 @@ async function exportWithMediabunny(
     setProgress({
         status: "finalizing",
         progress: 92,
-        message: "Finalizando codificación...",
+        message: "Finishing the coding...",
     });
 
     await output.finalize();
@@ -352,10 +352,10 @@ async function exportWithMediabunny(
         setProgress({
             status: "complete",
             progress: 100,
-            message: "¡Exportación directa al disco completada!",
+            message: "Direct to disk export completed!",
         });
     } else {
-        setProgress({ status: "finalizing", progress: 96, message: "Generando archivo final..." });
+        setProgress({ status: "finalizing", progress: 96, message: "Generating final file..." });
 
         const buffer = (output.target as BufferTarget).buffer;
         if (!buffer) throw new Error("Failed to generate the MP4 file");
@@ -366,7 +366,7 @@ async function exportWithMediabunny(
         setProgress({
             status: "complete",
             progress: 100,
-            message: "¡Exportación completada!",
+            message: "Export completed!",
         });
     }
 }

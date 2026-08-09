@@ -18,25 +18,11 @@ import {
     TYPE_ICON,
     PointerDragState,
 } from "@/types/layers.types";
-import { buildLayerNames, buildGroupNumbers } from "@/lib/layers.utils";
+import { buildLayerNames, buildGroupNumbers, getIsMobileServerSnapshot, getIsMobileSnapshot, subscribeToMobileQuery, VIDEO_SENTINEL } from "@/lib/layers.utils";
 import ContextMenu from "./ContextMenu";
 import { useTranslations } from "next-intl";
 import { TooltipAction } from "@/components/ui/tooltip-action";
-
-const VIDEO_SENTINEL = "__video__";
-const MOBILE_QUERY = "(max-width: 639px)";
-
-function subscribeToMobileQuery(callback: () => void) {
-    const mq = window.matchMedia(MOBILE_QUERY);
-    mq.addEventListener("change", callback);
-    return () => mq.removeEventListener("change", callback);
-}
-function getIsMobileSnapshot() {
-    return window.matchMedia(MOBILE_QUERY).matches;
-}
-function getIsMobileServerSnapshot() {
-    return false;
-}
+import { FeedbackWidget } from "./FeedbackWidget";
 
 export function LayersPanelInner({
     elements,
@@ -64,7 +50,6 @@ export function LayersPanelInner({
     const t = useTranslations("editor");
     const tActions = useTranslations("elementsMenu");
 
-    // --- open/closed panel, responsive default ---
     const isMobile = useSyncExternalStore(
         subscribeToMobileQuery,
         getIsMobileSnapshot,
@@ -73,14 +58,10 @@ export function LayersPanelInner({
     const [isOpen, setIsOpen] = useState(!isMobile);
     const [prevIsMobile, setPrevIsMobile] = useState(isMobile);
     if (isMobile !== prevIsMobile) {
-        // Adjusting state when an external value changes, done during render
-        // instead of inside an effect. Runs once per real breakpoint crossing;
-        // manual open/close toggles in between are left untouched.
         setPrevIsMobile(isMobile);
         setIsOpen(!isMobile);
     }
 
-    // --- selection state ---
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const selectedIdsRef = useRef<string[]>([]);
     useEffect(() => {
@@ -145,7 +126,6 @@ export function LayersPanelInner({
         if (Date.now() < ignoreSyncUntilRef.current) return;
         const sortedIncoming = [...elements].sort((a, b) => b.zIndex - a.zIndex).map((e) => e.id);
         setDisplayOrder(insertVideoSentinel(sortedIncoming));
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [syncKey, videoLayerVisible]);
 
     useEffect(() => {
@@ -158,7 +138,6 @@ export function LayersPanelInner({
         };
         window.addEventListener("pointerdown", close);
         return () => window.removeEventListener("pointerdown", close);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [!!ctxMenu, !!videoCtxMenu, !!groupCtxMenu]);
 
     useEffect(() => {
@@ -423,7 +402,6 @@ export function LayersPanelInner({
             window.removeEventListener("mousemove", onMove);
             window.removeEventListener("mouseup", onUp);
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [!!pointerDrag, visualRows]);
 
     const startPointerDrag = useCallback(
@@ -861,6 +839,9 @@ export function LayersPanelInner({
                         return rows;
                     })()
                 )}
+            </div>
+            <div className="shrink-0 px-2 py-1.5 flex items-center justify-end">
+                <FeedbackWidget />
             </div>
             {selectedIds.length > 1 && (
                 <div className="shrink-0 border-t border-white/6 px-2 py-1.5 flex items-center gap-1">

@@ -1414,5 +1414,20 @@
     "audio": "Audio",
     "uploading": "Uploading...",
     "uploadVideo": "Upload video"
+  },
+  "feedback": {
+    "tooltip": "Send feedback",
+    "title": "Send feedback",
+    "close": "Close",
+    "types": {
+      "bug": "Bug",
+      "idea": "Idea",
+      "other": "Other"
+    },
+    "messagePlaceholder": "Tell us what happened or what you'd like to see...",
+    "emailPlaceholder": "Your email (optional, so we can reply)",
+    "submit": "Send",
+    "successMessage": "Thanks! We got your feedback.",
+    "errorMessage": "Couldn't send it. Please try again."
   }
 }

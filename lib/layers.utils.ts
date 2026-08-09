@@ -37,3 +37,18 @@ export function buildGroupNumbers(elements: CanvasElement[]): Map<string, number
     }
     return map;
 }
+
+export const VIDEO_SENTINEL = "__video__";
+export const MOBILE_QUERY = "(max-width: 639px)";
+
+export function subscribeToMobileQuery(callback: () => void) {
+    const mq = window.matchMedia(MOBILE_QUERY);
+    mq.addEventListener("change", callback);
+    return () => mq.removeEventListener("change", callback);
+}
+export function getIsMobileSnapshot() {
+    return window.matchMedia(MOBILE_QUERY).matches;
+}
+export function getIsMobileServerSnapshot() {
+    return false;
+}

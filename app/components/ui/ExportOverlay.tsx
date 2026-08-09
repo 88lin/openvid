@@ -1,13 +1,16 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@iconify/react";
 import { useTranslations } from "next-intl";
 
-interface ExportProgress {
+export interface ExportProgress {
     status: "idle" | "preparing" | "encoding" | "finalizing" | "complete" | "error";
     progress: number;
     message: string;
+    step?: "capturing" | "encoding" | "encodingWebM" | "preparing" | "finalizing";
 }
 
 interface ExportOverlayProps {
@@ -16,25 +19,55 @@ interface ExportOverlayProps {
     isTransparentExport?: boolean;
 }
 
-export function ExportOverlay({ exportProgress, onCancel, isTransparentExport }: ExportOverlayProps) {
-    const t = useTranslations("exportOverlay");
+const emptySubscribe = () => () => { };
+function useIsClient() {
+    return useSyncExternalStore(
+        emptySubscribe,
+        () => true,
+        () => false
+    );
+}
 
-    const isExporting = exportProgress.status !== "idle" &&
+export function ExportOverlay({
+    exportProgress,
+    onCancel,
+    isTransparentExport,
+}: ExportOverlayProps) {
+    const t = useTranslations("exportOverlay");
+    const isClient = useIsClient();
+
+    const isExporting =
+        exportProgress.status !== "idle" &&
         exportProgress.status !== "complete" &&
         exportProgress.status !== "error";
 
-    if (!isExporting) return null;
+    if (!isExporting || !isClient) return null;
 
     const getStatusMessage = () => {
+        if (exportProgress.step) {
+            switch (exportProgress.step) {
+                case "capturing":
+                    return t("status.capturing");
+                case "encoding":
+                    return t("status.encoding");
+                case "encodingWebM":
+                    return t("status.encodingWebM");
+                case "preparing":
+                    return t("status.preparing");
+                case "finalizing":
+                    return t("status.finalizing");
+            }
+        }
+
         switch (exportProgress.status) {
             case "preparing":
                 return t("status.preparing");
             case "encoding":
-                return exportProgress.message.startsWith("[Paso 1/2]")
+                return exportProgress.message.startsWith("[1/2]")
                     ? t("status.capturing")
                     : t("status.encoding");
             case "finalizing":
-                return exportProgress.message.startsWith("[Paso 2/2]")
+                return exportProgress.message.startsWith("[2/2]")
                     ? t("status.encodingWebM")
                     : t("status.finalizing");
             default:
@@ -42,12 +75,18 @@ export function ExportOverlay({ exportProgress, onCancel, isTransparentExport }:
         }
     };
 
-    return (
-        <div className="fixed inset-0 z-999999 flex items-center justify-center bg-black/20 backdrop-blur-md transition-all duration-500">
-            <div className="p-10 bg-black border border-white/10 squircle-element-camera shadow-[0_0_80px_-15px_rgba(0,0,0,1)] w-full max-w-lg mx-4">
+    const cleanMessage = exportProgress.message.replace(/^\[\d\/\d\]\s*/, "");
 
+    const modalContent = (
+        <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="export-overlay-title"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-md transition-all duration-500"
+        >
+            <div className="p-10 bg-black border border-white/10 squircle-element-camera shadow-[0_0_80px_-15px_rgba(0,0,0,1)] w-full max-w-lg mx-4">
                 <div className="flex justify-center mb-8">
-                    <div className="flex items-center gap-2.5 px-3 py-1 bg-white/3 border border-white/10 rounded-full">
+                    <div className="flex items-center gap-2.5 px-3 py-1 bg-white/5 border border-white/10 rounded-full">
                         <div className="relative flex h-2 w-2">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
                             <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
@@ -58,16 +97,27 @@ export function ExportOverlay({ exportProgress, onCancel, isTransparentExport }:
                     </div>
                 </div>
 
-                <div className="text-center mb-8">
-                    <h2 className="text-7xl font-bold tracking-tighter text-white tabular-nums">
-                        {exportProgress.progress}<span className="text-2xl text-white/70 ml-1">%</span>
+                <div
+                    className="text-center mb-8"
+                    role="status"
+                    aria-live="polite"
+                    aria-atomic="true"
+                >
+                    <h2
+                        id="export-overlay-title"
+                        className="text-7xl font-bold tracking-tighter text-white tabular-nums"
+                    >
+                        {exportProgress.progress}
+                        <span className="text-2xl text-white/70 ml-1">%</span>
                     </h2>
                 </div>
 
                 <div className="relative w-full h-1.5 bg-white/15 rounded-full overflow-hidden mb-10">
                     <div
-                        className="absolute left-0 top-0 h-full bg-white transition-all duration-700 ease-in-out shadow-[0_0_15px_rgba(255,255,255,0.5)]"
-                        style={{ width: `${exportProgress.progress}%` }}
+                        className="absolute inset-0 bg-white origin-left transition-transform duration-300 ease-out shadow-[0_0_15px_rgba(255,255,255,0.5)]"
+                        style={{
+                            transform: `scaleX(${Math.min(Math.max(exportProgress.progress, 0), 100) / 100})`,
+                        }}
                     />
                 </div>
 
@@ -76,13 +126,19 @@ export function ExportOverlay({ exportProgress, onCancel, isTransparentExport }:
                         <p className="text-lg font-medium tracking-tight leading-none shimmer-text">
                             {getStatusMessage()}
                         </p>
-                        <p className="text-sm text-white/40 font-mono italic mt-0.5 tracking-wide">
-                            {exportProgress.message.replace(/^\[Paso \d\/\d\] /, "")}
-                        </p>
+                        {cleanMessage && (
+                            <p className="text-sm text-white/40 font-mono italic mt-0.5 tracking-wide">
+                                {cleanMessage}
+                            </p>
+                        )}
                     </div>
 
                     <div className="flex items-start gap-3 p-4 bg-white/5 border border-white/10 squircle-element-camera">
-                        <Icon icon="lucide:alert-circle" className="text-blue-500 shrink-0 mt-0.5" width="18" />
+                        <Icon
+                            icon="lucide:alert-circle"
+                            className="text-blue-500 shrink-0 mt-0.5"
+                            width="18"
+                        />
                         <p className="text-md text-white/70 leading-relaxed">
                             {t.rich("warnings.performance", {
                                 highlight: (chunks) => (
@@ -102,17 +158,25 @@ export function ExportOverlay({ exportProgress, onCancel, isTransparentExport }:
                                             />
                                         </svg>
                                     </span>
-                                )
+                                ),
                             })}
                         </p>
                     </div>
 
                     {isTransparentExport && (
                         <div className="flex items-start gap-3 p-4 bg-cyan-500/5 border border-cyan-500/20 squircle-element-camera">
-                            <Icon icon="lucide:clock" className="text-cyan-400 shrink-0 mt-0.5" width="18" />
+                            <Icon
+                                icon="lucide:clock"
+                                className="text-cyan-400 shrink-0 mt-0.5"
+                                width="18"
+                            />
                             <p className="text-md text-cyan-400/80 leading-relaxed">
                                 {t.rich("warnings.transparency", {
-                                    highlight: (chunks) => <span className="font-semibold text-cyan-300">{chunks}</span>
+                                    highlight: (chunks) => (
+                                        <span className="font-semibold text-cyan-300">
+                                            {chunks}
+                                        </span>
+                                    ),
                                 })}
                             </p>
                         </div>
@@ -130,4 +194,6 @@ export function ExportOverlay({ exportProgress, onCancel, isTransparentExport }:
             </div>
         </div>
     );
+
+    return createPortal(modalContent, document.body);
 }
