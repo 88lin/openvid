@@ -78,7 +78,25 @@ export async function updateSession(
 
   const {
     data: { user },
+    error,
   } = await supabase.auth.getUser();
+
+  if (error?.code === "refresh_token_not_found" || error?.code === "session_not_found") {
+    await supabase.auth.signOut({ scope: "local" });
+    const authCookieNames = request.cookies
+      .getAll()
+      .filter((c) => c.name.includes("-auth-token"))
+      .map((c) => c.name);
+
+    const applyAuthCookies = (target: NextResponse): boolean => {
+      authCookieNames.forEach((name) => {
+        target.cookies.delete(name);
+      });
+      return authCookieNames.length > 0;
+    };
+
+    return { user: null, applyAuthCookies };
+  }
 
   const applyAuthCookies = (target: NextResponse): boolean => {
     if (cookiesToApply.length === 0) return false;
