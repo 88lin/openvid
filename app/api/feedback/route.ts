@@ -24,6 +24,7 @@ function isRateLimited(ip: string): boolean {
     rateLimitStore.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
     return false;
   }
+
   if (entry.count >= RATE_LIMIT_MAX_REQUESTS) return true;
 
   entry.count += 1;
@@ -39,8 +40,14 @@ function getClientIp(request: NextRequest): string {
 function isAllowedOrigin(request: NextRequest): boolean {
   const origin = request.headers.get("origin");
   if (!origin) return true;
+
   try {
-    return new URL(origin).host === new URL(request.url).host;
+    const originHost = new URL(origin).host;
+    const requestHost =
+      request.headers.get("x-forwarded-host") ||
+      request.headers.get("host");
+
+    return originHost === requestHost;
   } catch {
     return false;
   }
@@ -59,8 +66,8 @@ function isValidPayload(body: unknown): body is FeedbackPayload {
   const b = body as Record<string, unknown>;
 
   if (typeof b.type !== "string" || !FEEDBACK_TYPES.includes(b.type as FeedbackType)) return false;
-
   if (typeof b.message !== "string") return false;
+
   const trimmedMessage = b.message.trim();
   if (trimmedMessage.length < MESSAGE_MIN_LENGTH || trimmedMessage.length > MESSAGE_MAX_LENGTH) return false;
 
@@ -93,6 +100,7 @@ export async function POST(request: NextRequest) {
 
     const message = body.message.trim().slice(0, MESSAGE_MAX_LENGTH);
     const email = body.email?.trim().slice(0, EMAIL_MAX_LENGTH) || null;
+
     if (email && !EMAIL_REGEX.test(email)) {
       return NextResponse.json({ error: "Invalid email" }, { status: 400 });
     }
