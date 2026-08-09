@@ -18,7 +18,7 @@ import { useUndoRedo } from "@/hooks/useUndoRedo";
 import { clearAllThumbnailCache } from "@/lib/thumbnail-cache";
 import { addVideoToLibrary, addVideoToLibraryWithMetadata, getLibraryVideoCount, getLibraryVideo, findExistingVideo } from "@/lib/videos-library";
 import { calculateTotalDuration, findNextClipPosition, getClipAtTime, splitClipAtTime, type VideoTrackClip } from "@/types/video-track.types";
-import type { ExportQuality, BackgroundTab, VideoCanvasHandle, BackgroundColorConfig, AspectRatio, CropArea, ZoomFragment, AudioTrack, ImageExportFormat } from "@/types";
+import type { ExportQuality, BackgroundTab, VideoCanvasHandle, BackgroundColorConfig, AspectRatio, CropArea, ZoomFragment, AudioTrack, ImageExportFormat, UploadedAudio } from "@/types";
 import type { TrimRange } from "@/types/timeline.types";
 import type { MockupConfig, MenuPage } from "@/types/mockup.types";
 import type { EditorState } from "@/types/editor-state.types";
@@ -272,8 +272,8 @@ export default function Editor() {
     const [multiSelectedElementIds, setMultiSelectedElementIds] = useState<string[]>([]);
 
     // Audio state
-    const [uploadedAudios, setUploadedAudios] = useState<import("@/types/audio.types").UploadedAudio[]>([]);
-    const [audioTracks, setAudioTracks] = useState<import("@/types/audio.types").AudioTrack[]>([]);
+    const [uploadedAudios, setUploadedAudios] = useState<UploadedAudio[]>([]);
+    const [audioTracks, setAudioTracks] = useState<AudioTrack[]>([]);
     const [muteOriginalAudio, setMuteOriginalAudio] = useState<boolean>(false);
     const [masterVolume, setMasterVolume] = useState<number>(1);
     const [selectedAudioTrackId, setSelectedAudioTrackId] = useState<string | null>(null);
@@ -746,7 +746,7 @@ export default function Editor() {
 
     const [autoTrimModalOpen, setAutoTrimModalOpen] = useState(false);
     const [pendingAudioUpload, setPendingAudioUpload] = useState<{
-        audio: import("@/types/audio.types").UploadedAudio;
+        audio: UploadedAudio;
         trackId: string;
     } | null>(null);
 
@@ -1112,7 +1112,7 @@ export default function Editor() {
                 audio.addEventListener('error', () => reject(new Error('Failed to load audio')));
             });
 
-            const newAudio: import("@/types/audio.types").UploadedAudio = {
+            const newAudio: UploadedAudio = {
                 id: `audio-${crypto.randomUUID()}`,
                 name: file.name,
                 url,
@@ -1132,7 +1132,7 @@ export default function Editor() {
                 setPendingAudioUpload({ audio: newAudio, trackId });
                 setAutoTrimModalOpen(true);
             } else {
-                const newTrack: import("@/types/audio.types").AudioTrack = {
+                const newTrack: AudioTrack = {
                     id: trackId,
                     audioId: newAudio.id,
                     name: newAudio.name,
@@ -1183,7 +1183,7 @@ export default function Editor() {
         const lastTrackEnd = audioTracks.reduce((max, track) =>
             Math.max(max, track.startTime + track.duration), 0);
 
-        const newTrack: import("@/types/audio.types").AudioTrack = {
+        const newTrack: AudioTrack = {
             id: `track-${crypto.randomUUID()}`,
             audioId,
             name: audio.name,
@@ -1199,7 +1199,7 @@ export default function Editor() {
         }
     }, [uploadedAudios, audioTracks]);
 
-    const handleUpdateAudioTrack = useCallback((trackId: string, updates: Partial<import("@/types/audio.types").AudioTrack>) => {
+    const handleUpdateAudioTrack = useCallback((trackId: string, updates: Partial<AudioTrack>) => {
         setAudioTracks(prev => prev.map(track =>
             track.id === trackId ? { ...track, ...updates } : track
         ));

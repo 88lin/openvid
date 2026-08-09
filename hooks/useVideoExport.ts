@@ -363,25 +363,54 @@ async function exportWithMediabunny(
     const totalFrames = Math.ceil(outputDuration * fps);
     const frameDuration = 1 / fps;
 
-    const output = new Output({
+    let output = new Output({
         format: new Mp4OutputFormat({
             fastStart: "in-memory",
         }),
         target: new BufferTarget(),
     });
 
-    const videoSource = new CanvasSource(canvas, {
-        codec: "avc",
-        bitrate: bitrate,
-        bitrateMode: "variable",
-        latencyMode: "quality",
-        fullCodecString: "avc1.640033",
-    });
-    output.addVideoTrack(videoSource, {
-        frameRate: fps,
-    });
+    let videoSource: CanvasSource;
 
-    await output.start();
+    try {
+        videoSource = new CanvasSource(canvas, {
+            codec: "avc",
+            bitrate: bitrate,
+            bitrateMode: "variable",
+            latencyMode: "quality",
+            fullCodecString: "avc1.640033",
+            hardwareAcceleration: "prefer-hardware",
+        });
+
+        output.addVideoTrack(videoSource, {
+            frameRate: fps,
+        });
+
+        await output.start();
+    } catch (error) {
+
+        output = new Output({
+            format: new Mp4OutputFormat({
+                fastStart: "in-memory",
+            }),
+            target: new BufferTarget(),
+        });
+
+        videoSource = new CanvasSource(canvas, {
+            codec: "avc",
+            bitrate: bitrate,
+            bitrateMode: "variable",
+            latencyMode: "quality",
+            fullCodecString: "avc1.640033",
+            hardwareAcceleration: "prefer-software",
+        });
+
+        output.addVideoTrack(videoSource, {
+            frameRate: fps,
+        });
+
+        await output.start();
+    }
 
     video.pause();
     video.currentTime = trimStart;
@@ -514,25 +543,45 @@ async function exportWithMediabunnyAndAudio(
     const totalFrames = Math.ceil(outputDuration * fps);
     const frameDuration = 1 / fps;
 
-    const output = new Output({
-        format: new Mp4OutputFormat({
-            fastStart: "in-memory",
-        }),
+    let output = new Output({
+        format: new Mp4OutputFormat({ fastStart: "in-memory" }),
         target: new BufferTarget(),
     });
 
-    const videoSource = new CanvasSource(canvas, {
-        codec: "avc",
-        bitrate: bitrate,
-        bitrateMode: "variable",
-        latencyMode: "quality",
-        fullCodecString: "avc1.640033",
-    });
-    output.addVideoTrack(videoSource, {
-        frameRate: fps,
-    });
+    let videoSource: CanvasSource;
 
-    await output.start();
+    try {
+        videoSource = new CanvasSource(canvas, {
+            codec: "avc",
+            bitrate: bitrate,
+            bitrateMode: "variable",
+            latencyMode: "quality",
+            fullCodecString: "avc1.640033",
+            hardwareAcceleration: "prefer-hardware",
+        });
+
+        output.addVideoTrack(videoSource, { frameRate: fps });
+        await output.start();
+
+    } catch (error) {
+
+        output = new Output({
+            format: new Mp4OutputFormat({ fastStart: "in-memory" }),
+            target: new BufferTarget(),
+        });
+
+        videoSource = new CanvasSource(canvas, {
+            codec: "avc",
+            bitrate: bitrate,
+            bitrateMode: "variable",
+            latencyMode: "quality",
+            fullCodecString: "avc1.640033",
+            hardwareAcceleration: "prefer-software",
+        });
+
+        output.addVideoTrack(videoSource, { frameRate: fps });
+        await output.start();
+    }
 
     video.pause();
 
