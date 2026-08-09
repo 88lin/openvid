@@ -1191,6 +1191,17 @@
     "errors": {
       "unsupportedFormat": "Unsupported audio format. Please use MP3, WAV, OGG, AAC, or M4A.",
       "fileTooLarge": "File is too large. Maximum size is 10MB."
+    },
+    "audioMenu": {
+      "defaultSounds": "Default sounds",
+      "categories": {
+        "confirmation": "Confirmation",
+        "alert": "Alert",
+        "ui": "Interface",
+        "transition": "Transition",
+        "ambient": "Ambient",
+        "system": "System"
+      }
     }
   },
   "exportOverlay": {
