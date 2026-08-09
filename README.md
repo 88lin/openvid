@@ -117,13 +117,14 @@ Add context to your demo with professional frames:
     </td>
     <td width="40%">
      <img
-        src="https://github.com/user-attachments/assets/cf864839-f17d-417a-91cb-81bbdf754631"
+        src="https://github.com/user-attachments/assets/28ce5648-4085-4503-ac68-d8224f7bcccb"
         alt="Frame 1116606752"
         width="100%"
       />
     </td>
   </tr>
 </table>
+
 ---
 
 ## Technology
