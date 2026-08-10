@@ -8,7 +8,7 @@ import { useTranslations } from "next-intl";
 export default function Footer() {
   const t = useTranslations('footer');
   const currentYear = new Date().getFullYear();
-  
+
   return (
     <footer className="border-t border-white/10 bg-[#050505] pt-16 pb-8" role="contentinfo">
       <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between gap-12 mb-16">
@@ -31,9 +31,9 @@ export default function Footer() {
           <nav aria-label={t('product')}>
             <h4 className="text-white font-medium text-sm mb-4">{t('product')}</h4>
             <ul className="space-y-3 text-sm text-neutral-500">
-              <li><a href="#docs" className="hover:text-white transition-colors">{t('docs')}</a></li>
+              <li><Link href="/guide" target="_blank" className="hover:text-white transition-colors">{t('guide')}</Link></li>
               <li><Link href="/editor" className="hover:text-white transition-colors">{t('editor')}</Link></li>
-              <li><a href="/donate" target="_blank" className="hover:text-white transition-colors">{t('donate')}</a></li>
+              <li><Link href="/donate" target="_blank" className="hover:text-white transition-colors">{t('donate')}</Link></li>
             </ul>
           </nav>
           <nav aria-label={t('contact')}>

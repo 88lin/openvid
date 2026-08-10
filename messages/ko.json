@@ -1,6 +1,6 @@
 {
   "header": {
-    "docs": "문서",
+    "guide": "가이드",
     "github": "GitHub",
     "editor": "에디터로 이동",
     "donate": "후원하기",
@@ -21,7 +21,7 @@
     "privacy": "개인정보 처리방침",
     "terms": "이용약관",
     "rights": "모든 권리 보유.",
-    "docs": "문서",
+    "guide": "가이드",
     "editor": "에디터로 이동",
     "donate": "후원하기",
     "github": "GitHub",
@@ -1429,5 +1429,23 @@
     "submit": "보내기",
     "successMessage": "감사합니다! 피드백이 정상적으로 접수되었습니다.",
     "errorMessage": "전송에 실패했습니다. 다시 시도해 주세요."
+  },
+  "tour": {
+    "nextBtn": "다음",
+    "prevBtn": "이전",
+    "doneBtn": "확인!",
+    "step1": {
+      "title": "화면을 녹화하세요!",
+      "description": "여기를 클릭하여 화면 녹화를 시작하세요. 더 많은 정보나 도움이 필요하면",
+      "guideLinkText": "사용자 가이드"
+    },
+    "step2": {
+      "title": "맞춤형 비디오 업로드",
+      "description": "이미 비디오가 있나요? 기기에서 직접 업로드하여 편집할 수도 있습니다."
+    },
+    "step3": {
+      "title": "사진으로 목업 만들기",
+      "description": "비디오뿐만이 아닙니다! 이미지를 업로드하고 사진으로 멋진 목업을 만들어보세요."
+    }
   }
 }

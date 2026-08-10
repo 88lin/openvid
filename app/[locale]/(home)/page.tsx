@@ -123,12 +123,6 @@ export default async function Home({ params }: Props) {
           <div className="absolute inset-x-0 bottom-0 h-40 bg-linear-to-t from-[#0a0a0a] to-transparent pointer-events-none z-20" />
         </div>
 
-        <section className="w-full py-10 sm:py-16" aria-label="How it works">
-          <div className="max-w-7xl mx-auto xl:px-0">
-            <InteractiveRecordingSteps />
-          </div>
-        </section>
-
         <div className="relative overflow-hidden w-full bg-black">
           <section className="w-full" aria-label="Editor features and demos">
             <div className="w-full mx-auto">

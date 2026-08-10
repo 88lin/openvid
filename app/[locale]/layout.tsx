@@ -154,6 +154,7 @@ export default async function LocaleLayout({
     socialReactions: messages.socialReactions,
     donation: messages.donation,
     notFound: messages.notFound,
+    tour: messages.tour,
   };
 
   const isProduction = process.env.NODE_ENV === "production";

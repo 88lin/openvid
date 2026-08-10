@@ -1,6 +1,6 @@
 {
   "header": {
-    "docs": "Documentación",
+    "guide": "Guía",
     "github": "GitHub",
     "editor": "Ir al editor",
     "donate": "Donar",
@@ -19,7 +19,7 @@
     "privacy": "Privacidad",
     "terms": "Términos",
     "rights": "All rights reserved.",
-    "docs": "Documentación",
+    "guide": "Guía",
     "editor": "Ir al editor",
     "donate": "Donar",
     "github": "GitHub",
@@ -1407,5 +1407,23 @@
     "submit": "Enviar",
     "successMessage": "¡Gracias! Recibimos tu feedback.",
     "errorMessage": "No se pudo enviar. Intenta de nuevo."
+  },
+  "tour": {
+    "nextBtn": "Siguiente",
+    "prevBtn": "Anterior",
+    "doneBtn": "¡Entendido!",
+    "step1": {
+      "title": "¡Graba tu pantalla!",
+      "description": "Haz clic aquí para empezar a grabar tu pantalla. Si necesitas más información o ayuda, puedes consultar nuestra",
+      "guideLinkText": "Guía de uso"
+    },
+    "step2": {
+      "title": "Sube un video personalizado",
+      "description": "¿Ya tienes un video? También puedes subirlo directamente desde tu dispositivo para editarlo."
+    },
+    "step3": {
+      "title": "Crea mockups desde fotos",
+      "description": "¡No solo es para video! Sube una imagen y crea mockups increíbles a partir de tus fotografías."
+    }
   }
 }

@@ -16,7 +16,7 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
                     options={{
                         lerp: 0.08,
                         smoothWheel: true,
-                        wheelMultiplier: 1,
+                        wheelMultiplier: 1.1,
                     }}
                 >
                     <div className="flex min-h-screen flex-col text-neutral-300 bg-neutral-950">

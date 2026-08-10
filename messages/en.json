@@ -1,6 +1,6 @@
 {
   "header": {
-    "docs": "Documentation",
+    "guide": "Guide",
     "github": "GitHub",
     "editor": "Go to editor",
     "donate": "Donate",
@@ -21,7 +21,7 @@
     "privacy": "Privacy",
     "terms": "Terms",
     "rights": "All rights reserved.",
-    "docs": "Documentation",
+    "guide": "Guide",
     "editor": "Go to editor",
     "donate": "Donate",
     "github": "GitHub",
@@ -1429,5 +1429,23 @@
     "submit": "Send",
     "successMessage": "Thanks! We got your feedback.",
     "errorMessage": "Couldn't send it. Please try again."
+  },
+  "tour": {
+    "nextBtn": "Next",
+    "prevBtn": "Previous",
+    "doneBtn": "Got it!",
+    "step1": {
+      "title": "Record your screen!",
+      "description": "Click here to start recording your screen. If you need more information or help, you can check our",
+      "guideLinkText": "User Guide"
+    },
+    "step2": {
+      "title": "Upload a custom video",
+      "description": "Already have a video? You can also upload it directly from your device to edit it."
+    },
+    "step3": {
+      "title": "Create mockups from photos",
+      "description": "Not just for video! Upload an image and create amazing mockups from your photos."
+    }
   }
 }

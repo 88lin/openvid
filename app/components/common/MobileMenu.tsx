@@ -107,12 +107,13 @@ export function MobileMenu() {
           <nav className="flex-1 overflow-y-auto p-4">
             <div className="space-y-2">
               <Link
-                href="/#docs"
+                href="/guide"
+                target="_blank"
                 onClick={closeMenu}
                 className="flex items-center gap-3 px-4 py-3 text-neutral-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
               >
                 <Icon icon="solar:document-text-linear" className="w-5 h-5" aria-hidden="true" />
-                <span>{t('docs')}</span>
+                <span>{t('guide')}</span>
               </Link>
 
               <a
