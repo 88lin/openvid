@@ -38,9 +38,10 @@ interface MockupWrapperProps {
     onDeviceHoverChange?: (hovered: boolean) => void;
     onDeviceRectChange?: (rect: { x: number; y: number; width: number; height: number } | null) => void;
     onConfigChange?: (config: Partial<MockupConfig>) => void;
+    onDeviceClickOutside?: () => void;
 }
 
-function MockupWrapperInner({ mockupId, config, children, roundedCorners = 12, shadows = 20, className = "", maskStyles, isSelected = false, isHovered = false, onDeviceHoverChange, onDeviceRectChange, onConfigChange }: MockupWrapperProps) {
+function MockupWrapperInner({ mockupId, config, children, roundedCorners = 12, shadows = 20, className = "", maskStyles, isSelected = false, isHovered = false, onDeviceHoverChange, onDeviceRectChange, onConfigChange,onDeviceClickOutside }: MockupWrapperProps) {
     switch (mockupId) {
         case "none":
             return (
@@ -328,6 +329,7 @@ function MockupWrapperInner({ mockupId, config, children, roundedCorners = 12, s
                     isSelected={isSelected}
                     onDeviceHoverChange={onDeviceHoverChange}
                     onDeviceRectChange={onDeviceRectChange}
+                    onDeviceClickOutside = {onDeviceClickOutside}
                 >
                     {children}
                 </MacBookMockup>

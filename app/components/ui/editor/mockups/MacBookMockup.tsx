@@ -9,6 +9,7 @@ interface MacBookMockupProps extends MockupRenderProps {
   isSelected?: boolean;
   onDeviceHoverChange?: (hovered: boolean) => void;
   onDeviceRectChange?: (rect: Rect | null) => void;
+  onDeviceClickOutside?: () => void;
 }
 
 export function MacBookMockup({
@@ -19,6 +20,7 @@ export function MacBookMockup({
   isSelected = false,
   onDeviceHoverChange,
   onDeviceRectChange,
+  onDeviceClickOutside,
 }: MacBookMockupProps) {
   const { imageSrc, screenRect } = MACBOOK_PHOTO_MOCKUP;
   const containerRef = useRef<HTMLDivElement>(null);
@@ -51,8 +53,11 @@ export function MacBookMockup({
   }, [isOnDevice]);
 
   const handleClickCapture = useCallback((e: React.MouseEvent) => {
-    if (!isOnDevice(e.clientX, e.clientY)) e.stopPropagation();
-  }, [isOnDevice]);
+    if (!isOnDevice(e.clientX, e.clientY)) {
+      e.stopPropagation();
+      onDeviceClickOutside?.();
+    }
+  }, [isOnDevice, onDeviceClickOutside]);
 
   const physicalShadow = shadows > 0
     ? `drop-shadow(0 ${shadows * 0.4}px ${shadows * 1.1}px rgba(0,0,0,0.5))`

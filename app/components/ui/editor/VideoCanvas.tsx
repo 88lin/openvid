@@ -1797,6 +1797,12 @@ function VideoCanvasInner({
         setEditingTextId(id);
     }, []);
 
+    const handleDeviceClickOutside = useCallback(() => {
+        if (onElementSelect) onElementSelect(null);
+        setIsVideoSelected(false);
+        setCanvasSelectedIds([]);
+    }, [onElementSelect]);
+
     return (
         <div
             className="flex-1 flex items-center justify-center min-h-0 min-w-0 overflow-hidden bg-[#09090B] p-2 sm:p-4 lg:p-1 relative"
@@ -2024,7 +2030,7 @@ function VideoCanvasInner({
                                                     if (!hasMedia || !onVideoTransformChange) return;
                                                     const targetEl = e.target as HTMLElement;
                                                     if (targetEl.closest('[data-rotation-handle]')) return;
-                                                    if (targetEl.closest('input, textarea, [contenteditable="true"]')) return; // 👈 NUEVO
+                                                    if (targetEl.closest('input, textarea, [contenteditable="true"]')) return;
                                                     e.preventDefault();
                                                     wasDragRef.current = false;
                                                     const isGroupMember = isVideoSelected && canvasSelectedIds.length > 0;
@@ -2060,7 +2066,7 @@ function VideoCanvasInner({
                                                 onClick={(e) => {
                                                     const targetEl = e.target as HTMLElement;
                                                     if (targetEl.closest('[data-rotation-handle]')) return;
-                                                    if (targetEl.closest('input, textarea, [contenteditable="true"]')) return; // 👈 NUEVO
+                                                    if (targetEl.closest('input, textarea, [contenteditable="true"]')) return;
                                                     if (!onMockupClick) return;
                                                     if (mockupId === "none" || mockupId === undefined) return;
                                                     const start = clickStartPosRef.current;
@@ -2113,6 +2119,7 @@ function VideoCanvasInner({
                                                             isHovered={isVideoHovered}
                                                             onDeviceHoverChange={(hovered) => setIsVideoHovered(hovered && hasMedia)}
                                                             onDeviceRectChange={setPhotoDeviceRect}
+                                                            onDeviceClickOutside={handleDeviceClickOutside}
                                                             onConfigChange={onMockupConfigChange}
                                                         >
                                                             {mockupChildren}
