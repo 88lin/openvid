@@ -6,6 +6,7 @@ import { Icon } from "@iconify/react";
 import { useTranslations } from "next-intl";
 import { TooltipAction } from "@/components/ui/tooltip-action";
 import { useAuth } from "@/app/contexts/useAuth";
+import { Button } from "@/components/ui/button";
 
 type FeedbackType = "bug" | "idea" | "other";
 
@@ -51,7 +52,6 @@ export function FeedbackWidget() {
         setTimeout(reset, 200);
     }, [reset]);
 
-    // Accesibilidad: Cerrar modal con la tecla Escape
     useEffect(() => {
         if (!isOpen) return;
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -153,13 +153,27 @@ export function FeedbackWidget() {
                                         key={opt.value}
                                         type="button"
                                         onClick={() => setType(opt.value)}
-                                        className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border text-xs font-medium transition-all duration-200 squircle-element-camera ${isSelected
-                                            ? "bg-blue-500/10 border-blue-500/40 text-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.15)]"
-                                            : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:text-white"
+                                        className={`group relative flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl border text-xs font-medium transition-all duration-200 squircle-element-camera cursor-pointer focus:outline-none w-full h-full min-h-[90px]
+                                            ${isSelected
+                                                ? "border-blue-500/40 text-blue-400"
+                                                : "bg-transparent border-white/10 text-white/60 hover:bg-white/5 hover:text-white hover:border-white/20"
                                             }`}
+                                        style={isSelected ? {
+                                            background: "radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.2) 0%, rgba(29, 78, 216, 0.1) 64%)",
+                                            boxShadow: "rgb(255, 255, 255) 0px 0.5rem 0.2rem -0.5rem inset, rgba(59, 130, 246, 0.25) 0px 0px 20px 0px, rgba(0, 0, 0, 0.4) 0px 4px 6px 0px",
+                                        } : undefined}
                                     >
-                                        <Icon icon={opt.icon} className="size-5" aria-hidden="true" />
-                                        <span>{t(`types.${opt.value}`)}</span>
+                                        <div className="flex items-center justify-center transition-transform duration-300 scale-110 group-hover:scale-115 size-5">
+                                            <Icon icon={opt.icon} className="size-5" aria-hidden="true" />
+                                        </div>
+
+                                        {isSelected && (
+                                            <div className="absolute left-3 w-16 h-6 top-3 bg-white rounded-full blur-[10px] rotate-45 pointer-events-none opacity-20" />
+                                        )}
+
+                                        <span className="whitespace-nowrap overflow-hidden text-ellipsis max-w-full text-center mt-0.5">
+                                            {t(`types.${opt.value}`)}
+                                        </span>
                                     </button>
                                 );
                             })}
@@ -200,20 +214,21 @@ export function FeedbackWidget() {
                             </div>
                         )}
 
-                        <button
+                        <Button
                             type="submit"
+                            variant="primary"
                             disabled={status === "sending" || message.trim().length < 4}
-                            className="w-full h-11 flex items-center justify-center gap-2 bg-white hover:bg-white/90 disabled:opacity-40 disabled:cursor-not-allowed text-black text-sm font-semibold rounded-xl transition-all duration-200 squircle-element-camera active:scale-[0.99]"
+                            className="w-full h-11 text-sm font-semibold rounded-xl active:scale-[0.99] disabled:opacity-40 disabled:cursor-not-allowed"
                         >
                             {status === "sending" ? (
-                                <Icon icon="svg-spinners:180-ring" className="size-4 text-black" />
+                                <Icon icon="svg-spinners:180-ring" className="size-4" />
                             ) : (
                                 <>
                                     <Icon icon="solar:plain-bold" className="size-4" />
                                     <span>{t("submit")}</span>
                                 </>
                             )}
-                        </button>
+                        </Button>
                     </form>
                 )}
             </div>
@@ -225,7 +240,7 @@ export function FeedbackWidget() {
             <TooltipAction label={t("tooltip")}>
                 <button
                     onClick={() => setIsOpen(true)}
-                    className="flex items-center justify-center w-10 h-10 rounded-full bg-white/10 hover:bg-white/15 border border-white/15 text-white hover:text-white transition-all duration-200 shrink-0 shadow-sm hover:scale-105 active:scale-95"
+                    className="flex items-center justify-center w-10 h-10 rounded-full bg-white/10 hover:bg-white/15 border border-white/15 text-white hover:text-white transition-all duration-200 shrink-0 shadow-gray-700 shadow-lg hover:scale-105 active:scale-95"
                     aria-label={t("tooltip")}
                 >
                     <Icon icon="solar:chat-round-dots-bold" className="size-6" aria-hidden="true" />
