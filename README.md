@@ -20,14 +20,11 @@
 ### Video Input
 - **Screen recording** - Capture your screen directly in the browser with no installation required
 - **Upload your video** - MP4, WebM, QuickTime, and MKV
-- **Drag & drop** - Fast file upload
 
 ### Mockup Creation
 - **Mockups applied to images**
 - **3D transformations**
 - **Image masking (Mask Image)** for advanced cutouts
-- Scale, rotation, perspective, and position adjustments
-
 
 ### Visual Customization
 
@@ -36,12 +33,6 @@
 - Custom images or Unsplash
 - Solid colors and gradients
 - Blur effect (0–100%)
-
-**Effects**
-- Dynamic padding
-- Rounded corners
-- Shadows
-- Video rotation and positioning
 
 ### Canvas & Elements
 - **Shapes** - Rectangles, circles, triangles
@@ -55,7 +46,6 @@ Add context to your demo with professional frames:
 - Safari (macOS)
 - Chrome
 - Arc
-- Samsung
 
 ### Zoom
 - Zoom in/out at specific timeline moments
@@ -65,9 +55,7 @@ Add context to your demo with professional frames:
 
 ### Audio
 - Multi-track support
-- Per-track and master volume control
 - Auto-trim based on video duration
-- Toggle original video audio
 
 ### Export
 
