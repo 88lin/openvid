@@ -59,24 +59,18 @@ export function drawMockupAndMedia(
   applyImageXform: boolean,
   is3DActive: boolean,
   ctx2: MockupDrawContext,
-): void {
-  const {
-    videoTransform, imageTransform, apply3DToBackground, imageZoomScale,
-    shadows, mockupId, mockupConfig, mediaType, cropArea,
-    sourceWidth, sourceHeight, canvasWidth, canvasHeight,
-    scaledRadius, scaledShadowBlur, shadowCacheRef, mockupMotion
-  } = ctx2;
-
+  deferRotateZ: boolean = false,
+): { rotateZPivot: { x: number; y: number } } | undefined {
+  const { videoTransform, imageTransform, apply3DToBackground, imageZoomScale, shadows, mockupId, mockupConfig, mediaType, cropArea, sourceWidth, sourceHeight, canvasWidth, canvasHeight, scaledRadius, scaledShadowBlur, shadowCacheRef, mockupMotion } = ctx2;
   const vCX = containerX + containerWidth / 2;
   const vCY = containerY + containerHeight / 2;
   const txPx = (videoTransform.translateX / 100) * containerWidth;
   const tyPx = (videoTransform.translateY / 100) * containerHeight;
   const hasMockupLocal = mockupId && mockupId !== "none";
-
+  let rotateZPivot: { x: number; y: number } | undefined;
   c.save();
   c.translate(vCX + txPx, vCY + tyPx);
   c.rotate(videoTransform.rotation * DEG_TO_RAD);
-
   if (mockupMotion) {
     const mTxPx = (mockupMotion.translateXPct / 100) * containerWidth;
     const mTyPx = (mockupMotion.translateYPct / 100) * containerHeight;
@@ -180,8 +174,8 @@ export function drawMockupAndMedia(
   }
 
   if (PHOTO_MOCKUPS.includes(mockupId)) {
-    
-    
+
+
     const destAspect = vW / vH;
     const baseAspect = baseSW / baseSH;
     let coverW = baseSW, coverH = baseSH;
@@ -194,10 +188,10 @@ export function drawMockupAndMedia(
     const coverY = baseSY + (baseSH - coverH) / 2;
     c.drawImage(source, coverX, coverY, coverW, coverH, vX, vY, vW, vH);
   } else {
-    
+
     c.drawImage(source, baseSX, baseSY, baseSW, baseSH, vX, vY, vW, vH);
   }
-
   c.restore();
   c.restore();
+  return deferRotateZ ? { rotateZPivot: rotateZPivot! } : undefined;
 }

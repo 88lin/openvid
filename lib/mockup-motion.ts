@@ -1,17 +1,12 @@
 export type MockupMotionPresetId =
   | "none"
-  | "rise-settle"
-  | "flip-reveal"
   | "focus-in"
   | "cinematic-showcase"
   | "isometric-lift"
   | "panoramic-sweep"
   | "macro-track"
   | "depth-emerge"
-  | "dolly-vertigo"
-  | "rim-light-reveal"
   | "surface-orbit"
-  | "low-dolly-reveal"
   | "exit-fade-down"
   | "exit-scale-blur"
   | "z-spin-reveal";
@@ -21,17 +16,13 @@ export const MOCKUP_MOTION_PRESETS: {
   category: "Entrance" | "Continue" | "Exit";
 }[] = [
     { id: "focus-in", category: "Entrance" },
-    { id: "rise-settle", category: "Entrance" },
-    { id: "flip-reveal", category: "Entrance" },
     { id: "depth-emerge", category: "Entrance" },
     { id: "z-spin-reveal", category: "Entrance" },
     { id: "isometric-lift", category: "Entrance" },
     { id: "cinematic-showcase", category: "Continue" },
     { id: "panoramic-sweep", category: "Continue" },
     { id: "macro-track", category: "Continue" },
-    { id: "rim-light-reveal", category: "Continue" },
     { id: "surface-orbit", category: "Continue" },
-    { id: "low-dolly-reveal", category: "Continue" },
     { id: "exit-fade-down", category: "Exit" },
     { id: "exit-scale-blur", category: "Exit" },
   ];
@@ -106,29 +97,6 @@ export function sampleMockupMotion(
   if (presetId === "none" || clipDurationSec <= 0) return REST_MOCKUP_MOTION;
 
   switch (presetId) {
-    case "rise-settle": {
-      const dur = Math.min(speedToDurationSec(speed), clipDurationSec);
-      const t = clamp01(currentTime / dur);
-      const eased = easeOutBack(t);
-      const riseDistance = lerp(8, 28, i);
-      return {
-        ...REST_MOCKUP_MOTION,
-        translateYPct: lerp(riseDistance, 0, eased),
-        opacity: lerp(0, 1, easeOutCubic(clamp01(t * 1.6))),
-      };
-    }
-    case "flip-reveal": {
-      const dur = Math.min(speedToDurationSec(speed) * 1.2, clipDurationSec);
-      const t = clamp01(currentTime / dur);
-      const eased = easeOutCubic(t);
-      const startAngle = lerp(35, 65, i);
-      return {
-        ...REST_MOCKUP_MOTION,
-        rotateY: lerp(-startAngle, 0, eased),
-        opacity: lerp(0.2, 1, easeOutCubic(clamp01(t * 1.8))),
-        perspectivePx: 900,
-      };
-    }
     case "focus-in": {
       const dur = Math.min(speedToDurationSec(speed), clipDurationSec);
       const t = clamp01(currentTime / dur);
@@ -290,143 +258,6 @@ export function sampleMockupMotion(
       };
     }
 
-    case "dolly-vertigo": {
-      const speedT = clamp01(speed / 100);
-      const dollyEnd = lerp(0.72, 0.58, speedT);
-      const p = clamp01(currentTime / clipDurationSec);
-      const zoomStart = lerp(2.8, 4.0, i);
-      const zoomDolly = lerp(0.85, 0.65, i);
-      const zPush = lerp(120, 220, i);
-      const tiltX0 = lerp(4, 10, i);
-      const tiltY0 = lerp(-8, -18, i);
-      const rollZ0 = lerp(-3, -8, i);
-      const anchorX0 = lerp(0.2, 0.35, i);
-      const anchorY0 = lerp(0.15, 0.3, i);
-      let scale: number, anchorX: number, anchorY: number;
-      let tiltX: number, tiltY: number, tiltZ: number;
-      let blur = 0;
-
-      if (p <= dollyEnd) {
-        const lp = easeInOutCubic(clamp01(p / dollyEnd));
-
-        scale = lerp(zoomStart, zoomDolly, lp);
-        anchorX = lerp(anchorX0, 0, lp);
-        anchorY = lerp(anchorY0, 0, lp);
-        tiltX = lerp(tiltX0, tiltX0 * 0.3, lp);
-        tiltY = lerp(tiltY0, tiltY0 * 0.2, lp);
-        tiltZ = lerp(rollZ0, rollZ0 * 0.3, lp);
-
-        const motionPeak = Math.sin(Math.PI * lp);
-        blur = motionPeak * lerp(1.5, 4, i);
-      } else {
-        const lp = easeOutQuint(clamp01((p - dollyEnd) / (1 - dollyEnd)));
-        scale = lerp(zoomDolly, 1, lp);
-        anchorX = 0;
-        anchorY = 0;
-        tiltX = lerp(tiltX0 * 0.3, 0, lp);
-        tiltY = lerp(tiltY0 * 0.2, 0, lp);
-        tiltZ = lerp(rollZ0 * 0.3, 0, lp);
-        blur = 0;
-      }
-
-      const translateYPct = lerp(zPush * 0.05, 0, easeOutCubic(p));
-      const translateXPct = scale * anchorX * 100;
-      const finalTranslateYPct = scale * anchorY * 100 + translateYPct;
-      const tiltRatio = clamp01((Math.abs(tiltX) + Math.abs(tiltY)) / (tiltX0 + Math.abs(tiltY0) || 1));
-      const perspective = lerp(3000, 1400, tiltRatio);
-
-      return {
-        ...REST_MOCKUP_MOTION,
-        scale,
-        translateXPct,
-        translateYPct: finalTranslateYPct,
-        rotateX: tiltX,
-        rotateY: tiltY,
-        rotateZ: tiltZ,
-        blurPx: blur,
-        perspectivePx: perspective,
-      };
-    }
-
-    case "rim-light-reveal": {
-      const speedT = clamp01(speed / 100);
-      const darknessEnd = lerp(0.22, 0.15, speedT);
-      const flashEnd = lerp(0.55, 0.42, speedT);
-      const p = clamp01(currentTime / clipDurationSec);
-      const zoomDark = lerp(3.5, 5.0, i);
-      const xRotDark = lerp(60, 85, i);
-      const yRotDark = lerp(40, 65, i);
-      const zRotDark = lerp(-15, -30, i);
-      const anchorXDark = lerp(0.2, 0.35, i);
-      const anchorYDark = lerp(0.15, 0.3, i);
-      const zoomFlash = lerp(1.4, 1.8, i);
-      const xRotFlash = lerp(15, 25, i);
-      const yRotFlash = lerp(10, 18, i);
-      const zRotFlash = lerp(-4, -8, i);
-
-      let scale: number, anchorX: number, anchorY: number;
-      let tiltX: number, tiltY: number, tiltZ: number;
-      let blur = 0;
-      let opacity = 1;
-
-      if (p <= darknessEnd) {
-
-        const lp = easeOutCubic(clamp01(p / Math.max(darknessEnd, 0.0001)));
-        scale = lerp(zoomDark * 1.05, zoomDark, lp);
-        anchorX = anchorXDark;
-        anchorY = anchorYDark;
-        tiltX = xRotDark;
-        tiltY = yRotDark;
-        tiltZ = zRotDark;
-        blur = lerp(10, 18, i);
-        opacity = lerp(0.15, 0.35, lp);
-      } else if (p <= flashEnd) {
-
-        const segment = flashEnd - darknessEnd;
-        const lp = clamp01((p - darknessEnd) / Math.max(segment, 0.0001));
-        const motionLinearProgress = easeOutQuint(lp);
-        scale = lerp(zoomDark, zoomFlash, motionLinearProgress);
-        anchorX = lerp(anchorXDark, 0, motionLinearProgress);
-        anchorY = lerp(anchorYDark, 0, motionLinearProgress);
-        tiltX = lerp(xRotDark, xRotFlash, motionLinearProgress);
-        tiltY = lerp(yRotDark, yRotFlash, motionLinearProgress);
-        tiltZ = lerp(zRotDark, zRotFlash, motionLinearProgress);
-        blur = lerp(lerp(10, 18, i), 0, motionLinearProgress);
-
-        opacity = lp < 0.2
-          ? lerp(0.35, 1.08, easeOutCubic(lp / 0.2))
-          : lerp(1.08, 1, easeOutCubic(clamp01((lp - 0.2) / 0.8)));
-      } else {
-
-        const lp = easeOutQuint(clamp01((p - flashEnd) / (1 - flashEnd)));
-        scale = lerp(zoomFlash, 1, lp);
-        anchorX = 0;
-        anchorY = 0;
-        tiltX = lerp(xRotFlash, 0, lp);
-        tiltY = lerp(yRotFlash, 0, lp);
-        tiltZ = lerp(zRotFlash, 0, lp);
-        blur = 0;
-        opacity = 1;
-      }
-
-      const translateXPct = scale * anchorX * 100;
-      const translateYPct = scale * anchorY * 100;
-      const tiltRatio = clamp01((Math.abs(tiltX) + Math.abs(tiltY)) / (xRotDark + yRotDark || 1));
-      const perspective = lerp(3200, 2000, tiltRatio);
-
-      return {
-        ...REST_MOCKUP_MOTION,
-        scale,
-        translateXPct,
-        translateYPct,
-        rotateX: tiltX,
-        rotateY: tiltY,
-        rotateZ: tiltZ,
-        blurPx: blur,
-        opacity,
-        perspectivePx: perspective,
-      };
-    }
     case "isometric-lift": {
       const speedT = clamp01(speed / 100);
       const liftEnd = lerp(0.75, 0.6, speedT);
@@ -624,65 +455,6 @@ export function sampleMockupMotion(
         perspectivePx: perspective,
       };
     }
-
-    case "low-dolly-reveal": {
-      const speedT = clamp01(speed / 100);
-      const dollyEnd = lerp(0.76, 0.62, speedT);
-      const p = clamp01(currentTime / clipDurationSec);
-      const xRot0 = lerp(35, 48, i);
-      const yRot0 = lerp(-6, -12, i);
-      const zRot0 = lerp(2, 6, i);
-      const zoom0 = lerp(1.4, 1.8, i);
-      const anchorX0 = lerp(0.04, 0.1, i);
-      const anchorY0 = lerp(-0.1, -0.2, i);
-      const xRotMid = lerp(12, 18, i);
-      const yRotMid = lerp(-2, -5, i);
-      const zRotMid = lerp(1, 2, i);
-      const zoomMid = lerp(1.08, 1.2, i);
-      const anchorXMid = lerp(0.01, 0.03, i);
-      const anchorYMid = lerp(-0.02, -0.04, i);
-
-      let scale: number, tiltX: number, tiltY: number, tiltZ: number;
-      let anchorX: number, anchorY: number;
-
-      if (p <= dollyEnd) {
-        const lp = clamp01(p / dollyEnd);
-        const dollyT = easeInOutCubic(lp);
-        scale = lerp(zoom0, zoomMid, dollyT);
-        anchorX = lerp(anchorX0, anchorXMid, dollyT);
-        anchorY = lerp(anchorY0, anchorYMid, dollyT);
-        tiltX = lerp(xRot0, xRotMid, dollyT);
-        tiltY = lerp(yRot0, yRotMid, dollyT);
-        tiltZ = lerp(zRot0, zRotMid, dollyT);
-      } else {
-        const lp = easeOutQuint(clamp01((p - dollyEnd) / (1 - dollyEnd)));
-
-        scale = lerp(zoomMid, 1, lp);
-        anchorX = lerp(anchorXMid, 0, lp);
-        anchorY = lerp(anchorYMid, 0, lp);
-        tiltX = lerp(xRotMid, 0, lp);
-        tiltY = lerp(yRotMid, 0, lp);
-        tiltZ = lerp(zRotMid, 0, lp);
-      }
-
-      const translateXPct = scale * anchorX * 100;
-      const translateYPct = scale * anchorY * 100;
-      const tiltRatio = clamp01((Math.abs(tiltX) + Math.abs(tiltY)) / (xRot0 + Math.abs(yRot0) || 1));
-      const perspective = lerp(2800, 1800, tiltRatio);
-
-      return {
-        ...REST_MOCKUP_MOTION,
-        scale,
-        translateXPct,
-        translateYPct,
-        rotateX: tiltX,
-        rotateY: tiltY,
-        rotateZ: tiltZ,
-        blurPx: 0,
-        perspectivePx: perspective,
-      };
-    }
-
     case "exit-fade-down": {
       const dur = Math.min(speedToDurationSec(speed), clipDurationSec);
       const startAt = Math.max(0, clipDurationSec - dur);
@@ -725,10 +497,7 @@ export function getDefaultFragmentDuration(
     presetId === "isometric-lift" ||
     presetId === "panoramic-sweep" ||
     presetId === "macro-track" ||
-    presetId === "dolly-vertigo" ||
-    presetId === "rim-light-reveal" ||
     presetId === "surface-orbit" ||
-    presetId === "low-dolly-reveal" ||
     presetId === "z-spin-reveal"
 
   ) {
@@ -754,16 +523,56 @@ export function buildMockupMotionCss(m: MockupMotionTransform): string {
     .join(" ");
 }
 
+export interface MotionCustomOffsets {
+  positionX: number;
+  positionY: number;
+  zoomMultiplier: number;
+  rotateX: number;
+  rotateY: number;
+  rotateZ: number;
+  blur: number;
+  reverse: boolean;
+}
+
+export const DEFAULT_MOTION_CUSTOM_OFFSETS: MotionCustomOffsets = {
+  positionX: 0,
+  positionY: 0,
+  zoomMultiplier: 1,
+  rotateX: 0,
+  rotateY: 0,
+  rotateZ: 0,
+  blur: 0,
+  reverse: false,
+};
+
 export interface MockupMotionFragment extends MockupMotionConfig {
   id: string;
   startTime: number;
   endTime: number;
+  custom?: MotionCustomOffsets;
 }
 
 export function getMotionPresetCategory(
   id: MockupMotionPresetId
 ): (typeof MOCKUP_MOTION_PRESETS)[number]["category"] {
   return MOCKUP_MOTION_PRESETS.find((p) => p.id === id)?.category ?? "Continue";
+}
+function applyMotionCustomOffsets(
+  base: MockupMotionTransform,
+  custom: MotionCustomOffsets | undefined
+): MockupMotionTransform {
+  if (!custom) return base;
+  const sign = custom.reverse ? -1 : 1;
+  return {
+    ...base,
+    scale: base.scale * custom.zoomMultiplier,
+    translateXPct: base.translateXPct * sign + custom.positionX,
+    translateYPct: base.translateYPct * sign + custom.positionY,
+    rotateX: base.rotateX * sign + custom.rotateX,
+    rotateY: base.rotateY * sign + custom.rotateY,
+    rotateZ: base.rotateZ * sign + custom.rotateZ,
+    blurPx: Math.max(0, base.blurPx + custom.blur),
+  };
 }
 
 export function sampleFragmentMotion(
@@ -775,11 +584,12 @@ export function sampleFragmentMotion(
   }
   const localTime = currentTime - fragment.startTime;
   const localDuration = fragment.endTime - fragment.startTime;
-  return sampleMockupMotion(
+  const base = sampleMockupMotion(
     { presetId: fragment.presetId, intensity: fragment.intensity, speed: fragment.speed },
     localTime,
     localDuration
   );
+  return applyMotionCustomOffsets(base, fragment.custom);
 }
 
 export function sampleCombinedMockupMotion(
