@@ -3,7 +3,6 @@
 import { useState, useCallback, useEffect, useMemo } from "react";
 import { motion, useMotionValue } from "framer-motion";
 import type { MockupMotionFragment } from "@/lib/mockup-motion";
-import { MOCKUP_MOTION_PRESETS } from "@/lib/mockup-motion";
 import { useTranslations } from "next-intl";
 
 const MIN_FRAGMENT_DURATION = 0.3;

@@ -1,0 +1,98 @@
+"use client";
+import { Icon } from "@iconify/react";
+import { useTranslations } from "next-intl";
+import { MOCKUP_MOTION_PRESETS, type MockupMotionPresetId, MockupMotionFragment } from "@/lib/mockup-motion";
+import { MotionPresetIcon, MotionPresetIconStyles } from "../../../../components/ui/MotionPresetIcon";
+import { Toggle } from "@/components/ui/toggle";
+
+interface MotionGlobalConfigProps {
+  fragments: MockupMotionFragment[];
+  onAddOrReplacePreset: (presetId: MockupMotionPresetId) => void;
+  hasMockup2D: boolean;
+  isGlobalMotionEnabled: boolean;
+  onToggleGlobalMotion: (enabled: boolean) => void;
+}
+
+const CATEGORY_ORDER = ["Entrance", "Continue", "Exit"] as const;
+
+export function MotionGlobalConfig({
+  onAddOrReplacePreset,
+  hasMockup2D,
+  isGlobalMotionEnabled,
+  onToggleGlobalMotion,
+}: MotionGlobalConfigProps) {
+  const t = useTranslations("motionMenu");
+
+  if (!hasMockup2D) {
+    return (
+      <div className="p-4 flex flex-col gap-5 h-full relative">
+        <div className="flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-2 text-white font-medium">
+            <Icon icon="ph:film-strip-bold" width="20" aria-hidden="true" />
+            <span>{t("title")}</span>
+          </div>
+          <label className="flex items-center gap-2 text-xs text-white/40">
+            <span>{t("globalMotionLabel")}</span>
+            <Toggle checked={isGlobalMotionEnabled} onChange={onToggleGlobalMotion} disabled={true} />
+          </label>
+        </div>
+        <div className="group bg-[#09090B] border border-dashed border-white/10 squircle-element p-8 text-center transition-colors">
+          <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-4 group-hover:scale-105 transition-transform">
+            <Icon icon="ph:frame-corners-bold" width="24" className="text-white/40 group-hover:text-white/70 transition-colors" aria-hidden="true" />
+          </div>
+          <p className="text-sm font-medium text-white/70 mb-1">{t("empty2D.title")}</p>
+          <p className="text-xs text-white/40">{t("empty2D.description")}</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-4 flex flex-col gap-4 h-full relative min-h-0">
+      <MotionPresetIconStyles />
+      <div className="flex items-center justify-between shrink-0">
+        <div className="flex items-center gap-2 text-white font-medium">
+          <Icon icon="ph:film-strip-bold" width="20" aria-hidden="true" />
+          <span>{t("title")}</span>
+        </div>
+        <label className="flex items-center gap-2 text-xs text-white/40">
+          <span>{t("globalMotionLabel")}</span>
+          <Toggle checked={isGlobalMotionEnabled} onChange={onToggleGlobalMotion} activeColor="bg-orange-600" />
+        </label>
+      </div>
+      <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar -mx-1 px-1">
+        <div className="flex flex-col gap-6">
+          {CATEGORY_ORDER.map((category) => {
+            const presets = MOCKUP_MOTION_PRESETS.filter((p) => p.category === category);
+            if (presets.length === 0) return null;
+            return (
+              <div key={category}>
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-[11px] font-bold uppercase tracking-widest text-white/70">
+                    {t(`categories.${category}`)}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-2.5">
+                  {presets.map((preset) => (
+                    <button
+                      key={preset.id}
+                      onClick={() => onAddOrReplacePreset(preset.id)}
+                      className="group flex flex-col gap-2 squircle-element-camera border border-neutral-800 bg-black p-2 text-left transition-all duration-200 hover:scale-[1.015] hover:border-neutral-700 hover:bg-neutral-900 active:scale-[0.98]"
+                    >
+                      <div className="relative w-full aspect-[16/10] rounded-lg overflow-hidden">
+                        <MotionPresetIcon presetId={preset.id} category={preset.category} active={false} fill forceAnimate={isGlobalMotionEnabled} />
+                      </div>
+                      <span className="text-[11px] leading-tight truncate text-neutral-400 transition-colors group-hover:text-white">
+                        {t(`presets.${preset.id}`)}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -10,13 +10,12 @@ import Image from "next/image";
 import { lazy, Suspense, useState } from "react";
 import { useTranslations } from "next-intl";
 
-import { ElementsMenuSkeleton, ZoomGlobalConfigSkeleton, MockupMenuSkeleton, WallpaperSkeleton, BackgroundColorSkeleton, ZoomFragmentEditorSkeleton, AudioMenuSkeleton, VideosMenuSkeleton, HistoryMenuSkeleton, MotionMenuSkeleton } from "../Skeleton";
+import { ElementsMenuSkeleton, ZoomGlobalConfigSkeleton, MockupMenuSkeleton, WallpaperSkeleton, BackgroundColorSkeleton, ZoomFragmentEditorSkeleton, AudioMenuSkeleton, VideosMenuSkeleton, HistoryMenuSkeleton, MotionGlobalConfigSkeleton, MotionFragmentEditorSkeleton } from "../Skeleton";
 
 import { ElementsMenu } from "./ElementsMenu";
 import { TooltipAction } from "@/components/ui/tooltip-action";
 import { CameraMenu } from "./CameraMenu";
 import { useMockup3dContext } from "@/app/contexts/Mockup3dContext";
-import { MotionMenu } from "./MotionMenu";
 
 const BackgroundColorEditor = lazy(() => import("../BackgroundColorEditor").then(mod => ({ default: mod.BackgroundColorEditor })));
 const ZoomFragmentEditor = lazy(() => import("./ZoomFragmentEditor").then(mod => ({ default: mod.ZoomFragmentEditor })));
@@ -27,6 +26,8 @@ const MockupMenu = lazy(() => import("./MockupMenu").then(mod => ({ default: mod
 const AudioMenu = lazy(() => import("./AudioMenu").then(mod => ({ default: mod.AudioMenu })));
 const VideosMenu = lazy(() => import("./VideosMenu").then(mod => ({ default: mod.VideosMenu })));
 const HistoryMenu = lazy(() => import("./HistoryMenu").then(mod => ({ default: mod.HistoryMenu })));
+const MotionGlobalConfig = lazy(() => import("./MotionGlobalConfig").then(mod => ({ default: mod.MotionGlobalConfig })));
+const MotionFragmentEditor = lazy(() => import("./MotionFragmentEditor").then(mod => ({ default: mod.MotionFragmentEditor })));
 
 interface ExtendedControlPanelProps extends ControlPanelProps {
     onTogglePanel?: () => void;
@@ -130,6 +131,8 @@ export function ControlPanel({
     const t = useTranslations("controlPanel");
     const { imagePhoneActive } = useMockup3dContext();
     const [isGlobalMotionEnabled, setIsGlobalMotionEnabled] = useState(true);
+    const hasMockup2D = mediaType === "video" && !imagePhoneActive;
+
     return (
         <div className="relative w-full sm:w-[320px] h-screen bg-[#141417] border-r border-white/10 flex flex-col shrink-0" role="complementary" aria-label="Control panel">
             <header className="flex items-center justify-between h-13 p-2 border-b border-white/10 shrink-0" role="banner">
@@ -270,23 +273,37 @@ export function ControlPanel({
                     </Suspense>
                 )}
                 {activeTool === "motion" && (
-                    <Suspense fallback={<MotionMenuSkeleton />}>
-                        <MotionMenu
-                            fragments={mockupMotionFragments}
-                            selectedFragment={selectedMockupMotionFragment}
-                            onAddOrReplacePreset={(presetId) => onAddOrReplaceMotionPreset?.(presetId)}
-                            onUpdateSelectedFragment={(updates) =>
-                                selectedMockupMotionFragmentId &&
-                                onUpdateMockupMotionFragment?.(selectedMockupMotionFragmentId, updates)
-                            }
-                            onSelectFragment={(id) => onSelectMockupMotionFragment?.(id)}
-                            onDeleteFragment={(id) => onDeleteMockupMotionFragment?.(id)}
-                            mediaType={mediaType}
-                            mockupId={mockupId}
-                            isGlobalMotionEnabled={isGlobalMotionEnabled}
-                            onToggleGlobalMotion={setIsGlobalMotionEnabled}
-                        />
-                    </Suspense>
+                    <>
+                        {selectedMockupMotionFragment && hasMockup2D ? (
+                            <Suspense fallback={<MotionFragmentEditorSkeleton />}>
+                                <MotionFragmentEditor
+                                    fragment={selectedMockupMotionFragment}
+                                    isGlobalMotionEnabled={isGlobalMotionEnabled}
+                                    onUpdate={(updates) =>
+                                        selectedMockupMotionFragmentId &&
+                                        onUpdateMockupMotionFragment?.(selectedMockupMotionFragmentId, updates)
+                                    }
+                                    onDelete={() => {
+                                        if (selectedMockupMotionFragmentId) {
+                                            onDeleteMockupMotionFragment?.(selectedMockupMotionFragmentId);
+                                        }
+                                        onSelectMockupMotionFragment?.(null);
+                                    }}
+                                    onClose={() => onSelectMockupMotionFragment?.(null)}
+                                />
+                            </Suspense>
+                        ) : (
+                            <Suspense fallback={<MotionGlobalConfigSkeleton />}>
+                                <MotionGlobalConfig
+                                    fragments={mockupMotionFragments}
+                                    onAddOrReplacePreset={(presetId) => onAddOrReplaceMotionPreset?.(presetId)}
+                                    hasMockup2D={hasMockup2D}
+                                    isGlobalMotionEnabled={isGlobalMotionEnabled}
+                                    onToggleGlobalMotion={setIsGlobalMotionEnabled}
+                                />
+                            </Suspense>
+                        )}
+                    </>
                 )}
 
                 {activeTool === "video" && (

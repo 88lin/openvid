@@ -520,7 +520,7 @@ export function HistoryMenuSkeleton() {
     );
 }
 
-export function MotionMenuSkeleton() {
+export function MotionGlobalConfigSkeleton() {
   return (
     <div className="p-4 flex flex-col gap-4 h-full relative">
       <div className="flex items-center gap-2 shrink-0">
@@ -565,6 +565,44 @@ export function MotionMenuSkeleton() {
             <Skeleton height={10} width={24} />
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+export function MotionFragmentEditorSkeleton() {
+  return (
+    <div className="flex flex-col h-full">
+      <div className="flex items-center gap-2 p-3 border-b border-white/6 shrink-0">
+        <Skeleton width={28} height={28} variant="square" />
+        <Skeleton height={14} width={120} />
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6">
+        
+        <div className="flex flex-col gap-4">
+          <Skeleton height={44} variant="square" className="rounded-lg w-full" />
+          <Skeleton height={44} variant="square" className="rounded-lg w-full" />
+        </div>
+
+        <div className="space-y-6 p-4 bg-white/3 border border-white/8 squircle-element">
+          
+          <div className="flex items-center gap-3">
+            <Skeleton width={20} height={20} variant="circle" />
+            <Skeleton height={14} width="50%" />
+          </div>
+
+          <div className="flex flex-col gap-5 items-center w-full">
+             <Skeleton height={160} variant="square" className="w-full rounded-xl" />
+             <Skeleton variant="circle" className="aspect-square w-full max-w-[180px]" />
+          </div>
+
+          <div className="space-y-3 pt-2">
+             <Skeleton height={40} variant="square" className="rounded-lg w-full" />
+             <Skeleton height={40} variant="square" className="rounded-lg w-full" />
+          </div>
+
+        </div>
       </div>
     </div>
   );

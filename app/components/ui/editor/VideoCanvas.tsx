@@ -1464,12 +1464,10 @@ function VideoCanvasInner({
                 drawMockupAndMedia(fgCtx, containerX, containerY, containerWidth, containerHeight, video!, false, true, mockupDrawCtx);
             }
             fgCtx.restore();
-            applyPerspective3D(
-                fgCanvas,
-                zoomState.rotateX + (mockupMotionForFrame?.rotateX ?? 0),
-                zoomState.rotateY + (mockupMotionForFrame?.rotateY ?? 0),
-                (zoomState.perspective || mockupMotionForFrame?.perspectivePx || 900) / BLEED_FACTOR,
-            );
+
+            applyPerspective3D(fgCanvas, mockupMotionForFrame?.rotateX ?? 0, mockupMotionForFrame?.rotateY ?? 0, (mockupMotionForFrame?.perspectivePx || 900) / BLEED_FACTOR);
+            applyPerspective3D(fgCanvas, zoomState.rotateX, zoomState.rotateY, zoomState.perspective / BLEED_FACTOR);
+
             ctx.save();
             applyVideoZoom(ctx);
             ctx.drawImage(fgCanvas, -fgOffsetX, -fgOffsetY, fgWidth, fgHeight);

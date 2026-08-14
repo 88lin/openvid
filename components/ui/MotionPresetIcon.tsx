@@ -90,15 +90,6 @@ export function MotionPresetIconStyles() {
         .force-animate .mp-card {
           will-change: transform, filter, opacity;
         }
-
-        .group:hover .mp-card--rise-settle,
-        .force-animate .mp-card--rise-settle {
-          animation: mp-rise-settle 1.1s cubic-bezier(0.65, 0, 0.35, 1) infinite alternate;
-        }
-        .group:hover .mp-card--flip-reveal,
-        .force-animate .mp-card--flip-reveal {
-          animation: mp-flip-reveal 1.3s cubic-bezier(0.65, 0, 0.35, 1) infinite alternate;
-        }
         .group:hover .mp-card--focus-in,
         .force-animate .mp-card--focus-in {
           animation: mp-focus-in 1.1s cubic-bezier(0.65, 0, 0.35, 1) infinite alternate;
@@ -127,17 +118,9 @@ export function MotionPresetIconStyles() {
         .force-animate .mp-card--macro-track {
           animation: mp-macro-track 2.4s ease-in-out infinite alternate;
         }
-        .group:hover .mp-card--rim-light-reveal,
-        .force-animate .mp-card--rim-light-reveal {
-          animation: mp-rim-light-reveal 2.2s ease-in-out infinite alternate;
-        }
         .group:hover .mp-card--surface-orbit,
         .force-animate .mp-card--surface-orbit {
           animation: mp-surface-orbit 2.6s ease-in-out infinite alternate;
-        }
-        .group:hover .mp-card--low-dolly-reveal,
-        .force-animate .mp-card--low-dolly-reveal {
-          animation: mp-low-dolly-reveal 2.2s ease-in-out infinite alternate;
         }
         .group:hover .mp-card--exit-fade-down,
         .force-animate .mp-card--exit-fade-down {
@@ -147,15 +130,6 @@ export function MotionPresetIconStyles() {
         .force-animate .mp-card--exit-scale-blur {
           animation: mp-exit-scale-blur 1s cubic-bezier(0.65, 0, 0.35, 1) infinite alternate;
         }
-      }
-
-      @keyframes mp-rise-settle {
-        0% { transform: translateY(45%); opacity: 0.25; }
-        100% { transform: translateY(0); opacity: 1; }
-      }
-      @keyframes mp-flip-reveal {
-        0% { transform: rotateY(-62deg) scale(0.92); opacity: 0.35; }
-        100% { transform: rotateY(0deg) scale(1); opacity: 1; }
       }
       @keyframes mp-focus-in {
         0% { transform: scale(1.22); filter: blur(3.5px); opacity: 0.45; }
@@ -185,17 +159,9 @@ export function MotionPresetIconStyles() {
         0% { transform: scale(1.7) translate(10%, 10%) rotateX(32deg); }
         100% { transform: scale(1) translate(-6%, -6%) rotateX(0deg); }
       }
-      @keyframes mp-rim-light-reveal {
-        0% { transform: scale(1.55) rotateX(55deg) rotateY(38deg); filter: brightness(0.35) blur(2.5px); opacity: 0.4; }
-        100% { transform: scale(1) rotateX(0) rotateY(0); filter: brightness(1.2) blur(0); opacity: 1; }
-      }
       @keyframes mp-surface-orbit {
         0% { transform: scale(1.22) rotateX(48deg); }
         100% { transform: scale(1.05) rotateX(14deg) rotateY(12deg); }
-      }
-      @keyframes mp-low-dolly-reveal {
-        0% { transform: scale(1.45) rotateX(32deg) translateY(8%); }
-        100% { transform: scale(1) rotateX(8deg) translateY(-4%); }
       }
       @keyframes mp-exit-fade-down {
         0% { transform: translateY(0); opacity: 1; }

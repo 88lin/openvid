@@ -9,6 +9,7 @@ import { formatZoomTime, zoomLevelToFactor, speedToTransitionMs, calculateHoldDu
 import { TooltipAction } from "@/components/ui/tooltip-action";
 import { DetailPageHeader } from "@/components/ui/DetailHeaderMenu";
 import { Toggle } from "@/components/ui/toggle";
+import { DirectionPad } from "@/components/ui/DirectionPad";
 
 export function ZoomFragmentEditor({
     fragment, videoUrl, videoThumbnail, currentTime = 0,
@@ -331,43 +332,23 @@ export function ZoomFragmentEditor({
                         {fragment.enable3D && (
                             <div className="space-y-3 pt-3 border-t border-gray-500/20">
                                 <SliderControl icon="mdi:brightness-6" label={tCommon("effect3d.intensity")} value={fragment.perspective3DIntensity ?? 50} min={0} max={100} step={5} onChange={(value) => onUpdate({ perspective3DIntensity: value })} suffix="%" />
-                                <div className="space-y-2">
-                                    <div className="flex items-center gap-2 text-xs text-white/60">
-                                        <span>{tCommon("effect3d.direction")}</span>
-                                    </div>
-                                    <div
-                                        className="relative w-full aspect-square mx-auto bg-[#0A0A0A] squircle-element border border-[#262626] hover:border-[#404040] transition-colors cursor-crosshair overflow-hidden group"
-                                        onClick={(e) => {
-                                            const rect = e.currentTarget.getBoundingClientRect();
-                                            const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-                                            const y = ((e.clientY - rect.top) / rect.height) * 2 - 1;
-                                            onUpdate({ perspective3DAngleX: Math.round(y * 45), perspective3DAngleY: Math.round(-x * 45) });
-                                        }}
-                                    >
-                                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                            <div className="w-full h-px bg-[#1F1F1F]" />
-                                            <div className="h-full w-px bg-[#1F1F1F] absolute" />
-                                        </div>
-
-                                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                            <div
-                                                className="w-40 h-28 border border-gray-500/40 bg-gray-500/10 rounded-md transition-transform duration-300 ease-out shadow-[0_4px_20px_rgba(0,0,0,0.4)]"
-                                                style={{ transform: `perspective(120px) rotateX(${fragment.perspective3DAngleX ?? 0}deg) rotateY(${fragment.perspective3DAngleY ?? 0}deg)` }}
-                                            />
-                                        </div>
-
-                                        <div
-                                            className="absolute w-2.5 h-2.5 bg-gray-300 rounded-full shadow-[0_0_8px_rgba(255,255,255,0.4)] transition-all duration-300 ease-out z-10"
-                                            style={{
-                                                left: `${50 + (-(fragment.perspective3DAngleY ?? (-(fragment.focusX - 50) / 50 * 15)) / 45) * 50}%`,
-                                                top: `${50 + ((fragment.perspective3DAngleX ?? ((fragment.focusY - 50) / 50 * 15)) / 45) * 50}%`,
-                                                transform: 'translate(-50%, -50%)'
-                                            }}
+                                {(() => {
+                                    const defaultAngleX = ((fragment.focusY - 50) / 50) * 15;
+                                    const defaultAngleY = -((fragment.focusX - 50) / 50) * 15;
+                                    const angleX = fragment.perspective3DAngleX ?? defaultAngleX;
+                                    const angleY = fragment.perspective3DAngleY ?? defaultAngleY;
+                                    return (
+                                        <DirectionPad
+                                            angleX={angleX}
+                                            angleY={angleY}
+                                            onChange={(x, y) => onUpdate({ perspective3DAngleX: x, perspective3DAngleY: y })}
+                                            accentRgb="156,163,175"
+                                            label={tCommon("effect3d.direction")}
+                                            hint={tCommon("effect3d.directionHint")}
+                                            className="aspect-square max-w-[220px]"
                                         />
-                                    </div>
-
-                                    <p className="text-[11px] text-white/30 text-center">{tCommon("effect3d.directionHint")}</p>
-                                </div>
+                                    );
+                                })()}
                             </div>
                         )}
                     </div>

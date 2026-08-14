@@ -267,7 +267,7 @@ export function VideosMenu({
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
-                    className={`group flex flex-col rounded-lg border overflow-hidden transition-all duration-200 bg-neutral-950 w-full ${videosInTrackIds.includes(video.id)
+                    className={`group flex flex-col squircle-element border overflow-hidden transition-all duration-200 bg-neutral-950 w-full ${videosInTrackIds.includes(video.id)
                       ? "border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.15)]"
                       : "border-neutral-800 hover:border-neutral-700"
                       }`}
@@ -332,7 +332,7 @@ export function VideosMenu({
                               handleToggleAudio(video.id, video.hasAudio);
                             }}
                             disabled={video.originalHasAudio === false}
-                            className={`p-1.5 rounded-md transition-colors ${video.originalHasAudio === false
+                            className={`p-1.5 squircle-element transition-colors ${video.originalHasAudio === false
                               ? "text-neutral-500 cursor-not-allowed"
                               : video.hasAudio === false
                                 ? "text-red-400 hover:bg-red-500/10"
@@ -353,7 +353,7 @@ export function VideosMenu({
                               handleDelete(video.id);
                             }}
                             disabled={deletingId === video.id}
-                            className="p-1.5 rounded-md text-neutral-400 hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-50"
+                            className="p-1.5 squircle-element text-neutral-400 hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-50"
                           >
                             {deletingId === video.id ? (
                               <Icon icon="svg-spinners:ring-resize" width="14" />

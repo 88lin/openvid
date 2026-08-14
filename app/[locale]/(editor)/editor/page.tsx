@@ -1150,7 +1150,7 @@ export default function Editor() {
             }
         } catch (error) {
             console.error('Error uploading audio:', error);
-            alert('Error al subir el audio. Por favor intenta de nuevo.');
+            alert('Error uploading the audio. Please try again.');
         }
     }, [audioTracks, videoDuration]);
 
