@@ -1355,50 +1355,35 @@
     },
     "presets": {
       "focus-in": "점진적 포커스",
-      "rise-settle": "상승 등장",
-      "flip-reveal": "3D 플립",
       "depth-emerge": "깊이감 출현",
       "z-spin-reveal": "3D 회전 공개",
       "isometric-lift": "아이소메트릭 리프트",
       "cinematic-showcase": "시네마틱 쇼케이스",
       "panoramic-sweep": "파노라마 스윕",
       "macro-track": "대각선 매크로 트래킹",
-      "rim-light-reveal": "림 라이트 공개",
       "surface-orbit": "표면 궤도",
-      "low-dolly-reveal": "로우 달리 공개",
       "exit-fade-down": "아래로 사라짐",
       "exit-scale-blur": "블러 축소 퇴장"
     },
     "controls": {
       "intensity": "강도",
       "speed": "속도"
-    }
-  },
-  "autozoomOverlay": {
-    "eyebrow": "Auto zoom",
-    "title": "Preparing your video",
-    "finishingTitle": "Adding your video to the editor",
-    "failedTitle": "We could not process this video",
-    "finishingDescription": "Your zoom timeline is ready. Setting up the editor…",
-    "failedDescription": "Your video was not changed. You can try again.",
-    "progress": "Progress",
-    "processingFile": "Processing video",
-    "hint": "Keep this tab open while we prepare the video and automatic zooms.",
-    "error": "Error: {message}",
-    "retry": "Try again",
-    "dismiss": "Close",
-    "status": {
-      "validating": "Checking the video before upload…",
-      "upload": "Uploading the original video securely…",
-      "queued": "Video uploaded. Starting the analysis…",
-      "download": "Downloading the video for processing…",
-      "probe": "Reading video details…",
-      "convert": "Optimizing the video format…",
-      "sample": "Sampling frames…",
-      "detect_cursor": "Detecting cursor movement…",
-      "segment": "Finding moments worth highlighting…",
-      "fragments": "Building the zoom timeline…",
-      "done": "Finalizing automatic zooms…"
+    },
+    "deleteTooltip": "모션 삭제",
+    "actions": {
+      "delete": "삭제"
+    },
+    "customize": {
+      "title": "모션 커스터마이즈",
+      "subtitle": "위치, 줌, 회전, 블러를 수동으로",
+      "positionLabel": "위치",
+      "positionHint": "목업을 드래그하여 위치를 조정하세요",
+      "tiltLabel": "기울기 (X / Y)",
+      "tiltHint": "클릭하거나 드래그하여 기울이세요",
+      "zoomLabel": "줌",
+      "rotateZLabel": "Z축 회전",
+      "reverseLabel": "방향 반전",
+      "resetButton": "커스터마이즈 초기화"
     }
   },
   "MobileTools": {

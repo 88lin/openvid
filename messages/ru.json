@@ -1351,50 +1351,35 @@
     },
     "presets": {
       "focus-in": "Постепенный фокус",
-      "rise-settle": "Плавное появление",
-      "flip-reveal": "3D-переворот",
       "depth-emerge": "Появление из глубины",
       "z-spin-reveal": "Раскрытие с 3D-вращением",
       "isometric-lift": "Изометрический взлёт",
       "cinematic-showcase": "Кинематографический показ",
       "panoramic-sweep": "Панорамный облёт",
       "macro-track": "Диагональное макро-слежение",
-      "rim-light-reveal": "Раскрытие контурным светом",
       "surface-orbit": "Орбита над поверхностью",
-      "low-dolly-reveal": "Наезд камеры у земли",
       "exit-fade-down": "Исчезновение вниз",
       "exit-scale-blur": "Исчезновение с размытием"
     },
     "controls": {
       "intensity": "Интенсивность",
       "speed": "Скорость"
-    }
-  },
-  "autozoomOverlay": {
-    "eyebrow": "Auto zoom",
-    "title": "Preparing your video",
-    "finishingTitle": "Adding your video to the editor",
-    "failedTitle": "We could not process this video",
-    "finishingDescription": "Your zoom timeline is ready. Setting up the editor…",
-    "failedDescription": "Your video was not changed. You can try again.",
-    "progress": "Progress",
-    "processingFile": "Processing video",
-    "hint": "Keep this tab open while we prepare the video and automatic zooms.",
-    "error": "Error: {message}",
-    "retry": "Try again",
-    "dismiss": "Close",
-    "status": {
-      "validating": "Checking the video before upload…",
-      "upload": "Uploading the original video securely…",
-      "queued": "Video uploaded. Starting the analysis…",
-      "download": "Downloading the video for processing…",
-      "probe": "Reading video details…",
-      "convert": "Optimizing the video format…",
-      "sample": "Sampling frames…",
-      "detect_cursor": "Detecting cursor movement…",
-      "segment": "Finding moments worth highlighting…",
-      "fragments": "Building the zoom timeline…",
-      "done": "Finalizing automatic zooms…"
+    },
+    "deleteTooltip": "Удалить анимацию",
+    "actions": {
+      "delete": "Удалить"
+    },
+    "customize": {
+      "title": "Настройка движения",
+      "subtitle": "Вручную настройте позицию, масштаб, поворот",
+      "positionLabel": "Позиция",
+      "positionHint": "Перетащите макет, чтобы изменить его позицию",
+      "tiltLabel": "Наклон (X / Y)",
+      "tiltHint": "Нажмите или перетащите, чтобы наклонить",
+      "zoomLabel": "Масштаб",
+      "rotateZLabel": "Поворот по Z",
+      "reverseLabel": "Обратное направление",
+      "resetButton": "Сбросить настройки"
     }
   },
   "MobileTools": {

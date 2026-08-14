@@ -1333,50 +1333,35 @@
     },
     "presets": {
       "focus-in": "Enfoque progresivo",
-      "rise-settle": "Aparición ascendente",
-      "flip-reveal": "Giro 3D",
       "depth-emerge": "Emergencia de profundidad",
       "z-spin-reveal": "Revelación con Giro 3D",
       "isometric-lift": "Despegue Isométrico",
       "cinematic-showcase": "Recorrido cinematográfico",
       "panoramic-sweep": "Barrido Panorámico",
       "macro-track": "Rastreo Macro Diagonal",
-      "rim-light-reveal": "Revelación con Luz de Contorno",
       "surface-orbit": "Órbita sobre Superficie",
-      "low-dolly-reveal": "Dolly Ras de Suelo",
       "exit-fade-down": "Salida hacia abajo",
       "exit-scale-blur": "Salida con desenfoque"
     },
     "controls": {
       "intensity": "Intensidad",
       "speed": "Velocidad"
-    }
-  },
-  "autozoomOverlay": {
-    "eyebrow": "Auto zoom",
-    "title": "Preparando tu video",
-    "finishingTitle": "Agregando tu video al editor",
-    "failedTitle": "No pudimos procesar este video",
-    "finishingDescription": "La línea de tiempo de zoom está lista. Configurando el editor…",
-    "failedDescription": "Tu video no fue modificado. Puedes intentarlo nuevamente.",
-    "progress": "Progreso",
-    "processingFile": "Procesando video",
-    "hint": "Puedes mantener esta pestaña abierta mientras preparamos el video y sus zooms automáticos.",
-    "error": "Error: {message}",
-    "retry": "Reintentar",
-    "dismiss": "Cerrar",
-    "status": {
-      "validating": "Comprobando el video antes de subirlo…",
-      "upload": "Subiendo el video original de forma segura…",
-      "queued": "Video subido. Iniciando el análisis…",
-      "download": "Descargando el video para procesarlo…",
-      "probe": "Leyendo los detalles del video…",
-      "convert": "Optimizando el formato del video…",
-      "sample": "Analizando fotogramas…",
-      "detect_cursor": "Detectando el movimiento del cursor…",
-      "segment": "Encontrando los momentos para destacar…",
-      "fragments": "Construyendo la línea de tiempo de zoom…",
-      "done": "Finalizando los zooms automáticos…"
+    },
+    "deleteTooltip": "Eliminar movimiento",
+    "actions": {
+      "delete": "Eliminar"
+    },
+    "customize": {
+      "title": "Personalizar movimiento",
+      "subtitle": "Ajustá posición, zoom, rotación",
+      "positionLabel": "Posición",
+      "positionHint": "Arrastrá el mockup para ajustar su posición",
+      "tiltLabel": "Inclinación (X / Y)",
+      "tiltHint": "Hacé clic o arrastrá para inclinar",
+      "zoomLabel": "Zoom",
+      "rotateZLabel": "Rotación Z",
+      "reverseLabel": "Invertir dirección",
+      "resetButton": "Restablecer personalización"
     }
   },
   "MobileTools": {
