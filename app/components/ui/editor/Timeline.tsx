@@ -13,8 +13,11 @@ import { useTranslations } from "next-intl";
 import { MockupMotionTrackItem } from "./MockupMotionTrackItem";
 import { assignAudioLanes } from "@/lib/audio.utils";
 import { MIN_VISUAL_WIDTH_PX } from "@/types";
+import { assignElementLanes } from "@/lib/canvas-elements-timeline.utils";
+import { ElementFragmentTrackItem } from "./ElementFragmentTrackItem";
 
 const DEFAULT_ZOOM_FRAGMENT_DURATION = 2;
+const ELEMENT_ROW_HEIGHT = 48;
 
 export function Timeline({
     videoDuration,
@@ -49,6 +52,11 @@ export function Timeline({
     onUpdateMockupMotionFragment,
     onDeleteMockupMotionFragment,
     onActivateMotionTool,
+    canvasElements = [],
+    selectedElementId = null,
+    onSelectElement,
+    onUpdateElement,
+    onDeleteElement,
     globalSpeed = 1,
     isPlaying = false,
     onZoomChange,
@@ -154,6 +162,28 @@ export function Timeline({
         () => (audioLanes.size > 0 ? Math.max(...audioLanes.values()) + 1 : 1),
         [audioLanes],
     );
+
+    const elementLanes = useMemo(() => {
+        if (canvasElements.length === 0 || contentWidth === 0 || scaledDuration === 0) {
+            return new Map<string, number>();
+        }
+        const timeToPx = (time: number) => (time / scaledDuration) * contentWidth;
+        return assignElementLanes(canvasElements, validDuration, timeToPx, MIN_VISUAL_WIDTH_PX);
+    }, [canvasElements, contentWidth, scaledDuration, validDuration]);
+
+    const elementLaneCount = useMemo(
+        () => (elementLanes.size > 0 ? Math.max(...elementLanes.values()) + 1 : 1),
+        [elementLanes],
+    );
+
+    const totalLanesCount = useMemo(() => {
+        let count = 0;
+        if (canvasElements.length > 0) count += elementLaneCount;
+        if (audioTracks.length > 0) count += audioLaneCount;
+        if (mockupMotionFragments.length > 0) count += 1;
+        return count;
+    }, [canvasElements.length, elementLaneCount, audioTracks.length, audioLaneCount, mockupMotionFragments.length]);
+
     useEffect(() => {
         if (!isDraggingTrim) {
             trimStartX.set(trimStartPosition);
@@ -387,22 +417,30 @@ export function Timeline({
 
     return (
         <div ref={containerRef} className="flex flex-col w-full pr-2">
-            <div className={`${(audioTracks.length > 0 && mockupMotionFragments.length > 0)
-                ? 'h-64'
-                : (audioTracks.length > 0 || mockupMotionFragments.length > 0)
-                    ? 'h-50'
-                    : 'h-38'
-                } shrink-0 bg-[#0D0D11] border-t border-white/10 flex flex-col font-mono text-[11px]`}>
-
+            <div
+                className={`${totalLanesCount >= 4
+                    ? 'h-96'
+                    : totalLanesCount === 3
+                        ? 'h-80'
+                        : totalLanesCount === 2
+                            ? 'h-64'
+                            : totalLanesCount === 1
+                                ? 'h-50'
+                                : 'h-38'
+                    } shrink-0 bg-[#0D0D11] border-t border-white/10 flex flex-col font-mono text-[11px] transition-all duration-200`}
+            >
                 <div className="flex-1 flex flex-col relative overflow-hidden">
                     <LabelSidebar
                         audioTracksCount={audioTracks.length}
                         motionTracksCount={mockupMotionFragments.length}
+                        elementsCount={canvasElements.length}
                     />
 
                     <div
                         ref={trackRef}
-                        className={`flex-1 flex flex-col overflow-x-auto custom-scrollbar pl-14 pr-2 ${audioTracks.length > 0 ? "overflow-y-auto no-scrollbar" : "overflow-y-hidden"
+                        className={`flex-1 flex flex-col overflow-x-auto custom-scrollbar pl-14 pr-2 ${audioTracks.length > 0 || elementLaneCount > 1 || canvasElements.length > 0
+                            ? "overflow-y-auto no-scrollbar"
+                            : "overflow-y-hidden"
                             }`}
                     >
                         <div
@@ -663,6 +701,34 @@ export function Timeline({
                                         )}
                                     </div>
                                 </div>
+
+                                {canvasElements.length > 0 && (
+                                    <div className="shrink-0 w-full relative" style={{ minHeight: elementLaneCount * ELEMENT_ROW_HEIGHT }}>
+                                        <div
+                                            className="h-full w-full relative"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                onSelectElement?.(null);
+                                            }}
+                                        >
+                                            {canvasElements.map((element) => (
+                                                <ElementFragmentTrackItem
+                                                    key={element.id}
+                                                    element={element}
+                                                    isSelected={element.id === selectedElementId}
+                                                    contentWidth={contentWidth}
+                                                    videoDuration={scaledDuration}
+                                                    contentDuration={validDuration}
+                                                    lane={elementLanes.get(element.id) ?? 0}
+                                                    laneHeight={ELEMENT_ROW_HEIGHT}
+                                                    onSelect={() => onSelectElement?.(element.id)}
+                                                    onUpdate={(updates) => onUpdateElement?.(element.id, updates)}
+                                                    onDelete={() => onDeleteElement?.(element.id)}
+                                                />
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
 
                                 {audioTracks.length > 0 && (
                                     <div className="shrink-0 w-full relative" style={{ minHeight: audioLaneCount * 55 }}>

@@ -32,6 +32,7 @@ import { drawMockupAndMedia, type MockupDrawContext } from "@/lib/mockup-media-d
 import { drawPhone3DCompositeWithZoom, type Phone3DCompositeContext } from "@/lib/phone3d-composite-draw.utils";
 import { buildMockupMotionCss, MockupMotionTransform, REST_MOCKUP_MOTION, sampleCombinedMockupMotion } from "@/lib/mockup-motion";
 import { Mockup3DFrame } from "./mockups-3d/Mockup3DFrame";
+import { filterVisibleElements } from "@/lib/canvas-elements-timeline.utils";
 
 export type { VideoCanvasHandle, VideoCanvasProps };
 
@@ -177,6 +178,11 @@ function VideoCanvasInner({
         if (!isScrubbing || !getThumbnailForTime) return null;
         return getThumbnailForTime(scrubTime);
     }, [isScrubbing, scrubTime, getThumbnailForTime]);
+
+    const visibleCanvasElements = useMemo(() => {
+        if (mediaType !== "video") return canvasElements;
+        return filterVisibleElements(canvasElements, currentTime, videoDuration);
+    }, [mediaType, canvasElements, currentTime, videoDuration]);
 
     // Find active zoom fragment based on current time
     const activeZoomFragment = useMemo<ZoomFragment | null>(() => {
@@ -1236,6 +1242,10 @@ function VideoCanvasInner({
 
         const frameTime = mediaType === "video" ? (explicitTimelineTime ?? (video ? video.currentTime : 0)) : 0;
 
+        const visibleElementsAtFrame = mediaType === "video"
+            ? filterVisibleElements(canvasElements, frameTime, videoDuration)
+            : canvasElements;
+
         const mockupMotionForFrame: MockupMotionTransform | undefined = hasMockup2DMotion
             ? sampleCombinedMockupMotion(mockupMotionFragments, frameTime)
             : undefined;
@@ -1331,14 +1341,14 @@ function VideoCanvasInner({
                 ctx.translate(-zoomCenterX, -zoomCenterY + iTY);
             }
             drawBg(ctx);
-            await renderCanvasElements(ctx, canvasElements, canvasWidth, canvasHeight, true, svgImageCacheRef.current, elementImagesRef.current);
+            await renderCanvasElements(ctx, visibleElementsAtFrame, canvasWidth, canvasHeight, true, svgImageCacheRef.current, elementImagesRef.current);
             const { containerX: cX, containerY: cY, containerWidth: cW, containerHeight: cH } = computeContainer();
             // Only draw the 2D mockup + media when the 3D phone overlay is NOT active.
             // In the preview, CSS opacity:0 hides the video layer; here we skip drawing it.
             if (!imagePhoneActive) {
                 drawMockupAndMedia(ctx, cX, cY, cW, cH, image!, true, false, mockupDrawCtx);
             }
-            await renderCanvasElements(ctx, canvasElements, canvasWidth, canvasHeight, false, svgImageCacheRef.current, elementImagesRef.current);
+            await renderCanvasElements(ctx, visibleElementsAtFrame, canvasWidth, canvasHeight, false, svgImageCacheRef.current, elementImagesRef.current);
             // ── Composite image phone mockup (WebGL snapshot) onto export canvas ──
             if (imagePhoneActive && imagePhoneCanvasRef.current) {
                 const phoneGL = imagePhoneCanvasRef.current;
@@ -1450,7 +1460,7 @@ function VideoCanvasInner({
 
         ctx.save();
         applyVideoZoom(ctx);
-        await renderCanvasElements(ctx, canvasElements, canvasWidth, canvasHeight, true, svgImageCacheRef.current, elementImagesRef.current);
+        await renderCanvasElements(ctx, visibleElementsAtFrame, canvasWidth, canvasHeight, true, svgImageCacheRef.current, elementImagesRef.current);
         ctx.restore();
 
         await drawCameraOverlayToCtx(ctx, canvasWidth, canvasHeight, cameraVideoRef.current, videoRef.current, cameraConfig);
@@ -1607,7 +1617,7 @@ function VideoCanvasInner({
 
         ctx.save();
         applyVideoZoom(ctx);
-        await renderCanvasElements(ctx, canvasElements, canvasWidth, canvasHeight, false, svgImageCacheRef.current, elementImagesRef.current);
+        await renderCanvasElements(ctx, visibleElementsAtFrame, canvasWidth, canvasHeight, false, svgImageCacheRef.current, elementImagesRef.current);
         ctx.restore();
 
         await drawCameraOverlayToCtx(ctx, canvasWidth, canvasHeight, cameraVideoRef.current, videoRef.current, cameraConfig);
@@ -1936,7 +1946,7 @@ function VideoCanvasInner({
                                     {/* Capa 2A: Canvas elements BEHIND video — sin rotación 3D */}
                                     <CanvasElementsLayer
                                         canvasContainerRef={canvasContainerRef}
-                                        canvasElements={canvasElements}
+                                        canvasElements={visibleCanvasElements}
                                         selectedElementId={selectedElementId}
                                         selectedElementIds={canvasSelectedIds}
                                         hoveredElementId={hoveredElementId}
@@ -2206,7 +2216,7 @@ function VideoCanvasInner({
                                     {/* Capa 3: Canvas elements ABOVE video (zIndex >= VIDEO_Z_INDEX) */}
                                     <CanvasElementsLayer
                                         canvasContainerRef={undefined}
-                                        canvasElements={canvasElements}
+                                        canvasElements={visibleCanvasElements}
                                         selectedElementId={selectedElementId}
                                         selectedElementIds={canvasSelectedIds}
                                         hoveredElementId={hoveredElementId}
@@ -2232,7 +2242,7 @@ function VideoCanvasInner({
                                     {/* Capa HIT: invisible, todos los elementos, para recibir eventos */}
                                     <CanvasElementsLayer
                                         canvasContainerRef={undefined}
-                                        canvasElements={canvasElements}
+                                        canvasElements={visibleCanvasElements}
                                         selectedElementId={selectedElementId}
                                         selectedElementIds={canvasSelectedIds}
                                         hoveredElementId={hoveredElementId}

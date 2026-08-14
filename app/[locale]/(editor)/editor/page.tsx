@@ -3264,6 +3264,11 @@ export default function Editor() {
                                     onSelectMockupMotionFragment={handleSelectMockupMotionFragment}
                                     onUpdateMockupMotionFragment={handleUpdateMockupMotionFragment}
                                     onDeleteMockupMotionFragment={handleDeleteMockupMotionFragment}
+                                    canvasElements={canvasElements}
+                                    selectedElementId={selectedElementId}
+                                    onSelectElement={selectCanvasElement}
+                                    onUpdateElement={updateCanvasElement}
+                                    onDeleteElement={deleteCanvasElement}
                                 />
                             </Suspense>
                         </>
