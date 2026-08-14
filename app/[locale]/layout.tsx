@@ -84,6 +84,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     publisher: "Openvid",
     icons: {
       icon: [
+        { url: SEO_ICONS.faviconIco, type: "image/x-icon", sizes: "any" },
+        { url: SEO_ICONS.favicon32, sizes: "32x32", type: "image/png" },
+        { url: SEO_ICONS.favicon48, sizes: "48x48", type: "image/png" },
         { url: SEO_ICONS.tab, type: "image/svg+xml", sizes: "any" },
         { url: SEO_ICONS.pwa192, sizes: "192x192", type: "image/png" },
         { url: SEO_ICONS.pwa512, sizes: "512x512", type: "image/png" },
