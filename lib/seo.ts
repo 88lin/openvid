@@ -17,6 +17,7 @@ export const SEO_ICONS = {
   apple: "/images/metadata/apple.svg",
   favicon48: "/images/metadata/favicon-48.png",
   favicon32: "/images/metadata/favicon-32.png",
+  faviconIco: "/images/metadata/favicon-legacy-solid.ico",
   appleTouch: "/images/metadata/apple-touch-icon.png",
   pwa192: "/images/metadata/icon-192.png",
   pwa512: "/images/metadata/icon-512.png",
