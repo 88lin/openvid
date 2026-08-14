@@ -1410,5 +1410,12 @@
       "title": "Crea mockups desde fotos",
       "description": "¡No solo es para video! Sube una imagen y crea mockups increíbles a partir de tus fotografías."
     }
+  },
+  "labelSidebar": {
+    "video": "Video",
+    "zoom": "Zoom",
+    "elements": "Objeto",
+    "audio": "Audio",
+    "motion": "Movimiento"
   }
 }

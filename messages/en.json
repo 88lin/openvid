@@ -1432,5 +1432,12 @@
       "title": "Create mockups from photos",
       "description": "Not just for video! Upload an image and create amazing mockups from your photos."
     }
+  },
+  "labelSidebar": {
+    "video": "Video",
+    "zoom": "Zoom",
+    "elements": "Object",
+    "audio": "Audio",
+    "motion": "Motion"
   }
 }
