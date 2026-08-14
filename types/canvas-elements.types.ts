@@ -1,18 +1,20 @@
 export type CanvasElementType = "svg" | "image" | "text";
 
 export interface CanvasElementBase {
-    id: string;
-    type: CanvasElementType;
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    rotation: number;
-    opacity: number;
-    zIndex: number;
-    visible?: boolean;
-    locked?: boolean;
-    groupId?: string;
+  id: string;
+  type: CanvasElementType;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  rotation: number;
+  opacity: number;
+  zIndex: number;
+  visible?: boolean;
+  locked?: boolean;
+  groupId?: string;
+  startTime?: number;
+  endTime?: number;
 }
 
 export interface SvgElement extends CanvasElementBase {

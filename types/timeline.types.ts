@@ -2,6 +2,7 @@ import { ZoomFragment } from "./zoom.types";
 import type { AudioTrack, UploadedAudio } from "./audio.types";
 import type { VideoTrackClip } from "./video-track.types";
 import { MockupMotionFragment } from "@/lib/mockup-motion";
+import { CanvasElement } from "./canvas-elements.types";
 
 export interface TrimRange {
     start: number;
@@ -47,4 +48,9 @@ export interface TimelineProps {
     onSelectMockupMotionFragment?: (id: string | null) => void;
     onUpdateMockupMotionFragment?: (id: string, updates: Partial<MockupMotionFragment>) => void;
     onDeleteMockupMotionFragment?: (id: string) => void;
+    canvasElements?: CanvasElement[];
+    selectedElementId?: string | null;
+    onSelectElement?: (id: string | null) => void;
+    onUpdateElement?: (id: string, updates: Partial<CanvasElement>) => void;
+    onDeleteElement?: (id: string) => void;
 }
