@@ -1360,11 +1360,13 @@
       "z-spin-reveal": "3D Spin Reveal",
       "isometric-lift": "Isometric Liftoff",
       "cinematic-showcase": "Cinematic Showcase",
-      "panoramic-sweep": "Panoramic Sweep",
       "macro-track": "Diagonal Macro Track",
-      "surface-orbit": "Surface Orbit",
       "exit-fade-down": "Fade Down Exit",
-      "exit-scale-blur": "Blur Scale Exit"
+      "exit-scale-blur": "Blur Scale Exit",
+      "whip-showcase": "Whip Pan Showcase",
+      "spatial-roam": "Spatial Roam",
+      "rise-crash": "Rise and Crash",
+      "crane-sweep": "Crane Sweep"
     },
     "controls": {
       "intensity": "Intensity",

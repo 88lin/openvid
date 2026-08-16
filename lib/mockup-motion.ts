@@ -3,12 +3,14 @@ export type MockupMotionPresetId =
   | "focus-in"
   | "cinematic-showcase"
   | "isometric-lift"
-  | "panoramic-sweep"
   | "macro-track"
   | "depth-emerge"
-  | "surface-orbit"
+  | "whip-showcase"
   | "exit-fade-down"
   | "exit-scale-blur"
+  | "spatial-roam"
+  | "rise-crash"
+  | "crane-sweep"
   | "z-spin-reveal";
 
 export const MOCKUP_MOTION_PRESETS: {
@@ -20,9 +22,11 @@ export const MOCKUP_MOTION_PRESETS: {
     { id: "z-spin-reveal", category: "Entrance" },
     { id: "isometric-lift", category: "Entrance" },
     { id: "cinematic-showcase", category: "Continue" },
-    { id: "panoramic-sweep", category: "Continue" },
     { id: "macro-track", category: "Continue" },
-    { id: "surface-orbit", category: "Continue" },
+    { id: "whip-showcase", category: "Continue" },
+    { id: "spatial-roam", category: "Continue" },
+    { id: "crane-sweep", category: "Continue" },
+    { id: "rise-crash", category: "Continue" },
     { id: "exit-fade-down", category: "Exit" },
     { id: "exit-scale-blur", category: "Exit" },
   ];
@@ -69,6 +73,7 @@ const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 function easeOutCubic(t: number) {
   return 1 - (1 - t) ** 3;
 }
+
 function easeOutBack(t: number) {
   const c1 = 1.70158;
   const c3 = c1 + 1;
@@ -94,6 +99,7 @@ export function sampleMockupMotion(
 ): MockupMotionTransform {
   const { presetId, intensity, speed } = config;
   const i = clamp01(intensity / 100);
+
   if (presetId === "none" || clipDurationSec <= 0) return REST_MOCKUP_MOTION;
 
   switch (presetId) {
@@ -102,6 +108,7 @@ export function sampleMockupMotion(
       const t = clamp01(currentTime / dur);
       const eased = easeOutCubic(t);
       const startBlur = lerp(6, 22, i);
+
       return {
         ...REST_MOCKUP_MOTION,
         scale: lerp(1.06, 1, eased),
@@ -120,20 +127,17 @@ export function sampleMockupMotion(
       const zRot0 = lerp(-85, -95, i);
       const zoomStart = lerp(0.7, 0.8, i);
 
-      let scale = 1, tiltX = 0, tiltY = 0, tiltZ = 0;
+      let scale = 1;
+      let tiltX = 0;
+      let tiltY = 0;
+      let tiltZ = 0;
 
       if (p <= animationEnd) {
         const lp = easeInOutCubic(clamp01(p / animationEnd));
-
         scale = lerp(zoomStart, 1, lp);
         tiltX = lerp(xRot0, 0, lp);
         tiltY = lerp(yRot0, 0, lp);
         tiltZ = lerp(zRot0, 0, lp);
-      } else {
-        scale = 1;
-        tiltX = 0;
-        tiltY = 0;
-        tiltZ = 0;
       }
 
       const tiltRatio = clamp01(Math.abs(tiltX) / (xRot0 || 1));
@@ -150,20 +154,27 @@ export function sampleMockupMotion(
         perspectivePx: perspective,
       };
     }
+
     case "cinematic-showcase": {
       const speedT = clamp01(speed / 100);
       const impactEnd = lerp(0.12, 0.05, speedT);
       const panEnd = lerp(0.68, 0.55, speedT);
       const p = clamp01(currentTime / clipDurationSec);
+
       const zoomStart = lerp(1.5, 2.4, i);
       const zoomPan = lerp(1.15, 1.35, i);
       const tiltX0 = lerp(2, 6, i);
       const tiltY0 = lerp(4, 10, i);
       const anchorX0 = lerp(0.25, 0.4, i);
-      const anchorY0 = lerp(0.20, 0.35, i);
+      const anchorY0 = lerp(0.2, 0.35, i);
       const anchorX1 = lerp(0.05, 0.15, i);
       const anchorY1 = lerp(0.04, 0.12, i);
-      let scale: number, anchorX: number, anchorY: number, tiltX: number, tiltY: number;
+
+      let scale: number;
+      let anchorX: number;
+      let anchorY: number;
+      let tiltX: number;
+      let tiltY: number;
       let blur = 0;
 
       if (p <= impactEnd) {
@@ -173,8 +184,6 @@ export function sampleMockupMotion(
         anchorY = anchorY0;
         tiltX = lerp(tiltX0 * 1.1, tiltX0, lp);
         tiltY = lerp(tiltY0 * 1.1, tiltY0, lp);
-
-
       } else if (p <= panEnd) {
         const lp = easeInOutCubic(clamp01((p - impactEnd) / (panEnd - impactEnd)));
         scale = lerp(zoomStart, zoomPan, lp);
@@ -182,9 +191,7 @@ export function sampleMockupMotion(
         anchorY = lerp(anchorY0, anchorY1, lp);
         tiltX = lerp(tiltX0, tiltX0 * 0.4, lp);
         tiltY = lerp(tiltY0, tiltY0 * 0.4, lp);
-
         blur = Math.sin(Math.PI * lp) * lerp(1.5, 4, i);
-
       } else {
         const lp = easeOutQuint(clamp01((p - panEnd) / (1 - panEnd)));
         scale = lerp(zoomPan, 1, lp);
@@ -192,13 +199,11 @@ export function sampleMockupMotion(
         anchorY = lerp(anchorY1, 0, lp);
         tiltX = lerp(tiltX0 * 0.4, 0, lp);
         tiltY = lerp(tiltY0 * 0.4, 0, lp);
-
         blur = 0;
       }
 
       const translateXPct = scale * anchorX * 100;
       const translateYPct = scale * anchorY * 100;
-
       const tiltRatio = clamp01((Math.abs(tiltX) + Math.abs(tiltY)) / (tiltX0 + tiltY0 || 1));
       const perspective = lerp(2500, 1500, tiltRatio);
 
@@ -226,7 +231,11 @@ export function sampleMockupMotion(
       const startRotateY = lerp(-20, -45, i);
       const startOpacity = 0;
 
-      let scale: number, blur: number, rotX: number, rotY: number, opacity: number;
+      let scale: number;
+      let blur: number;
+      let rotX: number;
+      let rotY: number;
+      let opacity: number;
 
       if (t <= emergeEnd) {
         const lp = easeOutCubic(clamp01(t / emergeEnd));
@@ -244,7 +253,9 @@ export function sampleMockupMotion(
         opacity = 1;
       }
 
-      const tiltRatio = clamp01((Math.abs(rotX) + Math.abs(rotY)) / (startRotateX + Math.abs(startRotateY) || 1));
+      const tiltRatio = clamp01(
+        (Math.abs(rotX) + Math.abs(rotY)) / (startRotateX + Math.abs(startRotateY) || 1)
+      );
       const perspective = lerp(1800, 900, tiltRatio);
 
       return {
@@ -262,24 +273,26 @@ export function sampleMockupMotion(
       const speedT = clamp01(speed / 100);
       const liftEnd = lerp(0.75, 0.6, speedT);
       const p = clamp01(currentTime / clipDurationSec);
+
       const xRot0 = lerp(35, 60, i);
       const zRot0 = lerp(-15, -40, i);
       const yRot0 = lerp(10, 25, i);
       const zoomStart = lerp(1.1, 1.45, i);
-      let scale = 1, tiltX = 0, tiltY = 0, tiltZ = 0, translateYPct = 0;
+
+      let scale = 1;
+      let tiltX = 0;
+      let tiltY = 0;
+      let tiltZ = 0;
+      let translateYPct = 0;
 
       if (p <= liftEnd) {
         const lp = easeInOutCubic(clamp01(p / liftEnd));
-
         scale = lerp(zoomStart, 1.05, lp);
         tiltX = lerp(xRot0, xRot0 * 0.15, lp);
         tiltY = lerp(yRot0, yRot0 * 0.15, lp);
         tiltZ = lerp(zRot0, 0, lp);
-
-        translateYPct = lerp(lerp(0, 0, i), 0, lp);
       } else {
         const lp = easeOutQuint(clamp01((p - liftEnd) / (1 - liftEnd)));
-
         scale = lerp(1.05, 1, lp);
         tiltX = lerp(xRot0 * 0.15, 0, lp);
         tiltY = lerp(yRot0 * 0.15, 0, lp);
@@ -302,59 +315,11 @@ export function sampleMockupMotion(
       };
     }
 
-    case "panoramic-sweep": {
-      const speedT = clamp01(speed / 100);
-      const sweepEnd = lerp(0.7, 0.55, speedT);
-      const p = clamp01(currentTime / clipDurationSec);
-      const zoomSweep = lerp(1.2, 1.6, i);
-      const tiltYStart = lerp(-35, -55, i);
-      const tiltYEnd = lerp(15, 25, i);
-      const tiltZRoll = lerp(-4, -12, i);
-      const anchorXStart = lerp(-0.35, -0.5, i);
-      const anchorXEnd = lerp(0.15, 0.25, i);
-      let scale = 1, anchorX = 0, tiltX = 0, tiltY = 0, tiltZ = 0, blur = 0;
-
-      if (p <= sweepEnd) {
-        const lp = easeInOutCubic(clamp01(p / sweepEnd));
-
-        const arc = Math.sin(Math.PI * lp);
-        scale = lerp(zoomSweep, zoomSweep * 0.92, arc);
-        anchorX = lerp(anchorXStart, anchorXEnd, lp);
-        tiltY = lerp(tiltYStart, tiltYEnd, lp);
-        tiltZ = lerp(tiltZRoll, -tiltZRoll * 0.4, lp);
-        tiltX = lerp(lerp(5, 12, i), lerp(2, 6, i), lp);
-        blur = arc * lerp(2, 6, i);
-
-      } else {
-        const lp = easeOutQuint(clamp01((p - sweepEnd) / (1 - sweepEnd)));
-
-        scale = lerp(zoomSweep * (1 - 0.08 * Math.sin(Math.PI)), 1, lp);
-        anchorX = lerp(anchorXEnd, 0, lp);
-        tiltY = lerp(tiltYEnd, 0, lp);
-        tiltZ = lerp(-tiltZRoll * 0.4, 0, lp);
-        tiltX = lerp(lerp(2, 6, i), 0, lp);
-        blur = 0;
-      }
-
-      const perspective = 2200;
-
-      return {
-        ...REST_MOCKUP_MOTION,
-        scale,
-        translateXPct: scale * anchorX * 100,
-        translateYPct: 0,
-        rotateX: tiltX,
-        rotateY: tiltY,
-        rotateZ: tiltZ,
-        blurPx: blur,
-        perspectivePx: perspective,
-      };
-    }
-
     case "macro-track": {
       const speedT = clamp01(speed / 100);
       const trackEnd = lerp(0.75, 0.6, speedT);
       const p = clamp01(currentTime / clipDurationSec);
+
       const zoom0 = lerp(2.2, 3.2, i);
       const xRot0 = lerp(45, 65, i);
       const zRot0 = lerp(8, 22, i);
@@ -362,11 +327,15 @@ export function sampleMockupMotion(
       const anchorY0 = lerp(0.35, 0.48, i);
       const anchorX1 = lerp(-0.05, -0.1, i);
       const anchorY1 = lerp(-0.05, -0.1, i);
-      let scale = 1, anchorX = 0, anchorY = 0, tiltX = 0, tiltZ = 0;
+
+      let scale = 1;
+      let anchorX = 0;
+      let anchorY = 0;
+      let tiltX = 0;
+      let tiltZ = 0;
 
       if (p <= trackEnd) {
         const lp = easeInOutCubic(clamp01(p / trackEnd));
-
         scale = lerp(zoom0, zoom0 * 0.6, lp);
         anchorX = lerp(anchorX0, anchorX1, lp);
         anchorY = lerp(anchorY0, anchorY1, lp);
@@ -374,7 +343,6 @@ export function sampleMockupMotion(
         tiltZ = lerp(zRot0, zRot0 * 0.2, lp);
       } else {
         const lp = easeOutQuint(clamp01((p - trackEnd) / (1 - trackEnd)));
-
         scale = lerp(zoom0 * 0.6, 1, lp);
         anchorX = lerp(anchorX1, 0, lp);
         anchorY = lerp(anchorY1, 0, lp);
@@ -397,51 +365,136 @@ export function sampleMockupMotion(
       };
     }
 
-    case "surface-orbit": {
+    case "spatial-roam": {
       const speedT = clamp01(speed / 100);
-      const orbitEnd = lerp(0.8, 0.65, speedT);
+      const i = clamp01(intensity / 100);
       const p = clamp01(currentTime / clipDurationSec);
-      const xRot0 = lerp(50, 70, i);
-      const yRot0 = 0;
-      const zRot0 = 0;
-      const zoom0 = lerp(1.3, 1.65, i);
-      const anchorX0 = 0;
-      const anchorY0 = lerp(0.08, 0.18, i);
-      const xRotMid = lerp(20, 30, i);
-      const yRotMid = 0;
-      const zRotMid = 0;
-      const zoomMid = lerp(1.12, 1.38, i);
-      const anchorXMid = 0;
-      const anchorYMid = lerp(0.02, 0.05, i);
 
-      let scale: number, tiltX: number, tiltY: number, tiltZ: number;
-      let anchorX: number, anchorY: number;
+      // Tiempos del recorrido completo
+      const act1 = lerp(0.12, 0.10, speedT);
+      const act2 = lerp(0.32, 0.28, speedT);
+      const act3 = lerp(0.42, 0.36, speedT);
+      const act4 = lerp(0.60, 0.52, speedT);
+      const act5 = lerp(0.70, 0.62, speedT);
+      const act6 = lerp(0.85, 0.78, speedT);
 
-      if (p <= orbitEnd) {
-        const lp = easeInOutCubic(clamp01(p / orbitEnd));
-        const orbitT = easeInOutCubic(lp);
+      // Dinámica de escalas
+      const heroScale = lerp(1.02, 1.05, i);
+      const orbitScale = lerp(1.1, 1.2, i);
+      const macroScale = lerp(1.6, 1.85, i); // Zoom profundo permitido
 
-        scale = lerp(zoom0, zoomMid, orbitT);
-        anchorX = lerp(anchorX0, anchorXMid, orbitT);
-        anchorY = lerp(anchorY0, anchorYMid, orbitT);
-        tiltX = lerp(xRot0, xRotMid, orbitT);
-        tiltY = lerp(yRot0, yRotMid, orbitT);
-        tiltZ = lerp(zRot0, zRotMid, orbitT);
+      // Rotaciones extremas para las esquinas
+      const tiltXMax = lerp(20, 35, i);
+      const tiltYMax = lerp(20, 35, i);
+
+      // Coordenadas extremas (calculadas para no salir del Viewport en scale 1.75)
+      // Recordatorio CSS: X negativo empuja el elemento a la izquierda (foco derecho)
+      const ptBottomRight = { x: -lerp(0.15, 0.22, i), y: -lerp(0.15, 0.22, i) };
+      const ptTopRight = { x: -lerp(0.15, 0.22, i), y: lerp(0.15, 0.22, i) };
+      const ptTopLeft = { x: lerp(0.15, 0.22, i), y: lerp(0.15, 0.22, i) };
+      const ptBottomLeft = { x: lerp(0.15, 0.22, i), y: -lerp(0.15, 0.22, i) };
+      const ptCenter = { x: 0, y: 0 };
+
+      // Curvas de aceleración
+      const easeInOutCubic = (t: number) => t < 0.5 ? 4 * t ** 3 : 1 - (-2 * t + 2) ** 3 / 2;
+      const smootherStep = (t: number) => t * t * t * (t * (t * 6 - 15) + 10);
+      const lensBreath = 1 + Math.sin(currentTime * Math.PI * 1.5) * 0.015 * i;
+
+      let scale = 1;
+      let anchorX = 0;
+      let anchorY = 0;
+      let tiltX = 0;
+      let tiltY = 0;
+      let tiltZ = 0;
+      let blur = 0;
+
+      if (p <= act1) {
+        const t = clamp01(p / act1);
+        const lp = smootherStep(t);
+
+        scale = lerp(1.2, macroScale, lp);
+        anchorX = lerp(0, ptBottomRight.x, lp);
+        anchorY = lerp(0, ptBottomRight.y, lp);
+
+        tiltX = lerp(0, tiltXMax, lp);
+        tiltY = lerp(0, -tiltYMax, lp);
+        blur = lerp(lerp(10, 20, i), 0, easeInOutCubic(t));
+
+      } else if (p <= act2) {
+        const t = clamp01((p - act1) / (act2 - act1));
+
+        scale = macroScale * lensBreath;
+        anchorX = ptBottomRight.x; // Mantiene anclaje X
+        anchorY = lerp(ptBottomRight.y, ptTopRight.y, t); // Sube por Y
+
+        tiltX = tiltXMax;
+        tiltY = lerp(-tiltYMax, -tiltYMax * 0.6, t);
+
+      } else if (p <= act3) {
+        const t = clamp01((p - act2) / (act3 - act2));
+        const lp = easeInOutCubic(t);
+        const arc = Math.sin(t * Math.PI);
+
+        scale = lerp(macroScale, macroScale * 0.85, lp) - (arc * 0.15); // Aleja un poco durante el latigazo
+        anchorX = lerp(ptTopRight.x, ptTopLeft.x, lp);
+        anchorY = lerp(ptTopRight.y, ptTopLeft.y, lp); // Mantiene altura
+
+        tiltX = lerp(tiltXMax, tiltXMax * 0.5, lp) + (arc * 15);
+        tiltY = lerp(-tiltYMax * 0.6, tiltYMax, lp); // Gira el eje Y por completo
+        tiltZ = arc * lerp(6, 12, i);
+        blur = arc * lerp(12, 24, i);
+
+      } else if (p <= act4) {
+        const t = clamp01((p - act3) / (act4 - act3));
+        const lp = smootherStep(t);
+
+        scale = lerp(macroScale * 0.85, orbitScale, lp) * lensBreath;
+        anchorX = lerp(ptTopLeft.x, ptCenter.x, lp);
+        anchorY = lerp(ptTopLeft.y, ptCenter.y, lp);
+
+        tiltX = lerp(tiltXMax * 0.5, -tiltXMax * 0.5, lp);
+        tiltY = lerp(tiltYMax, -tiltYMax * 0.2, lp);
+
+      } else if (p <= act5) {
+        const t = clamp01((p - act4) / (act5 - act4));
+        const lp = easeInOutCubic(t);
+
+        scale = lerp(orbitScale, macroScale, lp);
+        anchorX = lerp(ptCenter.x, ptBottomLeft.x, lp);
+        anchorY = lerp(ptCenter.y, ptBottomLeft.y, lp);
+
+        tiltX = lerp(-tiltXMax * 0.5, tiltXMax * 0.8, lp);
+        tiltY = lerp(-tiltYMax * 0.2, tiltYMax, lp);
+        blur = Math.sin(t * Math.PI) * lerp(4, 10, i);
+
+      } else if (p <= act6) {
+        const t = clamp01((p - act5) / (act6 - act5));
+
+        scale = macroScale * lensBreath;
+        anchorX = lerp(ptBottomLeft.x, ptCenter.x, t);
+        anchorY = lerp(ptBottomLeft.y, ptCenter.y - lerp(0.05, 0.1, i), t);
+
+        tiltX = lerp(tiltXMax * 0.8, tiltXMax, t);
+        tiltY = lerp(tiltYMax, 0, t);
+
       } else {
-        const lp = easeOutQuint(clamp01((p - orbitEnd) / (1 - orbitEnd)));
+        const t = clamp01((p - act6) / (1 - act6));
+        const lp = smootherStep(t);
 
-        scale = lerp(zoomMid, 1, lp);
-        anchorX = lerp(anchorXMid, 0, lp);
-        anchorY = lerp(anchorYMid, 0, lp);
-        tiltX = lerp(xRotMid, 0, lp);
-        tiltY = lerp(yRotMid, 0, lp);
-        tiltZ = lerp(zRotMid, 0, lp);
+        scale = lerp(macroScale, heroScale, lp);
+        anchorX = lerp(0, 0, lp);
+        anchorY = lerp(ptCenter.y - lerp(0.05, 0.1, i), 0, lp);
+
+        tiltX = lerp(tiltXMax, 0, lp);
+        tiltY = 0;
+        tiltZ = 0;
       }
 
       const translateXPct = scale * anchorX * 100;
       const translateYPct = scale * anchorY * 100;
-      const tiltRatio = clamp01((Math.abs(tiltX) + Math.abs(tiltY)) / (xRot0 + yRot0 || 1));
-      const perspective = lerp(3000, 1800, tiltRatio);
+
+      const tiltRatio = clamp01((Math.abs(tiltX) + Math.abs(tiltY)) / (tiltXMax + tiltYMax || 1));
+      const perspective = lerp(3200, 1100, tiltRatio);
 
       return {
         ...REST_MOCKUP_MOTION,
@@ -451,27 +504,667 @@ export function sampleMockupMotion(
         rotateX: tiltX,
         rotateY: tiltY,
         rotateZ: tiltZ,
-        blurPx: 0,
+        blurPx: blur,
         perspectivePx: perspective,
       };
     }
+
+    case "crane-sweep": {
+      const speedT = clamp01(speed / 100);
+      const i = clamp01(intensity / 100);
+      const p = clamp01(currentTime / clipDurationSec);
+
+      // ── FASES
+      const a1 = lerp(0.12, 0.09, speedT);   // Cenital establishing
+      const a2 = lerp(0.30, 0.25, speedT);   // Crane descent
+      const a3 = lerp(0.44, 0.38, speedT);   // Push feature right
+      const a4 = lerp(0.54, 0.47, speedT);   // Whip orbit right → left
+      const a5 = lerp(0.68, 0.62, speedT);   // Macro feature left
+      const a6 = lerp(0.84, 0.78, speedT);   // Transition to Isometric
+      // a7: Isometric Settle hasta 1.0
+
+      // ── ESCALAS
+      const cenitalScale = lerp(0.88, 0.98, i);  // muy lejos, desde arriba
+      const heroScale = lerp(1.02, 1.08, i);
+      const macroScale = lerp(1.50, 1.80, i);
+
+      // ── TILT (rotateX es el protagonista aquí)
+      const cenitalTiltX = -lerp(55, 82, i);       // mirando casi desde el techo
+      const hoverTiltX = -lerp(18, 32, i);       // inclinación media
+      const levelTiltX = lerp(2, 5, i);          // casi plano en features
+
+      const tiltYMax = lerp(16, 28, i);        // paneo lateral
+
+      // ── ANCLAS
+      const ptCenter = { x: 0, y: 0 };
+      const ptRightFeature = { x: -lerp(0.18, 0.28, i), y: lerp(0.02, 0.06, i) };
+      const ptLeftFeature = { x: lerp(0.18, 0.28, i), y: lerp(-0.02, -0.06, i) };
+
+      // ── CURVAS
+      const smoothStep = (t: number): number => t * t * (3 - 2 * t);
+      const smootherStep = (t: number): number => t * t * t * (t * (t * 6 - 15) + 10);
+      const easeInOutCubic = (t: number): number =>
+        t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
+      const easeOutCubic = (t: number): number => 1 - (1 - t) ** 3;
+      const easeOutExpo = (t: number): number => t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+
+      // ── HANDHELD + BREATHING
+      const hSeed = currentTime * lerp(0.6, 1.4, i);
+      const hAmp = lerp(0.06, 0.16, i);
+      const handX = Math.sin(hSeed * 2.7) * Math.cos(hSeed * 1.3) * hAmp;
+      const handY = Math.sin(hSeed * 1.9) * Math.cos(hSeed * 4.3) * hAmp;
+      const handRot = Math.sin(hSeed * 3.9) * 0.035 * (i * 0.5 + 0.5);
+      const breath = 1 + Math.sin(currentTime * Math.PI * 2 * lerp(0.20, 0.45, i)) * lerp(0.003, 0.008, i);
+
+      // ── WHIP / ORBIT CONFIG
+      const orbitRollMax = lerp(4, 10, i);
+      const motionBlurMax = lerp(8, 20, i);
+
+      // ═══════════════════════════════════════════════════════════════
+      // HAND-OFFS
+      // ═══════════════════════════════════════════════════════════════
+      const h0 = {
+        s: cenitalScale, x: 0, y: 0,
+        tx: cenitalTiltX, ty: 0, tz: 0, blur: 0
+      };
+      const h1 = {
+        s: cenitalScale, x: 0, y: 0,
+        tx: cenitalTiltX * 0.85, ty: tiltYMax * 0.10, tz: 0, blur: 0
+      };
+      const h2 = {
+        s: heroScale, x: lerp(0.04, 0.10, i), y: lerp(0.02, 0.05, i),
+        tx: hoverTiltX, ty: tiltYMax * 0.35, tz: 0, blur: 0
+      };
+      const h3 = {
+        s: macroScale, x: ptRightFeature.x, y: ptRightFeature.y,
+        tx: levelTiltX, ty: -tiltYMax * 0.25, tz: 0, blur: 0
+      };
+      const h4 = {
+        s: macroScale * 0.92, x: ptLeftFeature.x, y: ptLeftFeature.y,
+        tx: levelTiltX * 0.8, ty: tiltYMax * 0.30, tz: 0, blur: 0
+      };
+      const h5 = {
+        s: macroScale, x: ptLeftFeature.x + lerp(0.01, 0.03, i), y: ptLeftFeature.y,
+        tx: levelTiltX * 0.6, ty: tiltYMax * 0.20, tz: 0, blur: 0
+      };
+
+      // NUEVO: Transición intermedia hacia el centro
+      const h6 = {
+        s: heroScale, x: 0, y: 0,
+        tx: lerp(5, 12, i), ty: -lerp(10, 18, i), tz: 0, blur: 0
+      };
+
+      // NUEVO: Remate Isométrico Majestuoso (En lugar de volver a h0)
+      const h7_end = {
+        s: heroScale * lerp(1.1, 1.18, i),
+        x: 0,
+        y: 0,
+        tx: lerp(25, 38, i),
+        ty: -lerp(20, 32, i),
+        tz: 0,
+        blur: 0
+      };
+
+      // ═══════════════════════════════════════════════════════════════
+      // ACTOS
+      // ═══════════════════════════════════════════════════════════════
+      let scale: number;
+      let anchorX: number;
+      let anchorY: number;
+      let tiltX: number;
+      let tiltY: number;
+      let tiltZ: number;
+      let blur: number;
+
+      if (p <= a1) {
+        // ACTO I: Cenital Establishing — mirando desde el techo
+        const t = clamp01(p / a1);
+        const lp = easeOutCubic(t);
+        scale = lerp(h0.s, h1.s, lp) * breath;
+        anchorX = lerp(h0.x, h1.x, lp);
+        anchorY = lerp(h0.y, h1.y, lp);
+        tiltX = lerp(h0.tx, h1.tx, lp);
+        tiltY = lerp(h0.ty, h1.ty, lp);
+        tiltZ = handRot * 0.2;
+        blur = 0;
+
+      } else if (p <= a2) {
+        // ACTO II: Crane Descent — la grúa baja, el tilt se nivela, se revela la UI
+        const t = clamp01((p - a1) / (a2 - a1));
+        const lp = smootherStep(t);
+        scale = lerp(h1.s, h2.s, lp) * breath;
+        anchorX = lerp(h1.x, h2.x, lp);
+        anchorY = lerp(h1.y, h2.y, lp);
+        tiltX = lerp(h1.tx, h2.tx, lp);
+        tiltY = lerp(h1.ty, h2.ty, lp);
+        tiltZ = handRot * 0.4;
+        blur = 0;
+
+      } else if (p <= a3) {
+        // ACTO III: Push Feature Right — dolly-in lateral derecho
+        const t = clamp01((p - a2) / (a3 - a2));
+        const lp = smoothStep(t);
+        scale = lerp(h2.s, h3.s, lp) * breath;
+        anchorX = lerp(h2.x, h3.x, lp);
+        anchorY = lerp(h2.y, h3.y, lp);
+        tiltX = lerp(h2.tx, h3.tx, lp);
+        tiltY = lerp(h2.ty, h3.ty, lp);
+        tiltZ = handRot * 0.5;
+        blur = 0;
+
+      } else if (p <= a4) {
+        // ACTO IV: Whip Orbit — giro violento de derecha a izquierda
+        const t = clamp01((p - a3) / (a4 - a3));
+        const lp = easeInOutCubic(t);
+        const arc = Math.sin(Math.PI * lp);
+        const arcAsym = Math.sin(Math.PI * Math.pow(lp, 0.8));
+
+        scale = lerp(h3.s, h4.s, lp) * lerp(1, 0.88, arc);
+
+        // Trayectoria en arco por encima del centro
+        const midX = (h3.x + h4.x) * 0.5;
+        const midY = Math.max(h3.y, h4.y) + lerp(0.04, 0.10, i);
+        const u = 1 - lp;
+        anchorX = u * u * h3.x + 2 * u * lp * midX + lp * lp * h4.x;
+        anchorY = u * u * h3.y + 2 * u * lp * midY + lp * lp * h4.y;
+
+        // Tilt flip + orbit roll masivo
+        const flare = arcAsym * lerp(0.55, 1.0, i);
+        tiltX = lerp(h3.tx, h4.tx, lp) + flare * hoverTiltX * 0.5;
+        tiltY = lerp(h3.ty, h4.ty, lp) + flare * tiltYMax * 0.6;
+        tiltZ = arc * orbitRollMax + handRot * 0.2;
+        blur = arcAsym * motionBlurMax;
+
+      } else if (p <= a5) {
+        // ACTO V: Macro Feature Left — exploración profunda
+        const t = clamp01((p - a4) / (a5 - a4));
+        const lp = smoothStep(t);
+        scale = lerp(h4.s, h5.s, lp) * breath;
+
+        const driftT = lp * Math.PI * 1.1;
+        const driftX = Math.sin(driftT) * lerp(0.006, 0.016, i);
+        const driftY = Math.cos(driftT * 0.6) * lerp(0.004, 0.012, i);
+
+        anchorX = lerp(h4.x, h5.x, lp) + driftX;
+        anchorY = lerp(h4.y, h5.y, lp) + driftY;
+        tiltX = lerp(h4.tx, h5.tx, lp) + driftX * lerp(10, 24, i);
+        tiltY = lerp(h4.ty, h5.ty, lp) + driftY * lerp(8, 16, i);
+        tiltZ = handRot * 0.4;
+        blur = lerp(lerp(2, 5, i), 0, lp); // limpia blur residual
+
+      } else if (p <= a6) {
+        // ACTO VI: Sweep al Centro — la cámara cruza hacia el medio preparándose para el final
+        const t = clamp01((p - a5) / (a6 - a5));
+        const lp = smootherStep(t);
+        scale = lerp(h5.s, h6.s, lp) * breath;
+        anchorX = lerp(h5.x, h6.x, lp);
+        anchorY = lerp(h5.y, h6.y, lp);
+        tiltX = lerp(h5.tx, h6.tx, lp);
+        tiltY = lerp(h5.ty, h6.ty, lp);
+        tiltZ = handRot * 0.3;
+        blur = 0;
+
+      } else {
+        // ACTO VII: Hero Isometric Settle — remate impactante y elegante en 3D
+        const t = clamp01((p - a6) / (1 - a6));
+        const lp = easeOutExpo(t); // Desaceleración premium al final
+        scale = lerp(h6.s, h7_end.s, lp) * breath;
+        anchorX = lerp(h6.x, h7_end.x, lp);
+        anchorY = lerp(h6.y, h7_end.y, lp);
+        tiltX = lerp(h6.tx, h7_end.tx, lp);
+        tiltY = lerp(h6.ty, h7_end.ty, lp);
+
+        // El ruido manual se desvanece sutilmente para dejar un cuadro final impecable
+        const finalSettle = 1 - lp;
+        tiltZ = handRot * 0.2 * finalSettle;
+        blur = 0;
+      }
+
+      // ── HANDHELD EN HOLDS (nunca durante whip orbit ni en el settle final absoluto)
+      const inWhip = (p > a3 && p < a4);
+      const isSettling = p > a6;
+      if (!inWhip) {
+        const noiseMultiplier = isSettling ? 1 - clamp01((p - a6) / (1 - a6)) : 1;
+        anchorX += handX * 0.001 * noiseMultiplier;
+        anchorY += handY * 0.001 * noiseMultiplier;
+      }
+
+      // ── TRADUCCIÓN A TRANSFORM
+      const translateXPct = scale * anchorX * 100;
+      const translateYPct = scale * anchorY * 100;
+
+      // Perspectiva: más cerrada cuando el tiltX es cenital (más dramático), se relaja al final
+      const tiltMag = Math.abs(tiltX) + Math.abs(tiltY);
+      const tiltNorm = clamp01(tiltMag / (Math.abs(cenitalTiltX) + tiltYMax || 1));
+      const perspective = lerp(3500, 900, tiltNorm);
+
+      return {
+        ...REST_MOCKUP_MOTION,
+        scale,
+        translateXPct,
+        translateYPct,
+        rotateX: tiltX,
+        rotateY: tiltY,
+        rotateZ: tiltZ,
+        opacity: 1,
+        blurPx: blur,
+        perspectivePx: perspective,
+      };
+    }
+
+    case "rise-crash": {
+      const speedT = clamp01(speed / 100);
+      const i = clamp01(intensity / 100);
+      const p = clamp01(currentTime / clipDurationSec);
+
+      // ── TIEMPOS
+      const act1 = lerp(0.12, 0.10, speedT);
+      const act2 = lerp(0.30, 0.26, speedT);
+      const act3 = lerp(0.44, 0.38, speedT);
+      const act4 = lerp(0.62, 0.56, speedT);
+      const act5 = lerp(0.74, 0.68, speedT);
+      const act6 = lerp(0.90, 0.84, speedT);
+
+      // ── ESCALAS
+      const heroScale = lerp(1.02, 1.08, i);
+      const macroScale = lerp(1.55, 1.85, i);
+      const crashScale = lerp(1.35, 1.65, i); // zoom-out durante el whip de caída
+
+      // ── ROTACIONES EXTREMAS
+      const tiltXMax = lerp(22, 38, i); // ángulo bajo inicial (cámara desde abajo)
+      const tiltYMax = lerp(14, 26, i);
+
+      // ── ANCLAS
+      const ptTop = { x: lerp(0.06, 0.12, i), y: lerp(0.18, 0.32, i) };
+      const ptBottom = { x: lerp(-0.08, -0.16, i), y: -lerp(0.18, 0.32, i) };
+      const ptCenter = { x: 0, y: 0 };
+
+      // ── CURVAS
+      const easeInOutCubic = (t: number): number =>
+        t < 0.5 ? 4 * t ** 3 : 1 - (-2 * t + 2) ** 3 / 2;
+      const smootherStep = (t: number): number => t * t * t * (t * (t * 6 - 15) + 10);
+
+      let scale = 1;
+      let anchorX = 0;
+      let anchorY = 0;
+      let tiltX = 0;
+      let tiltY = 0;
+      let tiltZ = 0;
+      let blur = 0;
+
+      if (p <= act1) {
+        const t = clamp01(p / act1);
+        const lp = smootherStep(t);
+        scale = lerp(heroScale, macroScale, lp);
+        anchorX = lerp(0, ptTop.x, lp);
+        anchorY = lerp(0, ptTop.y, lp);
+        tiltX = lerp(tiltXMax, tiltXMax * 0.25, lp); // nivela el ángulo bajo
+        tiltY = lerp(0, tiltYMax * 0.3, lp);
+        blur = 0;
+
+      } else if (p <= act2) {
+        const t = clamp01((p - act1) / (act2 - act1));
+        scale = macroScale;
+        anchorX = ptTop.x;
+        anchorY = lerp(ptTop.y, ptTop.y + lerp(0.02, 0.05, i), t);
+        tiltX = tiltXMax * 0.25;
+        tiltY = lerp(tiltYMax * 0.3, tiltYMax * 0.15, t);
+
+      } else if (p <= act3) {
+        const t = clamp01((p - act2) / (act3 - act2));
+        const lp = easeInOutCubic(t);
+        const arc = Math.sin(t * Math.PI);
+        scale = lerp(macroScale, crashScale, lp) * lerp(1, 0.88, arc); // suck effect
+        anchorX = lerp(ptTop.x, ptBottom.x, lp);
+        anchorY = lerp(ptTop.y, ptBottom.y, lp);
+        tiltX = lerp(tiltXMax * 0.25, -tiltXMax * 0.6, lp) + arc * lerp(8, 18, i);
+        tiltY = lerp(tiltYMax * 0.15, -tiltYMax * 0.4, lp);
+        tiltZ = arc * lerp(-5, -12, i); // roll negativo en la caída
+        blur = arc * lerp(14, 28, i);
+
+      } else if (p <= act4) {
+        const t = clamp01((p - act3) / (act4 - act3));
+        const lp = smootherStep(t);
+        scale = lerp(crashScale, macroScale, lp);
+        anchorX = lerp(ptBottom.x, ptBottom.x + lerp(0.02, 0.06, i), lp);
+        anchorY = ptBottom.y;
+        tiltX = lerp(-tiltXMax * 0.6, -tiltXMax * 0.35, lp);
+        tiltY = lerp(-tiltYMax * 0.4, -tiltYMax * 0.2, lp);
+        blur = lerp(lerp(3, 6, i), 0, lp); // despeja blur residual del whip
+
+      } else if (p <= act5) {
+        const t = clamp01((p - act4) / (act5 - act4));
+        const lp = easeInOutCubic(t);
+        const arc = Math.sin(t * Math.PI);
+        scale = lerp(macroScale, macroScale * 1.05, lp) * lerp(1, 0.92, arc);
+        anchorX = lerp(ptBottom.x + lerp(0.02, 0.06, i), ptCenter.x, lp);
+        anchorY = lerp(ptBottom.y, ptCenter.y, lp);
+        tiltX = lerp(-tiltXMax * 0.35, 0, lp) + arc * tiltXMax * 0.25;
+        tiltY = lerp(-tiltYMax * 0.2, 0, lp) + arc * tiltYMax * 0.2;
+        tiltZ = arc * lerp(4, 10, i);
+        blur = arc * lerp(10, 20, i);
+
+      } else if (p <= act6) {
+        const t = clamp01((p - act5) / (act6 - act5));
+        const lp = smootherStep(t);
+        scale = lerp(macroScale * 1.05, heroScale, lp);
+        anchorX = lerp(ptCenter.x, 0, lp);
+        anchorY = lerp(ptCenter.y, 0, lp);
+        tiltX = lerp(0, tiltXMax, lp); // vuelve a inclinarse para loop perfecto
+        tiltY = 0;
+        tiltZ = 0;
+        blur = 0;
+
+      } else {
+        const t = clamp01((p - act6) / (1 - act6));
+        const lp = smootherStep(t);
+        scale = heroScale;
+        anchorX = 0;
+        anchorY = 0;
+        tiltX = tiltXMax; // idéntico al frame 0 del Acto I
+        tiltY = 0;
+        tiltZ = 0;
+        blur = 0;
+      }
+
+      const translateXPct = scale * anchorX * 100;
+      const translateYPct = scale * anchorY * 100;
+      const tiltRatio = clamp01((Math.abs(tiltX) + Math.abs(tiltY)) / (tiltXMax + tiltYMax || 1));
+      const perspective = lerp(3200, 1100, tiltRatio);
+
+      return {
+        ...REST_MOCKUP_MOTION,
+        scale,
+        translateXPct,
+        translateYPct,
+        rotateX: tiltX,
+        rotateY: tiltY,
+        rotateZ: tiltZ,
+        blurPx: blur,
+        perspectivePx: perspective,
+      };
+    }
+
+    case "whip-showcase": {
+      const speedT = clamp01(speed / 100);
+      const i = clamp01(intensity / 100);
+
+      // ═══════════════════════════════════════════════════════════════
+      // HERO-REVEAL v3  —  Handoffs estrictos, pullback suave, loop perfecto
+      // ═══════════════════════════════════════════════════════════════
+      const a1 = lerp(0.12, 0.08, speedT);  // Hero establishing
+      const a2 = lerp(0.28, 0.22, speedT);  // Push to Feature A
+      const a3 = lerp(0.44, 0.36, speedT);  // Drift on Feature A
+      const a4 = lerp(0.52, 0.44, speedT);  // Whip to Feature B
+      const a5 = lerp(0.68, 0.60, speedT);  // Macro Feature B
+      const a6 = lerp(0.80, 0.72, speedT);  // Pullback Reveal (FIXED)
+      const a7 = lerp(0.90, 0.84, speedT);  // Panoramic sweep
+      // a8: settle final hasta 1.0
+
+      const p = clamp01(currentTime / clipDurationSec);
+
+      // ── ANCLAS
+      const anchorHero = { x: 0, y: 0 };
+      const anchorFeatA = { x: lerp(0.26, 0.16, i), y: lerp(-0.14, -0.30, i) };
+      const anchorFeatB = { x: lerp(-0.18, -0.28, i), y: lerp(0.18, 0.34, i) };
+
+      // ── ZOOM
+      const zoomHero = lerp(1.02, 1.08, i);
+      const zoomFeatA = lerp(1.40, 1.95, i);
+      const zoomFeatB = lerp(1.52, 2.20, i);
+      const zoomMacro = lerp(1.65, 2.35, i);
+
+      // ── TILT
+      const heroTiltX = lerp(10, 16, i);
+      const heroTiltY = lerp(14, 24, i);
+      const featATiltX = lerp(2, 4, i);
+      const featATiltY = lerp(2.5, 5.5, i);
+      const featBTiltX = lerp(1.5, 3.5, i);
+      const featBTiltY = lerp(2, 5, i);
+
+      // ── ESTADOS DE HAND-OFF (garantizan 0 saltos entre actos)
+      const handoffA = {
+        scale: zoomFeatA,
+        anchorX: anchorFeatA.x,
+        anchorY: anchorFeatA.y,
+        tiltX: featATiltX,
+        tiltY: featATiltY,
+      };
+
+      const handoffAEnd = {
+        scale: zoomFeatA * lerp(1.01, 1.03, i),
+        anchorX: anchorFeatA.x + lerp(0.03, 0.08, i),
+        anchorY: anchorFeatA.y + lerp(0.015, 0.04, i),
+        tiltX: featATiltX * lerp(0.7, 0.5, i),
+        tiltY: featATiltY * lerp(0.7, 0.5, i),
+      };
+
+      const handoffBEnd = {
+        scale: zoomMacro * lerp(1.005, 1.015, i),
+        anchorX: anchorFeatB.x + lerp(0.008, 0.02, i),
+        anchorY: anchorFeatB.y + lerp(0.004, 0.012, i),
+        tiltX: featBTiltX * 0.4,
+        tiltY: featBTiltY * 0.4,
+      };
+
+      // FIX v3: Estado final del pullback (Acto 6) → entrada al sweep (Acto 7)
+      // Zoom nunca baja de zoomHero * 1.04. No hay "desaparición" hacia atrás.
+      const handoff6End = {
+        scale: zoomHero * lerp(1.06, 1.12, i),
+        anchorX: lerp(0.04, 0.10, i),   // ligero offset para iniciar el sweep
+        anchorY: lerp(0.01, 0.03, i),
+        tiltX: heroTiltX * lerp(0.85, 0.95, i),
+        tiltY: heroTiltY * lerp(0.85, 0.95, i),
+      };
+
+      // FIX v3: Estado final del sweep (Acto 7) → entrada al settle (Acto 8)
+      const handoff7End = {
+        scale: zoomHero * lerp(1.02, 1.06, i),
+        anchorX: -lerp(0.04, 0.10, i),  // terminó el sweep del otro lado
+        anchorY: lerp(0.005, 0.015, i),
+        tiltX: heroTiltX * lerp(0.9, 1.0, i),
+        tiltY: heroTiltY * lerp(0.9, 1.0, i),
+      };
+
+      // ── CURVAS TIPADAS
+      const smoothStep = (t: number): number => t * t * (3 - 2 * t);
+      const smootherStep = (t: number): number => t * t * t * (t * (t * 6 - 15) + 10);
+      const easeInOutQuart = (t: number): number =>
+        t < 0.5 ? 8 * t * t * t * t : 1 - Math.pow(-2 * t + 2, 4) / 2;
+      const easeOutBack = (t: number, o: number = 1.70158): number =>
+        1 + (o + 1) * Math.pow(t - 1, 3) + o * Math.pow(t - 1, 2);
+
+      // ── HANDHELD (sutil, solo en holds)
+      const hSeed = currentTime * lerp(0.8, 1.8, i);
+      const hAmp = lerp(0.08, 0.20, i);
+      const handX = Math.sin(hSeed * 3.1) * Math.cos(hSeed * 1.7) * hAmp;
+      const handY = Math.sin(hSeed * 2.3) * Math.cos(hSeed * 5.1) * hAmp;
+      const handRot = Math.sin(hSeed * 4.7) * 0.04 * (i * 0.5 + 0.5);
+
+      // ── LENS BREATHING
+      const breath = 1 + Math.sin(currentTime * Math.PI * 2 * lerp(0.28, 0.55, i)) * lerp(0.003, 0.010, i);
+
+      // ── WHIP
+      const whipRollMax = lerp(2.5, 6.5, i);
+      const motionBlurMax = lerp(6, 18, i);
+
+      // ═══════════════════════════════════════════════════════════════
+      // ACTOS
+      // ═══════════════════════════════════════════════════════════════
+      let scale: number;
+      let anchorX: number;
+      let anchorY: number;
+      let tiltX: number;
+      let tiltY: number;
+      let tiltZ: number;
+      let blur: number;
+
+      if (p <= a1) {
+        const t = clamp01(p / a1);
+        const lp = easeOutCubic(t);
+
+        scale = zoomHero;
+        anchorX = anchorHero.x;
+        anchorY = anchorHero.y;
+        tiltX = lerp(heroTiltX * 1.2, heroTiltX, lp);
+        tiltY = lerp(heroTiltY * 1.15, heroTiltY, lp);
+        tiltZ = handRot * 0.3;
+        blur = 0;
+
+      } else if (p <= a2) {
+        const t = clamp01((p - a1) / (a2 - a1));
+        const lp = smootherStep(t);
+
+        scale = lerp(zoomHero, handoffA.scale, lp) * breath;
+        anchorX = lerp(anchorHero.x, handoffA.anchorX, lp);
+        anchorY = lerp(anchorHero.y, handoffA.anchorY, lp);
+        tiltX = lerp(heroTiltX, handoffA.tiltX, lp);
+        tiltY = lerp(heroTiltY, handoffA.tiltY, lp);
+        tiltZ = handRot * 0.6;
+        blur = 0;
+
+      } else if (p <= a3) {
+        const t = clamp01((p - a2) / (a3 - a2));
+        const lp = smoothStep(t);
+
+        scale = lerp(handoffA.scale, handoffAEnd.scale, lp) * breath;
+        anchorX = lerp(handoffA.anchorX, handoffAEnd.anchorX, lp);
+        anchorY = lerp(handoffA.anchorY, handoffAEnd.anchorY, lp);
+        tiltX = lerp(handoffA.tiltX, handoffAEnd.tiltX, lp);
+        tiltY = lerp(handoffA.tiltY, handoffAEnd.tiltY, lp);
+        tiltZ = handRot;
+        blur = 0;
+
+      } else if (p <= a4) {
+        const t = clamp01((p - a3) / (a4 - a3));
+        const lp = easeInOutQuart(t);
+
+        const arc = Math.sin(Math.PI * lp);
+        const arcAsym = Math.sin(Math.PI * Math.pow(lp, 0.8));
+        const zoomSuck = 1 - arc * 0.05;
+
+        scale = lerp(handoffAEnd.scale, zoomFeatB, lp) * zoomSuck;
+
+        const midX = (handoffAEnd.anchorX + anchorFeatB.x) * 0.5 + lerp(0.03, 0.08, i);
+        const midY = (handoffAEnd.anchorY + anchorFeatB.y) * 0.5 - lerp(0.02, 0.05, i);
+        const u = 1 - lp;
+        anchorX = u * u * handoffAEnd.anchorX + 2 * u * lp * midX + lp * lp * anchorFeatB.x;
+        anchorY = u * u * handoffAEnd.anchorY + 2 * u * lp * midY + lp * lp * anchorFeatB.y;
+
+        const flare = arcAsym * lerp(0.45, 0.85, i);
+        tiltX = lerp(handoffAEnd.tiltX, featBTiltX, lp) + flare * heroTiltX * 0.4;
+        tiltY = lerp(handoffAEnd.tiltY, featBTiltY, lp) + flare * heroTiltY * 0.4;
+        tiltZ = arc * -whipRollMax + handRot * 0.2;
+        blur = arcAsym * motionBlurMax;
+
+      } else if (p <= a5) {
+        const t = clamp01((p - a4) / (a5 - a4));
+        const lp = smoothStep(t);
+
+        scale = lerp(zoomFeatB, handoffBEnd.scale, lp) * breath;
+
+        const microT = lp * Math.PI * 1.2;
+        const microX = Math.sin(microT) * lerp(0.006, 0.018, i);
+        const microY = Math.sin(microT * 0.7) * lerp(0.004, 0.012, i);
+
+        anchorX = lerp(anchorFeatB.x, handoffBEnd.anchorX, lp) + microX;
+        anchorY = lerp(anchorFeatB.y, handoffBEnd.anchorY, lp) + microY;
+
+        tiltX = lerp(featBTiltX, handoffBEnd.tiltX, lp) + microX * lerp(10, 22, i);
+        tiltY = lerp(featBTiltY, handoffBEnd.tiltY, lp) - microY * lerp(6, 14, i);
+        tiltZ = handRot * 0.5;
+        blur = 0;
+
+      } else if (p <= a6) {
+        const t = clamp01((p - a5) / (a6 - a5));
+        const lp = easeOutCubic(t);
+
+        scale = lerp(handoffBEnd.scale, handoff6End.scale, lp) * breath;
+
+        anchorX = lerp(handoffBEnd.anchorX, handoff6End.anchorX, lp);
+        anchorY = lerp(handoffBEnd.anchorY, handoff6End.anchorY, lp);
+
+        tiltX = lerp(handoffBEnd.tiltX, handoff6End.tiltX, lp);
+        tiltY = lerp(handoffBEnd.tiltY, handoff6End.tiltY, lp);
+        tiltZ = handRot * 0.6;
+        blur = 0;
+
+      } else if (p <= a7) {
+        const t = clamp01((p - a6) / (a7 - a6));
+        const lp = smoothStep(t);
+
+        scale = lerp(handoff6End.scale, handoff7End.scale, lp) * breath;
+
+        anchorX = lerp(handoff6End.anchorX, handoff7End.anchorX, lp);
+        anchorY = lerp(handoff6End.anchorY, handoff7End.anchorY, lp);
+
+        tiltX = lerp(handoff6End.tiltX, handoff7End.tiltX, lp);
+        tiltY = lerp(handoff6End.tiltY, handoff7End.tiltY, lp);
+        tiltZ = handRot + (anchorX - handoff6End.anchorX) * lerp(2, 5, i);
+        blur = 0;
+
+      } else {
+        const t = clamp01((p - a7) / (1 - a7));
+        const lp = easeOutCubic(t);
+
+        scale = lerp(handoff7End.scale, zoomHero, lp) * breath;
+        anchorX = lerp(handoff7End.anchorX, anchorHero.x, lp);
+        anchorY = lerp(handoff7End.anchorY, anchorHero.y, lp);
+        tiltX = lerp(handoff7End.tiltX, heroTiltX, lp);
+        tiltY = lerp(handoff7End.tiltY, heroTiltY, lp);
+        tiltZ = handRot * 0.3;
+        blur = 0;
+      }
+
+      // ── HANDHELD (solo en holds, nunca en whips)
+      const inWhip = (p > a3 && p < a4);
+      if (!inWhip) {
+        anchorX += handX * 0.001;
+        anchorY += handY * 0.001;
+      }
+
+      // ── TRADUCCIÓN A TRANSFORM
+      const translateXPct = scale * anchorX * 100;
+      const translateYPct = scale * anchorY * 100;
+
+      const tiltMag = Math.abs(tiltX) + Math.abs(tiltY);
+      const tiltNorm = clamp01(tiltMag / (heroTiltX + heroTiltY || 1));
+      const perspective = lerp(3000, 1200, tiltNorm);
+
+      return {
+        ...REST_MOCKUP_MOTION,
+        scale,
+        translateXPct,
+        translateYPct,
+        rotateX: tiltX,
+        rotateY: tiltY,
+        rotateZ: tiltZ,
+        opacity: 1,
+        blurPx: blur,
+        perspectivePx: perspective,
+      };
+    }
+
     case "exit-fade-down": {
       const dur = Math.min(speedToDurationSec(speed), clipDurationSec);
       const startAt = Math.max(0, clipDurationSec - dur);
       const t = clamp01((currentTime - startAt) / dur);
       const eased = easeOutCubic(t);
       const distance = lerp(6, 24, i);
+
       return {
         ...REST_MOCKUP_MOTION,
         translateYPct: lerp(0, distance, eased),
         opacity: lerp(1, 0, eased),
       };
     }
+
     case "exit-scale-blur": {
       const dur = Math.min(speedToDurationSec(speed), clipDurationSec);
       const startAt = Math.max(0, clipDurationSec - dur);
       const t = clamp01((currentTime - startAt) / dur);
       const eased = easeOutCubic(t);
+
       return {
         ...REST_MOCKUP_MOTION,
         scale: lerp(1, lerp(1.02, 1.25, i), eased),
@@ -479,6 +1172,7 @@ export function sampleMockupMotion(
         opacity: lerp(1, 0, eased),
       };
     }
+
     default:
       return REST_MOCKUP_MOTION;
   }
@@ -487,27 +1181,46 @@ export function sampleMockupMotion(
 const ENTRANCE_EXIT_PADDING = 1.4;
 const DEFAULT_CONTINUOUS_DURATION = 3;
 
+const SMALL_DURATION_PRESETS = new Set<MockupMotionPresetId>([
+  "cinematic-showcase",
+  "isometric-lift",
+  "macro-track",
+  "z-spin-reveal"
+]);
+
+const LONG_DURATION_PRESETS = new Set<MockupMotionPresetId>([
+  "whip-showcase",
+  "rise-crash"
+]);
+
+const EXTRA_LONG_DURATION_PRESETS = new Set<MockupMotionPresetId>([
+  "spatial-roam",
+  "crane-sweep"
+]);
+
 export function getDefaultFragmentDuration(
   presetId: MockupMotionPresetId,
   speed: number
 ): number {
 
-  if (
-    presetId === "cinematic-showcase" ||
-    presetId === "isometric-lift" ||
-    presetId === "panoramic-sweep" ||
-    presetId === "macro-track" ||
-    presetId === "surface-orbit" ||
-    presetId === "z-spin-reveal"
+  if (EXTRA_LONG_DURATION_PRESETS.has(presetId)) {
+    return lerp(12, 10.0, clamp01(speed / 100));
+  }
 
-  ) {
+  if (LONG_DURATION_PRESETS.has(presetId)) {
+    return lerp(12, 6.0, clamp01(speed / 100));
+  }
+
+  if (SMALL_DURATION_PRESETS.has(presetId)) {
     return lerp(7, 4.5, clamp01(speed / 100));
   }
 
   const category = getMotionPresetCategory(presetId);
+
   if (category === "Entrance" || category === "Exit") {
     return speedToDurationSec(speed) * ENTRANCE_EXIT_PADDING;
   }
+
   return DEFAULT_CONTINUOUS_DURATION;
 }
 
@@ -557,12 +1270,15 @@ export function getMotionPresetCategory(
 ): (typeof MOCKUP_MOTION_PRESETS)[number]["category"] {
   return MOCKUP_MOTION_PRESETS.find((p) => p.id === id)?.category ?? "Continue";
 }
+
 function applyMotionCustomOffsets(
   base: MockupMotionTransform,
   custom: MotionCustomOffsets | undefined
 ): MockupMotionTransform {
   if (!custom) return base;
+
   const sign = custom.reverse ? -1 : 1;
+
   return {
     ...base,
     scale: base.scale * custom.zoomMultiplier,
@@ -582,13 +1298,16 @@ export function sampleFragmentMotion(
   if (currentTime < fragment.startTime || currentTime > fragment.endTime) {
     return REST_MOCKUP_MOTION;
   }
+
   const localTime = currentTime - fragment.startTime;
   const localDuration = fragment.endTime - fragment.startTime;
+
   const base = sampleMockupMotion(
     { presetId: fragment.presetId, intensity: fragment.intensity, speed: fragment.speed },
     localTime,
     localDuration
   );
+
   return applyMotionCustomOffsets(base, fragment.custom);
 }
 
@@ -599,6 +1318,7 @@ export function sampleCombinedMockupMotion(
   const active = fragments.filter(
     (f) => currentTime >= f.startTime && currentTime <= f.endTime
   );
+
   if (active.length === 0) return REST_MOCKUP_MOTION;
 
   return active.reduce<MockupMotionTransform>(
@@ -654,22 +1374,31 @@ export function findValidMotionPlacement(
 
   const gaps: { start: number; end: number }[] = [];
   let cursor = 0;
+
   for (const f of sorted) {
     if (f.startTime > cursor) gaps.push({ start: cursor, end: f.startTime });
     cursor = Math.max(cursor, f.endTime);
   }
+
   if (cursor < clipDurationSec) gaps.push({ start: cursor, end: clipDurationSec });
 
   const fitting = gaps.filter((g) => g.end - g.start >= duration);
   if (fitting.length === 0) return null;
 
   fitting.sort((a, b) => {
-    const da = Math.min(Math.abs(a.start - preferredStart), Math.abs(a.end - duration - preferredStart));
-    const db = Math.min(Math.abs(b.start - preferredStart), Math.abs(b.end - duration - preferredStart));
+    const da = Math.min(
+      Math.abs(a.start - preferredStart),
+      Math.abs(a.end - duration - preferredStart)
+    );
+    const db = Math.min(
+      Math.abs(b.start - preferredStart),
+      Math.abs(b.end - duration - preferredStart)
+    );
     return da - db;
   });
 
   const gap = fitting[0];
   const start = Math.max(gap.start, Math.min(preferredStart, gap.end - duration));
+
   return { startTime: start, endTime: start + duration };
 }

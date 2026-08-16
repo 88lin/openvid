@@ -1360,11 +1360,13 @@
       "z-spin-reveal": "Раскрытие с 3D-вращением",
       "isometric-lift": "Изометрический взлёт",
       "cinematic-showcase": "Кинематографический показ",
-      "panoramic-sweep": "Панорамный облёт",
       "macro-track": "Диагональное макро-слежение",
-      "surface-orbit": "Орбита над поверхностью",
       "exit-fade-down": "Исчезновение вниз",
-      "exit-scale-blur": "Исчезновение с размытием"
+      "exit-scale-blur": "Исчезновение с размытием",
+      "whip-showcase": "Движ Быстрой Панорамы",
+      "spatial-roam": "Пространственный Движ",
+      "rise-crash": "Взлет и Падение",
+      "crane-sweep": "Панорама Кран-Стрелы"
     },
     "controls": {
       "intensity": "Интенсивность",

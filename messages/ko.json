@@ -1360,11 +1360,13 @@
       "z-spin-reveal": "3D 회전 공개",
       "isometric-lift": "아이소메트릭 리프트",
       "cinematic-showcase": "시네마틱 쇼케이스",
-      "panoramic-sweep": "파노라마 스윕",
       "macro-track": "대각선 매크로 트래킹",
-      "surface-orbit": "표면 궤도",
       "exit-fade-down": "아래로 사라짐",
-      "exit-scale-blur": "블러 축소 퇴장"
+      "exit-scale-blur": "블러 축소 퇴장",
+      "whip-showcase": "훽팬 쇼케이스",
+      "spatial-roam": "공간 자유 이동",
+      "rise-crash": "상승 및 추락",
+      "crane-sweep": "크레인 스윕"
     },
     "controls": {
       "intensity": "강도",

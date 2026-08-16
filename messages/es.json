@@ -1338,11 +1338,13 @@
       "z-spin-reveal": "Revelación con Giro 3D",
       "isometric-lift": "Despegue Isométrico",
       "cinematic-showcase": "Recorrido cinematográfico",
-      "panoramic-sweep": "Barrido Panorámico",
       "macro-track": "Rastreo Macro Diagonal",
-      "surface-orbit": "Órbita sobre Superficie",
       "exit-fade-down": "Salida hacia abajo",
-      "exit-scale-blur": "Salida con desenfoque"
+      "exit-scale-blur": "Salida con desenfoque",
+      "whip-showcase": "MVTO de Paneo Rápido",
+      "spatial-roam": "MVTO Espacial Libre",
+      "rise-crash": "Elevación y Caída Rápida",
+      "crane-sweep": "Barrido de Grúa"
     },
     "controls": {
       "intensity": "Intensidad",

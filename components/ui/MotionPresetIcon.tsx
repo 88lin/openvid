@@ -110,17 +110,9 @@ export function MotionPresetIconStyles() {
         .force-animate .mp-card--cinematic-showcase {
           animation: mp-cinematic-showcase 2.6s ease-in-out infinite alternate;
         }
-        .group:hover .mp-card--panoramic-sweep,
-        .force-animate .mp-card--panoramic-sweep {
-          animation: mp-panoramic-sweep 2.4s ease-in-out infinite alternate;
-        }
         .group:hover .mp-card--macro-track,
         .force-animate .mp-card--macro-track {
           animation: mp-macro-track 2.4s ease-in-out infinite alternate;
-        }
-        .group:hover .mp-card--surface-orbit,
-        .force-animate .mp-card--surface-orbit {
-          animation: mp-surface-orbit 2.6s ease-in-out infinite alternate;
         }
         .group:hover .mp-card--exit-fade-down,
         .force-animate .mp-card--exit-fade-down {
@@ -129,6 +121,22 @@ export function MotionPresetIconStyles() {
         .group:hover .mp-card--exit-scale-blur,
         .force-animate .mp-card--exit-scale-blur {
           animation: mp-exit-scale-blur 1s cubic-bezier(0.65, 0, 0.35, 1) infinite alternate;
+        }
+        .group:hover .mp-card--whip-showcase,
+        .force-animate .mp-card--whip-showcase {
+          animation: mp-whip-showcase 3s cubic-bezier(0.65, 0, 0.35, 1) infinite alternate;
+        }
+        .group:hover .mp-card--spatial-roam,
+        .force-animate .mp-card--spatial-roam {
+          animation: mp-spatial-roam 3.2s cubic-bezier(0.65, 0, 0.35, 1) infinite alternate;
+        }
+        .group:hover .mp-card--rise-crash,
+        .force-animate .mp-card--rise-crash {
+          animation: mp-rise-crash 2.8s cubic-bezier(0.65, 0, 0.35, 1) infinite alternate;
+        }
+        .group:hover .mp-card--crane-sweep,
+        .force-animate .mp-card--crane-sweep {
+          animation: mp-crane-sweep 3.2s cubic-bezier(0.65, 0, 0.35, 1) infinite alternate;
         }
       }
       @keyframes mp-focus-in {
@@ -151,17 +159,9 @@ export function MotionPresetIconStyles() {
         0% { transform: scale(1.4) translate(8%, 6%) rotateX(5deg) rotateY(8deg); filter: blur(1.5px); }
         100% { transform: scale(1) translate(0, 0) rotateX(0) rotateY(0); filter: blur(0); }
       }
-      @keyframes mp-panoramic-sweep {
-        0% { transform: scale(1.3) translateX(-16%) rotateY(-24deg); }
-        100% { transform: scale(1.1) translateX(14%) rotateY(16deg); }
-      }
       @keyframes mp-macro-track {
         0% { transform: scale(1.7) translate(10%, 10%) rotateX(32deg); }
         100% { transform: scale(1) translate(-6%, -6%) rotateX(0deg); }
-      }
-      @keyframes mp-surface-orbit {
-        0% { transform: scale(1.22) rotateX(48deg); }
-        100% { transform: scale(1.05) rotateX(14deg) rotateY(12deg); }
       }
       @keyframes mp-exit-fade-down {
         0% { transform: translateY(0); opacity: 1; }
@@ -170,6 +170,34 @@ export function MotionPresetIconStyles() {
       @keyframes mp-exit-scale-blur {
         0% { transform: scale(1); filter: blur(0); opacity: 1; }
         100% { transform: scale(1.3); filter: blur(4.5px); opacity: 0; }
+      }
+      @keyframes mp-whip-showcase {
+        0% { transform: scale(1.12) rotateX(14deg) rotateY(-18deg); }
+        40% { transform: scale(1.3) translate(-8%, 3%) rotateX(3deg) rotateY(5deg); }
+        52% { transform: scale(1.06) rotateZ(24deg) rotateX(-16deg) rotateY(38deg); }
+        64% { transform: scale(1.34) translate(9%, -4%) rotateX(5deg) rotateY(-6deg); }
+        100% { transform: scale(1.1) rotateX(12deg) rotateY(16deg); }
+      }
+      @keyframes mp-spatial-roam {
+        0% { transform: scale(1.4) translate(-8%, -8%) rotateX(-26deg) rotateY(24deg); }
+        30% { transform: scale(1.55) translate(9%, -9%) rotateX(26deg) rotateY(-28deg); }
+        55% { transform: scale(1.18) translate(0, 0) rotateX(-12deg) rotateY(8deg); }
+        80% { transform: scale(1.5) translate(-9%, 8%) rotateX(30deg) rotateY(12deg); }
+        100% { transform: scale(1.4) translate(8%, 8%) rotateX(-22deg) rotateY(-18deg); }
+      }
+      @keyframes mp-rise-crash {
+        0% { transform: scale(1.14) rotateX(34deg); }
+        38% { transform: scale(1.46) translate(0, -8%) rotateX(6deg); }
+        54% { transform: scale(1.08) translate(0, 11%) rotateX(-30deg) rotateZ(-15deg); }
+        72% { transform: scale(1.3) translate(0, 5%) rotateX(-6deg) rotateZ(5deg); }
+        100% { transform: scale(1.1) rotateX(28deg); }
+      }
+      @keyframes mp-crane-sweep {
+        0% { transform: scale(0.96) rotateX(-68deg); }
+        36% { transform: scale(1.12) rotateX(-36deg) rotateY(12deg) translate(-5%, 2%); }
+        60% { transform: scale(1.34) rotateX(4deg) rotateY(-18deg) translate(6%, -3%); }
+        82% { transform: scale(1.14) rotateX(12deg) rotateY(16deg) translate(-3%, 2%); }
+        100% { transform: scale(1) rotateX(-58deg); }
       }
     `}</style>
   );
