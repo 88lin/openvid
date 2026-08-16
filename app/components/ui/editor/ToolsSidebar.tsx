@@ -256,8 +256,6 @@ export function ToolsSidebar({
                             description: t("popovers.mockup.description"),
                             videoSrc: "/videos/preview-menu/mockup.mp4"
                         }}
-                        badge={t("tools.newTool")}
-                        badgeStyle="premium"
                     />
 
                     {!isPhotoMode && (

@@ -470,14 +470,34 @@ export const BackgroundPanel = memo(function BackgroundPanel({
   onShadowChange: (p: number) => void;
 }) {
   return (
-    <div className={`hidden md:flex flex-col w-64 lg:w-72 shrink-0 border-r ${PANEL_BORDER} bg-white overflow-hidden`}>
-      <header className={`flex items-center justify-between h-12 px-3 border-b ${PANEL_BORDER} shrink-0`}>
-        <div className="flex items-center gap-1.5">
-          <Image src="/svg/logo-openvid.svg" alt="" width={22} height={22} />
-          <Image src="/svg/openvid-dark.svg" alt="Openvid" width={58} height={40} />
+    <div className={`hidden md:flex flex-col w-64 lg:w-72 shrink-0 bg-white overflow-hidden`}>
+      <header className={`relative flex items-center justify-between h-12 px-3 shrink-0 bg-transparent isolation-isolate`}>
+        <div
+          className="absolute inset-0 z-0 bg-[url('/images/pages/header-gradient2.avif')] bg-cover bg-center bg-no-repeat pointer-events-none"
+          style={{
+            maskImage: `
+              linear-gradient(to bottom, black 55%, transparent 99%),
+              linear-gradient(to right, transparent 0%, black 50%),
+              linear-gradient(to left, transparent 10%, black 50%)
+          `,
+            WebkitMaskImage: `
+                linear-gradient(to bottom, black 55%, transparent 99%),
+                linear-gradient(to right, transparent 0%, black 50%),
+                linear-gradient(to left, transparent 10%, black 50%)
+            `,
+
+            maskComposite: "intersect",
+            WebkitMaskComposite: "source-in"
+          }}
+        />
+
+        <div className="relative flex items-center gap-1.5 z-10">
+          <Image src="/svg/openvid-complete-static.svg" alt="Openvid" width={100} height={80} />
         </div>
-        <Icon icon="lucide:sidebar-close" width={16} className="text-black/30" />
+
+        <Icon icon="lucide:sidebar-close" width={16} className="relative text-black/30 z-10" />
       </header>
+
       <div className="flex-1 overflow-y-none custom-scrollbar">
         <div className="p-4 pb-2">
           <div className="flex items-center gap-2 text-black/80 font-medium text-[13px] mb-3">

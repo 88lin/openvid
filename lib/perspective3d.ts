@@ -5,7 +5,7 @@ let _scene: THREE.Scene | null = null;
 let _camera: THREE.PerspectiveCamera | null = null;
 let _plane: THREE.Mesh | null = null;
 let _material: THREE.MeshBasicMaterial | null = null;
-let _texture: THREE.Texture | null = null; 
+let _texture: THREE.Texture | null = null;
 let _lastAspect = 0;
 
 function buildRenderer(): THREE.WebGLRenderer {
@@ -18,9 +18,9 @@ function buildRenderer(): THREE.WebGLRenderer {
   r.outputColorSpace = THREE.SRGBColorSpace;
   r.toneMapping = THREE.NoToneMapping;
   r.setClearColor(0x000000, 0);
-  
-  r.setPixelRatio(1); 
-  
+
+  r.setPixelRatio(1);
+
   return r;
 }
 
@@ -38,7 +38,7 @@ function ensureScene(aspect: number, renderer: THREE.WebGLRenderer): { scene: TH
     _texture.wrapS = THREE.ClampToEdgeWrapping;
     _texture.wrapT = THREE.ClampToEdgeWrapping;
     _texture.premultiplyAlpha = false;
-    
+
     _texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
   }
 

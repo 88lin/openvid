@@ -2094,10 +2094,9 @@ function VideoCanvasInner({
                                                         ...(mockupBoxSize
                                                             ? { width: `${mockupBoxSize.width}px`, height: `${mockupBoxSize.height}px` }
                                                             : { width: '100%', height: '100%' }),
-                                                        perspective:
-                                                            hasMockup2DMotion && mockupMotionPreview.perspectivePx > 0
-                                                                ? `${mockupMotionPreview.perspectivePx}px`
-                                                                : undefined,
+                                                        perspective: hasMockup2DMotion && mockupMotionPreview.perspectivePx > 0
+                                                            ? `${(mockupMotionPreview.perspectivePx / 10.8).toFixed(1)}cqh`
+                                                            : undefined,
                                                     }}
                                                 >
                                                     <div
@@ -2109,10 +2108,8 @@ function VideoCanvasInner({
                                                                     transformStyle: "preserve-3d",
                                                                     transformOrigin: "center center",
                                                                     opacity: mockupMotionPreview.opacity,
-                                                                    filter:
-                                                                        mockupMotionPreview.blurPx > 0.4
-                                                                            ? `blur(${mockupMotionPreview.blurPx}px)`
-                                                                            : undefined,
+                                                                    filter: mockupMotionPreview.blurPx > 0.4 ? `blur(${mockupMotionPreview.blurPx}px)` : undefined,
+                                                                    transition: "transform 80ms linear, filter 80ms linear, opacity 80ms linear",
                                                                 }
                                                                 : undefined
                                                         }

@@ -134,22 +134,39 @@ export function ControlPanel({
     const hasMockup2D = mediaType === "video" && !imagePhoneActive;
 
     return (
-        <div className="relative w-full sm:w-[320px] h-screen bg-[#141417] border-r border-white/10 flex flex-col shrink-0" role="complementary" aria-label="Control panel">
-            <header className="flex items-center justify-between h-13 p-2 border-b border-white/10 shrink-0" role="banner">
+        <div className="relative w-full sm:w-[320px] h-screen bg-[#141417] flex flex-col shrink-0" role="complementary" aria-label="Control panel">
+            <header className="relative flex items-center justify-between h-13 p-2 shrink-0 bg-transparent isolation-isolate" role="banner">
+                <div
+                    className="absolute inset-0 z-0 bg-[url('/images/pages/header-gradient2.avif')] bg-cover bg-center bg-no-repeat pointer-events-none opacity-95"
+                    style={{
+                        maskImage: `
+                            linear-gradient(to bottom, black 55%, transparent 99%),
+                            linear-gradient(to right, transparent 0%, black 20%),
+                            linear-gradient(to left, transparent 0%, black 10%)
+                        `,
+                        WebkitMaskImage: `
+                            linear-gradient(to bottom, black 55%, transparent 99%),
+                            linear-gradient(to right, transparent 0%, black 20%),
+                            linear-gradient(to left, transparent 0%, black 10%)
+                        `,
+                        maskComposite: "intersect",
+                        WebkitMaskComposite: "source-in"
+                    }}
+                />
+
                 <Link
                     href="/"
                     onClick={() => { window.location.href = "/"; }}
-                    className="flex items-center gap-2 group pl-2"
+                    className="relative flex items-center gap-2 group pl-2 z-10"
                     aria-label="Openvid home"
                 >
-                    <Image src="/svg/logo-openvid.svg" alt="" width={30} height={30} />
-                    <Image src="/svg/openvid.svg" alt="Openvid" width={70} height={50} />
+                    <Image src="/svg/openvid-complete-static.svg" alt="Openvid" width={100} height={80} />
                 </Link>
 
                 <TooltipAction label={t("header.close")} side="right">
                     <motion.button
                         onClick={onTogglePanel}
-                        className="p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/5 transition-all duration-200"
+                        className="relative p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/5 transition-all duration-200 z-10"
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
                         aria-label={t("header.close")}
@@ -163,7 +180,6 @@ export function ControlPanel({
                     </motion.button>
                 </TooltipAction>
             </header>
-
             <div className="flex-1 overflow-y-auto custom-scrollbar">
                 {activeTool === "screenshot" && (
                     <>

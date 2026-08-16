@@ -57,8 +57,8 @@ export function getInitialZoomFragments(
       endTime: Math.min(duration, f1Start + dur1),
       zoomLevel: 4,
       speed: 5,
-      focusX: 20,
-      focusY: 20,
+      focusX: 15,
+      focusY: 15,
     },
     {
       id: "z2",
