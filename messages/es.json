@@ -409,6 +409,7 @@
         "image": "Imagen"
       },
       "options": "Opciones",
+      "settings": "Ajustes",
       "sliders": {
         "blur": "Desenfoque del fondo",
         "padding": "Padding",
@@ -1417,5 +1418,38 @@
     "elements": "Objeto",
     "audio": "Audio",
     "motion": "Movimiento"
+  },
+  "heroPreview": {
+    "sidebar": {
+      "record": "Grabar",
+      "upload": "Subir"
+    },
+    "background": {
+      "title": "Fondo",
+      "tabWallpaper": "Wallpaper",
+      "tabColor": "Color",
+      "options": "Opciones",
+      "desktopLabel": "Desktop",
+      "gradientsLabel": "Gradients",
+      "showMore": "MOSTRAR MÁS",
+      "settings": "Ajustes",
+      "blur": "Blur",
+      "padding": "Padding",
+      "rounded": "Bordes",
+      "shadow": "Sombra"
+    },
+    "timeline": {
+      "video": "Video",
+      "zoom": "Zoom"
+    },
+    "transport": {
+      "rewind": "Retroceder 5 segundos",
+      "forward": "Avanzar 5 segundos",
+      "play": "Reproducir",
+      "pause": "Pausar",
+      "mask": "Mask",
+      "crop": "Crop",
+      "auto": "Auto"
+    }
   }
 }

@@ -386,6 +386,7 @@
         "image": "Изображение"
       },
       "options": "Параметры",
+      "settings": "Настройки",
       "sliders": {
         "blur": "Размытие фона",
         "padding": "Отступы",
@@ -1439,5 +1440,38 @@
     "elements": "Объект",
     "audio": "Аудио",
     "motion": "Движение"
+  },
+  "heroPreview": {
+    "sidebar": {
+      "record": "Запись",
+      "upload": "Загрузить"
+    },
+    "background": {
+      "title": "Фон",
+      "tabWallpaper": "Обои",
+      "tabColor": "Цвет",
+      "options": "Параметры",
+      "desktopLabel": "Рабочий стол",
+      "gradientsLabel": "Градиенты",
+      "showMore": "ПОКАЗАТЬ ЕЩЁ",
+      "settings": "Настройки",
+      "blur": "Размытие",
+      "padding": "Отступ",
+      "rounded": "Скругление",
+      "shadow": "Тень"
+    },
+    "timeline": {
+      "video": "Видео",
+      "zoom": "Зум"
+    },
+    "transport": {
+      "rewind": "Назад на 5 секунд",
+      "forward": "Вперёд на 5 секунд",
+      "play": "Воспроизвести",
+      "pause": "Пауза",
+      "mask": "Маска",
+      "crop": "Обрезка",
+      "auto": "Авто"
+    }
   }
 }

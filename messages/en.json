@@ -413,6 +413,7 @@
         "image": "Image"
       },
       "options": "Options",
+      "settings": "Settings",
       "sliders": {
         "blur": "Background blur",
         "padding": "Padding",
@@ -1439,5 +1440,38 @@
     "elements": "Object",
     "audio": "Audio",
     "motion": "Motion"
+  },
+  "heroPreview": {
+    "sidebar": {
+      "record": "Record",
+      "upload": "Upload"
+    },
+    "background": {
+      "title": "Background",
+      "tabWallpaper": "Wallpaper",
+      "tabColor": "Color",
+      "options": "Options",
+      "desktopLabel": "Desktop",
+      "gradientsLabel": "Gradients",
+      "showMore": "SHOW MORE",
+      "settings": "Settings",
+      "blur": "Blur",
+      "padding": "Padding",
+      "rounded": "Corners",
+      "shadow": "Shadow"
+    },
+    "timeline": {
+      "video": "Video",
+      "zoom": "Zoom"
+    },
+    "transport": {
+      "rewind": "Rewind 5 seconds",
+      "forward": "Forward 5 seconds",
+      "play": "Play",
+      "pause": "Pause",
+      "mask": "Mask",
+      "crop": "Crop",
+      "auto": "Auto"
+    }
   }
 }

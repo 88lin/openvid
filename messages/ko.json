@@ -413,6 +413,7 @@
         "image": "이미지"
       },
       "options": "옵션",
+      "settings": "설정",
       "sliders": {
         "blur": "배경 흐림",
         "padding": "여백",
@@ -1439,5 +1440,38 @@
     "elements": "오브젝트",
     "audio": "오디오",
     "motion": "모션"
+  },
+  "heroPreview": {
+    "sidebar": {
+      "record": "녹화",
+      "upload": "업로드"
+    },
+    "background": {
+      "title": "배경",
+      "tabWallpaper": "배경화면",
+      "tabColor": "색상",
+      "options": "옵션",
+      "desktopLabel": "데스크톱",
+      "gradientsLabel": "그라디언트",
+      "showMore": "더 보기",
+      "settings": "설정",
+      "blur": "블러",
+      "padding": "여백",
+      "rounded": "모서리",
+      "shadow": "그림자"
+    },
+    "timeline": {
+      "video": "비디오",
+      "zoom": "줌"
+    },
+    "transport": {
+      "rewind": "5초 되감기",
+      "forward": "5초 앞으로",
+      "play": "재생",
+      "pause": "일시정지",
+      "mask": "마스크",
+      "crop": "자르기",
+      "auto": "자동"
+    }
   }
 }
