@@ -137,16 +137,16 @@ export function ControlPanel({
         <div className="relative w-full sm:w-[320px] h-screen bg-[#141417] flex flex-col shrink-0" role="complementary" aria-label="Control panel">
             <header className="relative flex items-center justify-between h-13 p-2 shrink-0 bg-transparent isolation-isolate" role="banner">
                 <div
-                    className="absolute inset-0 z-0 bg-[url('/images/pages/header-gradient2.avif')] bg-cover bg-center bg-no-repeat pointer-events-none opacity-95"
+                    className="absolute inset-0 z-0 bg-[url('/images/pages/header-gradient2.avif')] bg-cover bg-center bg-no-repeat pointer-events-none opacity-90"
                     style={{
                         maskImage: `
                             linear-gradient(to bottom, black 55%, transparent 99%),
-                            linear-gradient(to right, transparent 0%, black 20%),
+                            linear-gradient(to right, transparent 0%, black 15%),
                             linear-gradient(to left, transparent 0%, black 10%)
                         `,
                         WebkitMaskImage: `
                             linear-gradient(to bottom, black 55%, transparent 99%),
-                            linear-gradient(to right, transparent 0%, black 20%),
+                            linear-gradient(to right, transparent 0%, black 15%),
                             linear-gradient(to left, transparent 0%, black 10%)
                         `,
                         maskComposite: "intersect",
