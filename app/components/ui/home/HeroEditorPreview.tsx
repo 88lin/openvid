@@ -32,6 +32,8 @@ import {
 } from "@/lib/editor-preview-hero.utils";
 import { BackgroundPanel, DraggableRange, MiniSidebar, TimelineClipContent, ZoomFragmentRangeItem } from "@/components/ui/HeroEditorPreviewComponents";
 
+const RENDER_HEADROOM = 3;
+
 function EditorCanvas({
   videoRef,
   videoTransform,
@@ -152,9 +154,19 @@ function EditorCanvas({
           style={{
             transform: videoTransform,
             transformOrigin: transformOrigin,
-            willChange: "transform",
           }}
         >
+          <div
+            className="absolute"
+            style={{
+              left: "50%",
+              top: "50%",
+              width: `${RENDER_HEADROOM * 100}%`,
+              height: `${RENDER_HEADROOM * 100}%`,
+              transform: `translate(-50%, -50%) scale(${1 / RENDER_HEADROOM})`,
+              transformOrigin: "center center",
+            }}
+          >
           <div
             className="absolute overflow-hidden bg-black squircle-corner"
             style={{
@@ -170,7 +182,7 @@ function EditorCanvas({
               muted
               playsInline
               preload="metadata"
-              poster="/images/pages/demo-hero-poster.webp"
+              poster="/images/pages/preview-editor-poster.webp"
               onLoadedMetadata={onLoadedMetadata}
               draggable={false}
               onDragStart={(e) => e.preventDefault()}
@@ -190,9 +202,9 @@ function EditorCanvas({
                     translateY: "-50%",
                     transition: "left 90ms ease-out, top 90ms ease-out",
                   }}
-                  initial={{ opacity: 0, scale: 1.4 * inverseScale }}
-                  animate={{ opacity: 0.9, scale: inverseScale }}
-                  exit={{ opacity: 0, scale: 1.4 * inverseScale }}
+                  initial={{ opacity: 0, scale: 1.4 * inverseScale * RENDER_HEADROOM }}
+                  animate={{ opacity: 0.9, scale: inverseScale * RENDER_HEADROOM }}
+                  exit={{ opacity: 0, scale: 1.4 * inverseScale * RENDER_HEADROOM }}
                   transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
                 >
                   <div className="w-6 h-6 rounded-full border border-white/70" />
@@ -213,12 +225,13 @@ function EditorCanvas({
                     width: 24,
                     height: 24,
                   }}
-                  initial={{ opacity: 0.55, scale: 0.4 * inverseScale }}
-                  animate={{ opacity: 0, scale: 2.4 * inverseScale }}
+                  initial={{ opacity: 0.55, scale: 0.4 * inverseScale * RENDER_HEADROOM }}
+                  animate={{ opacity: 0, scale: 2.4 * inverseScale * RENDER_HEADROOM }}
                   transition={{ duration: 0.55, ease: "easeOut" }}
                 />
               )}
             </AnimatePresence>
+          </div>
           </div>
         </div>
         <AnimatePresence>
@@ -496,8 +509,8 @@ export default function HeroEditorPreview() {
 
   const [blurPercent, setBlurPercent] = useState(0);
   const [paddingPercent, setPaddingPercent] = useState(0);
-  const [roundedPercent, setRoundedPercent] = useState(30);
-  const [shadowPercent, setShadowPercent] = useState(9);
+  const [roundedPercent, setRoundedPercent] = useState(25);
+  const [shadowPercent, setShadowPercent] = useState(30);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const userSelectedBackgroundRef = useRef(false);
 
@@ -663,13 +676,13 @@ export default function HeroEditorPreview() {
 
   const transformOrigin = `${effectiveFocusX.toFixed(2)}% ${effectiveFocusY.toFixed(2)}%`;
 
-  const roundedPx = (roundedPercent / SLIDER_MAX) * 32;
+  const roundedPx = (roundedPercent / SLIDER_MAX) * 100;
   const paddingPct = (paddingPercent / SLIDER_MAX) * 12;
   const backgroundBlurPx = (blurPercent / SLIDER_MAX) * 40;
   const shadowT = shadowPercent / SLIDER_MAX;
-  const shadowY = 8 + shadowT * 22;
-  const shadowBlur = 15 + shadowT * 70;
-  const shadowOpacity = 0.15 + shadowT * 0.35;
+  const shadowY = 5 + shadowT * 16;
+  const shadowBlur = 6 + shadowT * 44;
+  const shadowOpacity = 0.22 + shadowT * 0.42;
   const dynamicShadow = `0 ${shadowY}px ${shadowBlur}px rgba(0,0,0,${shadowOpacity.toFixed(2)})`;
 
   const cursorTarget = useMemo(() => {

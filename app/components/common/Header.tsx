@@ -8,6 +8,7 @@ import { MobileMenu } from "./MobileMenu";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useTranslations } from "next-intl";
 import { Icon } from "@iconify/react";
+import { getIsMobileSnapshot } from "@/lib/layers.utils";
 import { Button } from "@/components/ui/button";
 import { useRecording } from "@/app/contexts/RecordingContext";
 import RecordingSetupDialog from "../ui/RecordingSetupDialog";
@@ -43,8 +44,10 @@ export default function Header() {
   useEffect(() => {
     const tourCompleted = localStorage.getItem("openvid-tour-completed");
 
-    if (!tourCompleted) {
+    // El tour usa elementos ocultos en móvil (`hidden sm:flex`), así que no se muestra < sm.
+    if (!tourCompleted && !getIsMobileSnapshot()) {
       const driverTimer = setTimeout(() => {
+        if (getIsMobileSnapshot()) return;
         if (document.getElementById("tour-video-upload")) {
           const driverObj = driver({
             showProgress: true,
@@ -167,7 +170,7 @@ export default function Header() {
             </Button>
             <div className="flex items-center gap-2">
               {!isMounted ? (
-                <div className="w-25 h-9 rounded-md bg-white/10 animate-pulse border border-white/5"></div>
+                <div className="hidden sm:flex w-25 h-9 rounded-md bg-white/10 animate-pulse border border-white/5"></div>
               ) : (
                 <LanguageSwitcher />
               )}
