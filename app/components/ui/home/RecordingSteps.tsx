@@ -28,7 +28,6 @@ export default function InteractiveRecordingSteps() {
     if (isCountdown) {
       return (
         <>
-          {/* Optimización: transform-gpu añadido al spinner */}
           <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin transform-gpu mr-2" />
           {t('step1.countdownButton')}
         </>
@@ -37,7 +36,6 @@ export default function InteractiveRecordingSteps() {
     if (isRecording) {
       return (
         <>
-          {/* Optimización: transform-gpu añadido al pulse */}
           <div className="w-3 h-3 rounded-full bg-red-500 animate-pulse transform-gpu mr-2" />
           {t('step1.recordingButton')}
         </>
@@ -188,7 +186,6 @@ export default function InteractiveRecordingSteps() {
         <div className="aspect-video bg-[#0A0A0A] border border-white/10 squircle-element-camera overflow-hidden flex items-center justify-center relative group shadow-xl p-4 transform-gpu isolate">
           <div className="absolute inset-0 bg-[radial-linear(#ffffff22_1px,transparent_1px)] [bg-size:16px_16px] opacity-10 pointer-events-none"></div>
           
-          {/* Optimización: Gradiente radial en lugar de blur-3xl */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-75 h-37.5 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-500/20 via-blue-500/0 to-transparent pointer-events-none"></div>
 
           <div className="bg-[#1C1A20] border border-white/5 rounded-2xl sm:rounded-full px-4 sm:pl-4 sm:pr-6 py-3 sm:py-2 flex flex-col sm:flex-row items-center gap-3 sm:gap-4 shadow-xl z-10 w-full sm:w-auto max-w-[90%] sm:max-w-none text-center sm:text-left transform-gpu">
@@ -227,11 +224,9 @@ export default function InteractiveRecordingSteps() {
       actionButton: null,
       visual: (
         <div className="aspect-video bg-[#000B13] border border-white/10 squircle-element-camera overflow-hidden relative group shadow-xl transform-gpu isolate">
-          {/* Optimización: Opacidad 98% en lugar de backdrop-blur-md (Mismo efecto visual, cero pérdida de rendimiento) */}
           <div className="absolute inset-0 bg-[#000B13]/98 flex items-center justify-center z-10 p-4 sm:p-6">
             <div className="flex flex-col items-center justify-center h-full w-full max-h-full">
               <div className="relative w-20 h-20 sm:w-32 sm:h-32 flex items-center justify-center shrink-0">
-                {/* Optimización: transform-gpu para la animación pulse */}
                 <div className="absolute inset-0 rounded-full bg-[#00A3FF]/20 animate-pulse transform-gpu" />
                 <div className="absolute inset-2 sm:inset-4 rounded-full bg-[#00A3FF]/10" />
                 <div className="relative w-16 h-16 sm:w-28 sm:h-28 rounded-full bg-gradient-to-br from-[#00A3FF] to-blue-800 p-0.5 shadow-lg">
@@ -292,7 +287,6 @@ export default function InteractiveRecordingSteps() {
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-auto w-full px-4 sm:px-0 sm:w-auto">
             <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 bg-[#1E1E20] border border-white/10 squircle-element-camera sm:rounded-full py-3 sm:pl-5 sm:pr-2 sm:py-2 shadow-xl mx-auto max-w-[200px] sm:max-w-none transform-gpu">
               <div className="flex items-center justify-center gap-2 sm:gap-3 w-full sm:w-auto pb-2 sm:pb-0 border-b sm:border-b-0 sm:border-r border-white/10 sm:pr-2">
-                {/* Optimización: transform-gpu para el pulse de grabación */}
                 <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-red-500 animate-pulse transform-gpu" />
                 <span className="text-[11px] sm:text-[11px] text-white font-medium">{t('step4.visual.recording')}</span>
                 <span className="text-[11px] sm:text-[11px] text-red-400 font-mono font-bold">
