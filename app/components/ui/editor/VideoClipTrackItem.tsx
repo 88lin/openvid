@@ -62,8 +62,6 @@ export function VideoClipTrackItem({
     const initialLeft = timeToPixels(clip.startTime);
     const initialWidth = timeToPixels(clipDuration);
 
-    const clipEndTime = clip.startTime + clipDuration;
-
     const progressWidth = useTransform(
         playheadX,
         (px) => {

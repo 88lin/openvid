@@ -175,6 +175,10 @@
     border-radius: 70px;
   }
 
+  .squircle-corner {
+    corner-shape: squircle;
+  }
+
   @keyframes badge-blink {
 
     0%,

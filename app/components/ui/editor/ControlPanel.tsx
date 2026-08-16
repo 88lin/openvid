@@ -20,8 +20,8 @@ import { useMockup3dContext } from "@/app/contexts/Mockup3dContext";
 const BackgroundColorEditor = lazy(() => import("../BackgroundColorEditor").then(mod => ({ default: mod.BackgroundColorEditor })));
 const ZoomFragmentEditor = lazy(() => import("./ZoomFragmentEditor").then(mod => ({ default: mod.ZoomFragmentEditor })));
 const ZoomGlobalConfig = lazy(() => import("./ZoomGlobalConfig").then(mod => ({ default: mod.ZoomGlobalConfig })));
-const OptionsGrid = lazy(() => import("../WalpaperSections").then(mod => ({ default: mod.OptionsGrid })));
-const WallpaperCatalogGrid = lazy(() => import("../WalpaperSections").then(mod => ({ default: mod.WallpaperCatalogGrid })));
+const OptionsGrid = lazy(() => import("../WallpaperSections").then(mod => ({ default: mod.OptionsGrid })));
+const WallpaperCatalogGrid = lazy(() => import("../WallpaperSections").then(mod => ({ default: mod.WallpaperCatalogGrid })));
 const MockupMenu = lazy(() => import("./MockupMenu").then(mod => ({ default: mod.MockupMenu })));
 const AudioMenu = lazy(() => import("./AudioMenu").then(mod => ({ default: mod.AudioMenu })));
 const VideosMenu = lazy(() => import("./VideosMenu").then(mod => ({ default: mod.VideosMenu })));
@@ -219,38 +219,44 @@ export function ControlPanel({
                                 </Suspense>
                             )}
 
-                            <SliderControl
-                                icon="mdi:blur"
-                                label={t("screenshot.sliders.blur")}
-                                value={backgroundBlur}
-                                min={0}
-                                max={30}
-                                onChange={onBackgroundBlurChange}
-                            />
-                            <SliderControl
-                                icon="mdi:arrow-expand-all"
-                                label={t("screenshot.sliders.padding")}
-                                value={padding}
-                                min={0}
-                                max={30}
-                                onChange={onPaddingChange}
-                            />
-                            <SliderControl
-                                icon="mdi:border-radius"
-                                label={t("screenshot.sliders.rounded")}
-                                value={roundedCorners}
-                                min={0}
-                                max={30}
-                                onChange={onRoundedCornersChange}
-                            />
-                            <SliderControl
-                                icon="material-symbols:shadow"
-                                label={t("screenshot.sliders.shadows")}
-                                value={shadows}
-                                min={0}
-                                max={30}
-                                onChange={onShadowsChange}
-                            />
+                            <div className="flex flex-col gap-4 mt-2">
+                                <div className="text-[11px] uppercase tracking-widest text-white/70 font-bold flex items-center gap-1.5">
+                                    <span>{t("screenshot.settings")}</span>
+                                </div>
+
+                                <SliderControl
+                                    icon="mdi:blur"
+                                    label={t("screenshot.sliders.blur")}
+                                    value={backgroundBlur}
+                                    min={0}
+                                    max={30}
+                                    onChange={onBackgroundBlurChange}
+                                />
+                                <SliderControl
+                                    icon="mdi:arrow-expand-all"
+                                    label={t("screenshot.sliders.padding")}
+                                    value={padding}
+                                    min={0}
+                                    max={30}
+                                    onChange={onPaddingChange}
+                                />
+                                <SliderControl
+                                    icon="mdi:border-radius"
+                                    label={t("screenshot.sliders.rounded")}
+                                    value={roundedCorners}
+                                    min={0}
+                                    max={30}
+                                    onChange={onRoundedCornersChange}
+                                />
+                                <SliderControl
+                                    icon="material-symbols:shadow"
+                                    label={t("screenshot.sliders.shadows")}
+                                    value={shadows}
+                                    min={0}
+                                    max={30}
+                                    onChange={onShadowsChange}
+                                />
+                            </div>
                         </div>
                     </>
                 )}

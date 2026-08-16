@@ -1,5 +1,4 @@
 import Hero from "@/app/components/ui/home/Hero";
-import InteractiveRecordingSteps from "@/app/components/ui/home/RecordingSteps";
 import {
   StructuredData,
   generateWebAppSchema,
@@ -8,13 +7,13 @@ import {
 } from "@/app/components/seo/StructuredData";
 import type { Metadata } from "next";
 import DonationCard from "@/app/components/ui/home/DonationCard";
-import VideoHero from "@/app/components/ui/home/VideoHero";
 import BannerCTA from "@/app/components/ui/home/BannerCTA";
 import FeaturesGrid from "@/app/components/ui/home/Featuresgrid";
 import FeaturesShowcase from "@/app/components/ui/home/FeaturesShowcase";
 import SocialReactions from "@/app/components/ui/home/SocialReactions";
 import { buildPageMetadata } from "@/lib/seo";
 import { setRequestLocale } from "next-intl/server";
+import HeroEditorPreview from "@/app/components/ui/home/HeroEditorPreview";
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -118,7 +117,7 @@ export default async function Home({ params }: Props) {
             <div className="max-w-6xl mx-auto px-6 text-center relative z-10">
               <Hero />
             </div>
-            <VideoHero />
+            <HeroEditorPreview />
           </section>
           <div className="absolute inset-x-0 bottom-0 h-40 bg-linear-to-t from-[#0a0a0a] to-transparent pointer-events-none z-20" />
         </div>

@@ -140,7 +140,6 @@ export default function Hero({ onVideoUpload, onPhotoUpload }: HeroProps) {
 
       <div className="animate-reveal [animation-delay:300ms] flex flex-col sm:flex-row items-center justify-center gap-3 mb-2">
         <div className="flex flex-col items-center gap-2 w-full sm:w-72">
-          {/* AÑADIDO: id="tour-video-upload" */}
           <div
             id="tour-video-upload"
             onDragOver={handleVideoDragOver}
@@ -194,7 +193,6 @@ export default function Hero({ onVideoUpload, onPhotoUpload }: HeroProps) {
         </div>
 
         <div className="flex flex-col items-center gap-2 w-full sm:w-72">
-          {/* AÑADIDO: id="tour-photo-upload" */}
           <div
             id="tour-photo-upload"
             onDragOver={handlePhotoDragOver}

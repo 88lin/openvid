@@ -158,6 +158,7 @@ export default async function LocaleLayout({
     donation: messages.donation,
     notFound: messages.notFound,
     tour: messages.tour,
+    heroPreview: messages.heroPreview
   };
 
   const isProduction = process.env.NODE_ENV === "production";
