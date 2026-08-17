@@ -85,7 +85,7 @@ export function ImageMaskEditor({
                     <Button
                         variant="outline"
                         className={`gap-2 text-xs transition-all duration-200 ${maskConfig.enabled
-                            ? "bg-gradient-radial-primary text-cyan-500 border border-cyan-500/50!"
+                            ? "bg-gradient-radial-primary text-cyan-600 dark:text-cyan-500 border border-cyan-600/50! dark:border-cyan-500/50!"
                             : ""
                             }`}
                         size="sm"
@@ -102,7 +102,7 @@ export function ImageMaskEditor({
                     <PopoverHeader className="px-4 py-3 border-b border-border bg-muted/40">
                         <div className="flex items-center justify-between">
                             <PopoverTitle className="text-xs font-semibold text-popover-foreground/90 tracking-wide uppercase flex items-center gap-2">
-                                <Icon icon="material-symbols:gradient-outline" width="14" className="text-blue-400" aria-hidden="true" />
+                                <Icon icon="material-symbols:gradient-outline" width="14" className="text-blue-600 dark:text-blue-400" aria-hidden="true" />
                                 {t("title")}
                             </PopoverTitle>
                         </div>
@@ -161,7 +161,7 @@ export function ImageMaskEditor({
                                                         <Icon
                                                             icon={preset.icon}
                                                             width="28"
-                                                            className={`transition-colors ${active ? "text-blue-400" : "text-white/40 group-hover:text-blue-400"}`}
+                                                            className={`transition-colors ${active ? "text-blue-400" : "text-white/70 group-hover:text-blue-400"}`}
                                                         />
                                                     </div>
                                                 )}

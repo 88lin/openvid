@@ -80,7 +80,7 @@ export function Position3DPresetsEditor({
           <PopoverHeader className="px-4 py-3 border-b border-border bg-muted/40">
             <div className="flex items-center justify-between">
               <PopoverTitle className="text-xs font-semibold text-popover-foreground/80 tracking-wide uppercase flex items-center gap-2">
-                <Icon icon="mdi:image-multiple-outline" width="14" className="text-blue-400" aria-hidden="true" />
+                <Icon icon="mdi:image-multiple-outline" width="14" className="text-blue-600 dark:text-blue-400" aria-hidden="true" />
                 {t("title")}
               </PopoverTitle>
             </div>
@@ -90,7 +90,7 @@ export function Position3DPresetsEditor({
             <button
               onClick={() => setActiveTab("presets")}
               className={`flex-1 px-4 py-2.5 text-xs font-medium transition-all ${activeTab === "presets"
-                ? "text-blue-400 border-b-2 border-blue-400 bg-blue-500/5"
+                ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-500 bg-blue-500/5"
                 : "text-muted-foreground hover:text-popover-foreground/80 hover:bg-muted"
                 }`}
             >
@@ -100,7 +100,7 @@ export function Position3DPresetsEditor({
             <button
               onClick={() => setActiveTab("custom")}
               className={`flex-1 px-4 py-2.5 text-xs font-medium transition-all ${activeTab === "custom"
-                ? "text-blue-400 border-b-2 border-blue-400 bg-blue-500/5"
+                ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-500 bg-blue-500/5"
                 : "text-muted-foreground hover:text-popover-foreground/80 hover:bg-muted"
                 }`}
             >
@@ -118,14 +118,14 @@ export function Position3DPresetsEditor({
                     className="group relative flex flex-col squircle-element border border-dashed border-border hover:border-foreground/40 bg-muted/40 hover:bg-muted/60 transition-all overflow-hidden"
                   >
                     <div className="relative w-full aspect-video bg-zinc-900 flex flex-col items-center justify-center gap-1.5">
-                      <div className="size-8 rounded-full bg-muted/60 border border-border flex items-center justify-center">
+                      <div className="size-8 rounded-full bg-white/10 border border-white/10 flex items-center justify-center">
                         <Icon
                           icon="mdi:restore"
                           width="16"
-                          className="text-popover-foreground/70 group-hover:text-blue-400 transition-colors"
+                          className="text-white/70 group-hover:text-blue-400 transition-colors"
                         />
                       </div>
-                      <span className="text-[11px] font-semibold text-muted-foreground group-hover:text-popover-foreground/80 transition-colors">
+                      <span className="text-[11px] font-semibold text-white/80 group-hover:text-white transition-colors">
                         {t("resetDefault")}
                       </span>
                     </div>

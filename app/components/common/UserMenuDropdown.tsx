@@ -14,6 +14,7 @@ const THEMES: Theme[] = ["light", "dark", "system"];
 const DARK_MQ = "(prefers-color-scheme: dark)";
 const EDITOR_ROOT_ID = "editor-root";
 const THEME_COOKIE = "openvid_theme";
+const THEME_PREF_COOKIE = "openvid_theme_pref";
 const THEME_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 
 const THEME_ICONS: Record<Theme, string> = {
@@ -40,11 +41,14 @@ function applyThemeClass(theme: Theme, isEditorPage: boolean) {
   document.getElementById(EDITOR_ROOT_ID)?.classList.toggle("dark", dark);
 }
 
-// Persiste el tema *efectivo* resuelto (nunca "system") para que el layout del
-// editor pueda renderizarlo en SSR y eliminar el flash de tema.
+// Persiste el tema *efectivo* resuelto (nunca "system") para que el script inline
+// del root layout pueda aplicarlo en SSR antes del primer paint (sin flash de tema).
+// Además guarda la preferencia cruda para que el script pueda resolver "system"
+// contra prefers-color-scheme cuando la cookie efectiva quedó desactualizada.
 function writeThemeCookie(theme: Theme) {
   const dark = isDarkResolved(theme);
   document.cookie = `${THEME_COOKIE}=${dark ? "dark" : "light"}; path=/; max-age=${THEME_COOKIE_MAX_AGE}; samesite=lax`;
+  document.cookie = `${THEME_PREF_COOKIE}=${theme}; path=/; max-age=${THEME_COOKIE_MAX_AGE}; samesite=lax`;
 }
 
 interface UserMenuDropdownProps {
@@ -181,7 +185,7 @@ export function UserMenuDropdown({
                         <Icon icon={THEME_ICONS[value]} className="size-4" aria-hidden="true" />
                         <span className="flex-1">{themeLabels[value]}</span>
                         <DropdownMenu.ItemIndicator>
-                          <Icon icon="lucide:check" className="size-4 text-blue-400" aria-hidden="true" />
+                          <Icon icon="lucide:check" className="size-4 text-blue-600 dark:text-blue-400" aria-hidden="true" />
                         </DropdownMenu.ItemIndicator>
                       </DropdownMenu.RadioItem>
                     ))}

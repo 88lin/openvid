@@ -499,7 +499,7 @@ export function Timeline({
                                     {validDuration > 0 && timeMarkers.map((marker, i) => (
                                         <span
                                             key={i}
-                                            className="absolute top-1 select-none text-[11px] leading-none text-muted-foreground font-mono"
+                                            className="absolute top-1 select-none text-[11px] leading-none text-muted-foreground/70 font-mono"
                                             style={{
                                                 left: marker.position,
                                                 transform: i === 0 ? 'translateX(0)' : i === timeMarkers.length - 1 ? 'translateX(-100%)' : 'translateX(-50%)',

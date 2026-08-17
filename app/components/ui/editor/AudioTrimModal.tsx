@@ -278,7 +278,7 @@ export function AudioTrimModal({
                 <div className="flex items-start justify-between mb-6">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-blue-500/10 border border-blue-500/20 squircle-element-camera">
-                            <Icon icon="mdi:content-cut" className="text-blue-400" width="24" aria-hidden="true" />
+                            <Icon icon="mdi:content-cut" className="text-blue-600 dark:text-blue-400" width="24" aria-hidden="true" />
                         </div>
                         <div>
                             <h2 id="audio-trim-title" className="text-xl font-bold text-foreground">

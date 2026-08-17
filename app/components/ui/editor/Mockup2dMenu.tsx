@@ -101,7 +101,7 @@ export function Mockup2dMenu({
               <button
                 onClick={() => handleDarkModeChange(true)}
                 className={`flex items-center gap-1 px-2 py-1 rounded-md text-[11px] transition-colors ${mockupConfig?.darkMode
-                  ? "bg-muted border border-border text-muted-foreground"
+                  ? "bg-background text-foreground shadow-xs"
                   : "text-muted-foreground/40 hover:text-muted-foreground"
                   }`}
                 aria-pressed={mockupConfig?.darkMode}
@@ -113,7 +113,7 @@ export function Mockup2dMenu({
               <button
                 onClick={() => handleDarkModeChange(false)}
                 className={`flex items-center gap-1 px-2 py-1 rounded-md text-[11px] transition-colors ${!mockupConfig?.darkMode
-                  ? "bg-muted border border-border text-muted-foreground"
+                  ? "bg-background text-foreground shadow-xs"
                   : "text-muted-foreground/40 hover:text-muted-foreground"
                   }`}
                 aria-pressed={!mockupConfig?.darkMode}

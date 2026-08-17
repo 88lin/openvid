@@ -675,8 +675,8 @@ export function LayersPanelInner({
             className="flex flex-col bg-card border-l border-border select-none h-full"
             style={{ width: toolbar ? "auto" : "210px", minWidth: "210px" }}
         >
-            {toolbar && <div className="shrink-0 border-b border-border">{toolbar}</div>}
-            <div className="flex items-center justify-between px-3 py-2 border-b border-border shrink-0">
+            {toolbar && <div className="shrink-0">{toolbar}</div>}
+            <div className="flex items-center justify-between px-3 py-2 border-b shrink-0">
                 <span className="text-[11px] font-semibold text-foreground/80 tracking-wide uppercase">
                     {t("layerPanel.layers")}
                 </span>

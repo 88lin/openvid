@@ -84,7 +84,7 @@
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
   --gradient-primary: linear-gradient(90deg, #00A3EE, #00A3FF, #003780);
-  --gradient-radial-primary: radial-gradient(circle, #002940, #00131E, #000910);
+  --gradient-radial-primary: radial-gradient(circle, #EAF4FF, #D5E8FB, #BEDAF6);
 }
 
 .dark {
@@ -99,7 +99,7 @@
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
+  --muted-foreground: oklch(1 0 0 / 0.7);
   --accent: oklch(0.269 0 0);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
@@ -121,6 +121,7 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+  --gradient-radial-primary: radial-gradient(circle, #002940, #00131E, #000910);
 }
 
 @layer base {

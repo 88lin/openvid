@@ -111,13 +111,13 @@ export function ZoomFragmentEditor({
                             <div className="ml-auto flex gap-1">
                                 <button
                                     onClick={() => setEditingPoint('start')}
-                                    className={`px-2 py-0.5 rounded text-[11px] font-mono transition-colors ${editingPoint === 'start' ? 'bg-blue-500/30 text-blue-300 border border-blue-500/50' : 'bg-muted/60 text-muted-foreground/80 hover:bg-muted'}`}
+                                    className={`px-2 py-0.5 rounded text-[11px] font-mono transition-colors ${editingPoint === 'start' ? 'bg-blue-500/30 text-blue-600 dark:text-blue-300 border border-blue-500/50' : 'bg-muted/60 text-muted-foreground/80 hover:bg-muted'}`}
                                 >
                                     {t("focusPoints.start")}
                                 </button>
                                 <button
                                     onClick={() => setEditingPoint('end')}
-                                    className={`px-2 py-0.5 rounded text-[11px] font-mono transition-colors ${editingPoint === 'end' ? 'bg-emerald-500/30 text-emerald-300 border border-emerald-500/50' : 'bg-muted/60 text-muted-foreground/80 hover:bg-muted'}`}
+                                    className={`px-2 py-0.5 rounded text-[11px] font-mono transition-colors ${editingPoint === 'end' ? 'bg-emerald-500/30 text-emerald-600 dark:text-emerald-300 border border-emerald-500/50' : 'bg-muted/60 text-muted-foreground/80 hover:bg-muted'}`}
                                 >
                                     {t("focusPoints.end")}
                                 </button>
@@ -255,7 +255,7 @@ export function ZoomFragmentEditor({
                                         <span>{t("movement.timeline.title")}</span>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <span className="text-[11px] font-mono text-emerald-400/80 bg-emerald-500/5 px-1.5 py-0.5 rounded border border-emerald-500/10">
+                                        <span className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400/80 bg-emerald-500/5 px-1.5 py-0.5 rounded border border-emerald-500/10">
                                             {t("movement.timeline.active", { seconds: (endOffset - startOffset).toFixed(1) })}
                                         </span>
                                     </div>

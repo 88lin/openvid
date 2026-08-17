@@ -222,7 +222,7 @@ export function ToolsSidebar({
     return (
         <div ref={sidebarWrapperRef} className="relative shrink-0 bg-background" style={{ width: '90px' }} role="complementary" aria-label={t("tools.toolbar")}>
             <aside
-                className="absolute top-1/2 left-12 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center gap-4 squircle-element-xl border shadow-md shadow-black/10 border-border dark:border-white/10 dark:shadow-white/20 z-40 bg-[radial-gradient(circle_at_50%_30%,#ffffff_0%,#ececec_64%)] dark:bg-[radial-gradient(circle_at_50%_30%,#2a2a2a_0%,#131313_64%)]"
+                className="absolute top-1/2 left-12 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center gap-4 squircle-element-xl border border-border dark:border-white/10 z-40 bg-[radial-gradient(circle_at_50%_30%,#ffffff_0%,#ececec_64%)] dark:bg-[radial-gradient(circle_at_50%_30%,#2a2a2a_0%,#131313_64%)] shadow-[2px_5px_10px_0px_rgba(0,0,0,0.12)] dark:shadow-[2px_5px_10px_0px_rgba(255,255,255,0.22)]"
                 style={{
                     height: sidebarHeight ? `${sidebarHeight}px` : 'calc(100% - 1rem)',
                     maxHeight: sidebarHeight ? `${sidebarHeight}px` : '800px',
@@ -232,6 +232,7 @@ export function ToolsSidebar({
                 aria-orientation="vertical"
                 aria-label={t("tools.toolbar")}
             >
+
                 <div className="flex flex-col gap-4 w-full overflow-y-auto px-2 custom-scrollbar mask-y-from-85% mask-y-to-99%">
                     <div className="shrink-0 h-12" aria-hidden="true" />
                     <SidebarTool

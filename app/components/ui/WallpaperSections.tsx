@@ -48,7 +48,7 @@ function CustomImagePickerButton({ onSelect }: { onSelect?: (url: string) => voi
       <TooltipAction label={t("options.upload")}>
         <button
           onClick={() => inputRef.current?.click()}
-          className="aspect-square bg-[#F3F4F6] border border-white/30 squircle-element flex items-center justify-center transition-all active:scale-90 group disabled:opacity-50 hover:opacity-80"
+          className="aspect-square bg-[#F3F4F6] border squircle-element flex items-center justify-center transition-all active:scale-90 group disabled:opacity-50 hover:opacity-80"
           aria-label={t("options.upload")}
         >
           <Icon icon="material-symbols:upload-rounded" width="24" className="text-black transition-colors" aria-hidden="true" />
@@ -65,7 +65,7 @@ export function OptionsGrid({ selectedIndex = -1, onSelect, onUnsplashSelect, on
       <TooltipAction label={t("options.none")}>
         <button
           onClick={() => onSelect?.(-1)}
-          className={`aspect-square squircle-element cursor-pointer transition-all flex items-center justify-center relative overflow-hidden ${selectedIndex === -1
+          className={`aspect-square squircle-element cursor-pointer transition-all flex items-center justify-center relative overflow-hidden border ${selectedIndex === -1
             ? "ring-2 ring-foreground/80 shadow-lg shadow-black/40"
             : "hover:ring-2 ring-foreground/60"
             }`}

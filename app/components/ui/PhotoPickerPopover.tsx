@@ -230,7 +230,7 @@ export function PhotoPickerPopover({ onSelect }: PhotoPickerPopoverProps) {
             <TooltipAction label={t("tooltip")}>
                 <PopoverTrigger asChild>
                     <button
-                        className="aspect-square bg-[#F3F4F6] border border-white/30 squircle-element flex items-center justify-center transition-all active:scale-90 group disabled:opacity-50 hover:opacity-80"
+                        className="aspect-square bg-[#F3F4F6] border squircle-element flex items-center justify-center transition-all active:scale-90 group disabled:opacity-50 hover:opacity-80"
                         aria-label={t("tooltip")}
                     >
                         <Icon

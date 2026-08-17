@@ -16,6 +16,28 @@ import {
 } from "@/lib/seo";
 import "../globals.css";
 
+// Script inline anti-FOUC: aplica el tema sobre <html> antes del primer paint.
+// Lee la preferencia cruda (openvid_theme_pref) y el tema efectivo
+// (openvid_theme); para "system" (o sin cookie) resuelve con
+// prefers-color-scheme. Así el primer paint coincide con el tema guardado,
+// incluso si la cookie efectiva quedó desactualizada tras un cambio de
+// preferencia del OS en modo system.
+const THEME_INLINE_SCRIPT = `
+(function () {
+  try {
+    var get = function (name) {
+      var m = document.cookie.match(new RegExp("(?:^|;\\s*)" + name + "=([^;]*)"));
+      return m ? decodeURIComponent(m[1]) : null;
+    };
+    var pref = get("openvid_theme_pref") || get("openvid_theme") || "system";
+    var dark = pref === "system"
+      ? window.matchMedia("(prefers-color-scheme: dark)").matches
+      : pref === "dark";
+    document.documentElement.classList.toggle("dark", dark);
+  } catch (e) {}
+})();
+`;
+
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
@@ -166,6 +188,9 @@ export default async function LocaleLayout({
 
   return (
     <html lang={locale || defaultLocale} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INLINE_SCRIPT }} />
+      </head>
       <body
         className={`${inter.variable} ${roboto.variable} ${inter.className} antialiased`}
       >
