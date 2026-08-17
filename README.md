@@ -1,5 +1,20 @@
 <div align="center">
-   <img width="50%" alt="openvid Hero" src="https://openvid.dev/images/pages/openvid-animation.svg" />
+   
+   <picture>
+     <source
+       media="(prefers-color-scheme: dark)"
+       srcset="https://openvid.dev/images/pages/openvid-animation.svg"
+     />
+     <source
+       media="(prefers-color-scheme: light)"
+       srcset="https://github.com/user-attachments/assets/c8fb0340-e05d-403e-9805-b1006a6218cc"
+     />
+     <img
+       width="50%"
+       alt="openvid Hero"
+       src="https://openvid.dev/images/pages/openvid-animation-light.svg"
+     />
+   </picture>
 
   ## Create professional demos and mockups in seconds, directly in your browser
   **Record your screen or upload a video, add smooth zooms, device mockups, 3D effects, and custom backgrounds - export a cinematic demo.**
@@ -11,8 +26,8 @@
 </div>
 
 <div align="center">
-    <img width="1729" height="918" alt="openvid-1784321861424 (1)" src="https://github.com/user-attachments/assets/fdca5a94-1119-449d-9436-3a2b09c58e94" />
-  <br>
+  <video src="https://github.com/user-attachments/assets/d05420b8-7e52-49aa-9f2b-99cf97a2c86d">
+  </video>
 </div>
 
 ## Features
@@ -112,6 +127,8 @@ Add context to your demo with professional frames:
     </td>
   </tr>
 </table>
+
+   <img width="1729" height="918" alt="openvid-1784321861424 (1)" src="https://github.com/user-attachments/assets/fdca5a94-1119-449d-9436-3a2b09c58e94" />
 
 ---
 
