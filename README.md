@@ -26,8 +26,8 @@
 </div>
 
 <div align="center">
-    <img width="1729" height="918" alt="openvid-1784321861424 (1)" src="https://github.com/user-attachments/assets/fdca5a94-1119-449d-9436-3a2b09c58e94" />
-  <br>
+  <video src="https://github.com/user-attachments/assets/d05420b8-7e52-49aa-9f2b-99cf97a2c86d">
+  </video>
 </div>
 
 ## Features
@@ -127,6 +127,8 @@ Add context to your demo with professional frames:
     </td>
   </tr>
 </table>
+
+   <img width="1729" height="918" alt="openvid-1784321861424 (1)" src="https://github.com/user-attachments/assets/fdca5a94-1119-449d-9436-3a2b09c58e94" />
 
 ---
 
