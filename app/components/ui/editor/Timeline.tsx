@@ -427,7 +427,7 @@ export function Timeline({
                             : totalLanesCount === 1
                                 ? 'h-50'
                                 : 'h-38'
-                    } shrink-0 bg-[#0D0D11] border-t border-white/10 flex flex-col font-mono text-[11px] transition-all duration-200`}
+                    } shrink-0 bg-background border-t border-border flex flex-col font-mono text-[11px] transition-all duration-200`}
             >
                 <div className="flex-1 flex flex-col relative overflow-hidden">
                     <LabelSidebar
@@ -483,7 +483,7 @@ export function Timeline({
                             </motion.div>
 
                             <div
-                                className="h-[18px] border-b border-white/10 relative shrink-0 cursor-pointer bg-zinc-900/40 select-none overflow-hidden"
+                                className="h-5.5 border-b border-border relative shrink-0 cursor-pointer bg-muted/40 select-none overflow-hidden"
                                 onClick={handleTrackClick}
                             >
                                 <div
@@ -499,11 +499,11 @@ export function Timeline({
                                     {validDuration > 0 && timeMarkers.map((marker, i) => (
                                         <span
                                             key={i}
-                                            className="absolute top-1 select-none text-[11px] leading-none text-zinc-500 font-mono"
+                                            className="absolute top-1 select-none text-[11px] leading-none text-muted-foreground font-mono"
                                             style={{
                                                 left: marker.position,
                                                 transform: i === 0 ? 'translateX(0)' : i === timeMarkers.length - 1 ? 'translateX(-100%)' : 'translateX(-50%)',
-                                                textShadow: '0 0 2px #0D0D11, 0 0 4px #0D0D11'
+                                                textShadow: '0 0 2px var(--color-background), 0 0 4px var(--color-background)'
                                             }}
                                         >
                                             {formatTime(marker.time)}
@@ -515,7 +515,7 @@ export function Timeline({
                             <div className="flex-1 flex flex-col min-h-max" onClick={handleTrackClick}>
 
                                 <div className="flex-1 min-h-[55px] shrink-0 flex items-center py-0.5 relative">
-                                    <div className="h-full w-full rounded-md flex items-center relative bg-[#0a1510] border border-white/5">
+                                    <div className="h-full w-full rounded-md flex items-center relative bg-muted/40 dark:bg-[#0a1510] border border-border">
                                         {videoClips.length > 0 ? (
                                             <>
                                                 {videoClips.map((clip) => (
@@ -546,7 +546,7 @@ export function Timeline({
                                                     <motion.div className="absolute right-0 top-0 bottom-0 bg-black/60 rounded-r-md z-10" style={{ left: trimOverlayRightLeft, width: trimOverlayRightWidth }} />
                                                 )}
                                                 <motion.div
-                                                    className="absolute top-0 bottom-0 rounded-md border border-[#34A853]/40 bg-[#182e20] overflow-hidden"
+                                                    className="absolute top-0 bottom-0 rounded-md border border-[#34A853]/40 bg-emerald-100 dark:bg-[#182e20] overflow-hidden"
                                                     style={{ left: clipLeftMotion, width: clipWidthMotion }}
                                                 >
                                                     <div className="absolute inset-0 flex items-center overflow-hidden">
@@ -684,8 +684,8 @@ export function Timeline({
                                                 transition={{ duration: 0 }}
                                             >
                                                 <div className="w-full h-full rounded border border-dashed border-blue-400/50 bg-blue-500/10 flex flex-col items-center justify-center gap-0.5">
-                                                    <Icon icon="qlementine-icons:zoom-12" width="12" height="12" className="text-blue-400" aria-hidden="true" />
-                                                    <span className="text-[8px] font-mono text-blue-400/60">+ Zoom</span>
+                                                    <Icon icon="qlementine-icons:zoom-12" width="12" height="12" className="text-blue-600 dark:text-blue-400" aria-hidden="true" />
+                                                    <span className="text-[8px] font-mono text-blue-600/60 dark:text-blue-400/60">+ Zoom</span>
                                                 </div>
                                             </motion.div>
                                         )}
@@ -695,7 +695,7 @@ export function Timeline({
                                                 style={{ left: ghostX - 64 }}
                                             >
                                                 <div className="w-full h-full rounded border border-dashed border-red-400/50 bg-red-500/10 flex flex-col items-center justify-center gap-0.5">
-                                                    <span className="text-[8px] font-mono text-red-400/60"> {t("noSpace")}</span>
+                                                    <span className="text-[8px] font-mono text-red-600/60 dark:text-red-400/60"> {t("noSpace")}</span>
                                                 </div>
                                             </div>
                                         )}

@@ -80,12 +80,12 @@ export function PositionCustomControls({
       )}
 
       <div className="space-y-2">
-        <div className="flex items-center gap-1.5 text-[11px] text-white/60">
+        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
           <Icon icon="mdi:rotate-3d-variant" width={12} />
           <span>{labels.rotationXY}</span>
         </div>
         <div
-          className="relative w-full aspect-square bg-white/3 rounded-lg border border-white/10 cursor-crosshair overflow-hidden hover:bg-white/4 transition-colors"
+          className="relative w-full aspect-square bg-muted/30 rounded-lg border border-border cursor-crosshair overflow-hidden hover:bg-muted/50 transition-colors"
           onClick={(e) => {
             const rect = e.currentTarget.getBoundingClientRect();
             const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
@@ -96,11 +96,11 @@ export function PositionCustomControls({
           }}
         >
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="w-full h-px bg-white/5" />
-            <div className="h-full w-px bg-white/5 absolute" />
+            <div className="w-full h-px bg-muted-foreground/15" />
+            <div className="h-full w-px bg-muted-foreground/15 absolute" />
           </div>
           <div
-            className="absolute bg-white border border-white/40 rounded-full shadow-[0_0_20px_4px_rgba(255,255,255,0.12),0_4px_12px_rgba(0,0,0,0.6)] mix-blend-screen flex items-center justify-center pointer-events-auto transition-all duration-75 cursor-grab"
+            className="absolute bg-foreground border border-foreground/40 rounded-full shadow-[0_0_10px_rgba(0,0,0,0.25)] flex items-center justify-center pointer-events-auto transition-all duration-75 cursor-grab"
             style={{
               width: "14px",
               height: "14px",
@@ -139,7 +139,7 @@ export function PositionCustomControls({
       {onReset && (
         <button
           onClick={onReset}
-          className="w-full mt-4 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-[11px] text-white/70 hover:text-white transition-all flex items-center justify-center gap-2 border border-white/5"
+          className="w-full mt-4 px-3 py-2 rounded-lg bg-muted/40 hover:bg-muted/60 text-[11px] text-muted-foreground hover:text-foreground transition-all flex items-center justify-center gap-2 border border-border"
         >
           <Icon icon="mdi:restore" width={14} />
           {labels.reset}

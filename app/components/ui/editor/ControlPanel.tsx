@@ -134,8 +134,8 @@ export function ControlPanel({
     const hasMockup2D = mediaType === "video" && !imagePhoneActive;
 
     return (
-        <div className="relative w-full sm:w-[320px] h-screen bg-[#141417] flex flex-col shrink-0" role="complementary" aria-label="Control panel">
-            <header className="relative flex items-center justify-between h-13 p-2 shrink-0 bg-transparent isolation-isolate" role="banner">
+        <div className="relative w-full sm:w-[320px] h-screen bg-background flex flex-col shrink-0" role="complementary" aria-label="Control panel">
+            <header className="relative flex items-center justify-between h-13 p-2 border-r shrink-0 bg-transparent isolation-isolate" role="banner">
                 <div
                     className="absolute inset-0 z-0 bg-[url('/images/pages/header-gradient2.avif')] bg-cover bg-center bg-no-repeat pointer-events-none opacity-90"
                     style={{
@@ -166,7 +166,7 @@ export function ControlPanel({
                 <TooltipAction label={t("header.close")} side="right">
                     <motion.button
                         onClick={onTogglePanel}
-                        className="relative p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/5 transition-all duration-200 z-10"
+                        className="relative p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-200 z-10"
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
                         aria-label={t("header.close")}
@@ -180,15 +180,15 @@ export function ControlPanel({
                     </motion.button>
                 </TooltipAction>
             </header>
-            <div className="flex-1 overflow-y-auto custom-scrollbar">
+            <div className="flex-1 overflow-y-auto custom-scrollbar border-r">
                 {activeTool === "screenshot" && (
                     <>
                         <div className="p-4">
-                            <div className="flex items-center gap-2 text-white font-medium mb-4">
+                            <div className="flex items-center gap-2 text-foreground font-medium mb-4">
                                 <Icon icon="solar:gallery-wide-linear" width="20" />
                                 <span>{t("screenshot.background")}</span>
                             </div>
-                            <div className="flex bg-[#09090B] rounded-lg p-1 text-xs font-medium">
+                            <div className="flex bg-muted rounded-lg p-1 text-xs font-medium">
                                 <TabButton label={t("screenshot.tabs.wallpaper")} isActive={backgroundTab === "wallpaper"} onClick={() => onBackgroundTabChange("wallpaper")} />
                                 <TabButton label={t("screenshot.tabs.color")} isActive={backgroundTab === "color"} onClick={() => onBackgroundTabChange("color")} />
                             </div>
@@ -199,7 +199,7 @@ export function ControlPanel({
                                 <Suspense fallback={<WallpaperSkeleton />}>
                                     <div className="flex flex-col gap-5">
                                         <div>
-                                            <div className="text-[11px] uppercase tracking-widest text-white/70 font-bold mb-2 flex items-center gap-1.5">
+                                            <div className="text-[11px] uppercase tracking-widest text-muted-foreground font-bold mb-2 flex items-center gap-1.5">
                                                 <span>{t("screenshot.options")}</span>
                                             </div>
                                             <OptionsGrid
@@ -236,7 +236,7 @@ export function ControlPanel({
                             )}
 
                             <div className="flex flex-col gap-4 mt-2">
-                                <div className="text-[11px] uppercase tracking-widest text-white/70 font-bold flex items-center gap-1.5">
+                                <div className="text-[11px] uppercase tracking-widest text-muted-foreground font-bold flex items-center gap-1.5">
                                     <span>{t("screenshot.settings")}</span>
                                 </div>
 

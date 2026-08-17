@@ -195,14 +195,14 @@ export function MockupMotionTrackItem({
         onDragEnd={commitResize}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className={`w-1 h-5 rounded-full ${isResizing === "start" ? "bg-orange-300" : "bg-orange-400/60"}`} />
+        <div className={`w-1 h-5 rounded-full ${isResizing === "start" ? "bg-orange-500 dark:bg-orange-300" : "bg-orange-600/50 dark:bg-orange-400/60"}`} />
       </motion.div>
 
       <div className="flex-1 flex flex-col items-center justify-center pointer-events-none overflow-hidden px-2">
-        <span className={`text-[10px] truncate ${isSelected || isInteracting ? "text-orange-200" : "text-orange-300/70"}`}>
+        <span className={`text-[10px] truncate ${isSelected || isInteracting ? "text-orange-700 dark:text-orange-200" : "text-orange-700/70 dark:text-orange-300/70"}`}>
           {label}
         </span>
-        <span className={`text-[8px] truncate ${isSelected || isInteracting ? "text-orange-300/70" : "text-orange-400/45"}`}>
+        <span className={`text-[8px] truncate ${isSelected || isInteracting ? "text-orange-700/70 dark:text-orange-300/70" : "text-orange-700/50 dark:text-orange-400/45"}`}>
           {duration.toFixed(1)}s
         </span>
       </div>
@@ -221,7 +221,7 @@ export function MockupMotionTrackItem({
         onDragEnd={commitResize}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className={`w-1 h-5 rounded-full ${isResizing === "end" ? "bg-orange-300" : "bg-orange-400/60"}`} />
+        <div className={`w-1 h-5 rounded-full ${isResizing === "end" ? "bg-orange-500 dark:bg-orange-300" : "bg-orange-600/50 dark:bg-orange-400/60"}`} />
       </motion.div>
     </motion.div>
 

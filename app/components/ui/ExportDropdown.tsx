@@ -39,38 +39,38 @@ export function ExportDropdown({ onExport, exportProgress, hasTransparentBackgro
     
     return (
       <button 
-        className={`group flex flex-col items-start gap-1.5 p-4 transition-all text-left border-b border-white/10 ${
+        className={`group flex flex-col items-start gap-1.5 p-4 transition-all text-left border-b border-border ${
           isGif ? (isTransparent ? "opacity-80 hover:bg-orange-500/5" : "hover:bg-orange-500/5") : 
-          (isTransparent ? "hover:bg-cyan-500/5" : "hover:bg-white/5")
+          (isTransparent ? "hover:bg-cyan-500/5" : "hover:bg-muted")
         }`} 
         onClick={() => handleExport(id)}
         aria-label={`Export as ${id.toUpperCase()} ${resolution}`}
       >
         <div className="flex items-center justify-between w-full">
           <span className={`text-sm font-medium transition-colors ${
-            isGif ? "text-orange-400 group-hover:text-orange-300" : 
-            "text-white group-hover:text-blue-400"
+            isGif ? "text-orange-600 dark:text-orange-400 group-hover:text-orange-300" : 
+            "text-foreground group-hover:text-blue-400"
           }`}>
             {isTransparent && !isGif ? (
-              <>{id.toUpperCase()} WebM · <span className="text-cyan-400 group-hover:text-cyan-300">{t("noBackground")}</span></>
+              <>{id.toUpperCase()} WebM · <span className="text-cyan-600 dark:text-cyan-400 group-hover:text-cyan-300">{t("noBackground")}</span></>
             ) : (
               t(`qualities.${id}.label`)
             )}
           </span>
           {isRecommended && !isTransparent && (
-            <span className="border border-blue-500/30 text-blue-400 text-[9px] px-2 py-0.5 rounded-full font-bold tracking-tight">
+            <span className="border border-blue-500/30 text-blue-600 dark:text-blue-400 text-[9px] px-2 py-0.5 rounded-full font-bold tracking-tight">
               {t("recommended")}
             </span>
           )}
           {isGif && isTransparent && (
-            <span className="text-[9px] text-red-400/80 font-bold bg-red-500/10 px-2 py-0.5 rounded-full border border-red-500/20">
+            <span className="text-[9px] text-red-600 dark:text-red-400/80 font-bold bg-red-500/10 px-2 py-0.5 rounded-full border border-red-500/20">
               {t("solidBackground")}
             </span>
           )}
         </div>
-        <span className={`text-[11px] font-mono ${isGif ? "text-orange-400/70" : "text-white/60"}`}>
+        <span className={`text-[11px] font-mono ${isGif ? "text-orange-600 dark:text-orange-400/70" : "text-muted-foreground"}`}>
           {isTransparent ? (
-            <>{resolution} · <span className="text-cyan-400/70">{isGif ? t("gifNotice") : "VP9 Alpha"}</span></>
+            <>{resolution} · <span className="text-cyan-600 dark:text-cyan-400/70">{isGif ? t("gifNotice") : "VP9 Alpha"}</span></>
           ) : (
             t(`qualities.${id}.desc`)
           )}
@@ -84,7 +84,7 @@ export function ExportDropdown({ onExport, exportProgress, hasTransparentBackgro
       <PopoverTrigger asChild>
         <Button 
           variant="primary" 
-          className="px-3 py-2 text-sm gap-2 min-w-27.5" 
+          className="px-3 py-2 text-sm gap-2 min-w-27.5 text-white" 
           size="sm" 
           disabled={isExporting}
           aria-label={t("button")}
@@ -93,10 +93,10 @@ export function ExportDropdown({ onExport, exportProgress, hasTransparentBackgro
           {t("button")}
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-72 bg-[#1C1C1F] border-white/10 text-white shadow-2xl p-0 overflow-hidden z-999999">
-        <div className="flex flex-col bg-black border border-white/10 overflow-hidden shadow-2xl">
-          <div className="px-4 py-3 border-b border-white/10 bg-white/5">
-            <span className="text-[11px] font-medium uppercase tracking-[0.15em] text-white/60">
+      <PopoverContent align="end" className="w-72 bg-popover dark:bg-black border-border text-foreground shadow-2xl p-0 overflow-hidden z-999999">
+        <div className="flex flex-col bg-popover dark:bg-black border border-border overflow-hidden shadow-2xl">
+          <div className="px-4 py-3 border-b border-border bg-muted">
+            <span className="text-[11px] font-medium uppercase tracking-[0.15em] text-muted-foreground">
               {t("title")}
             </span>
           </div>

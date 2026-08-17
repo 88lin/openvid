@@ -66,7 +66,7 @@ export function PositionPad({
   return (
     <div className="space-y-2">
       {label && (
-        <div className="flex items-center gap-2 text-xs text-white/60">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
           {labelIcon && <Icon icon={labelIcon} width="14" aria-hidden="true" />}
           <span>{label}</span>
         </div>
@@ -74,11 +74,11 @@ export function PositionPad({
       <div
         ref={padRef}
         onClick={handlePadClick}
-        className={`relative w-full mx-auto bg-[#0A0A0A] squircle-element border border-[#262626] hover:border-[#404040] transition-colors cursor-crosshair overflow-hidden ${className ?? "aspect-video"}`}
+        className={`relative w-full mx-auto bg-card squircle-element border border-border hover:border-foreground/30 transition-colors cursor-crosshair overflow-hidden ${className ?? "aspect-video"}`}
       >
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="w-full h-px bg-[#1F1F1F]" />
-          <div className="h-full w-px bg-[#1F1F1F] absolute" />
+          <div className="w-full h-px bg-muted-foreground/20" />
+          <div className="h-full w-px bg-muted-foreground/20 absolute" />
         </div>
         <div
           data-drag-handle
@@ -96,7 +96,7 @@ export function PositionPad({
           <Icon icon={icon} width="16" style={{ color: `rgb(${accentRgb})` }} aria-hidden="true" />
         </div>
       </div>
-      {hint && <p className="text-[11px] text-white/30 text-center">{hint}</p>}
+      {hint && <p className="text-[11px] text-muted-foreground/60 text-center">{hint}</p>}
     </div>
   );
 }

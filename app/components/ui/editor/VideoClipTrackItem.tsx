@@ -218,7 +218,7 @@ export function VideoClipTrackItem({
         <motion.div
             ref={containerRef}
             className={`absolute top-0 bottom-0 rounded-md cursor-grab active:cursor-grabbing overflow-hidden group transition-colors duration-200 ${isSelected ? 'ring-[1px] ring-[#4ade80] shadow-[0_0_12px_rgba(74,222,128,0.3)] z-10' : ''
-                } ${isInteracting ? 'z-10' : 'z-0'}`}
+                } ${isInteracting ? 'z-10' : 'z-0'} ${isHovered ? 'bg-emerald-200 dark:bg-[#1c3525]' : 'bg-emerald-100 dark:bg-[#182e20]'}`}
             style={{
                 x: clipX,
                 width: clipWidth,
@@ -227,7 +227,6 @@ export function VideoClipTrackItem({
                     : isHovered
                         ? '1px solid rgba(52, 168, 83, 0.65)'
                         : '1px solid rgba(52, 168, 83, 0.4)',
-                background: isHovered ? '#1c3525' : '#182e20',
             }}
             drag="x"
             dragConstraints={{ left: 0, right: contentWidth / speed }}
@@ -268,11 +267,11 @@ export function VideoClipTrackItem({
             />
 
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-                <span className={`flex items-center gap-2 text-[11px] font-medium drop-shadow-sm transition-colors duration-200 ${isHovered ? 'text-emerald-300' : 'text-emerald-400'
+                <span className={`flex items-center gap-2 text-[11px] font-medium drop-shadow-sm transition-colors duration-200 ${isHovered ? 'text-emerald-700 dark:text-emerald-300' : 'text-emerald-700 dark:text-emerald-400'
                     }`}>
                     <Icon icon="solar:videocamera-record-bold" width="12" className="opacity-70" />
                     <span className="truncate max-w-30">{clip.name}</span>
-                    <span className={`font-mono text-[11px] transition-colors duration-200 ${isHovered ? 'text-emerald-300/80' : 'text-emerald-400/60'
+                    <span className={`font-mono text-[11px] transition-colors duration-200 ${isHovered ? 'text-emerald-700/80 dark:text-emerald-300/80' : 'text-emerald-700/60 dark:text-emerald-400/60'
                         }`}>
                         {formatDuration(clipDuration / speed)}
                     </span>

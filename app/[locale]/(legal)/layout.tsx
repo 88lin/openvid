@@ -15,7 +15,7 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
     return (
         <AuthProvider>
             <RecordingProvider>
-                <div className="min-h-screen flex flex-col bg-[#09090B]">
+                <div className="min-h-screen flex flex-col bg-[#09090B] dark">
                     <Header />
                     <div className="grow pt-24 pb-16">
                         {children}

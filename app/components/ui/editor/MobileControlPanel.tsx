@@ -34,15 +34,15 @@ export function MobileControlPanel({
         <Dialog.Root open={isOpen} onOpenChange={onClose}>
             <Dialog.Portal>
                 <Dialog.Overlay className="fixed inset-0 bg-black/80 backdrop-blur-sm z-100 animate-in fade-in duration-200 lg:hidden" />
-                <Dialog.Content className="fixed inset-x-0 bottom-0 top-16 bg-[#141417] z-101 animate-in slide-in-from-bottom duration-300 overflow-y-auto lg:hidden">
+                <Dialog.Content className="fixed inset-x-0 bottom-0 top-16 bg-background z-101 animate-in slide-in-from-bottom duration-300 overflow-y-auto lg:hidden">
                     
                     <div className="absolute top-4 right-4 z-10">
                         <Dialog.Close asChild>
                             <button
-                                className="h-8 w-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors backdrop-blur-sm"
+                                className="h-8 w-8 rounded-full bg-muted/60 hover:bg-muted flex items-center justify-center transition-colors backdrop-blur-sm"
                                 aria-label="Cerrar"
                             >
-                                <Icon icon="mdi:close" width="20" className="text-white/70" aria-hidden="true" />
+                                <Icon icon="mdi:close" width="20" className="text-muted-foreground" aria-hidden="true" />
                             </button>
                         </Dialog.Close>
                     </div>

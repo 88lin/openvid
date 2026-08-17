@@ -105,7 +105,7 @@ export function PlayerControls({
 
     return (
         <div
-            className="h-12 shrink-0 border-t border-white/10 flex items-center justify-between px-3 bg-[#0D0D11]"
+            className="h-12 shrink-0 border-t border-border flex items-center justify-between px-3 bg-background"
             role="toolbar"
             aria-label={t("toolbar")}
         >
@@ -115,34 +115,34 @@ export function PlayerControls({
                     <button
                         onClick={() => onSplitClip?.()}
                         disabled={!canSplitClip}
-                        className="text-zinc-500 hover:text-white active:scale-95 transition-all p-1 flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:text-zinc-500 disabled:active:scale-100"
+                        className="text-muted-foreground hover:text-foreground active:scale-95 transition-all p-1 flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:text-muted-foreground disabled:active:scale-100"
                         aria-label={t("split.clip")}
                     >
                         <Icon icon="mingcute:scissors-fill" width="15" aria-hidden="true" />
                     </button>
                 </TooltipAction>
 
-                <div className="h-4 w-px bg-white/10" />
+                <div className="h-4 w-px bg-border" />
 
                 <div className="flex items-center gap-2" role="group" aria-label={t("zoom.group")}>
                     <TooltipAction label={t("zoom.out")}>
                         <button
                             onClick={handleZoomOut}
                             disabled={zoomLevel <= MIN_ZOOM}
-                            className="text-zinc-500 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             aria-label={t("zoom.out")}
                         >
                             <Icon icon="mdi:magnify-minus-outline" width="16" aria-hidden="true" />
                         </button>
                     </TooltipAction>
 
-                    <div className="w-16 h-0.75 bg-white/10 rounded-full relative group cursor-pointer">
+                    <div className="w-16 h-0.75 bg-muted rounded-full relative group cursor-pointer">
                         <div
-                            className="absolute top-0 left-0 h-full bg-zinc-500 rounded-full transition-[width] duration-75"
+                            className="absolute top-0 left-0 h-full bg-muted-foreground rounded-full transition-[width] duration-75"
                             style={{ width: `${zoomPercentage}%` }}
                         />
                         <div
-                            className="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-white rounded-full shadow-md transition-[left] duration-75 group-hover:scale-110"
+                            className="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-foreground rounded-full shadow-md transition-[left] duration-75 group-hover:scale-110"
                             style={{ left: `calc(${zoomPercentage}% - 5px)` }}
                         />
                         <input
@@ -164,23 +164,23 @@ export function PlayerControls({
                         <button
                             onClick={handleZoomIn}
                             disabled={zoomLevel >= MAX_ZOOM}
-                            className="text-zinc-500 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             aria-label={t("zoom.in")}
                         >
                             <Icon icon="mdi:magnify-plus-outline" width="16" aria-hidden="true" />
                         </button>
                     </TooltipAction>
 
-                    <span className="text-[11px] font-mono text-zinc-500 min-w-5" aria-live="polite" aria-atomic="true">
+                    <span className="text-[11px] font-mono text-muted-foreground min-w-5" aria-live="polite" aria-atomic="true">
                         {Math.round(zoomLevel)}×
                     </span>
                 </div>
 
-                <div className="h-4 w-px bg-white/10" />
+                <div className="h-4 w-px bg-border" />
                 <TooltipAction label={fullscreenLabel}>
                     <button
                         onClick={onToggleFullscreen}
-                        className="text-zinc-500 hover:text-white transition-colors"
+                        className="text-muted-foreground hover:text-foreground transition-colors"
                         aria-label={fullscreenLabel}
                         aria-pressed={isFullscreen}
                     >
@@ -191,7 +191,7 @@ export function PlayerControls({
 
             <div className="flex items-center gap-4" role="group" aria-label={t("transport.group")}>
                 <span
-                    className="text-[11px] font-mono text-zinc-500"
+                    className="text-[11px] font-mono text-muted-foreground"
                     aria-label={t("transport.currentTime", { time: formatTime(currentTime) })}
                 >
                     {formatTime(currentTime)}
@@ -200,7 +200,7 @@ export function PlayerControls({
                 <div className="flex items-center gap-2.5">
                     <TooltipAction label={t("transport.backward")}>
                         <button
-                            className="text-zinc-500 hover:text-white transition-colors"
+                            className="text-muted-foreground hover:text-foreground transition-colors"
                             onClick={onSkipBackward}
                             aria-label={t("transport.backward")}
                         >
@@ -211,7 +211,7 @@ export function PlayerControls({
                     <TooltipAction label={playPauseLabel}>
                         <button
                             onClick={onTogglePlayPause}
-                            className="w-9 h-9 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/10 text-white transition border border-white/10"
+                            className="w-9 h-9 flex items-center justify-center rounded-full bg-muted hover:bg-muted text-foreground transition border border-border"
                             aria-label={playPauseLabel}
                             aria-pressed={isPlaying}
                         >
@@ -221,7 +221,7 @@ export function PlayerControls({
 
                     <TooltipAction label={t("transport.forward")}>
                         <button
-                            className="text-zinc-500 hover:text-white transition-colors"
+                            className="text-muted-foreground hover:text-foreground transition-colors"
                             onClick={onSkipForward}
                             aria-label={t("transport.forward")}
                         >
@@ -231,7 +231,7 @@ export function PlayerControls({
                 </div>
 
                 <span
-                    className="text-[11px] font-mono text-zinc-500"
+                    className="text-[11px] font-mono text-muted-foreground"
                     aria-label={t("transport.totalTime", { time: formatTime(videoDuration) })}
                 >
                     {formatTime(videoDuration)}

@@ -273,7 +273,7 @@ export function AudioTrimModal({
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.95, opacity: 0 }}
                 transition={{ duration: 0.2 }}
-                className="p-8 bg-[#09090B] border border-white/20 rounded-2xl shadow-[0_0_80px_-15px_rgba(0,0,0,1)] w-full max-w-2xl mx-4"
+                className="p-8 bg-popover dark:bg-black border border-border rounded-2xl shadow-[0_0_80px_-15px_rgba(0,0,0,1)] w-full max-w-2xl mx-4"
             >
                 <div className="flex items-start justify-between mb-6">
                     <div className="flex items-center gap-3">
@@ -281,29 +281,29 @@ export function AudioTrimModal({
                             <Icon icon="mdi:content-cut" className="text-blue-400" width="24" aria-hidden="true" />
                         </div>
                         <div>
-                            <h2 id="audio-trim-title" className="text-xl font-bold text-white">
+                            <h2 id="audio-trim-title" className="text-xl font-bold text-foreground">
                                 {t("title")}
                             </h2>
-                            <p className="text-sm text-white/60 mt-0.5">
+                            <p className="text-sm text-muted-foreground mt-0.5">
                                 {t("subtitle")}
                             </p>
                         </div>
                     </div>
                     <button
                         onClick={handleCancel}
-                        className="p-2 rounded-lg text-white/40 hover:text-white hover:bg-white/5 transition-colors"
+                        className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                         aria-label="Close"
                     >
                         <Icon icon="lucide:x" width="20" aria-hidden="true" />
                     </button>
                 </div>
-                <div className="mb-6 p-4 bg-white/5 border border-white/10 squircle-element-camera">
+                <div className="mb-6 p-4 bg-muted/40 border border-border squircle-element-camera">
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-sm text-white/70">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <Icon icon="mdi:music-note" width="16" aria-hidden="true" />
-                            <span className="font-medium text-white">{audioName}</span>
+                            <span className="font-medium text-foreground">{audioName}</span>
                         </div>
-                        <span className="text-xs text-white/40">
+                        <span className="text-xs text-muted-foreground">
                             {t("totalDuration")} {formatTime(audioDuration)}
                         </span>
                     </div>
@@ -311,12 +311,12 @@ export function AudioTrimModal({
                 <div className="mb-8">
                     <div
                         ref={trackRef}
-                        className="relative h-24 bg-[#141417] border border-white/10 select-none mb-4"
+                        className="relative h-24 bg-muted border border-border select-none mb-4"
                     >
                         <div className="absolute inset-0 flex items-center pointer-events-none">
                             <div className="flex items-end gap-0.5 h-full w-full px-2 pb-2 pt-2">
                                 {waveformHeights.map((height, i) => (
-                                    <div key={i} className="flex-1 bg-white/10 rounded-full" style={{ height: `${height}%` }} />
+                                    <div key={i} className="flex-1 bg-foreground/15 rounded-full" style={{ height: `${height}%` }} />
                                 ))}
                             </div>
                         </div>
@@ -402,19 +402,19 @@ export function AudioTrimModal({
                         </motion.div>
                     </div>
                     <div className="flex items-center justify-between gap-4">
-                        <div className="flex-1 p-3 bg-[#141417] border border-white/10 rounded-lg">
-                            <div className="text-xs text-white/40 mb-1">{t("start")}</div>
-                            <div className="text-lg font-mono text-white">{formatTime(trimStart)}</div>
+                        <div className="flex-1 p-3 bg-muted/50 border border-border rounded-lg">
+                            <div className="text-xs text-muted-foreground mb-1">{t("start")}</div>
+                            <div className="text-lg font-mono text-foreground">{formatTime(trimStart)}</div>
                         </div>
-                        <Icon icon="mdi:arrow-right" width="20" className="text-white/40 shrink-0" aria-hidden="true" />
-                        <div className="flex-1 p-3 bg-[#141417] border border-white/10 rounded-lg">
-                            <div className="text-xs text-white/40 mb-1">{t("end")}</div>
-                            <div className="text-lg font-mono text-white">{formatTime(trimEnd)}</div>
+                        <Icon icon="mdi:arrow-right" width="20" className="text-muted-foreground shrink-0" aria-hidden="true" />
+                        <div className="flex-1 p-3 bg-muted/50 border border-border rounded-lg">
+                            <div className="text-xs text-muted-foreground mb-1">{t("end")}</div>
+                            <div className="text-lg font-mono text-foreground">{formatTime(trimEnd)}</div>
                         </div>
-                        <Icon icon="mdi:equal" width="20" className="text-white/40 shrink-0" aria-hidden="true" />
+                        <Icon icon="mdi:equal" width="20" className="text-muted-foreground shrink-0" aria-hidden="true" />
                         <div className="flex-1 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                            <div className="text-xs text-blue-400/60 mb-1">{t("duration")}</div>
-                            <div className="text-lg font-mono text-blue-400 font-semibold">{formatTime(trimmedDuration)}</div>
+                            <div className="text-xs text-blue-600/60 dark:text-blue-400/60 mb-1">{t("duration")}</div>
+                            <div className="text-lg font-mono text-blue-600 dark:text-blue-400 font-semibold">{formatTime(trimmedDuration)}</div>
                         </div>
                     </div>
                 </div>
@@ -422,7 +422,7 @@ export function AudioTrimModal({
                     <Button
                         variant="outline"
                         onClick={handleCancel}
-                        className="flex-1 h-11 bg-transparent border-white/10 hover:bg-white/5 text-white/70 hover:text-white"
+                        className="flex-1 h-11 bg-transparent border-border hover:bg-muted text-muted-foreground hover:text-foreground"
                     >
                         {t("cancel")}
                     </Button>

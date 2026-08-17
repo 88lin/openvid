@@ -85,8 +85,8 @@ export const ELEMENT_TYPE_STYLES: Record<CanvasElement["type"], {
     activeBg: "linear-gradient(180deg, rgba(167,139,250,0.5) 0%, rgba(109,40,217,0.4) 100%)",
     idleBorder: "border-violet-500/35",
     idleBg: "linear-gradient(180deg, rgba(167,139,250,0.2) 0%, rgba(76,29,149,0.15) 100%)",
-    activeText: "text-violet-200",
-    idleText: "text-violet-300/70",
+    activeText: "text-violet-700 dark:text-violet-200",
+    idleText: "text-violet-700/70 dark:text-violet-300/70",
     glow: "shadow-[0_0_10px_rgba(167,139,250,0.35)]",
   },
   image: {
@@ -95,8 +95,8 @@ export const ELEMENT_TYPE_STYLES: Record<CanvasElement["type"], {
     activeBg: "linear-gradient(180deg, rgba(244,114,182,0.5) 0%, rgba(190,24,93,0.4) 100%)",
     idleBorder: "border-pink-500/35",
     idleBg: "linear-gradient(180deg, rgba(244,114,182,0.2) 0%, rgba(131,24,67,0.15) 100%)",
-    activeText: "text-pink-200",
-    idleText: "text-pink-300/70",
+    activeText: "text-pink-700 dark:text-pink-200",
+    idleText: "text-pink-700/70 dark:text-pink-300/70",
     glow: "shadow-[0_0_10px_rgba(244,114,182,0.35)]",
   },
   svg: {
@@ -105,8 +105,8 @@ export const ELEMENT_TYPE_STYLES: Record<CanvasElement["type"], {
     activeBg: "linear-gradient(180deg, rgba(34,211,238,0.5) 0%, rgba(14,116,144,0.4) 100%)",
     idleBorder: "border-cyan-500/35",
     idleBg: "linear-gradient(180deg, rgba(34,211,238,0.2) 0%, rgba(22,78,99,0.15) 100%)",
-    activeText: "text-cyan-200",
-    idleText: "text-cyan-300/70",
+    activeText: "text-cyan-700 dark:text-cyan-200",
+    idleText: "text-cyan-700/70 dark:text-cyan-300/70",
     glow: "shadow-[0_0_10px_rgba(34,211,238,0.35)]",
   },
 };

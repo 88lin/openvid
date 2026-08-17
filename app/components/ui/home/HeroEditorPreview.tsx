@@ -697,7 +697,6 @@ export default function HeroEditorPreview() {
 
   return (
     <section className="relative w-full overflow-visible flex justify-center animate-fade-in-up">
-      {/* Capa de Gradientes de Fondo */}
       <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-screen min-w-[140vw] md:min-w-0 max-w-480 h-full -z-10 overflow-visible flex justify-center">
         <div
           className="absolute inset-0 -top-28 bottom-64 w-full h-full mix-blend-hard-light blur-[80px] md:blur-[120px] transform-gpu will-change-transform"

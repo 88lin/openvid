@@ -177,7 +177,7 @@ export function ExportImageDropdown({
             <PopoverTrigger asChild>
                 <Button
                     variant="primary"
-                    className="px-3 py-2 text-sm gap-2 min-w-27.5"
+                    className="px-3 py-2 text-sm gap-2 min-w-27.5 text-white"
                     size="sm"
                     disabled={isExporting}
                     aria-label={t("button")}
@@ -189,17 +189,17 @@ export function ExportImageDropdown({
 
             <PopoverContent
                 align="end"
-                className="w-80 bg-black border-white/15 text-white shadow-2xl p-0 squircle-element-camera overflow-hidden z-999999"
+                className="w-80 bg-popover dark:bg-black border-border text-foreground shadow-2xl p-0 squircle-element-camera overflow-hidden z-999999"
             >
-                <div className="px-6 py-4 border-b border-white/10 flex justify-between items-center bg-white/3">
-                    <span className="text-[11px] font-medium uppercase tracking-[0.15em] text-white/60">
+                <div className="px-6 py-4 border-b border-border flex justify-between items-center bg-muted/50">
+                    <span className="text-[11px] font-medium uppercase tracking-[0.15em] text-muted-foreground">
                         {t("title") || "Formato"}
                     </span>
                     {isTransparent && (
                         <div className="flex items-center gap-2 px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 backdrop-blur-md">
                             <div className="size-1 bg-cyan-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
 
-                            <span className="text-[9px] font-bold uppercase tracking-wider text-cyan-400/90">
+                            <span className="text-[9px] font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400/90">
                                 Transparente
                             </span>
                         </div>
@@ -224,7 +224,7 @@ export function ExportImageDropdown({
                                 <div
                                     className={`relative size-12 squircle-element flex items-center justify-center transition-all duration-300 border ${isSelected
                                             ? "border-white/30 scale-105"
-                                            : "border-white/10 hover:border-white/20"
+                                            : "border-border hover:border-foreground/30"
                                         }`}
                                     style={{
                                         background: isSelected
@@ -238,7 +238,7 @@ export function ExportImageDropdown({
                                     <Icon
                                         icon={opt.icon}
                                         width="22"
-                                        className={`${isSelected ? "text-white" : "text-white/40 group-hover:text-white/70"}`}
+                                        className={`${isSelected ? "text-white" : "text-muted-foreground/60 group-hover:text-muted-foreground"}`}
                                         aria-hidden="true"
                                     />
 
@@ -247,7 +247,7 @@ export function ExportImageDropdown({
                                     )}
                                 </div>
                                 <span
-                                    className={`text-[9px] font-bold tracking-tighter ${isSelected ? "text-white" : "text-white/40"
+                                    className={`text-[9px] font-bold tracking-tighter ${isSelected ? "text-foreground" : "text-muted-foreground/60"
                                         }`}
                                 >
                                     {opt.label}
@@ -258,26 +258,26 @@ export function ExportImageDropdown({
                 </div>
 
                 <div className="px-2 pb-2">
-                    <div className="bg-white/3 squircle-element border border-white/10 overflow-hidden max-h-64 overflow-y-auto custom-scrollbar">
+                    <div className="bg-muted/50 squircle-element border border-border overflow-hidden max-h-64 overflow-y-auto custom-scrollbar">
                         {qualityPresets.map((preset, i) => (
                             <button
                                 key={i}
                                 onClick={() => handleExport(preset)}
-                                className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors border-b border-white/10 last:border-0 group"
+                                className="w-full flex items-center justify-between p-4 hover:bg-muted transition-colors border-b border-border last:border-0 group"
                                 aria-label={`Export ${preset.label} - ${preset.description}`}
                             >
                                 <div className="flex flex-col items-start gap-1">
                                     <div className="flex items-center gap-2">
-                                        <span className="text-[13px] font-medium text-white/90 group-hover:text-white">
+                                        <span className="text-[13px] font-medium text-foreground/90 group-hover:text-foreground">
                                             {preset.label}
                                         </span>
                                         {preset.recommended && (
-                                            <span className="border border-blue-500/30 text-blue-400 text-[9px] px-2 py-0.5 rounded-full font-bold tracking-   ">
+                                            <span className="border border-blue-500/30 text-blue-600 dark:text-blue-400 text-[9px] px-2 py-0.5 rounded-full font-bold tracking-   ">
                                                 {t("recommended") || "Rec"}
                                             </span>
                                         )}
                                     </div>
-                                    <span className="text-[11px] font-mono text-white/30">
+                                    <span className="text-[11px] font-mono text-muted-foreground/40">
                                         {preset.description}
                                     </span>
                                 </div>
@@ -289,7 +289,7 @@ export function ExportImageDropdown({
 
                 {showTransparencyWarning && (
                     <div className="p-3 bg-red-500/10 text-center">
-                        <p className="text-[9px] uppercase tracking-widest text-red-400 font-bold">
+                        <p className="text-[9px] uppercase tracking-widest text-red-600 dark:text-red-400 font-bold">
                             {t("noTransparency") || "Sin Transparencia"}
                         </p>
                     </div>

@@ -1236,7 +1236,11 @@
     "logout": "Выйти",
     "loggingOut": "Выход...",
     "ariaLabel": "Меню пользователя",
-    "defaultUser": "Пользователь"
+    "defaultUser": "Пользователь",
+    "theme": "Тема",
+    "themeLight": "Светлая",
+    "themeDark": "Тёмная",
+    "themeSystem": "Системная"
   },
   "featuresShowcase": {
     "common": {

@@ -104,12 +104,12 @@ export function FeedbackWidget() {
                 if (e.target === e.currentTarget) handleClose();
             }}
         >
-            <div className="p-8 bg-black border border-white/10 squircle-element-camera shadow-[0_0_80px_-15px_rgba(0,0,0,1)] w-full max-w-md mx-4">
-                <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/10">
+            <div className="p-8 bg-popover dark:bg-black border border-border squircle-element-camera shadow-[0_0_80px_-15px_rgba(0,0,0,1)] w-full max-w-md mx-4">
+                <div className="flex items-center justify-between mb-6 pb-4 border-b border-border">
                     <div className="flex items-center gap-2.5 px-3 py-1 ">
                         <span
                             id="feedback-dialog-title"
-                            className="text-[11px] font-bold uppercase tracking-[0.25em] text-white/70"
+                            className="text-[11px] font-bold uppercase tracking-[0.25em] text-muted-foreground"
                         >
                             {t("title")}
                         </span>
@@ -117,7 +117,7 @@ export function FeedbackWidget() {
 
                     <button
                         onClick={handleClose}
-                        className="flex items-center justify-center w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-white/50 hover:text-white transition-all duration-200"
+                        className="flex items-center justify-center w-8 h-8 rounded-full bg-muted hover:bg-muted border border-border text-muted-foreground/70 hover:text-foreground transition-all duration-200"
                         aria-label={t("close")}
                     >
                         <Icon icon="lucide:x" className="size-4" aria-hidden="true" />
@@ -126,10 +126,10 @@ export function FeedbackWidget() {
 
                 {status === "success" ? (
                     <div className="flex flex-col items-center justify-center gap-3 py-12 px-4 text-center">
-                        <div className="flex items-center justify-center w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 mb-2">
+                        <div className="flex items-center justify-center w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 mb-2">
                             <Icon icon="solar:check-circle-bold" className="size-6" />
                         </div>
-                        <p className="text-base font-medium text-white tracking-tight">
+                        <p className="text-base font-medium text-foreground tracking-tight">
                             {t("successMessage")}
                         </p>
                     </div>
@@ -155,12 +155,12 @@ export function FeedbackWidget() {
                                         onClick={() => setType(opt.value)}
                                         className={`group relative flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl border text-xs font-medium transition-all duration-200 squircle-element-camera cursor-pointer focus:outline-none w-full h-full min-h-[90px]
                                             ${isSelected
-                                                ? "border-blue-500/40 text-blue-400"
-                                                : "bg-transparent border-white/10 text-white/60 hover:bg-white/5 hover:text-white hover:border-white/20"
+                                                ? "border-transparent text-white"
+                                                : "bg-transparent border-border text-muted-foreground hover:bg-muted hover:text-foreground hover:border-muted-foreground/50"
                                             }`}
                                         style={isSelected ? {
-                                            background: "radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.2) 0%, rgba(29, 78, 216, 0.1) 64%)",
-                                            boxShadow: "rgb(255, 255, 255) 0px 0.5rem 0.2rem -0.5rem inset, rgba(59, 130, 246, 0.25) 0px 0px 20px 0px, rgba(0, 0, 0, 0.4) 0px 4px 6px 0px",
+                                            background: "radial-gradient(circle at 50% 0%, #555555 0%, #454545 64%)",
+                                            boxShadow: "inset 0 1.01rem 0.2rem -1rem #fff, 0 0 0 1px #fff4, 0 4px 4px 0 #0004, 0 0 0 1px #333",
                                         } : undefined}
                                     >
                                         <div className="flex items-center justify-center transition-transform duration-300 scale-110 group-hover:scale-115 size-5">
@@ -168,7 +168,7 @@ export function FeedbackWidget() {
                                         </div>
 
                                         {isSelected && (
-                                            <div className="absolute left-3 w-16 h-6 top-3 bg-white rounded-full blur-[10px] rotate-45 pointer-events-none opacity-20" />
+                                            <div className="absolute left-3 w-8 h-2 top-3 bg-white rounded-full blur-[5px] rotate-45 pointer-events-none opacity-50" />
                                         )}
 
                                         <span className="whitespace-nowrap overflow-hidden text-ellipsis max-w-full text-center mt-0.5">
@@ -188,10 +188,10 @@ export function FeedbackWidget() {
                                 minLength={7}
                                 maxLength={MESSAGE_MAX_LENGTH}
                                 rows={7}
-                                className="w-full resize-none bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all duration-200"
+                                className="w-full resize-none bg-muted border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all duration-200"
                             />
                             <div className="flex justify-end px-1">
-                                <span className="text-[11px] font-mono text-white/40 tabular-nums">
+                                <span className="text-[11px] font-mono text-muted-foreground/60 tabular-nums">
                                     {message.length}/{MESSAGE_MAX_LENGTH}
                                 </span>
                             </div>
@@ -203,12 +203,12 @@ export function FeedbackWidget() {
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder={t("emailPlaceholder")}
-                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all duration-200"
+                                className="w-full bg-muted border border-border rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all duration-200"
                             />
                         )}
 
                         {status === "error" && (
-                            <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs">
+                            <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-600 dark:text-red-400 text-xs">
                                 <Icon icon="lucide:alert-circle" className="size-4 shrink-0" />
                                 <span>{t("errorMessage")}</span>
                             </div>
@@ -218,7 +218,7 @@ export function FeedbackWidget() {
                             type="submit"
                             variant="primary"
                             disabled={status === "sending" || message.trim().length < 4}
-                            className="w-full h-11 text-sm font-semibold rounded-xl active:scale-[0.99] disabled:opacity-40 disabled:cursor-not-allowed"
+                            className="w-full h-11 text-sm font-semibold rounded-xl active:scale-[0.99] disabled:opacity-40 disabled:cursor-not-allowed text-white"
                         >
                             {status === "sending" ? (
                                 <Icon icon="svg-spinners:180-ring" className="size-4" />
@@ -240,7 +240,7 @@ export function FeedbackWidget() {
             <TooltipAction label={t("tooltip")}>
                 <button
                     onClick={() => setIsOpen(true)}
-                    className="flex items-center justify-center w-10 h-10 rounded-full bg-white/10 hover:bg-white/15 border border-white/15 text-white hover:text-white transition-all duration-200 shrink-0 shadow-gray-700 shadow-lg hover:scale-105 active:scale-95"
+                    className="flex items-center justify-center w-10 h-10 rounded-full bg-muted hover:bg-muted border border-border text-foreground hover:text-foreground transition-all duration-200 shrink-0 shadow-foreground/20 shadow-lg hover:scale-105 active:scale-95"
                     aria-label={t("tooltip")}
                 >
                     <Icon icon="solar:chat-round-dots-bold" className="size-6" aria-hidden="true" />

@@ -313,7 +313,11 @@
     "logout": "Cerrar sesión",
     "loggingOut": "Cerrando sesión...",
     "ariaLabel": "Menú de usuario",
-    "defaultUser": "Usuario"
+    "defaultUser": "Usuario",
+    "theme": "Tema",
+    "themeLight": "Claro",
+    "themeDark": "Oscuro",
+    "themeSystem": "Sistema"
   },
   "donation": {
     "title": "Cómprame un café",

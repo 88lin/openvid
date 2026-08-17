@@ -218,7 +218,7 @@ export function ElementsMenu({
     return (
         <div className="p-4 flex flex-col gap-5">
 
-            <div className="flex items-center gap-2 text-white font-medium">
+            <div className="flex items-center gap-2 text-foreground font-medium">
                 <ElementsIcon
                     width={20}
                     height={20}
@@ -228,12 +228,12 @@ export function ElementsMenu({
                 <span>{t("title")}</span>
             </div>
 
-            <div className="grid grid-cols-2 bg-[#09090B] squircle-element p-1 text-xs font-medium border border-white/5" role="tablist" aria-label={t("title")}>
-                <button className={`flex justify-center items-center gap-1.5 py-1.5 rounded transition ${mode === "elements" ? "bg-white/10 text-white" : "text-white/60 hover:text-white/80"}`} onClick={() => setMode("elements")} role="tab" aria-selected={mode === "elements"} aria-controls="elements-panel">
+            <div className="grid grid-cols-2 bg-muted squircle-element p-1 text-xs font-medium border border-border" role="tablist" aria-label={t("title")}>
+                <button className={`flex justify-center items-center gap-1.5 py-1.5 rounded transition ${mode === "elements" ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground/80"}`} onClick={() => setMode("elements")} role="tab" aria-selected={mode === "elements"} aria-controls="elements-panel">
                     <Icon icon="iconoir:hexagon" width="14" aria-hidden="true" />
                     {t("tabs.elements")}
                 </button>
-                <button className={`flex justify-center items-center gap-1.5 py-1.5 rounded transition ${mode === "text" ? "bg-white/10 text-white" : "text-white/60 hover:text-white/80"}`} onClick={() => setMode("text")} role="tab" aria-selected={mode === "text"} aria-controls="text-panel">
+                <button className={`flex justify-center items-center gap-1.5 py-1.5 rounded transition ${mode === "text" ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground/80"}`} onClick={() => setMode("text")} role="tab" aria-selected={mode === "text"} aria-controls="text-panel">
                     <Icon icon="iconoir:text-size" width="14" aria-hidden="true" />
                     {t("tabs.text")}
                 </button>
@@ -243,18 +243,18 @@ export function ElementsMenu({
                 <div className="flex flex-col gap-5 animate-in fade-in duration-150" role="tabpanel" id="elements-panel">
 
                     <div className="space-y-2">
-                        <div className="text-[11px] uppercase tracking-widest text-white/70 font-semibold">{t("sections.shapes")}</div>
+                        <div className="text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">{t("sections.shapes")}</div>
                         <div className="grid grid-cols-6 gap-2">
                             {PINNED_SVG_ITEMS.map((item) => (
                                 <TooltipAction label={item.name} key={item.id}>
-                                    <button onClick={() => handleAddSvg(item)} className="aspect-square bg-white/3 hover:bg-white/8 border border-white/[0.07] hover:border-white/20 squircle-element flex items-center justify-center transition-all active:scale-90 group" aria-label={`Add ${item.name}`}>
+                                    <button onClick={() => handleAddSvg(item)} className="aspect-square bg-muted/50 hover:bg-muted border border-border hover:border-muted-foreground/50 squircle-element flex items-center justify-center transition-all active:scale-90 group" aria-label={`Add ${item.name}`}>
                                         {item.icon ? (
-                                            <Icon icon={item.icon} width="18" className="text-white/60 group-hover:text-white transition-colors" aria-hidden="true" />
+                                            <Icon icon={item.icon} width="18" className="text-muted-foreground group-hover:text-foreground transition-colors" aria-hidden="true" />
                                         ) : (() => {
                                             const SvgComponent = SVG_COMPONENTS[item.id];
                                             return SvgComponent
-                                                ? <SvgComponent color="currentColor" className="w-4 h-4 text-white/60 group-hover:text-white transition-colors" />
-                                                : <span className="text-[9px] text-white/40">{item.name}</span>;
+                                                ? <SvgComponent color="currentColor" className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                                                : <span className="text-[9px] text-muted-foreground/60">{item.name}</span>;
                                         })()}
                                     </button>
                                 </TooltipAction>
@@ -263,36 +263,36 @@ export function ElementsMenu({
                             <Popover>
                                 <TooltipAction label={t("tooltips.allShapes")}>
                                     <PopoverTrigger asChild>
-                                        <button className="aspect-square squircle-element border border-dashed border-white/30 bg-white/5 flex items-center justify-center hover:bg-white/10 transition group">
-                                            <Icon icon="ph:plus-bold" width="16" className="text-blue-400 group-hover:text-blue-300 transition-colors" />
+                                        <button className="aspect-square squircle-element border border-dashed border-border bg-muted flex items-center justify-center hover:bg-muted transition group">
+                                            <Icon icon="ph:plus-bold" width="16" className="text-blue-600 dark:text-blue-400 group-hover:text-blue-600 dark:group-hover:text-blue-300 transition-colors" />
                                         </button>
                                     </PopoverTrigger>
                                 </TooltipAction>
                                 <PopoverContent side="right" align="start" sideOffset={12} className="w-120 p-0 border-0 shadow-2xl">
-                                    <div className="flex flex-col bg-[#111113] border border-white/10 squircle-element-camera overflow-hidden shadow-2xl max-h-125">
-                                        <div className="flex items-center gap-2 px-4 py-3 border-b border-white/10 bg-white/2 flex-wrap">
-                                            <button onClick={() => setSelectedSvgCategory("all")} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium uppercase tracking-wider transition-all ${selectedSvgCategory === "all" ? "bg-blue-500/20 text-blue-400 border border-blue-500/40" : "bg-white/5 text-white/60 hover:text-white/70 border border-transparent hover:border-white/10"}`}>
+                                    <div className="flex flex-col bg-popover dark:bg-black border border-border squircle-element-camera overflow-hidden shadow-2xl max-h-125">
+                                        <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-muted/40 flex-wrap">
+                                            <button onClick={() => setSelectedSvgCategory("all")} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium uppercase tracking-wider transition-all ${selectedSvgCategory === "all" ? "bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/40" : "bg-muted text-muted-foreground hover:text-muted-foreground border border-transparent hover:border-border"}`}>
                                                 <Icon icon="ph:grid-four-bold" width="12" />
                                                 <span>{t("filters.all")}</span>
                                             </button>
                                             {SVG_CATEGORIES.map((cat) => (
-                                                <button key={cat.id} onClick={() => setSelectedSvgCategory(cat.id)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium uppercase tracking-wider transition-all ${selectedSvgCategory === cat.id ? "bg-blue-500/20 text-blue-400 border border-blue-500/40" : "bg-white/5 text-white/60 hover:text-white/70 border border-transparent hover:border-white/10"}`}>
+                                                <button key={cat.id} onClick={() => setSelectedSvgCategory(cat.id)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium uppercase tracking-wider transition-all ${selectedSvgCategory === cat.id ? "bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/40" : "bg-muted text-muted-foreground hover:text-muted-foreground border border-transparent hover:border-border"}`}>
                                                     <span>{cat.title}</span>
                                                 </button>
                                             ))}
-                                            <span className="ml-auto text-[11px] text-white/70">{t("counts.shapes", { count: filteredSvgItems.length })}</span>
+                                            <span className="ml-auto text-[11px] text-muted-foreground">{t("counts.shapes", { count: filteredSvgItems.length })}</span>
                                         </div>
                                         <div className="p-3 grid grid-cols-6 gap-2 overflow-y-auto custom-scrollbar">
                                             {filteredSvgItems.map((item) => (
                                                 <TooltipAction label={item.name} key={`${item.category}-${item.id}`}>
-                                                    <button onClick={() => handleAddSvg(item, item.category)} className="aspect-square bg-white/3 hover:bg-white/8 border border-white/[0.07] hover:border-white/20 squircle-element flex items-center justify-center transition-all active:scale-90 group">
+                                                    <button onClick={() => handleAddSvg(item, item.category)} className="aspect-square bg-muted/50 hover:bg-muted border border-border hover:border-muted-foreground/50 squircle-element flex items-center justify-center transition-all active:scale-90 group">
                                                         {item.icon ? (
-                                                            <Icon icon={item.icon} width="18" className="text-white/60 group-hover:text-white transition-colors" />
+                                                            <Icon icon={item.icon} width="18" className="text-muted-foreground group-hover:text-foreground transition-colors" />
                                                         ) : (() => {
                                                             const SvgComponent = SVG_COMPONENTS[item.id];
                                                             return SvgComponent
-                                                                ? <SvgComponent color="currentColor" className="w-4 h-4 text-white/60 scale-200 group-hover:text-white transition-colors" />
-                                                                : <span className="text-[9px] text-white/40">{item.name}</span>;
+                                                                ? <SvgComponent color="currentColor" className="w-4 h-4 text-muted-foreground scale-200 group-hover:text-foreground transition-colors" />
+                                                                : <span className="text-[9px] text-muted-foreground/60">{item.name}</span>;
                                                         })()}
                                                     </button>
                                                 </TooltipAction>
@@ -305,11 +305,11 @@ export function ElementsMenu({
                     </div>
 
                     <div className="space-y-2">
-                        <div className="text-[11px] uppercase tracking-widest text-white/70 font-semibold">{t("sections.images")}</div>
+                        <div className="text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">{t("sections.images")}</div>
                         <div className="grid grid-cols-6 gap-1.5">
                             <UploadImageButton onUpload={handleImageUpload} isUploading={isUploading} />
                             {PINNED_IMAGE_ITEMS.map((item) => (
-                                <button key={item.id} onClick={() => handleAddImage(item)} className="aspect-square bg-white/3 hover:bg-white/8 border border-white/[0.07] hover:border-white/20 squircle-element flex items-center justify-center transition-all active:scale-90 overflow-hidden group">
+                                <button key={item.id} onClick={() => handleAddImage(item)} className="aspect-square bg-muted/50 hover:bg-muted border border-border hover:border-muted-foreground/50 squircle-element flex items-center justify-center transition-all active:scale-90 overflow-hidden group">
                                     <ProgressiveImg src={getImagePreviewPath(item)} alt={item.name} className="w-full h-full object-cover group-hover:scale-110" />
                                 </button>
                             ))}
@@ -319,31 +319,31 @@ export function ElementsMenu({
                             <Popover>
                                 <TooltipAction label={t("tooltips.allImages")}>
                                     <PopoverTrigger asChild>
-                                        <button className="aspect-square squircle-element border border-dashed border-white/30 bg-white/5 flex items-center justify-center hover:bg-white/10 transition group">
-                                            <Icon icon="ph:plus-bold" width="16" className="text-blue-400 group-hover:text-blue-300 transition-colors" />
+                                        <button className="aspect-square squircle-element border border-dashed border-border bg-muted flex items-center justify-center hover:bg-muted transition group">
+                                            <Icon icon="ph:plus-bold" width="16" className="text-blue-600 dark:text-blue-400 group-hover:text-blue-600 dark:group-hover:text-blue-300 transition-colors" />
                                         </button>
                                     </PopoverTrigger>
                                 </TooltipAction>
                                 <PopoverContent side="right" align="start" sideOffset={12} className="w-130 p-0 border-0 shadow-2xl">
-                                    <div className="flex flex-col bg-[#111113] border border-white/10 squircle-element-camera overflow-hidden shadow-2xl max-h-125">
-                                        <div className="flex items-center gap-2 px-4 py-3 border-b border-white/10 bg-white/2 flex-wrap">
-                                            <button onClick={() => setSelectedImageCategory("all")} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium uppercase tracking-wider transition-all ${selectedImageCategory === "all" ? "bg-blue-500/20 text-blue-400 border border-blue-500/40" : "bg-white/5 text-white/60 hover:text-white/70 border border-transparent hover:border-white/10"}`}>
+                                    <div className="flex flex-col bg-popover dark:bg-black border border-border squircle-element-camera overflow-hidden shadow-2xl max-h-125">
+                                        <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-muted/40 flex-wrap">
+                                            <button onClick={() => setSelectedImageCategory("all")} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium uppercase tracking-wider transition-all ${selectedImageCategory === "all" ? "bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/40" : "bg-muted text-muted-foreground hover:text-muted-foreground border border-transparent hover:border-border"}`}>
                                                 <Icon icon="ph:grid-four-bold" width="12" />
                                                 <span>{t("filters.all")}</span>
                                             </button>
                                             {IMAGE_CATEGORIES.map((cat) => (
-                                                <button key={cat.id} onClick={() => setSelectedImageCategory(cat.id)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium uppercase tracking-wider transition-all ${selectedImageCategory === cat.id ? "bg-blue-500/20 text-blue-400 border border-blue-500/40" : "bg-white/5 text-white/60 hover:text-white/70 border border-transparent hover:border-white/10"}`}>
+                                                <button key={cat.id} onClick={() => setSelectedImageCategory(cat.id)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium uppercase tracking-wider transition-all ${selectedImageCategory === cat.id ? "bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/40" : "bg-muted text-muted-foreground hover:text-muted-foreground border border-transparent hover:border-border"}`}>
                                                     <span>{cat.title}</span>
                                                 </button>
                                             ))}
-                                            <span className="ml-auto text-[11px] text-white/70">{t("counts.images", { count: filteredImageItems.length })}</span>
+                                            <span className="ml-auto text-[11px] text-muted-foreground">{t("counts.images", { count: filteredImageItems.length })}</span>
                                         </div>
                                         <div className="p-3 grid grid-cols-8 gap-2 overflow-y-auto custom-scrollbar">
                                             {filteredImageItems.map((item) => (
                                                 <div key={`${item.category}-${item.id}`} className="w-full" style={{ paddingBottom: "100%", position: "relative" }}>
                                                     <button
                                                         onClick={() => handleAddImage(item, item.category)}
-                                                        className="absolute inset-0 bg-white/3 hover:bg-white/8 border border-white/[0.07] hover:border-white/20 squircle-element transition-all active:scale-90 overflow-hidden group"
+                                                        className="absolute inset-0 bg-muted/50 hover:bg-muted border border-border hover:border-muted-foreground/50 squircle-element transition-all active:scale-90 overflow-hidden group"
                                                     >
                                                         <ProgressiveImg
                                                             src={getImagePreviewPath(item)}
@@ -364,18 +364,18 @@ export function ElementsMenu({
                         <>
                             {selectedElement.type === "svg" && (
                                 <div className="space-y-2">
-                                    <div className="text-[11px] uppercase tracking-widest text-white/70 font-semibold">{t("properties.color")}</div>
+                                    <div className="text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">{t("properties.color")}</div>
                                     <div className="flex gap-2">
                                         <div className="grid grid-cols-5 gap-2 flex-1">
                                             {PRESET_COLORS.map((color) => (
                                                 <TooltipAction label={color} key={color}>
-                                                    <button onClick={() => setShapeColor(color)} className={`aspect-square squircle-element cursor-pointer transition-all border border-white/20 ${shapeColor === color ? "ring-2 ring-white/90 border-white/40 shadow-md shadow-black/50" : "border-white/10 hover:border-white/30 hover:ring-1 ring-white/20"}`} style={{ backgroundColor: color }} />
+                                                    <button onClick={() => setShapeColor(color)} className={`aspect-square squircle-element cursor-pointer transition-all border border-border ${shapeColor === color ? "ring-2 ring-foreground/80 border-border shadow-md shadow-black/50" : "border-border hover:border-muted-foreground/50 hover:ring-1 ring-foreground/20"}`} style={{ backgroundColor: color }} />
                                                 </TooltipAction>
                                             ))}
                                         </div>
                                         <label className="relative cursor-pointer">
                                             <input type="color" value={shapeColor} onChange={(e) => setShapeColor(e.target.value)} className="absolute inset-0 opacity-0 cursor-pointer" />
-                                            <div className="w-10 h-10 aspect-square squircle-element border border-dashed border-white/30 bg-white/5 flex items-center justify-center hover:bg-white/10 transition group" style={{ backgroundColor: shapeColor }}>
+                                            <div className="w-10 h-10 aspect-square squircle-element border border-dashed border-border bg-muted flex items-center justify-center hover:bg-muted transition group" style={{ backgroundColor: shapeColor }}>
                                                 <Icon icon="mdi:eyedropper" width="18" className="text-white mix-blend-difference" />
                                             </div>
                                         </label>
@@ -394,17 +394,17 @@ export function ElementsMenu({
             {mode === "text" && (
                 <div className="flex flex-col gap-5 animate-in fade-in duration-150">
                     <div className="space-y-2">
-                        <div className="text-[11px] uppercase tracking-widest text-white/70 font-semibold">{t("text.content")}</div>
-                        <input type="text" value={textContent} onChange={(e) => setTextContent(e.target.value)} className="w-full bg-white/4 hover:bg-white/[0.07] transition border border-white/8 squircle-element px-3 py-2 text-sm text-white placeholder:text-white/30 outline-none focus:border-white/20" placeholder={t("text.placeholder")} />
+                        <div className="text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">{t("text.content")}</div>
+                        <input type="text" value={textContent} onChange={(e) => setTextContent(e.target.value)} className="w-full bg-muted/60 hover:bg-muted/50 transition border border-border squircle-element px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/40 outline-none focus:border-border" placeholder={t("text.placeholder")} />
                     </div>
 
                     <div className="space-y-2">
-                        <div className="text-[11px] uppercase tracking-widest text-white/70 font-semibold">{t("text.presets")}</div>
+                        <div className="text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">{t("text.presets")}</div>
                         <div className="grid grid-cols-2 gap-2">
                             {TEXT_PRESETS.map((p) => (
-                                <button key={p.label} onClick={() => { setTextFontSize(p.fontSize); setTextFontWeight(p.weight); }} className="bg-white/3 hover:bg-white/[0.07] border border-white/[0.07] squircle-element px-3 py-2.5 text-left transition-all active:scale-[.98]">
-                                    <div className="text-[9px] text-white/40 font-semibold uppercase tracking-wider mb-1.5">{p.label}</div>
-                                    <div className="text-white leading-none truncate" style={{ fontSize: `${p.fontSize / 3}px`, fontWeight: p.weight }}>{p.sample}</div>
+                                <button key={p.label} onClick={() => { setTextFontSize(p.fontSize); setTextFontWeight(p.weight); }} className="bg-muted/50 hover:bg-muted/50 border border-border squircle-element px-3 py-2.5 text-left transition-all active:scale-[.98]">
+                                    <div className="text-[9px] text-muted-foreground/60 font-semibold uppercase tracking-wider mb-1.5">{p.label}</div>
+                                    <div className="text-foreground leading-none truncate" style={{ fontSize: `${p.fontSize / 3}px`, fontWeight: p.weight }}>{p.sample}</div>
                                 </button>
                             ))}
                         </div>
@@ -412,22 +412,22 @@ export function ElementsMenu({
 
                     <div className="flex flex-row justify-between gap-2 space-y-2">
                         <div className="space-y-2">
-                            <div className="text-[11px] uppercase tracking-widest text-white/70 font-semibold">{t("text.size")}</div>
+                            <div className="text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">{t("text.size")}</div>
                             <div className="flex items-center gap-2">
-                                <input type="number" value={textFontSize || ""} onChange={(e) => { const val = e.target.value; if (val === "") { setTextFontSize(0); return; } const num = parseInt(val, 10); if (!isNaN(num)) setTextFontSize(Math.min(200, num)); }} onBlur={() => setTextFontSize((prev) => Math.max(8, Math.min(200, prev || 32)))} className="flex-1 bg-white/4 hover:bg-white/[0.07] transition border border-white/8 squircle-element px-3 py-2 text-sm text-white outline-none focus:border-white/20" min={8} max={200} />
-                                <span className="text-xs text-white/60 w-6">px</span>
+                                <input type="number" value={textFontSize || ""} onChange={(e) => { const val = e.target.value; if (val === "") { setTextFontSize(0); return; } const num = parseInt(val, 10); if (!isNaN(num)) setTextFontSize(Math.min(200, num)); }} onBlur={() => setTextFontSize((prev) => Math.max(8, Math.min(200, prev || 32)))} className="flex-1 bg-muted/60 hover:bg-muted/50 transition border border-border squircle-element px-3 py-2 text-sm text-foreground outline-none focus:border-border" min={8} max={200} />
+                                <span className="text-xs text-muted-foreground w-6">px</span>
                             </div>
                         </div>
 
                         <div className="space-y-2">
-                            <div className="text-[11px] uppercase tracking-widest text-white/70 font-semibold">{t("text.font")}</div>
+                            <div className="text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">{t("text.font")}</div>
                             <Select value={textFontFamily} onValueChange={setTextFontFamily}>
-                                <SelectTrigger className="w-full bg-white/4 hover:bg-white/[0.07] transition border-white/8 squircle-element text-white/80" style={{ fontFamily: textFontFamily }}>
+                                <SelectTrigger className="w-full bg-muted/60 hover:bg-muted/50 transition border-border squircle-element text-foreground/80" style={{ fontFamily: textFontFamily }}>
                                     <SelectValue />
                                 </SelectTrigger>
-                                <SelectContent className="bg-[#1a1a1e] border-white/10">
+                                <SelectContent className="bg-popover dark:bg-black border-border">
                                     {FONT_FAMILIES.map((f) => (
-                                        <SelectItem key={f} value={f} className="text-white/80 hover:bg-white/10 cursor-pointer" style={{ fontFamily: f }}>{f}</SelectItem>
+                                        <SelectItem key={f} value={f} className="text-foreground/80 hover:bg-muted cursor-pointer" style={{ fontFamily: f }}>{f}</SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
@@ -435,18 +435,18 @@ export function ElementsMenu({
                     </div>
 
                     <div className="space-y-2">
-                        <div className="text-[11px] uppercase tracking-widest text-white/70 font-semibold">{t("properties.color")}</div>
+                        <div className="text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">{t("properties.color")}</div>
                         <div className="flex gap-2">
                             <div className="grid grid-cols-5 gap-2 flex-1">
                                 {PRESET_COLORS.map((color) => (
                                     <TooltipAction label={color} key={color}>
-                                        <button onClick={() => setTextColor(color)} className={`aspect-square squircle-element cursor-pointer transition-all border border-white/20 ${textColor === color ? "ring-2 ring-white/90 border-white/40 shadow-md shadow-black/50" : "border-white/10 hover:border-white/30 hover:ring-1 ring-white/20"}`} style={{ backgroundColor: color }} />
+                                        <button onClick={() => setTextColor(color)} className={`aspect-square squircle-element cursor-pointer transition-all border border-border ${textColor === color ? "ring-2 ring-foreground/80 border-border shadow-md shadow-black/50" : "border-border hover:border-muted-foreground/50 hover:ring-1 ring-foreground/20"}`} style={{ backgroundColor: color }} />
                                     </TooltipAction>
                                 ))}
                             </div>
                             <label className="relative cursor-pointer">
                                 <input type="color" value={textColor} onChange={(e) => setTextColor(e.target.value)} className="absolute inset-0 opacity-0 cursor-pointer" />
-                                <div className="w-10 h-10 aspect-square squircle-element border border-dashed border-white/30 bg-white/5 flex items-center justify-center hover:bg-white/10 transition group" style={{ backgroundColor: textColor }}>
+                                <div className="w-10 h-10 aspect-square squircle-element border border-dashed border-border bg-muted flex items-center justify-center hover:bg-muted transition group" style={{ backgroundColor: textColor }}>
                                     <Icon icon="mdi:eyedropper" width="18" className="text-white mix-blend-difference" />
                                 </div>
                             </label>
@@ -454,10 +454,10 @@ export function ElementsMenu({
                     </div>
 
                     <div className="space-y-2">
-                        <div className="text-[11px] uppercase tracking-widest text-white/70 font-semibold">{t("text.weight")}</div>
+                        <div className="text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">{t("text.weight")}</div>
                         <div className="grid grid-cols-3 gap-2">
                             {FONT_WEIGHTS.map((w) => (
-                                <button key={w.key} onClick={() => setTextFontWeight(w.key)} className={`px-3 py-2 rounded-lg text-xs transition-all squircle-element ${textFontWeight === w.key ? "bg-white/10 text-white border border-white/15" : "bg-white/3 text-white/35 hover:text-white/70 border border-white/6"}`}>
+                                <button key={w.key} onClick={() => setTextFontWeight(w.key)} className={`px-3 py-2 rounded-lg text-xs transition-all squircle-element ${textFontWeight === w.key ? "bg-muted text-foreground border border-border" : "bg-muted/50 text-muted-foreground/50 hover:text-muted-foreground border border-border"}`}>
                                     {w.label}
                                 </button>
                             ))}
@@ -511,13 +511,13 @@ function UploadImageButton({ onUpload, isUploading }: { onUpload: (files: FileLi
                 <button
                     onClick={() => inputRef.current?.click()}
                     disabled={isUploading}
-                    className="aspect-square bg-white/3 hover:bg-white/8 border border-dashed border-white/30 squircle-element flex items-center justify-center transition-all active:scale-90 group disabled:opacity-50"
+                    className="aspect-square bg-muted/50 hover:bg-muted border border-dashed border-border squircle-element flex items-center justify-center transition-all active:scale-90 group disabled:opacity-50"
                     aria-label={t("uploads.selectFile")}
                 >
                     {isUploading ? (
-                        <Icon icon="svg-spinners:180-ring-with-bg" width="16" className="text-white/60" aria-hidden="true" />
-                    ) : (
-                        <Icon icon="material-symbols:upload-rounded" width="24" className="text-white-70 group-hover:text-white transition-colors" aria-hidden="true" />
+                        <Icon icon="svg-spinners:180-ring-with-bg" width="16" className="text-muted-foreground" aria-hidden="true" />
+) : (
+                        <Icon icon="material-symbols:upload-rounded" width="24" className="text-muted-foreground group-hover:text-foreground transition-colors" aria-hidden="true" />
                     )}
                 </button>
             </TooltipAction>

@@ -72,19 +72,19 @@ export function HistoryMenu({
     return (
         <div className="p-4 flex flex-col gap-4 h-full">
             <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-white font-medium">
+                <div className="flex items-center gap-2 text-foreground font-medium">
                     <Icon icon="material-symbols:history" width="20" aria-hidden="true" />
                     <span>{t("title")}</span>
                 </div>
-                <span className="text-xs text-white/40" aria-live="polite">
+                <span className="text-xs text-muted-foreground/60" aria-live="polite">
                     {projects.length} {t("items")}
                 </span>
             </div>
 
             <div
                 className={`relative squircle-element border-2 border-dashed transition-all cursor-pointer ${isDragging
-                    ? "border-gray-500 bg-gray-500/10"
-                    : "border-white/20 hover:border-gray-500/50 hover:bg-gray-500/5"
+                    ? "border-muted-foreground/50 bg-muted/60"
+                    : "border-border hover:border-muted-foreground/50 hover:bg-muted/40"
                     }`}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
@@ -99,15 +99,15 @@ export function HistoryMenu({
                     onChange={handleFileSelect}
                 />
                 <div className="p-4 flex flex-col items-center gap-2 text-center">
-                    <div className={`p-2 rounded-full transition-colors ${isDragging ? "bg-gray-500/20 text-gray-400" : "bg-white/5 text-white/70"
+                    <div className={`p-2 rounded-full transition-colors ${isDragging ? "bg-muted text-muted-foreground" : "bg-muted/50 text-muted-foreground/70"
                         }`}>
-                        <Icon icon="solar:upload-minimalistic-outline" width="24" className="text-white/40 group-hover:text-white/70 transition-colors" />
+                        <Icon icon="solar:upload-minimalistic-outline" width="24" className="text-muted-foreground/60 group-hover:text-muted-foreground transition-colors" />
                     </div>
                     <div>
-                        <p className="text-sm text-white/70">
+                        <p className="text-sm text-muted-foreground">
                             {isDragging ? t("upload.drop") : t("upload.dragOrClick")}
                         </p>
-                        <p className="text-xs text-white/40 mt-1">
+                        <p className="text-xs text-muted-foreground/60 mt-1">
                             PNG, JPG ...
                         </p>
                     </div>
@@ -120,26 +120,26 @@ export function HistoryMenu({
                         {[...Array(2)].map((_, i) => (
                             <div
                                 key={i}
-                                className="relative aspect-video squircle-element bg-white/5 border border-white/10 overflow-hidden"
+                                className="relative aspect-video squircle-element bg-muted border border-border overflow-hidden"
                             >
-                                <div className="absolute inset-0 bg-linear-to-t from-white/5 to-transparent" />
+                                <div className="absolute inset-0 bg-linear-to-t from-muted-foreground/10 to-transparent" />
 
                                 <div className="absolute inset-0 flex items-center justify-center">
-                                    <Icon icon="solar:image-linear" width="24" className="text-white/10" aria-hidden="true" />
+                                    <Icon icon="solar:image-linear" width="24" className="text-muted-foreground/20" aria-hidden="true" />
                                 </div>
 
                                 <div className="absolute inset-x-0 bottom-0 p-2.5">
-                                    <div className="h-2 w-2/3 bg-white/10 rounded-full" />
+                                    <div className="h-2 w-2/3 bg-muted rounded-full" />
                                 </div>
                             </div>
                         ))}
                     </div>
                 ) : projects.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-12 text-white/40 animate-in fade-in" role="status">
-                        <div className="w-16 h-16 squircle-element bg-white/5 flex items-center justify-center mb-4 border border-white/10">
+                    <div className="flex flex-col items-center justify-center py-12 text-muted-foreground/60 animate-in fade-in" role="status">
+                        <div className="w-16 h-16 squircle-element bg-muted flex items-center justify-center mb-4 border border-border">
                             <Icon icon="solar:gallery-linear" width="32" className="opacity-50" aria-hidden="true" />
                         </div>
-                        <p className="text-sm font-medium text-white/70">{t("empty.title")}</p>
+                        <p className="text-sm font-medium text-muted-foreground">{t("empty.title")}</p>
                         <p className="text-xs mt-1 text-center max-w-50 leading-relaxed">{t("empty.description")}</p>
                     </div>
                 ) : (
@@ -149,8 +149,8 @@ export function HistoryMenu({
                                 key={project.id}
                                 onClick={() => onSelectProject(project.id)}
                                 className={`group relative aspect-video squircle-element overflow-hidden cursor-pointer transition-all duration-300 ${currentProjectId === project.id
-                                    ? "ring-2 ring-gray-400 ring-offset-2 ring-offset-[#0A0A0A] shadow-[0_0_15px_rgba(168,85,247,0.4)]"
-                                    : "border border-white/10 hover:border-white/30 hover:shadow-xl"
+                                    ? "ring-2 ring-foreground/60 ring-offset-2 ring-offset-background shadow-[0_0_15px_rgba(168,85,247,0.4)]"
+                                    : "border border-border hover:border-muted-foreground/50 hover:shadow-xl"
                                     } ${deletingId === project.id ? "opacity-50 scale-95" : "scale-100"}`}
                             >
                                 {project.thumbnailDataUrl ? (
@@ -160,13 +160,13 @@ export function HistoryMenu({
                                         className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                     />
                                 ) : (
-                                    <div className="absolute inset-0 flex items-center justify-center bg-[#171717]">
-                                        <Icon icon="solar:image-linear" width="24" className="text-white/20" aria-hidden="true" />
+                                    <div className="absolute inset-0 flex items-center justify-center bg-muted">
+                                        <Icon icon="solar:image-linear" width="24" className="text-muted-foreground/40" aria-hidden="true" />
                                     </div>
                                 )}
 
                                 {currentProjectId === project.id && (
-                                    <div className="absolute top-2 left-2 z-10 bg-black border border-white/30 rounded-full p-0.5 shadow-lg animate-in zoom-in">
+                                    <div className="absolute top-2 left-2 z-10 bg-black border border-border rounded-full p-0.5 shadow-lg animate-in zoom-in">
                                         <Icon icon="mdi:check" width="14" className="text-white" aria-hidden="true" />
                                     </div>
                                 )}
@@ -180,7 +180,7 @@ export function HistoryMenu({
                                                     e.stopPropagation();
                                                     handleDelete(project.id);
                                                 }}
-                                                className="size-6 flex items-center justify-center squircle-element bg-[#0A0A0A]/80 backdrop-blur-md border border-white/20 text-white/70 hover:text-white hover:bg-red-500 hover:border-red-500 transition-all"
+                                                className="size-6 flex items-center justify-center squircle-element bg-[#0A0A0A]/80 backdrop-blur-md border border-border text-white/70 hover:text-white hover:bg-red-500 hover:border-red-500 transition-all"
                                             >
                                                 <Icon icon="solar:trash-bin-trash-linear" width="16" />
                                             </button>

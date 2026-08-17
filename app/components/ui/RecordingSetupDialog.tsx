@@ -249,20 +249,20 @@ export default function RecordingSetupDialog({ open, onClose, onStart }: Props) 
   return (
     <div className="fixed inset-0 z-9998 flex items-center justify-center bg-black/70 backdrop-blur-md px-4 py-6 pointer-events-auto">
       <div
-        className="relative w-full max-w-4xl overflow-hidden rounded-2xl border border-white/10 bg-[#121214] shadow-2xl"
+        className="relative w-full max-w-4xl overflow-hidden rounded-2xl border border-border bg-popover dark:bg-black shadow-2xl"
         role="dialog"
         aria-modal="true"
       >
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
           <div>
-            <h2 className="text-lg font-semibold text-white">{t("title")}</h2>
-            <p className="text-xs text-neutral-400">
+            <h2 className="text-lg font-semibold text-foreground">{t("title")}</h2>
+            <p className="text-xs text-muted-foreground">
               {t("description")}
             </p>
           </div>
           <button
             onClick={handleCancel}
-            className="size-8 rounded-full text-neutral-400 hover:text-white hover:bg-white/10 transition-colors flex items-center justify-center"
+            className="size-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors flex items-center justify-center"
             aria-label={t("close")}
           >
             <Icon icon="material-symbols:close-rounded" className="size-5" />
@@ -270,11 +270,11 @@ export default function RecordingSetupDialog({ open, onClose, onStart }: Props) 
         </div>
 
         <div className="grid gap-0 md:grid-cols-[1.2fr_1fr] h-full">
-          <div className="relative flex flex-col h-full bg-[#0A0A0C] p-6 border-b md:border-b-0 md:border-r border-white/10">
+          <div className="relative flex flex-col h-full bg-muted/40 p-6 border-b md:border-b-0 md:border-r border-border">
             <div className="relative flex flex-1 w-full items-center justify-center min-h-0">
               <div className="relative w-full overflow-hidden rounded-[10px] shadow-[0_3px_10px_rgba(0,0,0,0.5)]">
-                <div className="w-full aspect-video bg-[#1E1E1E] border border-white/10 flex flex-col overflow-hidden">
-                  <div className="bg-[#2D2D2D] flex flex-col justify-center items-center px-4 shrink-0 w-full h-7 rounded-t-[10px] border-b border-white/5">
+                <div className="w-full aspect-video bg-card border border-border flex flex-col overflow-hidden">
+                  <div className="bg-muted flex flex-col justify-center items-center px-4 shrink-0 w-full h-7 rounded-t-[10px] border-b border-border">
                     <div className="flex items-center justify-between w-full">
                       <div className="flex items-center gap-4">
                         <div className="flex gap-1.5">
@@ -282,38 +282,38 @@ export default function RecordingSetupDialog({ open, onClose, onStart }: Props) 
                           <div className="size-1.5 rounded-full border border-gray-400 bg-gray-400/20"></div>
                           <div className="size-1.5 rounded-full border border-gray-400 bg-gray-400/20"></div>
                         </div>
-                        <div className="flex items-center gap-2 text-neutral-400">
-                          <Icon icon="lucide:arrow-left" className="size-2 hover:text-neutral-200 transition-colors cursor-pointer" />
-                          <Icon icon="lucide:arrow-right" className="size-2 text-neutral-600" />
-                          <Icon icon="lucide:rotate-cw" className="size-2 hover:text-neutral-200 transition-colors cursor-pointer" />
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Icon icon="lucide:arrow-left" className="size-2 hover:text-foreground transition-colors cursor-pointer" />
+                          <Icon icon="lucide:arrow-right" className="size-2 text-muted-foreground/50" />
+                          <Icon icon="lucide:rotate-cw" className="size-2 hover:text-foreground transition-colors cursor-pointer" />
                         </div>
                       </div>
 
                       <div className="flex-1 max-w-xl mx-4">
-                        <div className="bg-[#1C1C1C] rounded-lg h-5 w-full flex items-center justify-between px-2 border border-white/5 shadow-inner">
-                          <Icon icon="material-symbols:lock" className="size-2.5 text-neutral-500 hover:text-neutral-200 transition-colors cursor-pointer" />
-                          <span className="flex-1 text-center text-[9px] tracking-wide truncate px-2 text-neutral-300 leading-none">
+                        <div className="bg-muted/60 rounded-lg h-5 w-full flex items-center justify-between px-2 border border-border shadow-inner">
+                          <Icon icon="material-symbols:lock" className="size-2.5 text-muted-foreground hover:text-foreground transition-colors cursor-pointer" />
+                          <span className="flex-1 text-center text-[9px] tracking-wide truncate px-2 text-muted-foreground leading-none">
                             openvid.dev
                           </span>
-                          <Icon icon="material-symbols:star-outline" className="size-3 text-neutral-500 hover:text-neutral-200 transition-colors cursor-pointer" />
+                          <Icon icon="material-symbols:star-outline" className="size-3 text-muted-foreground hover:text-foreground transition-colors cursor-pointer" />
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-3 text-neutral-400">
-                        <Icon icon="solar:puzzle-linear" className="size-2 hover:text-neutral-200 transition-colors cursor-pointer" />
-                        <Icon icon="lucide:panel-right" className="size-2 hover:text-neutral-200 transition-colors cursor-pointer" />
+                      <div className="flex items-center gap-3 text-muted-foreground">
+                        <Icon icon="solar:puzzle-linear" className="size-2 hover:text-foreground transition-colors cursor-pointer" />
+                        <Icon icon="lucide:panel-right" className="size-2 hover:text-foreground transition-colors cursor-pointer" />
                       </div>
                     </div>
                   </div>
 
-                  <div ref={previewContainerRef} className="flex-1 flex w-full h-full bg-[#0a0a0a]">
+                  <div ref={previewContainerRef} className="flex-1 flex w-full h-full bg-muted">
                     <div
-                      className="relative w-full h-full bg-[linear-gradient(135deg,#1a1a1e,#0a0a0c)] overflow-hidden"
+                      className="relative w-full h-full bg-linear-to-br from-muted to-muted/40 overflow-hidden"
                       style={{ containerType: "size" }}
                     >
                       <div className="absolute inset-0 grid grid-cols-4 grid-rows-3 opacity-20">
                         {Array.from({ length: 12 }).map((_, i) => (
-                          <div key={i} className="border border-white/5" />
+                          <div key={i} className="border border-border" />
                         ))}
                       </div>
 
@@ -377,12 +377,12 @@ export default function RecordingSetupDialog({ open, onClose, onStart }: Props) 
                             autoPlay
                             muted
                             playsInline
-                            className={`size-full object-cover border-2 border-white/20 shadow-[0_8px_40px_rgba(0,163,255,0.25)] transition-all duration-300 ${setup.camera.shape === "squircle" ? "squircle-element-camera" : ""}`}
+                            className={`size-full object-cover border-2 border-foreground/40 shadow-[0_8px_40px_rgba(0,163,255,0.25)] transition-all duration-300 ${setup.camera.shape === "squircle" ? "squircle-element-camera" : ""}`}
                             style={previewFrameStyle}
                           />
                         ) : (
                           <div
-                            className={`size-full flex items-center justify-center border-2 border-dashed border-white/20 text-neutral-500 transition-all duration-300 ${setup.camera.shape === "squircle" ? "squircle-element-camera" : ""}`}
+                            className={`size-full flex items-center justify-center border-2 border-dashed border-foreground/40 text-muted-foreground transition-all duration-300 ${setup.camera.shape === "squircle" ? "squircle-element-camera" : ""}`}
                             style={previewFrameStyle}
                           >
                             <Icon icon="solar:videocamera-bold" className="size-8" />
@@ -396,7 +396,7 @@ export default function RecordingSetupDialog({ open, onClose, onStart }: Props) 
             </div>
 
             <div className="mt-4 shrink-0">
-              <div className="text-xs text-neutral-400 mb-2">{t("preview.initialPosition")}</div>
+              <div className="text-xs text-muted-foreground mb-2">{t("preview.initialPosition")}</div>
               <div className="grid grid-cols-4 gap-2">
                 {CORNER_BUTTONS.map((c) => {
                   const active = setup.camera.corner === c.id;
@@ -411,11 +411,11 @@ export default function RecordingSetupDialog({ open, onClose, onStart }: Props) 
                       }
                       disabled={!setup.camera.enabled}
                       className={`group relative flex items-center justify-center aspect-video rounded-md border text-[11px] transition-all 
-                        ${active ? "border-[#00A3FF] bg-[#00A3FF]/10 text-white" : "border-white/10 bg-white/5 text-neutral-400 hover:bg-white/10"}
+                        ${active ? "border-[#00A3FF] bg-[#00A3FF]/10 text-[#00A3FF]" : "border-border bg-muted text-muted-foreground hover:bg-muted"}
                         ${!setup.camera.enabled ? "opacity-40 cursor-not-allowed" : ""}`}
                     >
                       <span
-                        className={`absolute size-2 rounded-full ${active ? "bg-[#00A3FF]" : "bg-neutral-500"}`}
+                        className={`absolute size-2 rounded-full ${active ? "bg-[#00A3FF]" : "bg-muted-foreground/50"}`}
                         style={{
                           left: c.id.includes("left") ? "10%" : "auto",
                           right: c.id.includes("right") ? "10%" : "auto",
@@ -445,7 +445,7 @@ export default function RecordingSetupDialog({ open, onClose, onStart }: Props) 
                   <div className="mt-0.5">
                     <HoverCard openDelay={200} closeDelay={100}>
                       <HoverCardTrigger asChild>
-                        <span className="text-red-400 font-medium border-b border-dashed border-red-400/50 cursor-help pb-0.5">
+                        <span className="text-red-600 dark:text-red-400 font-medium border-b border-dashed border-red-400/50 cursor-help pb-0.5">
                           {t("camera.permissionDenied")}
                         </span>
                       </HoverCardTrigger>
@@ -456,7 +456,7 @@ export default function RecordingSetupDialog({ open, onClose, onStart }: Props) 
                         className="w-auto p-0 border-none shadow-none bg-transparent z-9999"
                       >
                         <div className="relative">
-                          <div className="absolute -top-2 left-10 w-4 h-4 bg-white border-t border-l border-white/10 transform rotate-45" />
+                          <div className="absolute -top-2 left-10 w-4 h-4 bg-muted border-t border-l border-border transform rotate-45" />
                           <BrowserPermissionUI />
                         </div>
                       </HoverCardContent>
@@ -477,10 +477,10 @@ export default function RecordingSetupDialog({ open, onClose, onStart }: Props) 
                     }))
                   }
                 >
-                  <SelectTrigger className="w-full bg-white/5 border-white/10 text-neutral-200">
+                  <SelectTrigger className="w-full bg-muted border-border text-foreground">
                     <SelectValue placeholder={t("camera.selectPlaceholder")} />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#1E1E20] border-white/10 text-neutral-200 z-9999">
+                  <SelectContent className="bg-popover dark:bg-black border-border text-foreground z-9999">
                     <SelectItem value="default">{t("camera.default")}</SelectItem>
                     {devices.cameras
                       .filter((cam) => cam.deviceId !== "")
@@ -493,7 +493,7 @@ export default function RecordingSetupDialog({ open, onClose, onStart }: Props) 
                 </Select>
 
                 <div>
-                  <div className="text-xs text-neutral-400 mb-1.5">{t("camera.shape")}</div>
+                  <div className="text-xs text-muted-foreground mb-1.5">{t("camera.shape")}</div>
                   <div className="grid grid-cols-3 gap-2">
                     {CAMERA_SHAPES.map((shape) => {
                       const active = setup.camera.shape === shape.id;
@@ -504,7 +504,7 @@ export default function RecordingSetupDialog({ open, onClose, onStart }: Props) 
                             setSetup((s) => ({ ...s, camera: { ...s.camera, shape: shape.id } }))
                           }
                           className={`flex flex-col items-center gap-1 px-2 py-2.5 squircle-element border text-[11px] transition-all
-                            ${active ? "border-[#00A3FF] bg-[#00A3FF]/10 text-white" : "border-white/10 bg-white/5 text-neutral-400 hover:bg-white/10"}
+                            ${active ? "border-[#00A3FF] bg-[#00A3FF]/10 text-foreground" : "border-border bg-muted text-muted-foreground hover:bg-muted"}
                           `}
                         >
                           <Icon icon={shape.icon} className="size-5" />
@@ -528,8 +528,8 @@ export default function RecordingSetupDialog({ open, onClose, onStart }: Props) 
                   />
                 </div>
 
-                <label className="flex items-center justify-between cursor-pointer pt-2 border-t border-white/5">
-                  <span className="text-xs text-neutral-300 flex items-center gap-2">
+                <label className="flex items-center justify-between cursor-pointer pt-2 border-t border-border">
+                  <span className="text-xs text-foreground/80 flex items-center gap-2">
                     <Icon icon="solar:reflection-horisontal-bold" className="size-4" />
                     {t("camera.mirror")}
                   </span>
@@ -563,10 +563,10 @@ export default function RecordingSetupDialog({ open, onClose, onStart }: Props) 
                     }))
                   }
                 >
-                  <SelectTrigger className="w-full bg-white/5 border-white/10 text-neutral-200">
+                  <SelectTrigger className="w-full bg-muted border-border text-foreground">
                     <SelectValue placeholder={t("mic.selectPlaceholder")} />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#1E1E20] border-white/10 text-neutral-200 z-9999">
+                  <SelectContent className="bg-popover dark:bg-black border-border text-foreground z-9999">
                     <SelectItem value="default">{t("mic.default")}</SelectItem>
                     {devices.microphones
                       .filter((mic) => mic.deviceId !== "")
@@ -582,10 +582,10 @@ export default function RecordingSetupDialog({ open, onClose, onStart }: Props) 
 
             <label className="flex items-center justify-between cursor-pointer px-1 py-2 rounded-lg">
               <div className="flex items-start gap-2.5">
-                <Icon icon="solar:volume-loud-bold" className="size-5 text-neutral-400 mt-0.5" />
+                <Icon icon="solar:volume-loud-bold" className="size-5 text-muted-foreground mt-0.5" />
                 <div>
-                  <div className="text-sm text-neutral-200 font-medium">{t("systemAudio.title")}</div>
-                  <div className="text-[11px] text-neutral-500">
+                  <div className="text-sm text-foreground font-medium">{t("systemAudio.title")}</div>
+                  <div className="text-[11px] text-muted-foreground">
                     {t("systemAudio.description")}
                   </div>
                 </div>
@@ -598,11 +598,11 @@ export default function RecordingSetupDialog({ open, onClose, onStart }: Props) 
           </div>
         </div>
 
-        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-white/10 bg-[#0E0E10]">
+        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-border bg-muted">
           <Button variant="outline" onClick={handleCancel}>
             {t("actions.cancel")}
           </Button>
-          <Button variant="primary" onClick={handleStart} className="gap-2">
+          <Button variant="primary" onClick={handleStart} className="gap-2 text-white">
             <Icon icon="material-symbols:cast-outline-rounded" className="size-4" />
             {t("actions.shareScreen")}
           </Button>

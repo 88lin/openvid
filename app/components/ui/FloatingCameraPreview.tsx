@@ -118,7 +118,7 @@ export default function FloatingCameraPreview({ stream, config, onConfigChange }
                 autoPlay
                 muted
                 playsInline
-                className={`size-full object-cover shadow-[0_10px_40px_rgba(0,0,0,0.55)] ring-1 ring-white/20 ${
+                className={`size-full object-cover shadow-[0_10px_40px_rgba(0,0,0,0.55)] ring-1 ring-foreground/20 ${
                     isSquircle ? "squircle-element-camera" : ""
                 }`}
                 style={{

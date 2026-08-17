@@ -51,7 +51,7 @@ export function Mockup2dMenu({
 
   return (
     <>
-      <div className="flex items-center gap-2 p-3 border-b border-white/6 shrink-0">
+      <div className="flex items-center gap-2 p-3 border-b border-border shrink-0">
         <DetailPageHeader
           label="Marco 2D"
           icon="hugeicons:ai-browser"
@@ -61,7 +61,7 @@ export function Mockup2dMenu({
 
       <div className="p-4 flex flex-col gap-5">
         {currentMockup && (
-          <div className="relative w-full h-32 squircle-element overflow-hidden bg-neutral-900 border border-blue-500/30">
+          <div className="relative w-full h-32 squircle-element overflow-hidden bg-muted border border-blue-500/30">
             {(() => {
               const categoryConfig = MOCKUP_CATEGORIES.find(
                 (c) => c.id === currentMockup.category
@@ -89,20 +89,20 @@ export function Mockup2dMenu({
 
         {features.hasDarkMode && (
           <fieldset className="flex items-center justify-between w-full gap-4">
-            <legend className="float-left flex items-center gap-2 text-[11px] text-white/55 whitespace-nowrap">
+            <legend className="float-left flex items-center gap-2 text-[11px] text-muted-foreground whitespace-nowrap">
               <Icon icon="ph:moon-bold" width="14" aria-hidden="true" />
               <span>{t("darkMode.label")}</span>
             </legend>
             <div
-              className="flex items-center gap-1 p-0.5 rounded-lg bg-white/6 border border-white/[0.07]"
+              className="flex items-center gap-1 p-0.5 rounded-lg bg-muted border border-border"
               role="group"
               aria-label={t("darkMode.label")}
             >
               <button
                 onClick={() => handleDarkModeChange(true)}
                 className={`flex items-center gap-1 px-2 py-1 rounded-md text-[11px] transition-colors ${mockupConfig?.darkMode
-                  ? "bg-[#09090B] border border-white/10 text-white/70"
-                  : "text-white/30 hover:text-white/60"
+                  ? "bg-muted border border-border text-muted-foreground"
+                  : "text-muted-foreground/40 hover:text-muted-foreground"
                   }`}
                 aria-pressed={mockupConfig?.darkMode}
                 aria-label={t("darkMode.dark")}
@@ -113,8 +113,8 @@ export function Mockup2dMenu({
               <button
                 onClick={() => handleDarkModeChange(false)}
                 className={`flex items-center gap-1 px-2 py-1 rounded-md text-[11px] transition-colors ${!mockupConfig?.darkMode
-                  ? "bg-[#09090B] border border-white/10 text-white/70"
-                  : "text-white/30 hover:text-white/60"
+                  ? "bg-muted border border-border text-muted-foreground"
+                  : "text-muted-foreground/40 hover:text-muted-foreground"
                   }`}
                 aria-pressed={!mockupConfig?.darkMode}
                 aria-label={t("darkMode.light")}
@@ -128,7 +128,7 @@ export function Mockup2dMenu({
 
         {features.hasFrameColor && (
           <div className="space-y-2.5">
-            <p className="text-[11px] uppercase tracking-widest text-white/70 font-bold">
+            <p className="text-[11px] uppercase tracking-widest text-muted-foreground font-bold">
               {t("frameColor.label")}
             </p>
             <div className="grid grid-cols-6 gap-2">
@@ -136,16 +136,16 @@ export function Mockup2dMenu({
                 <button
                   key={color}
                   onClick={() => handleFrameColorChange(color)}
-                  className={`aspect-square squircle-element cursor-pointer hover:ring-2 transition shadow-sm ring-white/60 border border-white/10 ${mockupConfig?.frameColor?.toLowerCase() === color.toLowerCase()
-                    ? "ring-2 ring-white/90 shadow-lg shadow-white"
-                    : "border-white/10 border-transparent hover:border-white/30"
+                  className={`aspect-square squircle-element cursor-pointer hover:ring-2 transition shadow-sm ring-foreground/60 border border-border ${mockupConfig?.frameColor?.toLowerCase() === color.toLowerCase()
+                    ? "ring-2 ring-foreground/80 shadow-lg shadow-foreground/20"
+                    : "border-transparent hover:border-muted-foreground/50"
                     }`}
                   style={{ backgroundColor: color }}
                   aria-label={t("frameColor.ariaLabel", { color })}
                 />
               ))}
-              <label className="aspect-square squircle-element border border-dashed border-white/30 bg-white/5 flex items-center justify-center hover:bg-white/10 transition group cursor-pointer relative">
-                <Icon icon="mingcute:color-picker-fill" width="20" className="text-white/30" aria-hidden="true" />
+              <label className="aspect-square squircle-element border border-dashed border-border bg-muted flex items-center justify-center hover:bg-muted transition group cursor-pointer relative">
+                <Icon icon="mingcute:color-picker-fill" width="20" className="text-muted-foreground/40" aria-hidden="true" />
                 <input
                   type="color"
                   className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
@@ -159,17 +159,17 @@ export function Mockup2dMenu({
 
         {features.hasUrl && (
           <div className="space-y-2">
-            <p className="text-[11px] uppercase tracking-widest text-white/70 font-bold">
+            <p className="text-[11px] uppercase tracking-widest text-muted-foreground font-bold">
               {t("url.label")}
             </p>
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#09090B] border border-white/[0.07] focus-within:border-blue-500/40 transition-colors">
-              <Icon icon="line-md:link" width="13" className="text-white/30 shrink-0" aria-hidden="true" />
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted border border-border focus-within:border-blue-500/40 transition-colors">
+              <Icon icon="line-md:link" width="13" className="text-muted-foreground/40 shrink-0" aria-hidden="true" />
               <input
                 type="text"
                 value={mockupConfig?.url || ""}
                 onChange={(e) => handleUrlChange(e.target.value)}
                 placeholder={t("url.placeholder")}
-                className="flex-1 bg-transparent text-[11px] text-white/70 placeholder:text-white/20 outline-none font-mono"
+                className="flex-1 bg-transparent text-[11px] text-muted-foreground placeholder:text-muted-foreground/40 outline-none font-mono"
                 aria-label={t("url.label")}
               />
             </div>

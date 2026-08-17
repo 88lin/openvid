@@ -255,23 +255,23 @@ export function VideoCropperModal({
                     animate={{ scale: 1, opacity: 1, y: 0 }}
                     exit={{ scale: 0.96, opacity: 0, y: 8 }}
                     transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-                    className="bg-[#0a0a0b] rounded-2xl border border-white/10 w-[94vw] max-w-6xl h-[88vh] flex flex-col overflow-hidden shadow-2xl"
+                    className="bg-popover dark:bg-black rounded-2xl border border-border w-[94vw] max-w-6xl h-[88vh] flex flex-col overflow-hidden shadow-2xl"
                 >
-                    <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/10">
+                    <div className="flex items-center justify-between px-5 py-3.5 border-b border-border">
                         <div className="flex items-center gap-2.5">
-                            <div className="w-6 h-6 rounded-md bg-white/10 flex items-center justify-center">
-                                <Icon icon="mdi:crop" className="text-sm text-white/70" aria-hidden="true" />
+                            <div className="w-6 h-6 rounded-md bg-muted flex items-center justify-center">
+                                <Icon icon="mdi:crop" className="text-sm text-muted-foreground" aria-hidden="true" />
                             </div>
-                            <span className="text-sm font-medium text-white">{t("title")}</span>
+                            <span className="text-sm font-medium text-foreground">{t("title")}</span>
                             {videoDimensions.width > 0 && (
-                                <span className="text-[11px] font-mono text-white/70 bg-white/4 px-2 py-0.5 rounded-md border border-white/10">
+                                <span className="text-[11px] font-mono text-muted-foreground bg-muted px-2 py-0.5 rounded-md border border-border">
                                     {videoDimensions.width} × {videoDimensions.height}
                                 </span>
                             )}
                         </div>
                         <button
                             onClick={onClose}
-                            className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/10 transition-colors text-white/40 hover:text-white/70"
+                            className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
                             aria-label={t("close")}
                         >
                             <Icon icon="mdi:close" className="text-base" aria-hidden="true" />
@@ -303,7 +303,7 @@ export function VideoCropperModal({
                                             autoPlay
                                         />
                                     ) : (
-                                        <div className="absolute inset-0 bg-white/3 rounded-lg flex items-center justify-center text-white/20 text-sm">
+                                        <div className="absolute inset-0 bg-muted rounded-lg flex items-center justify-center text-muted-foreground/60 text-sm">
                                             {t("noVideo")}
                                         </div>
                                     )}
@@ -376,9 +376,9 @@ export function VideoCropperModal({
                             </div>
                         </div>
 
-                        <div className="w-56 shrink-0 border-l border-white/10 flex flex-col bg-[#0d0d0f]">
-                            <div className="p-4 border-b border-white/10">
-                                <p className="text-[11px] uppercase tracking-widest font-semibold text-white/70 mb-3">
+                        <div className="w-56 shrink-0 border-l border-border flex flex-col bg-card">
+                            <div className="p-4 border-b border-border">
+                                <p className="text-[11px] uppercase tracking-widest font-semibold text-muted-foreground mb-3">
                                     {t("sections.ratio")}
                                 </p>
                                 <div className="grid grid-cols-3 gap-1">
@@ -388,7 +388,7 @@ export function VideoCropperModal({
                                                 onClick={() => handleAspectRatioSelect(ratio.value)}
                                                 className={`w-full py-1.5 text-[11px] font-medium rounded-lg transition-all ${selectedAspectRatio === ratio.value
                                                     ? "text-white border-transparent"
-                                                    : "bg-white/4 text-white/40 hover:bg-white/8 hover:text-white/70 border border-white/10"
+                                                    : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground border border-border"
                                                     }`}
                                                 style={
                                                     selectedAspectRatio === ratio.value
@@ -409,8 +409,8 @@ export function VideoCropperModal({
                                 </div>
                             </div>
 
-                            <div className="p-4 border-b border-white/10">
-                                <p className="text-[11px] uppercase tracking-widest font-semibold text-white/70 mb-3">
+                            <div className="p-4 border-b border-border">
+                                <p className="text-[11px] uppercase tracking-widest font-semibold text-muted-foreground mb-3">
                                     {t("sections.area")}
                                 </p>
                                 <div className="space-y-2">
@@ -421,9 +421,9 @@ export function VideoCropperModal({
                                         { label: t("labels.height"), value: cropArea.height },
                                     ].map(({ label, value }) => (
                                         <div key={label} className="flex items-center justify-between">
-                                            <span className="text-[11px] text-white/25 font-mono w-4">{label}</span>
-                                            <div className="flex-1 mx-3 h-px bg-white/4" />
-                                            <span className="text-[11px] font-mono text-white/60">{value.toFixed(1)}%</span>
+                                            <span className="text-[11px] text-muted-foreground/60 font-mono w-4">{label}</span>
+                                            <div className="flex-1 mx-3 h-px bg-border/60" />
+                                            <span className="text-[11px] font-mono text-muted-foreground">{value.toFixed(1)}%</span>
                                         </div>
                                     ))}
                                 </div>
@@ -435,7 +435,7 @@ export function VideoCropperModal({
                                 <Button variant="outline" onClick={handleReset}>
                                     {t("buttons.reset")}
                                 </Button>
-                                <Button variant="primary" onClick={handleApply}>
+                                <Button variant="primary" className="text-white" onClick={handleApply}>
                                     {t("buttons.apply")}
                                 </Button>
                             </div>

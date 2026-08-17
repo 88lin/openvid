@@ -1739,7 +1739,7 @@ function VideoCanvasInner({
                 />
             </div>
         ) : (
-            <div ref={mockupContentRef} className="w-full h-full aspect-video min-w-75 border border-white/25 flex flex-col overflow-hidden">
+            <div ref={mockupContentRef} className="w-full h-full aspect-video min-w-75 border border-border/60 flex flex-col overflow-hidden">
                 <PlaceholderEditor
                     onVideoUpload={mediaType === "video" ? onVideoUpload : onImageUpload}
                     isUploading={isUploading}
@@ -1813,7 +1813,7 @@ function VideoCanvasInner({
 
     return (
         <div
-            className="flex-1 flex items-center justify-center min-h-0 min-w-0 overflow-hidden bg-[#09090B] p-2 sm:p-4 lg:p-1 relative"
+            className="flex-1 flex items-center justify-center min-h-0 min-w-0 overflow-hidden bg-background p-2 sm:p-4 lg:p-1 relative"
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
@@ -1867,7 +1867,7 @@ function VideoCanvasInner({
             <RotationGuideLine rotationGuide={rotationGuide} />
 
             <div className="absolute inset-0 pointer-events-none z-0"
-                style={{ backgroundImage: 'radial-gradient(rgb(39, 39, 42) 1px, transparent 1px)', backgroundSize: '24px 24px' }}>
+                style={{ backgroundImage: 'radial-gradient(var(--border) 1px, transparent 1px)', backgroundSize: '24px 24px' }}>
             </div>
             <canvas
                 ref={exportCanvasRef}
@@ -1878,7 +1878,7 @@ function VideoCanvasInner({
             <div className="flex items-stretch min-h-0 min-w-0 w-full h-full justify-center gap-0">
 
                 <div ref={canvasWrapperRef} className="flex-1 flex items-center justify-center min-h-0 min-w-0 mr-1">
-                    <div className="relative shrink-0 squircle-element-camera border border-white/20 overflow-hidden">
+                    <div className="relative shrink-0 squircle-element-camera border border-border overflow-hidden">
                         <div
                             ref={previewContainerRef}
                             className="relative shrink-0 transition-all duration-300 overflow-hidden"
@@ -2132,7 +2132,7 @@ function VideoCanvasInner({
 
                                                         {(isVideoSelected || isVideoHovered) && hasMedia && !isDraggingRotation && !imagePhoneActive && !PHOTO_MOCKUPS.includes(mockupId) && (
                                                             <div
-                                                                className={`absolute -inset-px border pointer-events-none z-10 opacity-80 ${isVideoSelected ? "border-blue-500" : "border-white"
+                                                                className={`absolute -inset-px border pointer-events-none z-10 opacity-80 ${isVideoSelected ? "border-blue-500" : "border-foreground/60"
                                                                     }`}
                                                                 style={{ borderRadius: `${getMockupOuterRadius(mockupId, roundedCorners) + 1}px` }}
                                                             />
@@ -2336,7 +2336,7 @@ function VideoCanvasInner({
                                                         style={{ width: PHONE_W, height: PHONE_H }}
                                                         className="flex items-center justify-center"
                                                     >
-                                                        <div className="w-6 h-6 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
+                                                        <div className="w-6 h-6 border-2 border-border border-t-foreground/60 rounded-full animate-spin" />
                                                     </div>
                                                 ) : (
                                                     <Mockup3DFrame
@@ -2375,14 +2375,14 @@ function VideoCanvasInner({
                                         {alignmentGuides.vertical.map((x, index) => (
                                             <div
                                                 key={`v-${index}`}
-                                                className="absolute top-0 bottom-0 w-0.5 bg-white/30 pointer-events-none"
+                                                className="absolute top-0 bottom-0 w-0.5 bg-foreground/30 pointer-events-none"
                                                 style={{ left: `${x}%`, zIndex: VIDEO_Z_INDEX + 100 }}
                                             />
                                         ))}
                                         {alignmentGuides.horizontal.map((y, index) => (
                                             <div
                                                 key={`h-${index}`}
-                                                className="absolute left-0 right-0 h-0.5 bg-white/30 pointer-events-none"
+                                                className="absolute left-0 right-0 h-0.5 bg-foreground/30 pointer-events-none"
                                                 style={{ top: `${y}%`, zIndex: VIDEO_Z_INDEX + 100 }}
                                             />
                                         ))}
@@ -2394,14 +2394,14 @@ function VideoCanvasInner({
                                         {mockupAlignmentGuides.vertical.map((x, index) => (
                                             <div
                                                 key={`mockup-v-${index}`}
-                                                className="absolute top-0 bottom-0 w-0.5 bg-white/30 pointer-events-none"
+                                                className="absolute top-0 bottom-0 w-0.5 bg-foreground/30 pointer-events-none"
                                                 style={{ left: `${x}%`, zIndex: VIDEO_Z_INDEX + 100 }}
                                             />
                                         ))}
                                         {mockupAlignmentGuides.horizontal.map((y, index) => (
                                             <div
                                                 key={`mockup-h-${index}`}
-                                                className="absolute left-0 right-0 h-0.5 bg-white/30 pointer-events-none"
+                                                className="absolute left-0 right-0 h-0.5 bg-foreground/30 pointer-events-none"
                                                 style={{ top: `${y}%`, zIndex: VIDEO_Z_INDEX + 100 }}
                                             />
                                         ))}

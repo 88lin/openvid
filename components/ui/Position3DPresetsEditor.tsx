@@ -74,24 +74,24 @@ export function Position3DPresetsEditor({
       </TooltipAction>
       <PopoverContent
         align="start"
-        className="w-80 h-130 bg-[#0A0A0A] border-white/10 shadow-2xl p-0 squircle-element-camera overflow-hidden"
+        className="w-80 h-130 bg-popover dark:bg-black border-border shadow-2xl p-0 squircle-element-camera overflow-hidden"
       >
         <div className="flex flex-col">
-          <PopoverHeader className="px-4 py-3 border-b border-white/10 bg-white/5">
+          <PopoverHeader className="px-4 py-3 border-b border-border bg-muted/40">
             <div className="flex items-center justify-between">
-              <PopoverTitle className="text-xs font-semibold text-white/80 tracking-wide uppercase flex items-center gap-2">
+              <PopoverTitle className="text-xs font-semibold text-popover-foreground/80 tracking-wide uppercase flex items-center gap-2">
                 <Icon icon="mdi:image-multiple-outline" width="14" className="text-blue-400" aria-hidden="true" />
                 {t("title")}
               </PopoverTitle>
             </div>
           </PopoverHeader>
 
-          <div className="flex border-b border-white/10 bg-black/20">
+          <div className="flex border-b border-border bg-muted/20">
             <button
               onClick={() => setActiveTab("presets")}
               className={`flex-1 px-4 py-2.5 text-xs font-medium transition-all ${activeTab === "presets"
                 ? "text-blue-400 border-b-2 border-blue-400 bg-blue-500/5"
-                : "text-white/60 hover:text-white/80 hover:bg-white/5"
+                : "text-muted-foreground hover:text-popover-foreground/80 hover:bg-muted"
                 }`}
             >
               <Icon icon="mdi:palette-outline" width="14" className="inline mr-1.5" />
@@ -101,7 +101,7 @@ export function Position3DPresetsEditor({
               onClick={() => setActiveTab("custom")}
               className={`flex-1 px-4 py-2.5 text-xs font-medium transition-all ${activeTab === "custom"
                 ? "text-blue-400 border-b-2 border-blue-400 bg-blue-500/5"
-                : "text-white/60 hover:text-white/80 hover:bg-white/5"
+                : "text-muted-foreground hover:text-popover-foreground/80 hover:bg-muted"
                 }`}
             >
               <Icon icon="mdi:tune" width="14" className="inline mr-1.5" />
@@ -115,17 +115,17 @@ export function Position3DPresetsEditor({
                 {onCustomReset && (
                   <button
                     onClick={onCustomReset}
-                    className="group relative flex flex-col squircle-element border border-dashed border-white/20 hover:border-white/40 bg-white/5 hover:bg-white/10 transition-all overflow-hidden"
+                    className="group relative flex flex-col squircle-element border border-dashed border-border hover:border-foreground/40 bg-muted/40 hover:bg-muted/60 transition-all overflow-hidden"
                   >
                     <div className="relative w-full aspect-video bg-zinc-900 flex flex-col items-center justify-center gap-1.5">
-                      <div className="size-8 rounded-full bg-white/5 border border-white/5 flex items-center justify-center">
+                      <div className="size-8 rounded-full bg-muted/60 border border-border flex items-center justify-center">
                         <Icon
                           icon="mdi:restore"
                           width="16"
-                          className="text-white/70 group-hover:text-blue-400 transition-colors"
+                          className="text-popover-foreground/70 group-hover:text-blue-400 transition-colors"
                         />
                       </div>
-                      <span className="text-[11px] font-semibold text-white/60 group-hover:text-white/80 transition-colors">
+                      <span className="text-[11px] font-semibold text-muted-foreground group-hover:text-popover-foreground/80 transition-colors">
                         {t("resetDefault")}
                       </span>
                     </div>
@@ -137,14 +137,14 @@ export function Position3DPresetsEditor({
                     <button
                       key={preset.id}
                       onClick={() => onSelectPreset(preset)}
-                      className={`group relative flex flex-col squircle-element border transition-all overflow-hidden ${active ? "border-blue-500 bg-blue-500/10" : "border-white/10 hover:border-white/30 bg-white/5 hover:bg-white/10"}`}
+                      className={`group relative flex flex-col squircle-element border transition-all overflow-hidden ${active ? "border-blue-500 bg-blue-500/10" : "border-border hover:border-foreground/30 bg-muted/40 hover:bg-muted/60"}`}
                     >
                       <div className="relative w-full aspect-video bg-zinc-900">
                         {preset.imageUrl ? (
                           <img src={preset.imageUrl} alt={preset.label} className="w-full h-full object-cover" draggable={false} />
                         ) : (
                           <div className="absolute inset-0 flex items-center justify-center">
-                            <Icon icon="mdi:image-off-outline" width="20" className="text-white/30" />
+                            <Icon icon="mdi:image-off-outline" width="20" className="text-muted-foreground/50" />
                           </div>
                         )}
 

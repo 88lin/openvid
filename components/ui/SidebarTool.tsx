@@ -52,7 +52,7 @@ export const SidebarTool = forwardRef<HTMLButtonElement, SidebarToolProps>(
                 onClick={disabled ? undefined : onClick}
                 disabled={disabled}
                 className={`relative flex flex-col items-center gap-1.5 transition-all duration-200 w-full ${disabled ? "opacity-40 cursor-not-allowed" : "cursor-pointer"
-                    } ${isActive ? "text-white" : "text-white/70 hover:text-white"}`}
+                    } ${isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
             >
                 {badgeCount !== undefined && badgeCount > 0 && (
                     <div className="absolute -top-1 right-1 z-10 pointer-events-none animate-in zoom-in-50 duration-200">
@@ -81,10 +81,10 @@ export const SidebarTool = forwardRef<HTMLButtonElement, SidebarToolProps>(
                     </div>
                 )}
                 {isActive && !disabled && (
-                    <div className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-white/20 to-transparent mx-2" />
+                    <div className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-foreground/20 to-transparent mx-2" />
                 )}
                 <span
-                    className={`flex items-center justify-center p-3 squircle-element transition-all duration-200 relative ${!disabled && isActive ? "" : "hover:bg-white/5"
+                    className={`flex items-center justify-center p-3 squircle-element transition-all duration-200 relative ${!disabled && isActive ? "text-white" : "hover:bg-muted"
                         } `}
                     style={
                         isActive && !disabled

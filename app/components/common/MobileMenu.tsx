@@ -162,7 +162,7 @@ export function MobileMenu() {
                 )}
               </button>
             ) : (
-              <Button variant="primary" asChild className="w-full">
+              <Button variant="primary" asChild className="w-full text-white">
                 <Link
                   href="/login"
                   onClick={closeMenu}

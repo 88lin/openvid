@@ -167,7 +167,7 @@ export default async function LocaleLayout({
   return (
     <html lang={locale || defaultLocale} suppressHydrationWarning>
       <body
-        className={`${inter.variable} ${roboto.variable} ${inter.className} antialiased dark`}
+        className={`${inter.variable} ${roboto.variable} ${inter.className} antialiased`}
       >
         <NextIntlClientProvider
           key={locale}

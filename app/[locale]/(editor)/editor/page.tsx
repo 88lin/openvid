@@ -2974,7 +2974,7 @@ export default function Editor() {
     const effectiveCameraUrl = shouldShowCamera ? cameraUrl : null;
 
     return (
-        <div className="flex flex-col h-screen w-full bg-[#0E0E12] text-white/70 font-sans overflow-hidden select-none">
+        <div className="flex flex-col h-screen w-full bg-background text-foreground font-sans overflow-hidden select-none">
             <div className="flex flex-1 overflow-hidden">
                 <div className="hidden lg:flex">
                     <ToolsSidebar
@@ -3006,7 +3006,7 @@ export default function Editor() {
                                 transition={{ duration: 0.3, ease: "easeInOut" }}
                             >
                                 <Suspense fallback={
-                                    <div className="w-[320px] h-screen bg-[#141417] border-r border-white/10 flex items-center justify-center">
+                                    <div className="w-[320px] h-screen bg-background border-r border-border flex items-center justify-center">
                                         <LoadingSpinner message="Cargando panel..." />
                                     </div>
                                 }>
@@ -3108,7 +3108,7 @@ export default function Editor() {
 
                 <div
                     ref={editorAreaRef}
-                    className="flex-1 bg-[#09090B] flex flex-col relative overflow-hidden min-w-0"
+                    className="flex-1 bg-background flex flex-col relative overflow-hidden min-w-0"
                 >
                     <AnimatePresence>
                         {!isControlPanelOpen && (
@@ -3121,7 +3121,7 @@ export default function Editor() {
                                     whileHover={{ scale: 1.1 }}
                                     whileTap={{ scale: 0.9 }}
                                     onClick={() => setIsControlPanelOpen(true)}
-                                    className="absolute top-2 left-4 z-50 p-2 flex items-center gap-2 squircle-element bg-[#18181b] border border-white/10 text-white hover:bg-[#252529] transition-all duration-200 shadow-lg"
+                                    className="absolute top-2 left-4 z-50 p-2 flex items-center gap-2 squircle-element bg-muted text-foreground border border-border hover:bg-accent transition-all duration-200 shadow-lg"
                                 >
                                     <Link href="/" className="block sm:hidden"><Image src="/svg/logo-openvid.svg" alt="Logo" width={24} height={24} className="hover:opacity-80 transition-opacity" /></Link>
                                     <Icon icon="lucide:sidebar-open" width="20" className="hidden sm:block"

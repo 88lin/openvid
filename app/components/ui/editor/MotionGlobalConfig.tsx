@@ -27,21 +27,21 @@ export function MotionGlobalConfig({
     return (
       <div className="p-4 flex flex-col gap-5 h-full relative">
         <div className="flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-2 text-white font-medium">
+          <div className="flex items-center gap-2 text-foreground font-medium">
             <Icon icon="ph:film-strip-bold" width="20" aria-hidden="true" />
             <span>{t("title")}</span>
           </div>
-          <label className="flex items-center gap-2 text-xs text-white/40">
+          <label className="flex items-center gap-2 text-xs text-muted-foreground">
             <span>{t("globalMotionLabel")}</span>
             <Toggle checked={isGlobalMotionEnabled} onChange={onToggleGlobalMotion} disabled={true} />
           </label>
         </div>
-        <div className="group bg-[#09090B] border border-dashed border-white/10 squircle-element p-8 text-center transition-colors">
-          <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-4 group-hover:scale-105 transition-transform">
-            <Icon icon="ph:frame-corners-bold" width="24" className="text-white/40 group-hover:text-white/70 transition-colors" aria-hidden="true" />
+        <div className="group bg-muted/50 border border-dashed border-border squircle-element p-8 text-center transition-colors">
+          <div className="w-12 h-12 rounded-full bg-muted border border-border flex items-center justify-center mx-auto mb-4 group-hover:scale-105 transition-transform">
+            <Icon icon="ph:frame-corners-bold" width="24" className="text-muted-foreground group-hover:text-foreground/80 transition-colors" aria-hidden="true" />
           </div>
-          <p className="text-sm font-medium text-white/70 mb-1">{t("empty2D.title")}</p>
-          <p className="text-xs text-white/40">{t("empty2D.description")}</p>
+          <p className="text-sm font-medium text-foreground/80 mb-1">{t("empty2D.title")}</p>
+          <p className="text-xs text-muted-foreground">{t("empty2D.description")}</p>
         </div>
       </div>
     );
@@ -51,11 +51,11 @@ export function MotionGlobalConfig({
     <div className="p-4 flex flex-col gap-4 h-full relative min-h-0">
       <MotionPresetIconStyles />
       <div className="flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-2 text-white font-medium">
+        <div className="flex items-center gap-2 text-foreground font-medium">
           <Icon icon="ph:film-strip-bold" width="20" aria-hidden="true" />
           <span>{t("title")}</span>
         </div>
-        <label className="flex items-center gap-2 text-xs text-white/40">
+        <label className="flex items-center gap-2 text-xs text-muted-foreground">
           <span>{t("globalMotionLabel")}</span>
           <Toggle checked={isGlobalMotionEnabled} onChange={onToggleGlobalMotion} activeColor="bg-orange-600" />
         </label>
@@ -68,7 +68,7 @@ export function MotionGlobalConfig({
             return (
               <div key={category}>
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="text-[11px] font-bold uppercase tracking-widest text-white/70">
+                  <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
                     {t(`categories.${category}`)}
                   </span>
                 </div>
@@ -77,12 +77,12 @@ export function MotionGlobalConfig({
                     <button
                       key={preset.id}
                       onClick={() => onAddOrReplacePreset(preset.id)}
-                      className="group flex flex-col gap-2 squircle-element-camera border border-neutral-800 bg-black p-2 text-left transition-all duration-200 hover:scale-[1.015] hover:border-neutral-700 hover:bg-neutral-900 active:scale-[0.98]"
+                      className="group flex flex-col gap-2 squircle-element-camera border border-border bg-card p-2 text-left transition-all duration-200 hover:scale-[1.015] hover:border-foreground/20 hover:bg-muted active:scale-[0.98]"
                     >
                       <div className="relative w-full aspect-[16/10] rounded-lg overflow-hidden">
                         <MotionPresetIcon presetId={preset.id} category={preset.category} active={false} fill forceAnimate={isGlobalMotionEnabled} />
                       </div>
-                      <span className="text-[11px] leading-tight truncate text-neutral-400 transition-colors group-hover:text-white">
+                      <span className="text-[11px] leading-tight truncate text-muted-foreground transition-colors group-hover:text-foreground">
                         {t(`presets.${preset.id}`)}
                       </span>
                     </button>

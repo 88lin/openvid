@@ -49,7 +49,7 @@ export function DeviceCard({
                 onMouseEnter={() => setIsHovering(true)}
                 onMouseLeave={() => setIsHovering(false)}
                 className={`group flex h-full w-full overflow-hidden rounded-2xl border text-left transition-all duration-300 active:scale-[0.98] ${
-                    isActive ? "border-white/20 bg-[#1a1a1e]" : "border-white/6 bg-[#17171a] hover:border-white/20"
+                    isActive ? "border-foreground/30 bg-card" : "border-border bg-card/60 hover:border-foreground/30"
                 }`}
             >
                 <div className="relative aspect-3/4 w-full overflow-hidden bg-[#0d0d10]">

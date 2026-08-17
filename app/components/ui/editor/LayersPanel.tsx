@@ -481,8 +481,8 @@ export function LayersPanelInner({
                     className={[
                         "group relative flex items-center gap-1.5 h-7 px-2 rounded-md cursor-pointer select-none transition-all duration-100",
                         isSelected
-                            ? "bg-[#00A3FF]/15 text-white"
-                            : "text-neutral-400 hover:bg-white/5 hover:text-neutral-200",
+                            ? "bg-[#00A3FF]/15 text-foreground"
+                            : "text-muted-foreground hover:bg-muted hover:text-foreground",
                     ].join(" ")}
                 >
                     {isDropTarget && (
@@ -491,7 +491,7 @@ export function LayersPanelInner({
                     <div className="shrink-0 w-3 opacity-0" />
                     <Icon
                         icon={mediaType === "video" ? TYPE_ICON.video : TYPE_ICON.image}
-                        className={`size-4.5 shrink-0 ${isSelected ? "text-[#00A3FF]" : "text-neutral-500"}`}
+                        className={`size-4.5 shrink-0 ${isSelected ? "text-[#00A3FF]" : "text-muted-foreground"}`}
                         aria-hidden="true"
                     />
                     <span className="flex-1 text-[11px] truncate">
@@ -552,8 +552,8 @@ export function LayersPanelInner({
                         isGroupChild ? "pl-5 pr-2" : "px-2",
                         isDraggingThis ? "opacity-30 pointer-events-none" : "",
                         isSelected
-                            ? "bg-[#00A3FF]/15 text-white"
-                            : "text-neutral-400 hover:bg-white/5 hover:text-neutral-200",
+                            ? "bg-[#00A3FF]/15 text-foreground"
+                            : "text-muted-foreground hover:bg-muted hover:text-foreground",
                     ].join(" ")}
                 >
                     {isDropTarget && (
@@ -563,11 +563,11 @@ export function LayersPanelInner({
                         className={`shrink-0 cursor-grab active:cursor-grabbing transition-opacity opacity-0 group-hover:opacity-100 ${isLocked ? "invisible" : ""
                             }`}
                     >
-                        <Icon icon="icon-park-outline:drag" className="size-4 text-neutral-500" />
+                        <Icon icon="icon-park-outline:drag" className="size-4 text-muted-foreground" />
                     </div>
                     <Icon
                         icon={TYPE_ICON[el.type]}
-                        className={`size-4.5 shrink-0 ${isSelected ? "text-[#00A3FF]" : "text-neutral-500"}`}
+                        className={`size-4.5 shrink-0 ${isSelected ? "text-[#00A3FF]" : "text-muted-foreground"}`}
                     />
                     <span className={`flex-1 text-[11px] truncate ${isVisible ? "" : "opacity-40 line-through"}`}>
                         {layerNames.get(id) ?? id}
@@ -579,7 +579,7 @@ export function LayersPanelInner({
                                     e.stopPropagation();
                                     onToggleVisible(id, !isVisible);
                                 }}
-                                className="flex items-center justify-center w-5 h-5 rounded hover:bg-white/10"
+                                className="flex items-center justify-center w-5 h-5 rounded hover:bg-muted"
                                 aria-label={isVisible ? t("layerPanel.tooltips.hide") : t("layerPanel.tooltips.show")}
                             >
                                 <Icon
@@ -595,7 +595,7 @@ export function LayersPanelInner({
                                     e.stopPropagation();
                                     onToggleLock(id, !isLocked);
                                 }}
-                                className="flex items-center justify-center w-5 h-5 rounded hover:bg-white/10"
+                                className="flex items-center justify-center w-5 h-5 rounded hover:bg-muted"
                                 aria-label={isLocked ? t("layerPanel.tooltips.unlock") : t("layerPanel.tooltips.lock")}
                             >
                                 <Icon
@@ -615,21 +615,21 @@ export function LayersPanelInner({
                                 className="flex items-center justify-center w-5 h-5 rounded hover:bg-red-500/20"
                                 aria-label={t("layerPanel.tooltips.delete")}
                             >
-                                <Icon icon="ic:baseline-delete" className="size-4 hover:text-red-400" aria-hidden="true" />
+                                <Icon icon="ic:baseline-delete" className="size-4 hover:text-red-600 dark:hover:text-red-400" aria-hidden="true" />
                             </button>
                         </TooltipAction>
                     </div>
                     {!isVisible && (
                         <Icon
                             icon="solar:eye-closed-bold"
-                            className="size-4 text-neutral-500 shrink-0 group-hover:hidden"
+                            className="size-4 text-muted-foreground shrink-0 group-hover:hidden"
                             aria-hidden="true"
                         />
                     )}
                     {isLocked && (
                         <Icon
                             icon="solar:lock-bold"
-                            className="size-4 text-neutral-500 shrink-0 group-hover:hidden"
+                            className="size-4 text-muted-foreground shrink-0 group-hover:hidden"
                             aria-hidden="true"
                         />
                     )}
@@ -654,16 +654,16 @@ export function LayersPanelInner({
 
     if (!isOpen) {
         return (
-            <div className="flex flex-col items-center py-2 px-1 bg-[#111113] border-l border-white/6 gap-1">
+            <div className="flex flex-col items-center py-2 px-1 bg-card border-l border-border gap-1">
                 <TooltipAction label={t("layerPanel.tooltips.showLayers")}>
                     <button
                         onClick={() => setIsOpen(true)}
-                        className="flex items-center justify-center w-6 h-6 rounded hover:bg-white/10 transition-colors text-neutral-500 hover:text-neutral-200"
+                        className="flex items-center justify-center w-6 h-6 rounded hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
                     >
                         <Icon icon="solar:layers-minimalistic-bold" className="size-4.5" />
                     </button>
                 </TooltipAction>
-                <span className="text-[9px] text-neutral-500 [writing-mode:vertical-rl] rotate-180 mt-1 tracking-widest uppercase">
+                <span className="text-[9px] text-muted-foreground [writing-mode:vertical-rl] rotate-180 mt-1 tracking-widest uppercase">
                     {t("layerPanel.layers")}
                 </span>
             </div>
@@ -672,18 +672,18 @@ export function LayersPanelInner({
 
     return (
         <div
-            className="flex flex-col bg-[#111113] border-l border-white/6 select-none h-full"
+            className="flex flex-col bg-card border-l border-border select-none h-full"
             style={{ width: toolbar ? "auto" : "210px", minWidth: "210px" }}
         >
-            {toolbar && <div className="shrink-0 border-b border-white/6">{toolbar}</div>}
-            <div className="flex items-center justify-between px-3 py-2 border-b border-white/6 shrink-0">
-                <span className="text-[11px] font-semibold text-neutral-300 tracking-wide uppercase">
+            {toolbar && <div className="shrink-0 border-b border-border">{toolbar}</div>}
+            <div className="flex items-center justify-between px-3 py-2 border-b border-border shrink-0">
+                <span className="text-[11px] font-semibold text-foreground/80 tracking-wide uppercase">
                     {t("layerPanel.layers")}
                 </span>
                 <TooltipAction label={t("layerPanel.tooltips.hideLayers")}>
                     <button
                         onClick={() => setIsOpen(false)}
-                        className="flex items-center justify-center w-5 h-5 rounded hover:bg-white/10 transition-colors text-neutral-500 hover:text-neutral-200"
+                        className="flex items-center justify-center w-5 h-5 rounded hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
                     >
                         <Icon icon="solar:sidebar-minimalistic-bold" className="size-4.5" />
                     </button>
@@ -700,7 +700,7 @@ export function LayersPanelInner({
                 }}
             >
                 {displayOrder.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-16 gap-2 text-neutral-500">
+                    <div className="flex flex-col items-center justify-center h-16 gap-2 text-muted-foreground">
                         <Icon icon="solar:layers-minimalistic-bold" className="size-5" />
                         <span className="text-[11px]">{t("layerPanel.noLayers")}</span>
                     </div>
@@ -763,7 +763,7 @@ export function LayersPanelInner({
                                             }}
                                             data-layer-row={groupKey}
                                             className={[
-                                                "group relative flex items-center gap-1.5 h-7 px-2 rounded-md cursor-pointer select-none transition-all duration-100 text-neutral-400 hover:bg-white/5 hover:text-neutral-200",
+                                                "group relative flex items-center gap-1.5 h-7 px-2 rounded-md cursor-pointer select-none transition-all duration-100 text-muted-foreground hover:bg-muted hover:text-foreground",
                                                 isDraggingThisGroup ? "opacity-30 pointer-events-none" : "",
                                                 pointerDrag?.active && pointerDrag.dropTargetGroupId === gid
                                                     ? "ring-1 ring-blue-400 bg-blue-400/10"
@@ -774,7 +774,7 @@ export function LayersPanelInner({
                                                 <div className="absolute -top-px left-0 right-0 h-0.5 rounded-full bg-blue-400 pointer-events-none z-10" />
                                             )}
                                             <div className="shrink-0 cursor-grab active:cursor-grabbing transition-opacity opacity-0 group-hover:opacity-100">
-                                                <Icon icon="icon-park-outline:drag" className="size-4 text-neutral-500" />
+                                                <Icon icon="icon-park-outline:drag" className="size-4 text-muted-foreground" />
                                             </div>
                                             <button
                                                 onClick={(e) => {
@@ -790,7 +790,7 @@ export function LayersPanelInner({
                                             >
                                                 <Icon
                                                     icon={isCollapsed ? "solar:alt-arrow-right-bold" : "solar:alt-arrow-down-bold"}
-                                                    className="size-4 text-neutral-500"
+                                                    className="size-4 text-muted-foreground"
                                                 />
                                             </button>
                                             <Icon icon="solar:folder-bold" className="size-4.5 shrink-0 text-yellow-500/70" />
@@ -807,11 +807,11 @@ export function LayersPanelInner({
                                                         }}
                                                         className="flex items-center justify-center w-5 h-5 rounded hover:bg-red-500/20"
                                                     >
-                                                        <Icon icon="solar:trash-bin-trash-bold" className="size-4 hover:text-red-400" />
+                                                        <Icon icon="solar:trash-bin-trash-bold" className="size-4 hover:text-red-600 dark:hover:text-red-400" />
                                                     </button>
                                                 </TooltipAction>
                                             </div>
-                                            <span className="text-[9px] text-neutral-500 group-hover:hidden">
+                                            <span className="text-[9px] text-muted-foreground group-hover:hidden">
                                                 {groupMembers.length}
                                             </span>
                                         </div>
@@ -844,15 +844,15 @@ export function LayersPanelInner({
                 <FeedbackWidget />
             </div>
             {selectedIds.length > 1 && (
-                <div className="shrink-0 border-t border-white/6 px-2 py-1.5 flex items-center gap-1">
-                    <span className="flex-1 text-[11px] text-neutral-500">
+                <div className="shrink-0 border-t border-border px-2 py-1.5 flex items-center gap-1">
+                    <span className="flex-1 text-[11px] text-muted-foreground">
                         {selectedIds.length} {t("layerPanel.selected")}
                     </span>
                     {onGroup && (
                         <TooltipAction label={t("layerPanel.tooltips.groupSelected")}>
                             <button
                                 onClick={() => onGroup(selectedIds)}
-                                className="flex items-center gap-1 px-1.5 py-0.5 text-[11px] text-neutral-400 hover:text-white hover:bg-white/10 rounded transition-colors"
+                                className="flex items-center gap-1 px-1.5 py-0.5 text-[11px] text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
                             >
                                 <Icon icon="solar:layers-minimalistic-bold" className="size-4" />
                                 {t("layerPanel.groupAction")}
@@ -863,7 +863,7 @@ export function LayersPanelInner({
                         <TooltipAction label={t("layerPanel.tooltips.ungroup")}>
                             <button
                                 onClick={() => onUngroup(selectedIds)}
-                                className="flex items-center gap-1 px-1.5 py-0.5 text-[11px] text-neutral-400 hover:text-white hover:bg-white/10 rounded transition-colors"
+                                className="flex items-center gap-1 px-1.5 py-0.5 text-[11px] text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
                             >
                                 <Icon icon="solar:layers-bold" className="size-4" />
                                 {t("layerPanel.ungroupAction")}
@@ -875,12 +875,12 @@ export function LayersPanelInner({
             {videoCtxMenu && (
                 <div
                     data-ctx-menu
-                    className="fixed z-[9999] bg-[#1c1c1f] border border-white/10 rounded-lg shadow-2xl py-1 min-w-40 overflow-hidden"
+                    className="fixed z-[9999] bg-popover dark:bg-black border border-border rounded-lg shadow-2xl py-1 min-w-40 overflow-hidden"
                     style={{ left: videoCtxMenu.x, top: videoCtxMenu.y }}
                     onPointerDown={(e) => e.stopPropagation()}
                 >
                     <button
-                        className="w-full flex items-center gap-2 px-3 py-1.5 text-[11px] text-neutral-300 hover:bg-white/6 text-left"
+                        className="w-full flex items-center gap-2 px-3 py-1.5 text-[11px] text-foreground/80 hover:bg-muted text-left"
                         onClick={() => {
                             onReorder([], elements.map((e) => e.id));
                             setVideoCtxMenu(null);
@@ -890,7 +890,7 @@ export function LayersPanelInner({
                         {tActions("actions.bringToFront")}
                     </button>
                     <button
-                        className="w-full flex items-center gap-2 px-3 py-1.5 text-[11px] text-neutral-300 hover:bg-white/6 text-left"
+                        className="w-full flex items-center gap-2 px-3 py-1.5 text-[11px] text-foreground/80 hover:bg-muted text-left"
                         onClick={() => {
                             onReorder(elements.map((e) => e.id), []);
                             setVideoCtxMenu(null);
@@ -904,12 +904,12 @@ export function LayersPanelInner({
             {groupCtxMenu && (
                 <div
                     data-ctx-menu
-                    className="fixed z-[9999] bg-[#1c1c1f] border border-white/10 rounded-lg shadow-2xl py-1 min-w-40 overflow-hidden"
+                    className="fixed z-[9999] bg-popover dark:bg-black border border-border rounded-lg shadow-2xl py-1 min-w-40 overflow-hidden"
                     style={{ left: groupCtxMenu.x, top: groupCtxMenu.y }}
                     onPointerDown={(e) => e.stopPropagation()}
                 >
                     <button
-                        className="w-full flex items-center gap-2 px-3 py-1.5 text-[11px] text-neutral-300 hover:bg-white/6 text-left"
+                        className="w-full flex items-center gap-2 px-3 py-1.5 text-[11px] text-foreground/80 hover:bg-muted text-left"
                         onClick={() => {
                             const memberIds = elements
                                 .filter((e) => e.groupId === groupCtxMenu.groupId)
@@ -922,7 +922,7 @@ export function LayersPanelInner({
                         {t("layerPanel.ungroupAction")}
                     </button>
                     <button
-                        className="w-full flex items-center gap-2 px-3 py-1.5 text-[11px] text-red-400 hover:bg-red-500/10 text-left"
+                        className="w-full flex items-center gap-2 px-3 py-1.5 text-[11px] text-red-600 dark:text-red-400 hover:bg-red-500/10 text-left"
                         onClick={() => {
                             const memberIds = elements
                                 .filter((e) => e.groupId === groupCtxMenu.groupId)
@@ -1006,9 +1006,9 @@ export function LayersPanelInner({
                                 top: pointerDrag.y - 14,
                             }}
                         >
-                            <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-[#1c1c1f]/90 border border-white/10 shadow-2xl backdrop-blur-sm">
+                            <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-popover/90 dark:bg-black/90 border border-border shadow-2xl backdrop-blur-sm">
                                 <Icon icon={ghostIcon} className="size-4.5 text-[#00A3FF]" />
-                                <span className="text-[11px] text-white font-medium max-w-30 truncate">{ghostLabel}</span>
+                                <span className="text-[11px] text-foreground font-medium max-w-30 truncate">{ghostLabel}</span>
                             </div>
                         </div>,
                         document.body

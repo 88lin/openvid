@@ -25,7 +25,7 @@ export function Skeleton({
 
     return (
         <div
-            className={`bg-white/3 border border-white/5 animate-pulse ${variantClasses[variant]} ${className}`}
+            className={`bg-muted/40 border border-border animate-pulse ${variantClasses[variant]} ${className}`}
             style={{ ...sizeStyle, ...(style ?? {}) }}
         />
     );
@@ -177,7 +177,7 @@ export function ZoomGlobalConfigSkeleton() {
                 <Skeleton height={10} width={100} />
                 <div className="space-y-1.5">
                     {Array.from({ length: 3 }).map((_, i) => (
-                        <div key={i} className="flex items-center gap-3 p-2.5 rounded-lg bg-white/3 border border-white/5">
+                        <div key={i} className="flex items-center gap-3 p-2.5 rounded-lg bg-muted/40 border border-border">
                             <Skeleton variant="square" width={32} height={32} />
                             <div className="flex flex-col gap-1.5 flex-1">
                                 <Skeleton height={10} width="50%" />
@@ -191,7 +191,7 @@ export function ZoomGlobalConfigSkeleton() {
 
             <Skeleton height={36} variant="square" />
 
-            <div className="space-y-2 pt-2 border-t border-white/10">
+            <div className="space-y-2 pt-2 border-t border-border">
                 {Array.from({ length: 3 }).map((_, i) => (
                     <div key={i} className="flex items-center gap-2">
                         <Skeleton height={20} width={80} />
@@ -206,7 +206,7 @@ export function ZoomGlobalConfigSkeleton() {
 export function ZoomFragmentEditorSkeleton() {
     return (
         <div className="flex flex-col h-full">
-            <div className="flex items-center gap-2 p-3 border-b border-white/6">
+            <div className="flex items-center gap-2 p-3 border-b border-border">
                 <Skeleton width={28} height={28} variant="square" />
                 <Skeleton height={14} width={140} />
                 <Skeleton height={12} width={60} className="ml-auto" />
@@ -224,7 +224,7 @@ export function ZoomFragmentEditorSkeleton() {
                 <Skeleton height={36} variant="square" />
                 <Skeleton height={36} variant="square" />
 
-                <div className="h-px bg-white/10" />
+                <div className="h-px bg-border" />
 
                 <div className="space-y-2">
                     {Array.from({ length: 4 }).map((_, i) => (
@@ -265,7 +265,7 @@ export function MockupGridSkeleton() {
             {skeletons.map((_, i) => (
                 <div
                     key={i}
-                    className="aspect-video w-full rounded-lg bg-white/3 border border-white/5 animate-pulse"
+                    className="aspect-video w-full rounded-lg bg-muted/40 border border-border animate-pulse"
                 />
             ))}
         </div>
@@ -284,7 +284,7 @@ export function BackgroundColorSkeleton() {
 
             <div className="space-y-3">
                 <Skeleton height={10} width={90} />
-                <div className="space-y-2 p-3 squircle-element-camera border border-white/5 bg-white/3">
+                <div className="space-y-2 p-3 squircle-element-camera border border-border bg-muted/40">
                     <div className="flex gap-2">
                         <Skeleton height={34} className="flex-1" variant="square" />
                         <Skeleton height={34} className="flex-1" variant="square" />
@@ -293,7 +293,7 @@ export function BackgroundColorSkeleton() {
                     <Skeleton height={20} variant="square" />
                     <div className="space-y-1.5 pt-1">
                         {[1, 2].map(i => (
-                            <div key={i} className="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-white/3">
+                            <div key={i} className="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-muted/40">
                                 <Skeleton width={14} height={14} variant="circle" />
                                 <Skeleton width={28} height={28} variant="square" />
                                 <div className="flex-1 space-y-1">
@@ -313,28 +313,28 @@ export function BackgroundColorSkeleton() {
 
 export function TimelineSkeleton() {
     return (
-        <div className="h-38 shrink-0 bg-[#0D0D11] border-t border-white/10 flex flex-col font-mono text-[11px]">
+        <div className="h-38 shrink-0 bg-background border-t border-border flex flex-col font-mono text-[11px]">
             <div className="flex flex-1 overflow-hidden">
-                <div className="w-18 shrink-0 flex flex-col border-r border-white/5">
-                    <div className="h-7 border-b border-white/10 bg-zinc-900/40" />
-                    <div className="flex-1 flex items-center px-2 border-b border-white/5">
-                        <div className="h-2 w-10 rounded bg-white/5 animate-pulse" />
+                <div className="w-18 shrink-0 flex flex-col border-r border-border">
+                    <div className="h-7 border-b border-border bg-muted/30" />
+                    <div className="flex-1 flex items-center px-2 border-b border-border">
+                        <div className="h-2 w-10 rounded bg-muted animate-pulse" />
                     </div>
                     <div className="flex-1 flex items-center px-2">
-                        <div className="h-2 w-8 rounded bg-white/5 animate-pulse" />
+                        <div className="h-2 w-8 rounded bg-muted animate-pulse" />
                     </div>
                 </div>
 
                 <div className="flex-1 flex flex-col overflow-hidden">
-                    <div className="h-7 border-b border-white/10 bg-zinc-900/40 relative shrink-0 flex items-end pb-1 gap-0 overflow-hidden">
+                    <div className="h-7 border-b border-border bg-muted/30 relative shrink-0 flex items-end pb-1 gap-0 overflow-hidden">
                         {Array.from({ length: 7 }).map((_, i) => (
                             <div
                                 key={i}
                                 className="absolute bottom-0 flex flex-col items-start"
                                 style={{ left: `${(i / 6) * 100}%` }}
                             >
-                                <div className="w-px h-3 bg-zinc-700/60" />
-                                <div className="h-1.5 w-6 rounded bg-zinc-700/40 animate-pulse mt-1" />
+                                <div className="w-px h-3 bg-muted-foreground/40" />
+                                <div className="h-1.5 w-6 rounded bg-muted-foreground/25 animate-pulse mt-1" />
                             </div>
                         ))}
                         <div className="absolute top-0 bottom-0 left-[30%] flex flex-col items-center z-10">
@@ -343,10 +343,10 @@ export function TimelineSkeleton() {
                         </div>
                     </div>
 
-                    <div className="flex-1 flex items-center py-1.5 px-2 border-b border-white/5">
-                        <div className="h-full w-full rounded-md bg-[#0a1510] border border-white/5 relative overflow-hidden">
+                    <div className="flex-1 flex items-center py-1.5 px-2 border-b border-border">
+                        <div className="h-full w-full rounded-md bg-muted/40 dark:bg-[#0a1510] border border-border relative overflow-hidden">
                             <div
-                                className="absolute top-0 bottom-0 rounded-md border border-[#34A853]/30 bg-[#182e20]/80 animate-pulse"
+                                className="absolute top-0 bottom-0 rounded-md border border-[#34A853]/30 bg-emerald-500/10 dark:bg-[#182e20]/80 animate-pulse"
                                 style={{ left: "0%", width: "100%" }}
                             >
                                 <div
@@ -391,7 +391,7 @@ export function AudioMenuSkeleton() {
                 <Skeleton height={14} width={50} />
             </div>
 
-            <div className="bg-[#09090B] border border-white/5 squircle-element p-3">
+            <div className="bg-muted/30 border border-border squircle-element p-3">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <Skeleton width={18} height={18} variant="circle" />
@@ -421,7 +421,7 @@ export function AudioMenuSkeleton() {
                 {Array.from({ length: 2 }).map((_, i) => (
                     <div
                         key={i}
-                        className="bg-[#09090B] border border-white/5 squircle-element p-3 flex flex-col gap-2"
+                        className="bg-muted/30 border border-border squircle-element p-3 flex flex-col gap-2"
                     >
                         <div className="flex items-start justify-between gap-2">
                             <div className="flex flex-col gap-1.5 flex-1 min-w-0">
@@ -460,7 +460,7 @@ export function VideosMenuSkeleton() {
           {Array.from({ length: 3 }).map((_, i) => (
             <div
               key={i}
-              className="bg-[#09090B] border border-white/5 squircle-element overflow-hidden p-2.5 flex items-center gap-3"
+              className="bg-muted/30 border border-border squircle-element overflow-hidden p-2.5 flex items-center gap-3"
             >
               <div className="shrink-0">
                 <Skeleton width={80} height={48} variant="square" className="rounded-md" />
@@ -484,7 +484,7 @@ export function VideosMenuSkeleton() {
         </div>
       </div>
 
-      <div className="pt-2 border-t border-white/5 shrink-0 flex justify-center">
+      <div className="pt-2 border-t border-border shrink-0 flex justify-center">
         <Skeleton height={10} width="70%" />
       </div>
       
@@ -502,7 +502,7 @@ export function HistoryMenuSkeleton() {
                 <Skeleton height={10} width={80} />
                 <div className="grid grid-cols-2 gap-3">
                     {Array.from({ length: 6 }).map((_, i) => (
-                        <div key={i} className="flex flex-col gap-2 p-2 rounded-lg bg-white/3 border border-white/5">
+                        <div key={i} className="flex flex-col gap-2 p-2 rounded-lg bg-muted/40 border border-border">
                             <Skeleton 
                                 variant="square" 
                                 className="w-full rounded-md" 
@@ -534,14 +534,14 @@ export function MotionGlobalConfigSkeleton() {
             <div key={sectionIndex}>
               <div className="flex items-center gap-2 mb-3">
                 <Skeleton height={9} width={60} />
-                <div className="h-px flex-1 bg-white/5" />
+                <div className="h-px flex-1 bg-muted" />
               </div>
 
               <div className="grid grid-cols-2 gap-2.5">
                 {Array.from({ length: count }).map((_, i) => (
                   <div
                     key={i}
-                    className="squircle-element-camera border border-neutral-800 bg-black p-2 flex flex-col gap-2"
+                    className="squircle-element-camera border border-border bg-card p-2 flex flex-col gap-2"
                   >
                     <Skeleton
                       variant="square"
@@ -556,7 +556,7 @@ export function MotionGlobalConfigSkeleton() {
         </div>
       </div>
 
-      <div className="shrink-0 flex flex-col gap-4 pt-4 border-t border-white/5">
+      <div className="shrink-0 flex flex-col gap-4 pt-4 border-t border-border">
         {Array.from({ length: 2 }).map((_, i) => (
           <div key={i} className="flex items-center gap-3">
             <Skeleton width={14} height={14} variant="circle" />
@@ -573,7 +573,7 @@ export function MotionGlobalConfigSkeleton() {
 export function MotionFragmentEditorSkeleton() {
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center gap-2 p-3 border-b border-white/6 shrink-0">
+      <div className="flex items-center gap-2 p-3 border-b border-border shrink-0">
         <Skeleton width={28} height={28} variant="square" />
         <Skeleton height={14} width={120} />
       </div>
@@ -585,7 +585,7 @@ export function MotionFragmentEditorSkeleton() {
           <Skeleton height={44} variant="square" className="rounded-lg w-full" />
         </div>
 
-        <div className="space-y-6 p-4 bg-white/3 border border-white/8 squircle-element">
+        <div className="space-y-6 p-4 bg-muted/40 border border-border squircle-element">
           
           <div className="flex items-center gap-3">
             <Skeleton width={20} height={20} variant="circle" />

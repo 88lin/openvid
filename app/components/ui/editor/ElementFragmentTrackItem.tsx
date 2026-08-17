@@ -165,7 +165,7 @@ export function ElementFragmentTrackItem({
         onDragEnd={commitResize}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className={`w-1 h-4 rounded-full ${isResizing === "start" ? "bg-white/80" : "bg-white/40"}`} />
+        <div className={`w-1 h-4 rounded-full ${isResizing === "start" ? "bg-foreground/80" : "bg-foreground/40"}`} />
       </motion.div>
 
       <div className="flex-1 flex items-center justify-center gap-1.5 pointer-events-none overflow-hidden px-3 w-full h-full">
@@ -192,7 +192,7 @@ export function ElementFragmentTrackItem({
         onDragEnd={commitResize}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className={`w-1 h-4 rounded-full ${isResizing === "end" ? "bg-white/80" : "bg-white/40"}`} />
+        <div className={`w-1 h-4 rounded-full ${isResizing === "end" ? "bg-foreground/80" : "bg-foreground/40"}`} />
       </motion.div>
     </motion.div>
   );
