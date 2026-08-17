@@ -222,18 +222,14 @@ export function ExportImageDropdown({
                                 aria-pressed={isSelected}
                             >
                                 <div
-                                    className={`relative size-12 squircle-element flex items-center justify-center transition-all duration-300 border ${isSelected
-                                            ? "border-white/30 scale-105"
+                                    className={`relative size-12 squircle-element flex items-center justify-center transition-all duration-300 border overflow-hidden ${isSelected
+                                            ? "border-transparent scale-105 text-white"
                                             : "border-border hover:border-foreground/30"
                                         }`}
-                                    style={{
-                                        background: isSelected
-                                            ? "radial-gradient(circle at 50% 0%, rgb(85, 85, 85) 0%, rgb(40, 40, 40) 80%)"
-                                            : "transparent",
-                                        boxShadow: isSelected
-                                            ? "rgb(255, 255, 255) 0px 0.5rem 0.2rem -0.5rem inset, rgba(255, 255, 255, 0.1) 0px 0px 0px 1px"
-                                            : "none",
-                                    }}
+                                    style={isSelected ? {
+                                        background: "radial-gradient(circle at 50% 0%, #555555 0%, #454545 64%)",
+                                        boxShadow: "inset 0 1.01rem 0.2rem -1rem #fff, 0 0 0 1px #fff4, 0 4px 4px 0 #0004, 0 0 0 1px #333",
+                                    } : undefined}
                                 >
                                     <Icon
                                         icon={opt.icon}
@@ -243,9 +239,10 @@ export function ExportImageDropdown({
                                     />
 
                                     {isSelected && (
-                                        <div className="absolute left-1.5 top-1.5 size-4 bg-white rounded-full blur-[6px] opacity-30 rotate-45" />
+                                        <div className="absolute -top-3 -left-1 size-8 bg-white rounded-full blur-[5px] rotate-45 opacity-50 pointer-events-none" />
                                     )}
                                 </div>
+
                                 <span
                                     className={`text-[9px] font-bold tracking-tighter ${isSelected ? "text-foreground" : "text-muted-foreground/60"
                                         }`}
@@ -253,6 +250,7 @@ export function ExportImageDropdown({
                                     {opt.label}
                                 </span>
                             </button>
+
                         );
                     })}
                 </div>

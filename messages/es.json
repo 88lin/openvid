@@ -418,7 +418,7 @@
         "blur": "Desenfoque del fondo",
         "padding": "Padding",
         "rounded": "Esquinas redondeadas",
-        "shadows": "Sombras"
+        "shadows": "Sombra"
       }
     },
     "tools": {
@@ -1428,20 +1428,21 @@
   "heroPreview": {
     "sidebar": {
       "record": "Grabar",
-      "upload": "Subir"
+      "upload": "Subir",
+      "new": "Nuevo"
     },
     "background": {
       "title": "Fondo",
       "tabWallpaper": "Wallpaper",
       "tabColor": "Color",
       "options": "Opciones",
-      "desktopLabel": "Desktop",
-      "gradientsLabel": "Gradients",
+      "desktopLabel": "Escritorio",
+      "gradientsLabel": "Gradientes",
       "showMore": "MOSTRAR MÁS",
       "settings": "Ajustes",
-      "blur": "Blur",
+      "blur": "Desenfoque de fondo",
       "padding": "Padding",
-      "rounded": "Bordes",
+      "rounded": "Esquinas redondeadas",
       "shadow": "Sombra"
     },
     "timeline": {

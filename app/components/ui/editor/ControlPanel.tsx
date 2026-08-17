@@ -152,7 +152,7 @@ export function ControlPanel({
                 <div
                     className={`absolute inset-0 z-0 bg-cover bg-center bg-no-repeat pointer-events-none opacity-90 ${isDark
                         ? "bg-[url('/images/pages/header-gradient.avif')]"
-                        : "bg-[url('/images/pages/header-gradient-light2.png')]"
+                        : "bg-[url('/images/pages/header-gradient-light.png')]"
                         }`}
                     style={{
                         maskImage: `

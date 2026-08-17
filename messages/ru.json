@@ -1450,7 +1450,8 @@
   "heroPreview": {
     "sidebar": {
       "record": "Запись",
-      "upload": "Загрузить"
+      "upload": "Загрузить",
+      "new": "НОВИНКА"
     },
     "background": {
       "title": "Фон",

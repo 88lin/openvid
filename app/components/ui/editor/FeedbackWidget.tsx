@@ -153,8 +153,8 @@ export function FeedbackWidget() {
                                         key={opt.value}
                                         type="button"
                                         onClick={() => setType(opt.value)}
-                                        className={`group relative flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl border text-xs font-medium transition-all duration-200 squircle-element-camera cursor-pointer focus:outline-none w-full h-full min-h-[90px]
-                                            ${isSelected
+                                        className={`group relative flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl border text-xs font-medium transition-all duration-200 squircle-element-camera cursor-pointer focus:outline-none w-full h-full min-h-[90px] overflow-hidden
+                                                ${isSelected
                                                 ? "border-transparent text-white"
                                                 : "bg-transparent border-border text-muted-foreground hover:bg-muted hover:text-foreground hover:border-muted-foreground/50"
                                             }`}
@@ -163,18 +163,19 @@ export function FeedbackWidget() {
                                             boxShadow: "inset 0 1.01rem 0.2rem -1rem #fff, 0 0 0 1px #fff4, 0 4px 4px 0 #0004, 0 0 0 1px #333",
                                         } : undefined}
                                     >
-                                        <div className="flex items-center justify-center transition-transform duration-300 scale-110 group-hover:scale-115 size-5">
+                                        <div className={`flex items-center justify-center transition-transform duration-300 size-5 ${isSelected ? "scale-110" : "group-hover:scale-115"
+                                            }`}>
                                             <Icon icon={opt.icon} className="size-5" aria-hidden="true" />
                                         </div>
-
                                         {isSelected && (
-                                            <div className="absolute left-3 w-8 h-2 top-3 bg-white rounded-full blur-[5px] rotate-45 pointer-events-none opacity-50" />
+                                            <div className="absolute -top-3 -left-0 size-12 bg-white rounded-full blur-[12px] rotate-45 opacity-60 pointer-events-none" />
                                         )}
 
-                                        <span className="whitespace-nowrap overflow-hidden text-ellipsis max-w-full text-center mt-0.5">
+                                        <span className="whitespace-nowrap overflow-hidden text-ellipsis max-w-full text-center mt-0.5 relative z-10">
                                             {t(`types.${opt.value}`)}
                                         </span>
                                     </button>
+
                                 );
                             })}
                         </div>

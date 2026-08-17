@@ -73,7 +73,7 @@ export function SliderControl({
     return (
         <div
             ref={sliderRef}
-            className="relative flex h-[30px] w-full cursor-pointer touch-none select-none items-center rounded-lg overflow-hidden border border-border"
+            className="relative flex h-[35px] w-full cursor-pointer touch-none select-none items-center rounded-lg overflow-hidden border border-border"
             onClick={handleClick}
             onMouseDown={handleMouseDown}
         >
