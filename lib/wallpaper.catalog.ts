@@ -28,14 +28,14 @@ interface CategoryConfig {
 }
 
 const CATEGORY_CONFIGS: CategoryConfig[] = [
-    { id: 'desktop', label: 'desktop', icon: 'heroicons:computer-desktop-solid', primary: true, count: 78 },
+    { id: 'desktop', label: 'desktop', icon: 'heroicons:computer-desktop-solid', primary: true, count: 80 },
     { id: 'gradient', label: 'gradient', icon: 'solar:mirror-left-bold', primary: true, count: 91 },
     { id: 'pattern', label: 'pattern', icon: 'solar:palette-round-bold', primary: false, count: 49 },
     { id: 'minimal', label: 'minimal', icon: 'solar:sun-2-bold', primary: false, count: 65 },
 ];
 
 let globalIndex = 0;
-const CACHE_VERSION = '20260815';
+const CACHE_VERSION = '20260817';
 
 export const WALLPAPER_CATEGORIES: WallpaperCategory[] = CATEGORY_CONFIGS.map(config => {
     const items: WallpaperItem[] = [];
