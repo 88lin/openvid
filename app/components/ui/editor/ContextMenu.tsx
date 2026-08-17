@@ -34,7 +34,7 @@ export default function ContextMenu({
     <div
       ref={menuRef}
       data-ctx-menu
-      className="fixed z-9999 bg-black border border-white/15 squircle-element-camera shadow-2xl py-1 min-w-43 overflow-hidden"
+      className="fixed z-9999 bg-popover dark:bg-black border border-border squircle-element-camera shadow-2xl py-1 min-w-43 overflow-hidden"
       style={{ left: pos.x, top: pos.y }}
     >
       {!isMulti && (
@@ -55,7 +55,7 @@ export default function ContextMenu({
               onClose();
             }}
           />
-          <div className="my-1 h-px bg-white/6" />
+<div className="my-1 h-px bg-border" />
           <CtxMenuItem
             icon="solar:trash-bin-trash-bold"
             label="Eliminar capa"
@@ -90,7 +90,7 @@ export default function ContextMenu({
               }}
             />
           )}
-          {(canGroup || canUngroup) && <div className="my-1 h-px bg-white/6" />}
+          {(canGroup || canUngroup) && <div className="my-1 h-px bg-border" />}
           <CtxMenuItem
             icon="solar:trash-bin-trash-bold"
             label={`Eliminar ${selectedIds.length} capas`}

@@ -51,24 +51,24 @@ function ErrorVisual({ active }: VisualProps) {
 
 function TickVisual({ active }: VisualProps) {
   return (
-    <div className={`w-4 h-4 rounded-[3px] border flex items-center justify-center transition-colors duration-150 ${active ? "bg-orange-400 border-orange-400" : "border-white/25"}`}>
+    <div className={`w-4 h-4 rounded-[3px] border flex items-center justify-center transition-colors duration-150 ${active ? "bg-orange-400 border-orange-400" : "border-muted-foreground/40"}`}>
       <Icon icon="mdi:check" width="10" className={`text-black transition-transform duration-150 ${active ? "scale-100" : "scale-0"}`} />
     </div>
   );
 }
 
 function PressVisual({ active }: VisualProps) {
-  return <div className={`w-6 h-4 rounded border transition-all duration-100 ${active ? "translate-y-0.5 bg-white/5 shadow-inner border-white/10" : "border-white/20"}`} />;
+  return <div className={`w-6 h-4 rounded border transition-all duration-100 ${active ? "translate-y-0.5 bg-muted shadow-inner border-border" : "border-muted-foreground/40"}`} />;
 }
 
 function ReleaseVisual({ active }: VisualProps) {
-  return <div className={`w-6 h-4 rounded border transition-all ${active ? "-translate-y-0.5 border-emerald-400/50 bg-emerald-400/10 duration-150 ease-out" : "translate-y-0 border-white/20 duration-100"}`} />;
+  return <div className={`w-6 h-4 rounded border transition-all ${active ? "-translate-y-0.5 border-emerald-400/50 bg-emerald-400/10 duration-150 ease-out" : "translate-y-0 border-muted-foreground/40 duration-100"}`} />;
 }
 
 function ToggleVisual({ active }: VisualProps) {
   return (
-    <div className={`w-7 h-4 rounded-full flex items-center px-0.5 transition-colors duration-200 ${active ? "bg-fuchsia-500/70 justify-end" : "bg-white/15 justify-start"}`}>
-      <span className="w-3 h-3 rounded-full bg-white" />
+    <div className={`w-7 h-4 rounded-full flex items-center px-0.5 transition-colors duration-200 ${active ? "bg-fuchsia-500/70 justify-end" : "bg-input justify-start"}`}>
+      <span className="w-3 h-3 rounded-full bg-foreground" />
     </div>
   );
 }
@@ -85,7 +85,7 @@ function PulseVisual({ active }: VisualProps) {
 function ScanVisual({ active }: VisualProps) {
   return (
     <div className="relative w-8 h-3 flex items-center">
-      <span className="absolute inset-x-0 top-1/2 border-b border-white/10" />
+      <span className="absolute inset-x-0 top-1/2 border-b border-muted-foreground/30" />
       <span className={`absolute w-1 h-1 rounded-full bg-teal-300 ease-linear ${active ? "left-[26px] transition-all duration-500" : "left-0"}`} />
     </div>
   );
@@ -94,8 +94,8 @@ function ScanVisual({ active }: VisualProps) {
 function PageVisual({ active }: VisualProps) {
   return (
     <div className="relative w-7 h-6 flex items-center justify-center">
-      <span className={`absolute w-4 h-5 rounded-sm bg-white/10 border border-white/15 transition-all duration-250 ease-out ${active ? "-translate-x-1.5 -rotate-6 opacity-40" : "opacity-70"}`} />
-      <span className={`absolute w-4 h-5 rounded-sm bg-white/15 border border-white/20 transition-all duration-250 ease-out ${active ? "translate-x-1 rotate-3" : ""}`} />
+      <span className={`absolute w-4 h-5 rounded-sm bg-muted-foreground/20 border border-muted-foreground/30 transition-all duration-250 ease-out ${active ? "-translate-x-1.5 -rotate-6 opacity-40" : "opacity-70"}`} />
+      <span className={`absolute w-4 h-5 rounded-sm bg-muted-foreground/25 border border-muted-foreground/35 transition-all duration-250 ease-out ${active ? "translate-x-1 rotate-3" : ""}`} />
     </div>
   );
 }
@@ -129,7 +129,7 @@ function ArrivalVisual({ active }: VisualProps) {
 function WhisperVisual({ active }: VisualProps) {
   return (
     <div className="w-8 h-6 flex items-center justify-center">
-      <span className={`px-1.5 py-0.5 rounded text-[8px] bg-white/10 text-white/50 transition-all duration-300 ${active ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1"}`}>tip</span>
+      <span className={`px-1.5 py-0.5 rounded text-[8px] bg-muted text-muted-foreground transition-all duration-300 ${active ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1"}`}>tip</span>
     </div>
   );
 }

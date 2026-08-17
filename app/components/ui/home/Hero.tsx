@@ -149,7 +149,7 @@ export default function Hero({ onVideoUpload, onPhotoUpload }: HeroProps) {
             className={`relative flex items-center justify-center px-5 squircle-element border-2 border-dashed cursor-pointer transition-all duration-200 text-sm font-medium w-full h-13 ${isDraggingVideo
                 ? "border-blue-400/70 bg-blue-500/10 text-blue-300 scale-[1.02]"
                 : isUploadingVideo
-                  ? "border-white/20 bg-white/5 text-white/40 cursor-not-allowed"
+                  ? "border-white/20 bg-white/5 text-white/70 cursor-not-allowed"
                   : "border-white/20 bg-white/5 text-white/90 hover:border-white/40 hover:bg-white/10 hover:text-white/80"
               }`}
           >
@@ -169,7 +169,7 @@ export default function Hero({ onVideoUpload, onPhotoUpload }: HeroProps) {
                   <Icon icon="mage:video-upload" width="22" className="shrink-0" aria-hidden="true" />
                   <div className="flex items-center gap-2">
                     <span>{t("uploadButton")}</span>
-                    <span className="text-white/40 text-xs font-mono select-none">MP4, WebM, MOV</span>
+                    <span className="text-white/70 text-xs font-mono select-none">MP4, WebM, MOV</span>
                   </div>
                 </>
               )}
@@ -201,7 +201,7 @@ export default function Hero({ onVideoUpload, onPhotoUpload }: HeroProps) {
             className={`relative flex items-center justify-center px-5 squircle-element border-2 border-dashed cursor-pointer transition-all duration-200 text-sm font-medium w-full h-13 ${isDraggingPhoto
                 ? "border-red-400/70 bg-red-500/10 text-red-300 scale-[1.02]"
                 : isUploadingPhoto
-                  ? "border-white/20 bg-white/5 text-white/40 cursor-not-allowed"
+                  ? "border-white/20 bg-white/5 text-white/70 cursor-not-allowed"
                   : "border-white/20 bg-white/5 text-white/90 hover:border-white/40 hover:bg-white/10 hover:text-white/80"
               }`}
           >
@@ -221,7 +221,7 @@ export default function Hero({ onVideoUpload, onPhotoUpload }: HeroProps) {
                   <Icon icon="solar:gallery-wide-linear" width="20" className="shrink-0" aria-hidden="true" />
                   <div className="flex items-center gap-2">
                     <span>{t("uploadPhotoButton")}</span>
-                    <span className="text-white/40 text-xs font-mono select-none">JPG, PNG, WEBP</span>
+                    <span className="text-white/70 text-xs font-mono select-none">JPG, PNG, WEBP</span>
                   </div>
                 </>
               )}

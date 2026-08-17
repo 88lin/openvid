@@ -12,8 +12,8 @@ export function TabButton({ label, isActive, onClick }: TabButtonProps) {
             onClick={onClick}
             className={`flex-1 py-1.5 rounded-md transition ${
                 isActive
-                    ? "bg-white/10 text-white"
-                    : "hover:text-white text-white/70"
+                    ? "bg-background text-foreground shadow-xs"
+                    : "hover:text-foreground text-muted-foreground"
             }`}
         >
             {label}

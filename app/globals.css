@@ -68,6 +68,8 @@
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
+  --scrollbar-thumb: oklch(0.84 0 0);
+  --scrollbar-thumb-hover: oklch(0.62 0 0);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -82,7 +84,7 @@
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
   --gradient-primary: linear-gradient(90deg, #00A3EE, #00A3FF, #003780);
-  --gradient-radial-primary: radial-gradient(circle, #002940, #00131E, #000910);
+  --gradient-radial-primary: radial-gradient(circle, #EAF4FF, #D5E8FB, #BEDAF6);
 }
 
 .dark {
@@ -97,13 +99,15 @@
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
+  --muted-foreground: oklch(1 0 0 / 0.7);
   --accent: oklch(0.269 0 0);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.556 0 0);
+  --scrollbar-thumb: #414040;
+  --scrollbar-thumb-hover: #5e5e5e;
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
@@ -117,6 +121,7 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+  --gradient-radial-primary: radial-gradient(circle, #002940, #00131E, #000910);
 }
 
 @layer base {
@@ -155,14 +160,21 @@
 
   .shimmer-text {
     background: linear-gradient(90deg,
-        rgba(255, 255, 255, 0.25) 0%,
-        rgba(255, 255, 255, 1) 50%,
-        rgba(255, 255, 255, 0.25) 100%);
+        rgba(0, 0, 0, 0.3) 0%,
+        rgba(0, 0, 0, 0.85) 50%,
+        rgba(0, 0, 0, 0.3) 100%);
     background-size: 200% auto;
     color: transparent !important;
     -webkit-background-clip: text;
     background-clip: text;
     animation: text-shimmer 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  .dark .shimmer-text {
+    background: linear-gradient(90deg,
+        rgba(255, 255, 255, 0.25) 0%,
+        rgba(255, 255, 255, 1) 50%,
+        rgba(255, 255, 255, 0.25) 100%);
   }
 
   .squircle-element-camera {
@@ -259,21 +271,21 @@ button {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #262626;
+  background: var(--scrollbar-thumb);
   border-radius: 20px;
   border: 3px solid transparent;
   background-clip: content-box;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #5e5e5e;
+  background: var(--scrollbar-thumb-hover);
   border: 2px solid transparent;
   background-clip: content-box;
 }
 
 .custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: rgb(74, 73, 73) transparent;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
 }
 
 .no-scrollbar::-webkit-scrollbar {

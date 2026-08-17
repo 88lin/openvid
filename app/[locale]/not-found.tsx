@@ -14,7 +14,7 @@ export default function NotFound() {
     <AuthProvider>
       <Header />
 
-      <div className="flex flex-col items-center justify-center min-h-dvh bg-[#050505] text-center px-6 relative overflow-hidden">
+      <div className="flex flex-col items-center justify-center min-h-dvh bg-[#050505] text-center px-6 relative overflow-hidden dark">
 
         <h1 className="text-8xl md:text-[12rem] font-black tracking-tighter animate-reveal opacity-0 [animation-delay:150ms] bg-linear-to-b from-white/20 to-transparent bg-clip-text text-transparent select-none">
           404

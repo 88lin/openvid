@@ -84,14 +84,14 @@ export function ExportOverlay({
             aria-labelledby="export-overlay-title"
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-md transition-all duration-500"
         >
-            <div className="p-10 bg-black border border-white/10 squircle-element-camera shadow-[0_0_80px_-15px_rgba(0,0,0,1)] w-full max-w-lg mx-4">
+            <div className="p-10 bg-popover dark:bg-black border border-border squircle-element-camera shadow-[0_0_80px_-15px_rgba(0,0,0,1)] w-full max-w-lg mx-4">
                 <div className="flex justify-center mb-8">
-                    <div className="flex items-center gap-2.5 px-3 py-1 bg-white/5 border border-white/10 rounded-full">
+                    <div className="flex items-center gap-2.5 px-3 py-1 bg-muted border border-border rounded-full">
                         <div className="relative flex h-2 w-2">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
                             <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
                         </div>
-                        <span className="text-[11px] font-bold uppercase tracking-[0.3em] text-white/60">
+                        <span className="text-[11px] font-bold uppercase tracking-[0.3em] text-muted-foreground">
                             {t("processing")}
                         </span>
                     </div>
@@ -105,16 +105,16 @@ export function ExportOverlay({
                 >
                     <h2
                         id="export-overlay-title"
-                        className="text-7xl font-bold tracking-tighter text-white tabular-nums"
+                        className="text-7xl font-bold tracking-tighter text-foreground tabular-nums"
                     >
                         {exportProgress.progress}
-                        <span className="text-2xl text-white/70 ml-1">%</span>
+                        <span className="text-2xl text-muted-foreground ml-1">%</span>
                     </h2>
                 </div>
 
-                <div className="relative w-full h-1.5 bg-white/15 rounded-full overflow-hidden mb-10">
+                <div className="relative w-full h-1.5 bg-muted rounded-full overflow-hidden mb-10">
                     <div
-                        className="absolute inset-0 bg-white origin-left transition-transform duration-300 ease-out shadow-[0_0_15px_rgba(255,255,255,0.5)]"
+                        className="absolute inset-0 bg-foreground origin-left transition-transform duration-300 ease-out shadow-[0_0_15px_rgba(255,255,255,0.5)]"
                         style={{
                             transform: `scaleX(${Math.min(Math.max(exportProgress.progress, 0), 100) / 100})`,
                         }}
@@ -122,30 +122,30 @@ export function ExportOverlay({
                 </div>
 
                 <div className="space-y-4 mb-10">
-                    <div className="flex flex-col gap-2 border-l-2 border-white/10 pl-5 py-1">
+                    <div className="flex flex-col gap-2 border-l-2 border-border pl-5 py-1">
                         <p className="text-lg font-medium tracking-tight leading-none shimmer-text">
                             {getStatusMessage()}
                         </p>
                         {cleanMessage && (
-                            <p className="text-sm text-white/40 font-mono italic mt-0.5 tracking-wide">
+                            <p className="text-sm text-muted-foreground/60 font-mono italic mt-0.5 tracking-wide">
                                 {cleanMessage}
                             </p>
                         )}
                     </div>
 
-                    <div className="flex items-start gap-3 p-4 bg-white/5 border border-white/10 squircle-element-camera">
+                    <div className="flex items-start gap-3 p-4 bg-muted border border-border squircle-element-camera">
                         <Icon
                             icon="lucide:alert-circle"
-                            className="text-blue-500 shrink-0 mt-0.5"
+                            className="text-blue-600 dark:text-blue-500 shrink-0 mt-0.5"
                             width="18"
                         />
-                        <p className="text-md text-white/70 leading-relaxed">
+                        <p className="text-md text-muted-foreground leading-relaxed">
                             {t.rich("warnings.performance", {
                                 highlight: (chunks) => (
-                                    <span className="relative inline-block whitespace-nowrap font-bold text-white px-1">
+                                    <span className="relative inline-block whitespace-nowrap font-bold text-foreground px-1">
                                         {chunks}
                                         <svg
-                                            className="absolute -bottom-1 left-0 w-full h-2 text-blue-500/90"
+                                            className="absolute -bottom-1 left-0 w-full h-2 text-blue-600 dark:text-blue-500/90"
                                             viewBox="0 0 100 10"
                                             preserveAspectRatio="none"
                                         >
@@ -167,13 +167,13 @@ export function ExportOverlay({
                         <div className="flex items-start gap-3 p-4 bg-cyan-500/5 border border-cyan-500/20 squircle-element-camera">
                             <Icon
                                 icon="lucide:clock"
-                                className="text-cyan-400 shrink-0 mt-0.5"
+                                className="text-cyan-600 dark:text-cyan-400 shrink-0 mt-0.5"
                                 width="18"
                             />
-                            <p className="text-md text-cyan-400/80 leading-relaxed">
+                            <p className="text-md text-cyan-600 dark:text-cyan-400/80 leading-relaxed">
                                 {t.rich("warnings.transparency", {
                                     highlight: (chunks) => (
-                                        <span className="font-semibold text-cyan-300">
+                                        <span className="font-semibold text-cyan-700 dark:text-cyan-300">
                                             {chunks}
                                         </span>
                                     ),
@@ -186,7 +186,7 @@ export function ExportOverlay({
                 <Button
                     variant="outline"
                     onClick={onCancel}
-                    className="w-full h-12 bg-transparent hover:bg-red-500/5 border border-white/10 hover:border-red-500/20 text-white/70 hover:text-red-400 text-sm font-medium transition-all duration-300 squircle-element-camera"
+                    className="w-full h-12 bg-transparent hover:bg-red-500/5 border border-border hover:border-red-500/20 text-muted-foreground hover:text-red-600 dark:hover:text-red-400 text-sm font-medium transition-all duration-300 squircle-element-camera"
                 >
                     <Icon icon="iconoir:cancel" width="16" className="mr-2" />
                     {t("actions.cancel")}

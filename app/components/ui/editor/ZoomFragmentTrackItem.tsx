@@ -235,17 +235,17 @@ export function ZoomFragmentTrackItem({
                 tabIndex={0}
             >
                 <div className={`w-1 h-6 rounded-full transition-all ${isResizing === 'start'
-                    ? 'bg-blue-300 scale-110'
-                    : 'bg-blue-400/60 group-hover/resize:bg-blue-300'
+                    ? 'bg-blue-500 dark:bg-blue-300 scale-110'
+                    : 'bg-blue-500/70 group-hover/resize:bg-blue-500 dark:bg-blue-400/60 dark:group-hover/resize:bg-blue-300'
                     }`} />
             </motion.div>
 
             {/* Content */}
             <div className="flex-1 flex flex-col items-center justify-center pointer-events-none overflow-hidden px-2">
-                <span className={`text-[11px] truncate ${isSelected || isInteracting ? 'text-blue-200' : 'text-blue-300/70'}`}>
+                <span className={`text-[11px] truncate ${isSelected || isInteracting ? 'text-blue-700 dark:text-blue-200' : 'text-blue-700/70 dark:text-blue-300/70'}`}>
                     Zoom
                 </span>
-                <span className={`text-[9px] truncate ${isSelected || isInteracting ? 'text-blue-300/70' : 'text-blue-400/45'}`}>
+                <span className={`text-[9px] truncate ${isSelected || isInteracting ? 'text-blue-700/70 dark:text-blue-300/70' : 'text-blue-700/50 dark:text-blue-400/45'}`}>
                     {zoomLevelToFactor(fragment.zoomLevel).toFixed(1)}× · {(duration / speed).toFixed(1)}s
                 </span>
             </div>
@@ -269,8 +269,8 @@ export function ZoomFragmentTrackItem({
                 tabIndex={0}
             >
                 <div className={`w-1 h-6 rounded-full transition-all ${isResizing === 'end'
-                    ? 'bg-blue-300 scale-110'
-                    : 'bg-blue-400/60 group-hover/resize:bg-blue-300'
+                    ? 'bg-blue-500 dark:bg-blue-300 scale-110'
+                    : 'bg-blue-500/70 group-hover/resize:bg-blue-500 dark:bg-blue-400/60 dark:group-hover/resize:bg-blue-300'
                     }`} />
             </motion.div>
         </motion.div>

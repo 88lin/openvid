@@ -317,7 +317,11 @@
     "logout": "Sign out",
     "loggingOut": "Signing out...",
     "ariaLabel": "User menu",
-    "defaultUser": "User"
+    "defaultUser": "User",
+    "theme": "Theme",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeSystem": "System"
   },
   "donation": {
     "title": "Buy me a coffee",

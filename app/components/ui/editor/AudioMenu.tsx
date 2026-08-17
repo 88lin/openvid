@@ -93,7 +93,7 @@ export function AudioMenu({
 
     return (
         <div className="p-4 flex flex-col gap-5">
-            <div className="flex items-center gap-2 text-white font-medium">
+            <div className="flex items-center gap-2 text-foreground font-medium">
                 <Icon icon="mdi:volume-high" width="20" aria-hidden="true" />
                 <span>{t("title")}</span>
             </div>
@@ -109,11 +109,11 @@ export function AudioMenu({
                     <Icon icon="solar:upload-minimalistic-outline" width="14" />
                     <span>{t("uploadButton")}</span>
                 </Button>
-                <p className="text-xs text-white/40 mt-2 text-center">{t("uploadHint")}</p>
+                <p className="text-xs text-muted-foreground/60 mt-2 text-center">{t("uploadHint")}</p>
             </div>
 
             <div className="flex flex-col gap-2">
-                <span className="text-xs font-medium text-white/70">{t("timelineTracks", { count: audioTracks.length })}</span>
+                <span className="text-xs font-medium text-muted-foreground">{t("timelineTracks", { count: audioTracks.length })}</span>
 
                 {audioTracks.length > 0 ? (
                     <div className="flex flex-col gap-2">
@@ -127,7 +127,7 @@ export function AudioMenu({
                                         if (el) trackRefs.current.set(track.id, el);
                                         else trackRefs.current.delete(track.id);
                                     }}
-                                    className={`bg-[#09090B] border squircle-element p-3 transition-all ${isSelected ? "border-blue-500/50 bg-blue-500/5" : "border-white/5 hover:border-white/10"
+                                    className={`bg-muted border squircle-element p-3 transition-all ${isSelected ? "border-blue-500/50 bg-blue-500/5" : "border-border hover:border-muted-foreground/50"
                                         }`}
                                     onClick={() => onSelectAudioTrack(isSelected ? null : track.id)}
                                     role="button"
@@ -142,9 +142,9 @@ export function AudioMenu({
                                 >
                                     <div className="flex items-start justify-between gap-2">
                                         <div className="flex-1 min-w-0">
-                                            <div className="text-sm text-white font-medium truncate">{track.name}</div>
+                                            <div className="text-sm text-foreground font-medium truncate">{track.name}</div>
                                             {exceedsVideoDuration && (
-                                                <div className="text-xs text-orange-400 flex items-center gap-1">
+                                                <div className="text-xs text-orange-600 dark:text-orange-400 flex items-center gap-1">
                                                     <Icon icon="mdi:alert" width="12" />
                                                     {t("exceedsDuration")}
                                                 </div>
@@ -154,7 +154,7 @@ export function AudioMenu({
                                             <TooltipAction label={t("trimAction")}>
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); setTrimModalTrack(track); setTrimModalOpen(true); }}
-                                                    className="p-1.5 rounded text-white/40 hover:text-blue-400 hover:bg-blue-500/10 transition-all"
+                                                    className="p-1.5 rounded text-muted-foreground/60 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-500/10 transition-all"
                                                 >
                                                     <Icon icon="mdi:content-cut" width="16" />
                                                 </button>
@@ -166,7 +166,7 @@ export function AudioMenu({
                                                         onDeleteAudioTrack(track.id);
                                                         if (selectedAudioTrackId === track.id) onSelectAudioTrack(null);
                                                     }}
-                                                    className="p-1.5 rounded text-white/40 hover:text-red-400 hover:bg-red-500/10 transition-all"
+                                                    className="p-1.5 rounded text-muted-foreground/60 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-500/10 transition-all"
                                                 >
                                                     <Icon icon="material-symbols:delete-outline-rounded" width="16" />
                                                 </button>
@@ -181,7 +181,7 @@ export function AudioMenu({
                         })}
                     </div>
                 ) : (
-                    <div className="text-center py-6 px-4 text-white/40 rounded-md border border-dashed border-white/10" role="status">
+                    <div className="text-center py-6 px-4 text-muted-foreground/60 rounded-md border border-dashed border-border" role="status">
                         <Icon icon="mdi:music-note-off" width="32" className="mx-auto mb-2 opacity-30" aria-hidden="true" />
                         <p className="text-xs">{t("noTracks")}</p>
                         <p className="text-[10px] mt-1">{t("noTracksHint")}</p>
@@ -190,7 +190,7 @@ export function AudioMenu({
             </div>
 
             <div className="flex flex-col gap-3">
-                <div className="text-xs font-medium text-white/70 uppercase">{t("defaultSounds")}</div>
+                <div className="text-xs font-medium text-muted-foreground uppercase">{t("defaultSounds")}</div>
                 <SoundLibrary categories={SOUND_CATEGORIES} renderingSound={renderingSound} onAdd={handleAddDefaultSound} />
             </div>
 

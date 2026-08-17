@@ -19,7 +19,7 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
                         wheelMultiplier: 1.1,
                     }}
                 >
-                    <div className="flex min-h-screen flex-col text-neutral-300 bg-neutral-950">
+                    <div className="flex min-h-screen flex-col text-neutral-300 bg-neutral-950 dark">
                         <Header />
                         <main className="flex-1 w-full">
                             {children}

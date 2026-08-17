@@ -85,7 +85,7 @@ export function ImageMaskEditor({
                     <Button
                         variant="outline"
                         className={`gap-2 text-xs transition-all duration-200 ${maskConfig.enabled
-                            ? "bg-gradient-radial-primary text-cyan-500 border border-cyan-500/50!"
+                            ? "bg-gradient-radial-primary text-cyan-600 dark:text-cyan-500 border border-cyan-600/50! dark:border-cyan-500/50!"
                             : ""
                             }`}
                         size="sm"
@@ -97,23 +97,23 @@ export function ImageMaskEditor({
                 </PopoverTrigger>
             </TooltipAction>
 
-            <PopoverContent align="end" className="w-100 bg-[#0A0A0A] border-white/10 shadow-2xl p-0 squircle-element-camera overflow-hidden">
+            <PopoverContent align="end" className="w-100 bg-popover dark:bg-black border-border shadow-2xl p-0 squircle-element-camera overflow-hidden">
                 <div className="flex flex-col">
-                    <PopoverHeader className="px-4 py-3 border-b border-white/10 bg-white/5">
+                    <PopoverHeader className="px-4 py-3 border-b border-border bg-muted/40">
                         <div className="flex items-center justify-between">
-                            <PopoverTitle className="text-xs font-semibold text-white/80 tracking-wide uppercase flex items-center gap-2">
-                                <Icon icon="material-symbols:gradient-outline" width="14" className="text-blue-400" aria-hidden="true" />
+                            <PopoverTitle className="text-xs font-semibold text-popover-foreground/90 tracking-wide uppercase flex items-center gap-2">
+                                <Icon icon="material-symbols:gradient-outline" width="14" className="text-blue-600 dark:text-blue-400" aria-hidden="true" />
                                 {t("title")}
                             </PopoverTitle>
                         </div>
                     </PopoverHeader>
 
-                    <div className="flex border-b border-white/10 bg-black/20">
+                    <div className="flex border-b border-border bg-muted/40">
                         <button
                             onClick={() => setActiveTab("presets")}
                             className={`flex-1 px-4 py-2.5 text-xs font-medium transition-all ${activeTab === "presets"
-                                ? "text-blue-400 border-b-2 border-blue-400 bg-blue-500/5"
-                                : "text-white/60 hover:text-white/80 hover:bg-white/5"
+                                ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-500 bg-blue-500/5"
+                                : "text-muted-foreground hover:text-popover-foreground hover:bg-muted"
                                 }`}
                         >
                             <Icon icon="mdi:palette-outline" width="14" className="inline mr-1.5" />
@@ -122,8 +122,8 @@ export function ImageMaskEditor({
                         <button
                             onClick={() => setActiveTab("custom")}
                             className={`flex-1 px-4 py-2.5 text-xs font-medium transition-all ${activeTab === "custom"
-                                ? "text-blue-400 border-b-2 border-blue-400 bg-blue-500/5"
-                                : "text-white/60 hover:text-white/80 hover:bg-white/5"
+                                ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-500 bg-blue-500/5"
+                                : "text-muted-foreground hover:text-popover-foreground hover:bg-muted"
                                 }`}
                         >
                             <Icon icon="mdi:tune" width="14" className="inline mr-1.5" />
@@ -144,7 +144,7 @@ export function ImageMaskEditor({
                                             onClick={() => handlePresetClick(preset)}
                                             className={`group relative flex flex-col squircle-element border transition-all overflow-hidden ${active
                                                 ? "border-blue-500 bg-blue-500/10"
-                                                : "border-white/10 hover:border-white/30 bg-white/5 hover:bg-white/10"
+                                                : "border-border hover:border-foreground/30 bg-muted/40 hover:bg-muted"
                                                 }`}
                                         >
                                             <div className="relative w-full aspect-video bg-zinc-900">
@@ -161,7 +161,7 @@ export function ImageMaskEditor({
                                                         <Icon
                                                             icon={preset.icon}
                                                             width="28"
-                                                            className={`transition-colors ${active ? "text-blue-400" : "text-white/40 group-hover:text-blue-400"}`}
+                                                            className={`transition-colors ${active ? "text-blue-400" : "text-white/70 group-hover:text-blue-400"}`}
                                                         />
                                                     </div>
                                                 )}
@@ -186,13 +186,13 @@ export function ImageMaskEditor({
                             <div className="space-y-4">
                                 <div className="space-y-2">
                                     <div className="flex items-center justify-between">
-                                        <label className="text-xs font-medium text-white/70">{t("controls.top")}</label>
+                                        <label className="text-xs font-medium text-muted-foreground">{t("controls.top")}</label>
                                         <button
                                             onClick={() => onMaskConfigChange({
                                                 ...maskConfig,
                                                 top: maskConfig.top ? undefined : { from: 0, to: 30 },
                                             })}
-                                            className="text-[11px] text-blue-400 hover:text-blue-300"
+                                            className="text-[11px] text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300"
                                         >
                                             {maskConfig.top ? t("controls.remove") : t("controls.add")}
                                         </button>
@@ -228,15 +228,15 @@ export function ImageMaskEditor({
                                 </div>
 
                                 <div className="space-y-2">
-                                    <hr className="border-white/10" />
+                                    <hr className="border-border" />
                                     <div className="flex items-center justify-between">
-                                        <label className="text-xs font-medium text-white/70">{t("controls.bottom")}</label>
+                                        <label className="text-xs font-medium text-muted-foreground">{t("controls.bottom")}</label>
                                         <button
                                             onClick={() => onMaskConfigChange({
                                                 ...maskConfig,
                                                 bottom: maskConfig.bottom ? undefined : { from: 0, to: 30 },
                                             })}
-                                            className="text-[11px] text-blue-400 hover:text-blue-300"
+                                            className="text-[11px] text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300"
                                         >
                                             {maskConfig.bottom ? t("controls.remove") : t("controls.add")}
                                         </button>
@@ -270,17 +270,17 @@ export function ImageMaskEditor({
                                         </>
                                     )}
                                 </div>
-                                <hr className="border-white/10" />
+                                <hr className="border-border" />
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <div className="flex items-center justify-between">
-                                            <label className="text-xs font-medium text-white/70">{t("controls.left")}</label>
+                                            <label className="text-xs font-medium text-muted-foreground">{t("controls.left")}</label>
                                             <button
                                                 onClick={() => onMaskConfigChange({
                                                     ...maskConfig,
                                                     left: maskConfig.left ? undefined : { from: 0, to: 20 },
                                                 })}
-                                                className="text-sm text-blue-400 hover:text-blue-300"
+                                                className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300"
                                             >
                                                 {maskConfig.left ? "x" : "+"}
                                             </button>
@@ -303,13 +303,13 @@ export function ImageMaskEditor({
 
                                     <div className="space-y-2">
                                         <div className="flex items-center justify-between">
-                                            <label className="text-xs font-medium text-white/70">{t("controls.right")}</label>
+                                            <label className="text-xs font-medium text-muted-foreground">{t("controls.right")}</label>
                                             <button
                                                 onClick={() => onMaskConfigChange({
                                                     ...maskConfig,
                                                     right: maskConfig.right ? undefined : { from: 0, to: 20 },
                                                 })}
-                                                className="text-sm text-blue-400 hover:text-blue-300"
+                                                className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300"
                                             >
                                                 {maskConfig.right ? "x" : "+"}
                                             </button>

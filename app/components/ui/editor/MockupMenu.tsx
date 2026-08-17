@@ -306,13 +306,13 @@ export function MockupMenu({
   
   return (
     <div className="p-4 flex flex-col gap-6">
-      <div className="flex items-center gap-2 text-white font-medium">
+      <div className="flex items-center gap-2 text-foreground font-medium">
         <Icon icon="hugeicons:ai-browser" width="20" aria-hidden="true" />
         <span>{t("title")}</span>
       </div>
 
       <div className="flex flex-col gap-3">
-        <p className="text-[11px] uppercase tracking-widest text-white/70 font-bold">
+        <p className="text-[11px] uppercase tracking-widest text-muted-foreground font-bold">
           {t("frames2D")}
         </p>
 
@@ -327,14 +327,14 @@ export function MockupMenu({
             <button
               type="button"
               className={`group relative flex items-center gap-3 p-2 squircle-element border transition-all w-full h-35 ${mockupId !== "none"
-                ? "bg-blue-500/10 border-blue-500/40 text-blue-300"
-                : "bg-white/3 border-white/[0.07] text-white/40 hover:border-white/20"
+                ? "bg-blue-500/10 border-blue-500/40 text-blue-600 dark:text-blue-300"
+                : "bg-muted/50 border-border text-muted-foreground/60 hover:border-border"
                 }`}
               aria-label={t("windowType")}
               aria-haspopup="dialog"
             >
               <div className="flex-1 flex flex-col gap-2 h-full justify-center overflow-hidden">
-                <div className="w-full squircle-element overflow-hidden bg-neutral-900 relative h-full">
+                <div className="w-full squircle-element overflow-hidden bg-muted relative h-full">
                   {(() => {
                     const categoryConfig = MOCKUP_CATEGORIES.find(
                       (c) => c.id === currentMockup?.category
@@ -357,29 +357,29 @@ export function MockupMenu({
                   </span>
                 </div>
               </div>
-              <div className="flex items-center justify-center px-1 border-l border-white/5 h-full group-hover:text-white transition-colors">
+              <div className="flex items-center justify-center px-1 border-l border-border h-full group-hover:text-foreground transition-colors">
                 <Icon icon="uil:sort" aria-hidden="true" width="20" />
               </div>
             </button>
           </PopoverTrigger>
 
           <PopoverContent side="right" align="start" sideOffset={12} className="w-125 p-0 border-0 shadow-2xl">
-            <div className="flex flex-col bg-[#111113] border border-white/10 squircle-element-camera overflow-hidden shadow-2xl max-h-150">
-              <div className="flex items-center gap-2 px-4 py-3 border-b border-white/10 bg-white/2 flex-wrap">
+            <div className="flex flex-col bg-popover dark:bg-black border border-border squircle-element-camera overflow-hidden shadow-2xl max-h-150">
+              <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-muted/40 flex-wrap">
                 {MOCKUP_CATEGORIES.map((cat) => (
                   <button
                     key={cat.id}
                     onClick={() => handleCategoryChange(cat.id)}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium uppercase tracking-wider transition-all ${selectedCategory === cat.id
-                      ? "bg-blue-500/20 text-blue-400 border border-blue-500/40"
-                      : "bg-white/5 text-white/60 hover:text-white/70 border border-transparent hover:border-white/10"
+                      ? "bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/40"
+                      : "bg-muted text-muted-foreground hover:text-muted-foreground border border-transparent hover:border-border"
                       }`}
                   >
                     <Icon icon={cat.icon} width="12" />
                     <span>{t(`categories.${cat.id}`)}</span>
                   </button>
                 ))}
-                <span className="ml-auto text-[11px] text-white/70">
+                <span className="ml-auto text-[11px] text-muted-foreground">
                   {t("count", { count: filteredMockups.length })}
                 </span>
               </div>
@@ -403,7 +403,7 @@ export function MockupMenu({
                       <button
                         key={mockup.id}
                         onClick={() => handleMockupSelect(mockup.id)}
-                        className={`group relative w-full h-28 squircle-element border-2 overflow-hidden shadow-lg transition-all active:scale-95 ${isActive ? "border-blue-500 ring-2 ring-blue-500/50" : "border-neutral-800 hover:border-white/20"
+                        className={`group relative w-full h-28 squircle-element border-2 overflow-hidden shadow-lg transition-all active:scale-95 ${isActive ? "border-blue-500 ring-2 ring-blue-500/50" : "border-border hover:border-muted-foreground/50"
                           }`}
                       >
                         <div
@@ -417,13 +417,13 @@ export function MockupMenu({
                             {mockup.preview}
                           </div>
                         </div>
-                        <div className="absolute inset-0 group-hover:bg-black/5 transition-colors pointer-events-none" />
-                        <div className="absolute bottom-0 left-0 bg-black/60 border-t border-r border-white/10 px-1 py-0.5 text-[11px] text-white/80 font-semibold tracking-tight rounded-tr-md rounded-bl-lg z-30">
+                        <div className="absolute inset-0 group-hover:bg-black/5 dark:group-hover:bg-white/5 transition-colors pointer-events-none" />
+                        <div className="absolute bottom-0 left-0 bg-black/60 border-t border-r border-border px-1 py-0.5 text-[11px] text-white/80 font-semibold tracking-tight rounded-tr-md rounded-bl-lg z-30">
                           {t(`mockups.${mockup?.id}`) || t("none")}
                         </div>
                         {isActive && (
                           <div className="absolute top-2 right-2 rounded-full shadow-[0_0_10px_rgba(96,165,250,0.8)] z-30">
-                            <Icon icon="icon-park-solid:check-one" width="20" className="text-blue-500" />
+                            <Icon icon="icon-park-solid:check-one" width="20" className="text-blue-600 dark:text-blue-500" />
                           </div>
                         )}
                       </button>
@@ -448,7 +448,7 @@ export function MockupMenu({
                 <button
                   key={id}
                   onClick={() => handleMockupSelect(id)}
-                  className={`group relative w-full h-20 squircle-element border overflow-hidden transition-all active:scale-95 ${isActive ? "border-blue-500/60 ring-1 ring-blue-500/30" : "border-white/[0.07] hover:border-white/20"
+                  className={`group relative w-full h-20 squircle-element border overflow-hidden transition-all active:scale-95 ${isActive ? "border-blue-500/60 ring-1 ring-blue-500/30" : "border-border hover:border-muted-foreground/50"
                     }`}
                 >
                   <div
@@ -459,13 +459,13 @@ export function MockupMenu({
                       {mockup.preview}
                     </div>
                   </div>
-                  <div className="absolute bottom-0 left-0 bg-black/60 border-t border-r border-white/10 px-1 py-0.5 text-[9px] text-white/80 font-semibold tracking-tight rounded-tr-md rounded-bl-lg z-30">
+                  <div className="absolute bottom-0 left-0 bg-black/60 border-t border-r border-border px-1 py-0.5 text-[9px] text-white/80 font-semibold tracking-tight rounded-tr-md rounded-bl-lg z-30">
                     {t(`mockups.${mockup?.id}`) || t("none")}
                   </div>
                   {isActive && (
                     <div className="absolute top-1.5 right-1.5 rounded-full shadow-[0_0_8px_rgba(96,165,250,0.7)] z-30 flex items-center justify-center size-4">
                       <div className="absolute size-2 bg-white rounded-full z-0" />
-                      <Icon icon="icon-park-solid:check-one" width="24" height="24" className="text-blue-500 relative z-10" />
+                      <Icon icon="icon-park-solid:check-one" width="24" height="24" className="text-blue-600 dark:text-blue-500 relative z-10" />
                     </div>
                   )}
                 </button>
@@ -476,19 +476,19 @@ export function MockupMenu({
       </div>
 
       <>
-        <div className="h-px bg-white/6" />
+        <div className="h-px bg-muted" />
         <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between">
-            <p className="text-[11px] uppercase tracking-widest text-white/70 font-bold">
+            <p className="text-[11px] uppercase tracking-widest text-muted-foreground font-bold">
               {t("devices3D")}
             </p>
             <div className="flex items-center gap-2">
-              <div className="flex items-center squircle-element border border-white/8 bg-white/3 p-0.5">
+              <div className="flex items-center squircle-element border border-border bg-muted/50 p-0.5">
                 <button
                   type="button"
                   onClick={() => scrollDevices("left")}
                   disabled={!canScrollLeft}
-                  className="flex size-7 items-center justify-center squircle-element text-white/70 transition-all hover:bg-white/6 hover:text-white disabled:pointer-events-none disabled:opacity-30"
+                  className="flex size-7 items-center justify-center squircle-element text-muted-foreground transition-all hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-30"
                 >
                   <Icon icon="ph:caret-left-bold" width="12" />
                 </button>
@@ -496,7 +496,7 @@ export function MockupMenu({
                   type="button"
                   onClick={() => scrollDevices("right")}
                   disabled={!canScrollRight}
-                  className="flex size-7 items-center justify-center rounded-full text-white/70 transition-all hover:bg-white/6 hover:text-white disabled:pointer-events-none disabled:opacity-30"
+                  className="flex size-7 items-center justify-center rounded-full text-muted-foreground transition-all hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-30"
                 >
                   <Icon icon="ph:caret-right-bold" width="12" />
                 </button>
@@ -506,7 +506,7 @@ export function MockupMenu({
 
           <div className="relative">
             <div
-              className={`pointer-events-none absolute inset-y-0 right-0 z-20 w-12 bg-gradient-to-l from-[#141417] to-transparent transition-opacity duration-200 ${canScrollRight ? "opacity-100" : "opacity-0"
+              className={`pointer-events-none absolute inset-y-0 right-0 z-20 w-12 bg-gradient-to-l from-background to-transparent transition-opacity duration-200 ${canScrollRight ? "opacity-100" : "opacity-0"
                 }`}
             />
             <div

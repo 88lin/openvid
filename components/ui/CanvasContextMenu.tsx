@@ -45,7 +45,7 @@ export function CanvasContextMenu({
     return (
       <div
         data-canvas-ctx-menu
-        className="fixed z-[9999] bg-black border border-white/15 squircle-element-camera shadow-2xl py-1 min-w-45 overflow-hidden"
+        className="fixed z-[9999] bg-popover dark:bg-black border border-border squircle-element-camera shadow-2xl py-1 min-w-45 overflow-hidden"
         style={{
           left: Math.min(canvasCtxMenu.x, window.innerWidth - 196),
           top: Math.min(canvasCtxMenu.y, window.innerHeight - 96),
@@ -53,7 +53,7 @@ export function CanvasContextMenu({
         onPointerDown={(e) => e.stopPropagation()}
       >
         <button
-          className="w-full flex items-center gap-2.5 px-3 py-1.5 text-[11.5px] text-neutral-300 hover:bg-white/6 transition-colors text-left"
+          className="w-full flex items-center gap-2.5 px-3 py-1.5 text-[11.5px] text-popover-foreground/80 hover:bg-muted transition-colors text-left"
           onClick={() => {
             onVideoBringToFront?.();
             setCanvasCtxMenu(null);
@@ -63,7 +63,7 @@ export function CanvasContextMenu({
           {t("actions.bringToFront")}
         </button>
         <button
-          className="w-full flex items-center gap-2.5 px-3 py-1.5 text-[11.5px] text-neutral-300 hover:bg-white/6 transition-colors text-left"
+          className="w-full flex items-center gap-2.5 px-3 py-1.5 text-[11.5px] text-popover-foreground/80 hover:bg-muted transition-colors text-left"
           onClick={() => {
             onVideoSendToBack?.();
             setCanvasCtxMenu(null);
@@ -83,7 +83,7 @@ export function CanvasContextMenu({
   return (
     <div
       data-canvas-ctx-menu
-      className="fixed z-[9999] bg-black border border-white/15 squircle-element-camera shadow-2xl py-1 min-w-45 overflow-hidden"
+      className="fixed z-[9999] bg-popover dark:bg-black border border-border squircle-element-camera shadow-2xl py-1 min-w-45 overflow-hidden"
       style={{
         left: Math.min(canvasCtxMenu.x, window.innerWidth - 196),
         top: Math.min(canvasCtxMenu.y, window.innerHeight - 160),
@@ -93,7 +93,7 @@ export function CanvasContextMenu({
       {!isMulti && singleId && (
         <>
           <button
-            className="w-full flex items-center gap-2.5 px-3 py-1.5 text-[11.5px] text-neutral-300 hover:bg-white/6 transition-colors text-left"
+            className="w-full flex items-center gap-2.5 px-3 py-1.5 text-[11.5px] text-popover-foreground/80 hover:bg-muted transition-colors text-left"
             onClick={() => {
               const maxZ = Math.max(...canvasElements.map((e) => e.zIndex), VIDEO_Z_INDEX);
               if (onElementUpdate) onElementUpdate(singleId, { zIndex: maxZ + 1 });
@@ -105,7 +105,7 @@ export function CanvasContextMenu({
           </button>
 
           <button
-            className="w-full flex items-center gap-2.5 px-3 py-1.5 text-[11.5px] text-neutral-300 hover:bg-white/6 transition-colors text-left"
+            className="w-full flex items-center gap-2.5 px-3 py-1.5 text-[11.5px] text-popover-foreground/80 hover:bg-muted transition-colors text-left"
             onClick={() => {
               const el = canvasElements.find((e) => e.id === singleId);
               if (!el || !onElementUpdate) return;
@@ -122,14 +122,14 @@ export function CanvasContextMenu({
             {t("actions.sendToBack")}
           </button>
 
-          <div className="my-1 h-px bg-white/6" />
+          <div className="my-1 h-px bg-border" />
         </>
       )}
 
       {isMulti && (
         <>
           <button
-            className="w-full flex items-center gap-2.5 px-3 py-1.5 text-[11.5px] text-neutral-300 hover:bg-white/6 transition-colors text-left"
+            className="w-full flex items-center gap-2.5 px-3 py-1.5 text-[11.5px] text-popover-foreground/80 hover:bg-muted transition-colors text-left"
             onClick={() => {
               const newGroupId = crypto.randomUUID();
               ids.forEach((id) => {
@@ -143,7 +143,7 @@ export function CanvasContextMenu({
           </button>
 
           <button
-            className="w-full flex items-center gap-2.5 px-3 py-1.5 text-[11.5px] text-neutral-300 hover:bg-white/6 transition-colors text-left"
+            className="w-full flex items-center gap-2.5 px-3 py-1.5 text-[11.5px] text-popover-foreground/80 hover:bg-muted transition-colors text-left"
             onClick={() => {
               const groupIds = new Set(
                 ids.map((id) => canvasElements.find((e) => e.id === id)?.groupId).filter(Boolean)
@@ -160,12 +160,12 @@ export function CanvasContextMenu({
             {t2("layerPanel.ungroupAction")}
           </button>
 
-          <div className="my-1 h-px bg-white/6" />
+          <div className="my-1 h-px bg-border" />
         </>
       )}
 
       <button
-        className="w-full flex items-center gap-2.5 px-3 py-1.5 text-[11.5px] text-red-400 hover:bg-red-500/10 transition-colors text-left"
+        className="w-full flex items-center gap-2.5 px-3 py-1.5 text-[11.5px] text-destructive hover:bg-destructive/10 transition-colors text-left"
         onClick={() => {
           if (onElementDelete) onElementDelete(ids.length === 1 ? ids[0] : [...ids]);
           setCanvasSelectedIds([]);

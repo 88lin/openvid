@@ -111,8 +111,8 @@ export function AspectRatioSelect({
                                     key={item.id}
                                     onClick={() => handleStandardRatioClick(item.id)}
                                     className={`group flex flex-col items-center justify-center gap-2 p-2.5 squircle-element border transition-all ${isSelected
-                                            ? "border-primary bg-gradient-radial-primary text-primary"
-                                            : "border-white/20 bg-transparent hover:border-border hover:bg-accent text-muted-foreground"
+                                            ? "border-primary text-primary"
+                                            : "border-border/60 bg-transparent hover:border-border hover:bg-accent text-muted-foreground"
                                         }`}
                                 >
                                     <div className="h-10 flex items-center justify-center">

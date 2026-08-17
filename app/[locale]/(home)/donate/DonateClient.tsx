@@ -27,7 +27,7 @@ export default function DonateClient({ methods, defaultMethod }: DonateClientPro
   return (
     <div className="min-h-screen bg-black text-white overflow-hidden pt-24 pb-16 relative">
       <div className="max-w-2xl mx-auto px-4">
-        <Link href="/" className="inline-flex items-center gap-2 text-sm text-white/40 hover:text-white mb-12 transition-colors group font-medium" aria-label={t("backHome")}>
+        <Link href="/" className="inline-flex items-center gap-2 text-sm text-white/70 hover:text-white mb-12 transition-colors group font-medium" aria-label={t("backHome")}>
           <Icon icon="lucide:arrow-left" width="16" className="group-hover:-translate-x-1 transition-transform" aria-hidden="true" />
           {t("backHome")}
         </Link>
@@ -65,11 +65,11 @@ export default function DonateClient({ methods, defaultMethod }: DonateClientPro
                     <div>
                       <div className="flex items-center gap-2 mb-0.5">
                         <span className="text-sm font-medium text-white/90 group-hover:text-white transition-colors">{method.name}</span>
-                        <span className="text-[9px] uppercase tracking-wider text-white/40 border border-white/10 px-1.5 py-0.5 rounded font-medium">
+                        <span className="text-[9px] uppercase tracking-wider text-white/70 border border-white/10 px-1.5 py-0.5 rounded font-medium">
                           {method.tagline}
                         </span>
                       </div>
-                      <p className="text-[11px] text-white/40">{method.detail}</p>
+                      <p className="text-[11px] text-white/70">{method.detail}</p>
                     </div>
                   </div>
                   <Icon icon="lucide:chevron-down" width="16" className={`text-white/30 shrink-0 transition-transform duration-300 ${selected === method.id ? "rotate-180 text-white/70" : ""}`} aria-hidden="true" />
@@ -129,7 +129,7 @@ export default function DonateClient({ methods, defaultMethod }: DonateClientPro
           <div className="relative w-full max-w-sm bg-[#131315] border border-white/10 rounded-2xl p-6 shadow-2xl flex flex-col items-center animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
             <div className="w-full flex justify-between items-center mb-6">
               <span className="text-sm font-semibold text-white/90 tracking-wide" id="qr-modal-title">{t("scanQR")}</span>
-              <button onClick={() => setQrModalSrc(null)} className="text-white/40 hover:text-white bg-white/5 hover:bg-white/10 rounded-full p-1.5 transition-colors" aria-label="Close modal">
+              <button onClick={() => setQrModalSrc(null)} className="text-white/70 hover:text-white bg-white/5 hover:bg-white/10 rounded-full p-1.5 transition-colors" aria-label="Close modal">
                 <Icon icon="lucide:x" width="18" aria-hidden="true" />
               </button>
             </div>
@@ -160,7 +160,7 @@ function CopyRow({ label, value, copyKey, copied, onCopy, copyText, copiedText }
   return (
     <div className="flex items-center justify-between bg-black border border-white/10 rounded-lg p-3 group">
       <div>
-        <p className="text-[11px] uppercase tracking-wider text-white/40 mb-1 font-medium" id={`label-${copyKey}`}>{label}</p>
+        <p className="text-[11px] uppercase tracking-wider text-white/70 mb-1 font-medium" id={`label-${copyKey}`}>{label}</p>
         <p className="font-mono text-sm text-white/90 tracking-wide" aria-labelledby={`label-${copyKey}`}>{value}</p>
       </div>
       <button 

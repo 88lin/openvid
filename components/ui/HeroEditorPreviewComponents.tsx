@@ -88,6 +88,7 @@ export const DraggableRange = memo(function DraggableRange({
         } else {
           nextEnd = Math.min(duration, Math.max(drag.initialStart + minDuration, drag.initialEnd + deltaSec));
         }
+
         onChange({ start: nextStart, end: nextEnd });
       };
 
@@ -113,27 +114,29 @@ export const DraggableRange = memo(function DraggableRange({
 
   return (
     <div
-      className={`group/range absolute top-0 h-full cursor-grab touch-none select-none active:cursor-grabbing ${className ?? ""}`}
+      className={`group/trim absolute top-0 bottom-0 cursor-grab active:cursor-grabbing select-none touch-none ${className ?? ""}`}
       style={{ left: `${left}%`, width: `${width}%` }}
       onPointerDown={startDrag("move")}
     >
       {children}
       <div
-        className="absolute -left-1 top-0 bottom-0 z-20 flex w-3 cursor-ew-resize items-center justify-center"
+        className="absolute left-0 top-0 bottom-0 w-3 cursor-ew-resize z-20 flex items-center justify-center"
         onPointerDown={startDrag("resize-left")}
       >
         <div
-          className={`h-6 w-1.5 rounded-full shadow-sm transition-colors ${handleClassName ?? "bg-black/0 opacity-0 group-hover/range:bg-black/40 group-hover/range:opacity-100"
-            }`}
+          className={`w-1.5 h-8 rounded-full transition-all ${
+            handleClassName ?? "bg-[#34A853] group-hover/trim:bg-[#4ade80]"
+          }`}
         />
       </div>
       <div
-        className="absolute -right-1 top-0 bottom-0 z-20 flex w-3 cursor-ew-resize items-center justify-center"
+        className="absolute right-0 top-0 bottom-0 w-3 cursor-ew-resize z-20 flex items-center justify-end"
         onPointerDown={startDrag("resize-right")}
       >
         <div
-          className={`h-6 w-1.5 rounded-full shadow-sm transition-colors ${handleClassName ?? "bg-black/0 opacity-0 group-hover/range:bg-black/40 group-hover/range:opacity-100"
-            }`}
+          className={`w-1.5 h-8 rounded-full transition-all ${
+            handleClassName ?? "bg-[#34A853] group-hover/trim:bg-[#4ade80]"
+          }`}
         />
       </div>
     </div>
@@ -153,27 +156,54 @@ export const TimelineClipContent = memo(function TimelineClipContent({
 }) {
   return (
     <div
-      className={`group/clip relative h-full w-full overflow-hidden rounded-md border transition-all ${isSelected
-        ? "border-emerald-400 ring-1 ring-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.4)] bg-emerald-500/25"
-        : "border-emerald-600/35 hover:border-emerald-500/60 bg-emerald-500/10"
-        }`}
+      className={`relative h-full w-full rounded-md overflow-hidden transition-colors duration-200 z-0 bg-emerald-100 ${
+        isSelected
+          ? "border-2 border-[#34A853] shadow-[0_0_12px_rgba(52,168,83,0.3)]"
+          : ""
+      }`}
+      style={{
+        border: isSelected ? undefined : "1px solid rgba(52, 168, 83, 0.4)",
+      }}
     >
-      <div className="absolute inset-0 flex">
-        {Array.from({ length: 12 }).map((_, i) => (
-          <div key={i} className="h-full flex-1 border-r border-emerald-600/10 last:border-r-0" />
-        ))}
+      <div className="absolute inset-0 flex items-center overflow-hidden">
+        <div className="flex h-full w-full">
+          {Array.from({ length: 12 }).map((_, i) => (
+            <div
+              key={i}
+              className="h-full flex-1 border-r border-[#34A853]/10 last:border-r-0"
+              style={{
+                background:
+                  "linear-gradient(to top, rgba(0, 0, 0, 0) 0%, rgba(20, 80, 40, 0.1) 50%, rgba(52, 168, 83, 0.1) 100%)",
+                boxShadow: "rgba(255, 255, 255, 0.05) 0px 1px 0px inset",
+              }}
+            />
+          ))}
+        </div>
       </div>
+
       <div
-        className="absolute inset-y-0 left-px z-[1] border-r-2 border-emerald-400 pointer-events-none"
+        className="absolute top-0 bottom-0 left-0 border-r-2 border-[#4ade80] pointer-events-none z-5"
         style={{
           width: `${progress * 100}%`,
-          background: "linear-gradient(180deg, rgba(16, 187, 130, 0.66) 0%, rgba(133, 227, 197, 0.28) 100%)",
+          background:
+            "linear-gradient(rgba(52, 168, 83, 0.9) 0%, rgb(34, 139, 34) 50%, rgb(20, 80, 40) 100%)",
+          boxShadow: "rgba(255, 255, 255, 0.2) 0px 1px 0px inset",
         }}
       />
-      <div className="relative z-10 flex h-full min-w-0 items-center justify-center gap-1.5 px-2 pointer-events-none">
-        <Icon icon="solar:videocamera-record-bold" width={10} className="shrink-0 text-emerald-700" />
-        <span className="truncate text-[9px] font-medium text-emerald-800">{label}</span>
-        <span className="shrink-0 font-mono text-[8px] text-emerald-700/70">{formatTime(duration)}</span>
+
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10 px-2">
+        <span className="flex items-center gap-2 text-[11px] font-medium drop-shadow-sm transition-colors duration-200 text-emerald-700">
+          <Icon
+            icon="solar:videocamera-record-bold"
+            width={12}
+            height={12}
+            className="opacity-70 shrink-0 text-emerald-700"
+          />
+          <span className="truncate max-w-[120px]">{label}</span>
+          <span className="font-mono text-[11px] transition-colors duration-200 text-emerald-700/60">
+            {formatTime(duration)}
+          </span>
+        </span>
       </div>
     </div>
   );
@@ -192,16 +222,29 @@ export const TimelineZoomContent = memo(function TimelineZoomContent({
 }) {
   return (
     <div
-      className={`flex h-full w-full flex-col items-center justify-center gap-0 rounded-md border transition-all pointer-events-none ${isSelected
-        ? "border-blue-400 ring-1 ring-blue-400 shadow-[0_0_12px_rgba(59,130,246,0.45)] bg-blue-500/30"
-        : "border-blue-500/35 hover:border-blue-500/60 bg-blue-600/15"
-        }`}
+      className={`flex h-full w-full flex-col items-center justify-center gap-0 rounded-md transition-all duration-200 pointer-events-none ${
+        isSelected
+          ? "border-2 border-blue-600 ring-1 ring-blue-600/20 shadow-[0_0_12px_rgba(59,130,246,0.25)] bg-blue-100"
+          : "border border-blue-300 hover:border-blue-500 bg-blue-50/90"
+      }`}
     >
-      <span className={`flex items-center gap-1 text-[9px] leading-tight ${isSelected ? "text-blue-800 font-semibold" : "text-blue-700"}`}>
-        <Icon icon="iconamoon:zoom-in-bold" width={9} className={isSelected ? "text-blue-300" : "text-blue-600"} />
+      <span
+        className={`flex items-center gap-1 text-[9px] leading-tight font-semibold ${
+          isSelected ? "text-blue-950" : "text-blue-900"
+        }`}
+      >
+        <Icon
+          icon="iconamoon:zoom-in-bold"
+          width={9}
+          className={isSelected ? "text-blue-700" : "text-blue-600"}
+        />
         {zoomLabel}
       </span>
-      <span className={`font-mono text-[8px] leading-tight ${isSelected ? "text-blue-900" : "text-blue-700/70"}`}>
+      <span
+        className={`font-mono text-[8px] leading-tight ${
+          isSelected ? "text-blue-800" : "text-blue-700/80"
+        }`}
+      >
         {zoomLevelToFactor(zoomLevel).toFixed(1)}× · {duration.toFixed(1)}s
       </span>
     </div>
@@ -240,7 +283,7 @@ export const ZoomFragmentRangeItem = memo(function ZoomFragmentRangeItem({
       minDuration={ZOOM_MIN_DURATION}
       onChange={handleChange}
       onClick={handleClick}
-      handleClassName="bg-blue-500/70 group-hover/range:bg-blue-400"
+      handleClassName="bg-blue-500/70 group-hover/trim:bg-blue-600"
     >
       <TimelineZoomContent
         zoomLevel={fragment.zoomLevel}
@@ -263,8 +306,9 @@ export const MiniSidebar = memo(function MiniSidebar({ t }: { t: TFunc }) {
         return (
           <div key={tool.id} className="relative">
             <div
-              className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-colors ${active ? "bg-[#EAF6FF]" : "hover:bg-black/[0.04]"
-                }`}
+              className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-colors ${
+                active ? "bg-[#EAF6FF]" : "hover:bg-black/[0.04]"
+              }`}
             >
               {tool.icon ? (
                 <Icon icon={tool.icon} width={19} style={{ color: active ? ACCENT : "rgba(0,0,0,0.4)" }} />
@@ -310,6 +354,7 @@ export const MiniSlider = memo(function MiniSlider({
 }) {
   const trackRef = useRef<HTMLDivElement>(null);
   const isDraggingRef = useRef(false);
+
   const fillPercent = max > 0 ? clamp((value / max) * 100, 0, 100) : 0;
 
   const updateFromClientX = useCallback(
@@ -329,14 +374,17 @@ export const MiniSlider = memo(function MiniSlider({
       e.preventDefault();
       isDraggingRef.current = true;
       updateFromClientX(e.clientX);
+
       const handleMove = (ev: PointerEvent) => {
         if (isDraggingRef.current) updateFromClientX(ev.clientX);
       };
+
       const handleUp = () => {
         isDraggingRef.current = false;
         window.removeEventListener("pointermove", handleMove);
         window.removeEventListener("pointerup", handleUp);
       };
+
       window.addEventListener("pointermove", handleMove);
       window.addEventListener("pointerup", handleUp);
     },
@@ -347,8 +395,9 @@ export const MiniSlider = memo(function MiniSlider({
     <div
       ref={trackRef}
       onPointerDown={handlePointerDown}
-      className={`relative flex h-[28px] w-full items-center overflow-hidden rounded-lg border border-black/6 bg-black/[0.035] ${onChange ? "cursor-pointer touch-none select-none" : ""
-        }`}
+      className={`relative flex h-[28px] w-full items-center overflow-hidden rounded-lg border border-black/6 bg-black/[0.035] ${
+        onChange ? "cursor-pointer touch-none select-none" : ""
+      }`}
     >
       <div
         className="absolute bottom-0 left-0 top-0 bg-black/10 transition-[width] duration-150 ease-out"
@@ -470,8 +519,8 @@ export const BackgroundPanel = memo(function BackgroundPanel({
   onShadowChange: (p: number) => void;
 }) {
   return (
-    <div className={`hidden md:flex flex-col w-64 lg:w-72 shrink-0 bg-white overflow-hidden`}>
-      <header className={`relative flex items-center justify-between h-12 px-3 shrink-0 bg-transparent isolation-isolate`}>
+    <div className="hidden md:flex flex-col w-64 lg:w-72 shrink-0 bg-white overflow-hidden">
+      <header className="relative flex items-center justify-between h-12 px-3 shrink-0 bg-transparent isolation-isolate">
         <div
           className="absolute inset-0 z-0 bg-[url('/images/pages/header-gradient2.avif')] bg-cover bg-center bg-no-repeat pointer-events-none"
           style={{
@@ -479,25 +528,21 @@ export const BackgroundPanel = memo(function BackgroundPanel({
               linear-gradient(to bottom, black 55%, transparent 99%),
               linear-gradient(to right, transparent 0%, black 50%),
               linear-gradient(to left, transparent 10%, black 50%)
-          `,
-            WebkitMaskImage: `
-                linear-gradient(to bottom, black 55%, transparent 99%),
-                linear-gradient(to right, transparent 0%, black 50%),
-                linear-gradient(to left, transparent 10%, black 50%)
             `,
-
+            WebkitMaskImage: `
+              linear-gradient(to bottom, black 55%, transparent 99%),
+              linear-gradient(to right, transparent 0%, black 50%),
+              linear-gradient(to left, transparent 10%, black 50%)
+            `,
             maskComposite: "intersect",
-            WebkitMaskComposite: "source-in"
+            WebkitMaskComposite: "source-in",
           }}
         />
-
         <div className="relative flex items-center gap-1.5 z-10">
           <Image src="/svg/openvid-complete-static.svg" alt="Openvid" width={100} height={80} />
         </div>
-
         <Icon icon="lucide:sidebar-close" width={16} className="relative text-black/30 z-10" />
       </header>
-
       <div className="flex-1 overflow-y-none custom-scrollbar">
         <div className="p-4 pb-2">
           <div className="flex items-center gap-2 text-black/80 font-medium text-[13px] mb-3">
@@ -505,13 +550,19 @@ export const BackgroundPanel = memo(function BackgroundPanel({
             <span>{t("background.title")}</span>
           </div>
           <div className="flex bg-black/[0.04] rounded-lg p-0.5 text-[11px] font-medium">
-            <div className="flex-1 text-center py-1.5 rounded-md bg-white shadow-sm text-black">{t("background.tabWallpaper")}</div>
-            <div className="flex-1 text-center py-1.5 text-black/40">{t("background.tabColor")}</div>
+            <div className="flex-1 text-center py-1.5 rounded-md bg-white shadow-sm text-black">
+              {t("background.tabWallpaper")}
+            </div>
+            <div className="flex-1 text-center py-1.5 text-black/40">
+              {t("background.tabColor")}
+            </div>
           </div>
         </div>
         <div className="px-4 pb-4 flex flex-col gap-4">
           <div>
-            <div className="text-[10px] uppercase tracking-widest text-black/35 font-bold mb-2">{t("background.options")}</div>
+            <div className="text-[10px] uppercase tracking-widest text-black/35 font-bold mb-2">
+              {t("background.options")}
+            </div>
             <div className="flex flex-wrap gap-2">
               <div
                 className="size-9 rounded-lg border border-black/10 shrink-0 hover:cursor-pointer bg-zinc-100 hover:bg-black/5 transition-colors"
@@ -522,17 +573,14 @@ export const BackgroundPanel = memo(function BackgroundPanel({
                   backgroundPosition: "0 0, 0 7px, 7px -7px, -7px 0",
                 }}
               />
-
               <div className="size-9 rounded-lg border border-dashed border-black/15 flex items-center justify-center bg-black/2 cursor-pointer hover:bg-black/5 transition-colors shrink-0">
                 <Icon icon="material-symbols:upload-rounded" width={18} className="text-black/40" />
               </div>
-
               <div className="size-9 rounded-lg border border-black/10 flex items-center justify-center bg-black/2 cursor-pointer hover:bg-black/5 transition-colors shrink-0">
                 <Icon icon="ri:unsplash-fill" width={18} className="text-black/40" />
               </div>
             </div>
           </div>
-
           <SwatchGrid
             label={t("background.desktopLabel")}
             items={HERO_WALLPAPERS}
@@ -549,34 +597,19 @@ export const BackgroundPanel = memo(function BackgroundPanel({
             cursorTarget={category === "gradient" ? cursorTarget : undefined}
             onSelect={onSelectGradient}
           />
-
           <div className="text-[10px] text-black/35 flex items-center justify-center gap-1">
             <Icon icon="lucide:chevron-down" width={10} />
             <span>{t("background.showMore")}</span>
           </div>
-
           <div>
-            <div className="text-[10px] uppercase tracking-widest text-black/35 font-bold mb-2">{t("background.settings")}</div>
+            <div className="text-[10px] uppercase tracking-widest text-black/35 font-bold mb-2">
+              {t("background.settings")}
+            </div>
             <div className="flex flex-col gap-2">
               <MiniSlider icon="mdi:blur" label={t("background.blur")} value={blurPercent} onChange={onBlurChange} />
-              <MiniSlider
-                icon="mdi:arrow-expand-all"
-                label={t("background.padding")}
-                value={paddingPercent}
-                onChange={onPaddingChange}
-              />
-              <MiniSlider
-                icon="mdi:border-radius"
-                label={t("background.rounded")}
-                value={roundedPercent}
-                onChange={onRoundedChange}
-              />
-              <MiniSlider
-                icon="material-symbols:shadow"
-                label={t("background.shadow")}
-                value={shadowPercent}
-                onChange={onShadowChange}
-              />
+              <MiniSlider icon="mdi:arrow-expand-all" label={t("background.padding")} value={paddingPercent} onChange={onPaddingChange} />
+              <MiniSlider icon="mdi:border-radius" label={t("background.rounded")} value={roundedPercent} onChange={onRoundedChange} />
+              <MiniSlider icon="material-symbols:shadow" label={t("background.shadow")} value={shadowPercent} onChange={onShadowChange} />
             </div>
           </div>
         </div>

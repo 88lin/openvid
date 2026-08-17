@@ -25,15 +25,15 @@ export function Toggle({
             }}
             className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${
                 disabled
-                    ? "opacity-50 cursor-not-allowed bg-white/5"
+                    ? "opacity-50 cursor-not-allowed bg-input"
                     : checked
                         ? activeColor
-                        : "bg-white/10"
+                        : "bg-input"
             }`}
         >
             <span
-                className={`absolute top-0.5 left-0.5 size-4 rounded-full bg-white transition-transform ${
-                    checked ? "translate-x-4" : "translate-x-0"
+                className={`absolute top-0.5 left-0.5 size-4 rounded-full transition-transform ${
+                    checked ? "translate-x-4 bg-white" : "translate-x-0 bg-foreground"
                 }`}
             />
         </button>

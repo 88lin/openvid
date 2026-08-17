@@ -19,25 +19,17 @@ const ToolButton = ({ label, icon, isActive, onClick, ariaLabel }: ToolButtonPro
   return (
     <button
       onClick={onClick}
-      className="flex items-center justify-center p-4 squircle-element transition-all duration-200 group relative flex-col gap-1 active:scale-95"
+      className={`flex items-center justify-center p-4 squircle-element transition-all duration-200 group relative flex-col gap-1 active:scale-95 ${isActive
+        ? "bg-[radial-gradient(circle_at_50%_0%,#555555_0%,#454545_64%)] shadow-[inset_0_1rem_0.2rem_-1rem_#fff,0_0_0_1px_#ffffff33,0_4px_4px_0_#00000033,0_0_0_1px_#333333]"
+        : "bg-muted border border-border shadow-sm"
+        }`}
       aria-label={ariaLabel || label}
       aria-pressed={isActive}
-      style={
-        isActive
-          ? {
-            background: "radial-gradient(circle at 50% 0%, #555555 0%, #454545 64%)",
-            boxShadow: "inset 0 1.01rem 0.2rem -1rem #fff, 0 0 0 1px #fff4, 0 4px 4px 0 #0004, 0 0 0 1px #333",
-          }
-          : {
-            background: "rgba(255, 255, 255, 0.05)",
-            border: "1px solid rgba(255, 255, 255, 0.1)",
-          }
-      }
     >
       <div className={`transition-transform duration-300 ${isActive ? "scale-110" : "group-hover:scale-105"}`}>
         {icon}
       </div>
-      <span className={`text-sm font-medium transition-colors ${isActive ? "text-white" : "text-white/40"}`}>
+      <span className={`text-sm font-medium transition-colors ${isActive ? "text-white" : "text-muted-foreground/60"}`}>
         {label}
       </span>
       {isActive && (
@@ -94,17 +86,17 @@ export function MobileToolsMenu({
 
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/80 backdrop-blur-sm z-100 animate-in fade-in duration-200" />
-        <Dialog.Content className="fixed bottom-0 left-0 right-0 bg-[#1a1a1d] border-t border-white/10 rounded-t-2xl z-101 p-6 animate-in slide-in-from-bottom duration-300 max-h-[80vh] overflow-y-auto">
+        <Dialog.Content className="fixed bottom-0 left-0 right-0 bg-popover dark:bg-black border-t border-border rounded-t-2xl z-101 p-6 animate-in slide-in-from-bottom duration-300 max-h-[80vh] overflow-y-auto">
           <div className="flex items-center justify-between mb-6">
-            <Dialog.Title className="text-lg font-semibold text-white" id="tools-dialog-title">
+            <Dialog.Title className="text-lg font-semibold text-foreground" id="tools-dialog-title">
               {t("title")}
             </Dialog.Title>
             <Dialog.Close asChild>
               <button
-                className="h-8 w-8 rounded-full hover:bg-white/10 flex items-center justify-center transition-colors"
+                className="h-8 w-8 rounded-full hover:bg-muted flex items-center justify-center transition-colors"
                 aria-label={t("close")}
               >
-                <Icon icon="mdi:close" width="20" className="text-white/70" />
+                <Icon icon="mdi:close" width="20" className="text-muted-foreground" />
               </button>
             </Dialog.Close>
           </div>
@@ -114,35 +106,35 @@ export function MobileToolsMenu({
               label={t("background")}
               isActive={activeTool === "screenshot"}
               onClick={() => handleToolChange("screenshot")}
-              icon={<Icon icon="solar:gallery-wide-linear" width="24" className={activeTool === "screenshot" ? "text-white" : "text-white/70"} />}
+              icon={<Icon icon="solar:gallery-wide-linear" width="24" className={activeTool === "screenshot" ? "text-foreground" : "text-muted-foreground"} />}
             />
 
             <ToolButton
               label={t("mockup")}
               isActive={activeTool === "mockup"}
               onClick={() => handleToolChange("mockup")}
-              icon={<Icon icon="hugeicons:ai-browser" width="24" className={activeTool === "mockup" ? "text-white" : "text-white/70"} />}
+              icon={<Icon icon="hugeicons:ai-browser" width="24" className={activeTool === "mockup" ? "text-foreground" : "text-muted-foreground"} />}
             />
 
             <ToolButton
               label={t("motion")}
               isActive={activeTool === "motion"}
               onClick={() => handleToolChange("motion")}
-              icon={<Icon icon="hugeicons:ai-browser" width="24" className={activeTool === "motion" ? "text-white" : "text-white/70"} />}
+              icon={<Icon icon="hugeicons:ai-browser" width="24" className={activeTool === "motion" ? "text-foreground" : "text-muted-foreground"} />}
             />
 
             <ToolButton
               label={t("zoom")}
               isActive={activeTool === "zoom"}
               onClick={() => handleToolChange("zoom")}
-              icon={<Icon icon="iconamoon:zoom-in-bold" width="24" className={activeTool === "zoom" ? "text-white" : "text-white/70"} />}
+              icon={<Icon icon="iconamoon:zoom-in-bold" width="24" className={activeTool === "zoom" ? "text-foreground" : "text-muted-foreground"} />}
             />
 
             <ToolButton
               label={t("videos")}
               isActive={activeTool === "video"}
               onClick={() => handleToolChange("video")}
-              icon={<Icon icon="iconamoon:zoom-in-bold" width="24" className={activeTool === "video" ? "text-white" : "text-white/70"} />}
+              icon={<Icon icon="iconamoon:zoom-in-bold" width="24" className={activeTool === "video" ? "text-foreground" : "text-muted-foreground"} />}
             />
 
             <ToolButton
@@ -153,7 +145,7 @@ export function MobileToolsMenu({
                 <ElementsIcon
                   width={24}
                   height={24}
-                  className={activeTool === "elements" ? "text-white" : "text-white/70"}
+                  className={activeTool === "elements" ? "text-foreground" : "text-muted-foreground"}
                 />
               }
             />
@@ -162,22 +154,17 @@ export function MobileToolsMenu({
               label={t("audio")}
               isActive={activeTool === "audio"}
               onClick={() => handleToolChange("audio")}
-              icon={<Icon icon="mdi:volume-high" width="24" className={activeTool === "audio" ? "text-white" : "text-white/70"} />}
+              icon={<Icon icon="mdi:volume-high" width="24" className={activeTool === "audio" ? "text-foreground" : "text-muted-foreground"} />}
             />
 
             <label
-              className={`flex items-center justify-center p-4 squircle-element transition-all duration-200 group relative flex-col gap-1 active:scale-95 cursor-pointer ${isUploading ? "opacity-50 cursor-not-allowed" : ""
+              className={`flex items-center justify-center p-4 squircle-element transition-all duration-200 group relative flex-col gap-1 active:scale-95 cursor-pointer bg-muted border border-border shadow-sm ${isUploading ? "opacity-50 cursor-not-allowed" : ""
                 }`}
-              style={{
-                background: "rgba(255, 255, 255, 0.05)",
-                border: "1px solid rgba(255, 255, 255, 0.1)",
-                boxShadow: isUploading ? "none" : "0 4px 4px 0 #0004",
-              }}
             >
               <div className={`transition-transform duration-300 ${isUploading ? "animate-pulse" : "group-hover:scale-105"}`}>
-                <Icon icon={isUploading ? "svg-spinners:ring-resize" : "solar:cloud-upload-bold-duotone"} width="24" className="text-white" />
+                <Icon icon={isUploading ? "svg-spinners:ring-resize" : "solar:cloud-upload-bold-duotone"} width="24" className="text-foreground" />
               </div>
-              <span className="text-sm font-medium text-white/70 group-hover:text-white transition-colors">
+              <span className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">
                 {isUploading ? t("uploading") : t("uploadVideo")}
               </span>
               {!isUploading && (

@@ -166,26 +166,26 @@ export function VideosMenu({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-[#09090B]/90 backdrop-blur-sm border-2 border-blue-500 border-dashed squircle-element-camera m-2"
+            className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-muted/90 backdrop-blur-sm border-2 border-blue-500 border-dashed squircle-element-camera m-2"
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
           >
-            <div className="w-14 h-14 rounded-full bg-blue-500/20 border flex items-center justify-center border-blue-500/50 text-blue-400 mb-4 scale-110">
+            <div className="w-14 h-14 rounded-full bg-blue-500/20 border flex items-center justify-center border-blue-500/50 text-blue-600 dark:text-blue-400 mb-4 scale-110">
               <Icon icon="solar:upload-minimalistic-bold" className="text-2xl" />
             </div>
-            <p className="text-blue-400 font-medium text-sm">{t("dropzone")}</p>
+            <p className="text-blue-600 dark:text-blue-400 font-medium text-sm">{t("dropzone")}</p>
           </motion.div>
         )}
       </AnimatePresence>
 
       <input ref={fileInputRef} type="file" accept="video/*" onChange={handleFileSelect} className="hidden" />
 
-      <div className="flex items-center gap-2 text-white font-medium">
+      <div className="flex items-center gap-2 text-foreground font-medium">
         <Icon icon="solar:video-library-outline" width="20" aria-hidden="true" />
         <span>{t("title")}</span>
       </div>
 
-      <div className="bg-[#09090B] border border-white/5 squircle-element p-3 shrink-0 mb-1">
+      <div className="bg-muted border border-border squircle-element p-3 shrink-0 mb-1">
         <TickSliderControl
           label={t("speed")}
           value={globalSpeed}
@@ -201,27 +201,27 @@ export function VideosMenu({
       <div className="flex-1 overflow-y-auto custom-scrollbar -mx-1 px-1">
         {isLoading ? (
           <div className="flex items-center justify-center py-8" role="status">
-            <Icon icon="svg-spinners:ring-resize" width="24" className="text-white/40" aria-hidden="true" />
+            <Icon icon="svg-spinners:ring-resize" width="24" className="text-muted-foreground/60" aria-hidden="true" />
           </div>
         ) : videos.length === 0 ? (
           <div
             onClick={triggerFileUpload}
-            className="group bg-[#09090B] border border-dashed border-white/10 hover:border-white/30 hover:bg-white/3 squircle-element p-8 text-center cursor-pointer transition-colors"
+            className="group bg-muted border border-dashed border-border hover:border-muted-foreground/50 hover:bg-muted/50 squircle-element p-8 text-center cursor-pointer transition-colors"
             role="button"
             tabIndex={0}
             aria-label={t("emptyState.title")}
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); triggerFileUpload(); } }}
           >
-            <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-4 group-hover:scale-105 transition-transform">
+            <div className="w-12 h-12 rounded-full bg-muted border border-border flex items-center justify-center mx-auto mb-4 group-hover:scale-105 transition-transform">
               <Icon
                 icon="solar:upload-minimalistic-outline"
                 width="24"
-                className="text-white/40 group-hover:text-white/70 transition-colors"
+                className="text-muted-foreground/60 group-hover:text-muted-foreground transition-colors"
                 aria-hidden="true"
               />
             </div>
-            <p className="text-sm font-medium text-white/70 mb-1">{t("emptyState.title")}</p>
-            <p className="text-xs text-white/40 mb-5">{t("emptyState.instruction")}</p>
+            <p className="text-sm font-medium text-muted-foreground mb-1">{t("emptyState.title")}</p>
+            <p className="text-xs text-muted-foreground/60 mb-5">{t("emptyState.instruction")}</p>
             <Button disabled={isUploading} variant="outline" className="w-full text-xs">
               {isUploading ? (
                 <>
@@ -267,13 +267,13 @@ export function VideosMenu({
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
-                    className={`group flex flex-col squircle-element border overflow-hidden transition-all duration-200 bg-neutral-950 w-full ${videosInTrackIds.includes(video.id)
+                    className={`group flex flex-col squircle-element border overflow-hidden transition-all duration-200 bg-card w-full ${videosInTrackIds.includes(video.id)
                       ? "border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.15)]"
-                      : "border-neutral-800 hover:border-neutral-700"
+                      : "border-border hover:border-muted-foreground/50"
                       }`}
                   >
                     <div
-                      className="relative w-full aspect-video cursor-pointer overflow-hidden border-b border-neutral-800/50 bg-black"
+                      className="relative w-full aspect-video cursor-pointer overflow-hidden border-b border-border bg-black"
                       onClick={() => {
                         if (!addingId) {
                           videosInTrackIds.includes(video.id)
@@ -290,7 +290,7 @@ export function VideosMenu({
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
-                          <Icon icon="solar:play-bold" width="28" className="text-neutral-800" />
+                          <Icon icon="solar:play-bold" width="28" className="text-muted-foreground/40" />
                         </div>
                       )}
 
@@ -301,12 +301,12 @@ export function VideosMenu({
                           }`}
                       >
                         {addingId === video.id ? (
-                          <div className="p-2.5 rounded-full bg-black/60 backdrop-blur-sm border border-neutral-800">
+                          <div className="p-2.5 rounded-full bg-black/60 backdrop-blur-sm border border-border">
                             <Icon icon="svg-spinners:ring-resize" width="20" className="text-white" />
                           </div>
                         ) : videosInTrackIds.includes(video.id) ? (
                           <div className="p-2 rounded-full bg-blue-500/20 backdrop-blur-sm border border-blue-500/50">
-                            <Icon icon="solar:check-circle-bold" width="24" className="text-blue-400" />
+                            <Icon icon="solar:check-circle-bold" width="24" className="text-blue-600 dark:text-blue-400" />
                           </div>
                         ) : (
                           <div className="absolute inset-0 flex items-center justify-center bg-black/20 backdrop-blur-[1px]">
@@ -320,7 +320,7 @@ export function VideosMenu({
                     </div>
 
                     <div className="flex items-center justify-between px-2.5">
-                      <span className="text-[11px] font-mono font-medium text-neutral-400">
+                      <span className="text-[11px] font-mono font-medium text-muted-foreground">
                         {formatVideoDuration(video.duration)}
                       </span>
 
@@ -333,10 +333,10 @@ export function VideosMenu({
                             }}
                             disabled={video.originalHasAudio === false}
                             className={`p-1.5 squircle-element transition-colors ${video.originalHasAudio === false
-                              ? "text-neutral-500 cursor-not-allowed"
+                              ? "text-muted-foreground cursor-not-allowed"
                               : video.hasAudio === false
-                                ? "text-red-400 hover:bg-red-500/10"
-                                : "text-neutral-400 hover:text-white hover:bg-neutral-800"
+                                ? "text-red-600 dark:text-red-400 hover:bg-red-500/10"
+                                : "text-muted-foreground hover:text-foreground hover:bg-muted"
                               }`}
                           >
                             <Icon
@@ -353,7 +353,7 @@ export function VideosMenu({
                               handleDelete(video.id);
                             }}
                             disabled={deletingId === video.id}
-                            className="p-1.5 squircle-element text-neutral-400 hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-50"
+                            className="p-1.5 squircle-element text-muted-foreground hover:text-red-600 dark:hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-50"
                           >
                             {deletingId === video.id ? (
                               <Icon icon="svg-spinners:ring-resize" width="14" />
@@ -372,7 +372,7 @@ export function VideosMenu({
         )}
       </div>
 
-      <div className="text-[11px] text-white/25 text-center pt-2 border-t border-white/5 shrink-0">
+      <div className="text-[11px] text-muted-foreground/40 text-center pt-2 border-t border-border shrink-0">
         {t("footer")}
       </div>
     </div>

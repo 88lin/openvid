@@ -19,6 +19,7 @@ export interface UserProfile {
   last_name: string | null;
   avatar_url: string | null;
   provider: string;
+  theme: "light" | "dark" | "system";
   created_at: string;
   updated_at: string;
 }

@@ -178,15 +178,15 @@ export function ToolsSidebar({
 
     const getRecordButtonContent = () => {
         if (isCountdown) {
-            return { icon: "svg-spinners:ring-resize", text: t("recording.preparing"), className: "text-orange-400" };
+            return { icon: "svg-spinners:ring-resize", text: t("recording.preparing"), className: "text-orange-500 dark:text-orange-400" };
         }
         if (isRecording) {
-            return { icon: "fluent:record-20-filled", text: t("recording.recording"), className: "text-red-400 animate-pulse" };
+            return { icon: "fluent:record-20-filled", text: t("recording.recording"), className: "text-red-500 dark:text-red-400 animate-pulse" };
         }
         if (isProcessing) {
-            return { icon: "svg-spinners:ring-resize", text: t("recording.processing"), className: "text-blue-400" };
+            return { icon: "svg-spinners:ring-resize", text: t("recording.processing"), className: "text-blue-600 dark:text-blue-400" };
         }
-        return { icon: "fluent:screenshot-record-16-regular", text: t("recording.start"), className: "group-hover:text-red-400" };
+        return { icon: "fluent:screenshot-record-16-regular", text: t("recording.start"), className: "group-hover:text-red-500 dark:group-hover:text-red-400" };
     };
 
     const recordButtonContent = getRecordButtonContent();
@@ -220,19 +220,19 @@ export function ToolsSidebar({
     }, []);
 
     return (
-        <div ref={sidebarWrapperRef} className="relative shrink-0 bg-[#141417]" style={{ width: '90px' }} role="complementary" aria-label={t("tools.toolbar")}>
+        <div ref={sidebarWrapperRef} className="relative shrink-0 bg-background" style={{ width: '90px' }} role="complementary" aria-label={t("tools.toolbar")}>
             <aside
-                className="absolute top-1/2 left-12 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center gap-4 squircle-element-xl border shadow-md shadow-white/20 border-white/10 z-40"
+                className="absolute top-1/2 left-12 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center gap-4 squircle-element-xl border border-border dark:border-white/10 z-40 bg-[radial-gradient(circle_at_50%_30%,#ffffff_0%,#ececec_64%)] dark:bg-[radial-gradient(circle_at_50%_30%,#2a2a2a_0%,#131313_64%)] shadow-[2px_5px_10px_0px_rgba(0,0,0,0.12)] dark:shadow-[2px_5px_10px_0px_rgba(255,255,255,0.22)]"
                 style={{
                     height: sidebarHeight ? `${sidebarHeight}px` : 'calc(100% - 1rem)',
                     maxHeight: sidebarHeight ? `${sidebarHeight}px` : '800px',
                     minWidth: '70px',
-                    background: 'radial-gradient(circle at 50% 30%, #2a2a2a 0%, #131313 64%)',
                 }}
                 role="toolbar"
                 aria-orientation="vertical"
                 aria-label={t("tools.toolbar")}
             >
+
                 <div className="flex flex-col gap-4 w-full overflow-y-auto px-2 custom-scrollbar mask-y-from-85% mask-y-to-99%">
                     <div className="shrink-0 h-12" aria-hidden="true" />
                     <SidebarTool
@@ -374,10 +374,10 @@ export function ToolsSidebar({
                         onDragLeave={handleDragLeave}
                         onDrop={handleDrop}
                     >
-                        <div className="absolute -top-0.5 left-0 w-full border-t border-white/10" />
+                        <div className="absolute -top-0.5 left-0 w-full border-t border-border" />
 
                         {showMobileAlert && (
-                            <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-64 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-xs text-red-300 z-50">
+                            <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-64 p-3 bg-destructive/10 border border-destructive/30 rounded-lg text-xs text-destructive z-50">
                                 {t("alerts.mobile")}
                             </div>
                         )}
@@ -390,7 +390,7 @@ export function ToolsSidebar({
                                     }`}
                             >
                                 <Icon icon={recordButtonContent.icon} width="24" height="24" className={`transition-colors ${recordButtonContent.className}`} />
-                                <span className={`text-xs font-medium transition-colors ${!isIdle ? recordButtonContent.className : "text-white/70 group-hover:text-red-400"
+                                <span className={`text-xs font-medium transition-colors ${!isIdle ? recordButtonContent.className : "text-muted-foreground group-hover:text-red-500"
                                     }`}>
                                     {recordButtonContent.text}
                                 </span>
@@ -402,8 +402,8 @@ export function ToolsSidebar({
                                 onClick={handleUploadClick}
                                 disabled={isUploading}
                                 className={`w-full flex flex-col items-center text-center justify-center gap-1.5 p-2 squircle-element-camera cursor-pointer transition-all group disabled:opacity-50 disabled:cursor-not-allowed border-2 ${isDragging
-                                    ? "bg-blue-500/20 text-blue-400 border-dashed border-blue-400/50 scale-105"
-                                    : "border-transparent text-white/70 hover:bg-blue-500/20 hover:text-blue-400"
+                                    ? "bg-blue-500/20 text-blue-600 dark:text-blue-400 border-dashed border-blue-400/50 scale-105"
+                                    : "border-transparent text-muted-foreground hover:bg-blue-500/20 hover:text-blue-600 dark:hover:text-blue-400"
                                     }`}
                                 aria-label={isUploading ? t("upload.buttonUploading") : t("upload.button")}
                             >
@@ -440,7 +440,7 @@ export function ToolsSidebar({
                         onDragLeave={handleImageDragLeave}
                         onDrop={handleImageDrop}
                     >
-                        <div className="absolute -top-0.5 left-0 w-full border-t border-white/10" />
+                        <div className="absolute -top-0.5 left-0 w-full border-t border-border" />
 
                         <TooltipAction label={t("photo.captureTooltip")}>
                             <button
@@ -455,9 +455,9 @@ export function ToolsSidebar({
                                     width="24"
                                     aria-hidden="true"
                                     height="24"
-                                    className={`transition-colors ${isCapturing ? "text-cyan-400" : "text-white/70 group-hover:text-cyan-400"}`}
+                                    className={`transition-colors ${isCapturing ? "text-cyan-600 dark:text-cyan-400" : "text-muted-foreground group-hover:text-cyan-600 dark:group-hover:text-cyan-400"}`}
                                 />
-                                <span className={`text-xs font-medium transition-colors ${isCapturing ? "text-cyan-400" : "text-white/70 group-hover:text-cyan-400"
+                                <span className={`text-xs font-medium transition-colors ${isCapturing ? "text-cyan-600 dark:text-cyan-400" : "text-muted-foreground group-hover:text-cyan-600 dark:group-hover:text-cyan-400"
                                     }`}>
                                     {isCapturing ? t("photo.capturing") : t("photo.capture")}
                                 </span>
@@ -469,8 +469,8 @@ export function ToolsSidebar({
                                 onClick={handleImageUploadClick}
                                 disabled={isUploading}
                                 className={`w-full flex flex-col items-center text-center justify-center gap-1.5 p-2 squircle-element-camera cursor-pointer transition-all group disabled:opacity-50 disabled:cursor-not-allowed border-2 ${isImageDragging
-                                    ? "bg-blue-500/20 text-blue-400 border-dashed border-blue-400/50 scale-105"
-                                    : "border-transparent text-white/70 hover:bg-blue-500/20 hover:text-blue-400"
+                                    ? "bg-blue-500/20 text-blue-600 dark:text-blue-400 border-dashed border-blue-400/50 scale-105"
+                                    : "border-transparent text-muted-foreground hover:bg-blue-500/20 hover:text-blue-600 dark:hover:text-blue-400"
                                     }`}
                             >
                                 {isUploading ? (

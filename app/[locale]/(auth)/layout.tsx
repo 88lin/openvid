@@ -6,7 +6,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
 
   return (
     <NextIntlClientProvider messages={messages}>
-      <div className="min-h-screen bg-neutral-950">
+      <div className="min-h-screen bg-neutral-950 dark">
         {children}
       </div>
     </NextIntlClientProvider>

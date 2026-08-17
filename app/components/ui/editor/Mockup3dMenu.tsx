@@ -81,7 +81,7 @@ function PositionPad({
                 ref={padRef}
                 className={`relative w-full rounded-[14px] overflow-hidden select-none border shadow-[inset_0_2px_8px_rgba(0,0,0,0.8)] transition-all duration-200 ${isDraggingState
                         ? "border-cyan-500/40 ring-1 ring-cyan-500/20"
-                        : "border-zinc-800/50"
+                        : "border-border"
                     }`}
                 style={{ height: PAD_H }}
                 onPointerDown={(e) => {
@@ -269,20 +269,20 @@ export function Mockup3dMenu({
 
     return (
         <>
-            <div className="flex items-center gap-2 p-3 border-b border-white/6 shrink-0">
+            <div className="flex items-center gap-2 p-3 border-b border-border shrink-0">
                 <DetailPageHeader label={t("device3DTitle")} icon="mage:box-3d" onBack={onBack} />
             </div>
 
             <div className="flex-1 overflow-y-auto custom-scrollbar px-4 py-4 space-y-6">
 
                 <div className="flex items-center justify-between pb-1">
-                    <span className="text-[10px] font-bold text-white/40 uppercase tracking-wider">
+                    <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">
                         {t("configuration")}
                     </span>
                     <button
                         type="button"
                         onClick={handleReset}
-                        className="flex items-center gap-1 text-[11px] text-white/50 hover:text-white transition-colors"
+                        className="flex items-center gap-1 text-[11px] text-muted-foreground/70 hover:text-foreground transition-colors"
                     >
                         <Icon icon="lucide:rotate-ccw" width="11" />
                         {t("reset")}
@@ -321,7 +321,7 @@ export function Mockup3dMenu({
                 )}
 
                 <div className="flex flex-col gap-3 pt-2">
-                    <span className="text-[10px] font-bold text-white/40 uppercase tracking-wider">
+                    <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">
                         {t("position")}
                     </span>
 
@@ -346,8 +346,8 @@ export function Mockup3dMenu({
                     />
                 </div>
 
-                <div className="flex flex-col gap-3 pt-4 border-t border-white/6">
-                    <span className="text-[10px] font-bold text-white/40 uppercase tracking-wider">
+                <div className="flex flex-col gap-3 pt-4 border-t border-border">
+                    <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">
                         {t("modelProperties") || "Propiedades del Modelo"}
                     </span>
 
@@ -376,20 +376,20 @@ export function Mockup3dMenu({
                     />
                 </div>
 
-                <div className="flex flex-col gap-3 pt-4 border-t border-white/6">
-                    <span className="text-[10px] font-bold text-white/40 uppercase tracking-wider">
+                <div className="flex flex-col gap-3 pt-4 border-t border-border">
+                    <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">
                         {t("lightingAndEnvironment") || "Entorno e Iluminación"}
                     </span>
 
                     <div className="flex flex-col gap-1.5">
-                        <span className="text-[11px] font-medium text-white/60">
+                        <span className="text-[11px] font-medium text-muted-foreground">
                             {t("environment")}
                         </span>
                         <Select
                             value={viewer3DEnvironment}
                             onValueChange={(val) => setViewer3DEnvironment(val as EnvironmentPreset)}
                         >
-                            <SelectTrigger className="w-full bg-white/3 border-white/[0.07] text-white/80 h-9" textSize="xs">
+                            <SelectTrigger className="w-full bg-muted/50 border-border text-foreground/80 h-9" textSize="xs">
                                 <SelectValue placeholder={t("environment")} />
                             </SelectTrigger>
                             <SelectContent>
@@ -414,15 +414,15 @@ export function Mockup3dMenu({
                     />
                 </div>
 
-                <div className="flex flex-col gap-3 pt-4 border-t border-white/6">
-                    <span className="text-[10px] font-bold text-white/40 uppercase tracking-wider">
+                <div className="flex flex-col gap-3 pt-4 border-t border-border">
+                    <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">
                         {t("presentation") || "Animación y Exhibición"}
                     </span>
 
                     <div
                         className={`flex items-center justify-between px-3 py-2 squircle-element border transition-all ${viewer3DAutoRotate
-                                ? "bg-blue-500/10 border-blue-500/40 text-blue-300"
-                                : "bg-white/3 border-white/[0.07] text-white/60 hover:border-white/20"
+                                ? "bg-blue-500/10 border-blue-500/40 text-blue-600 dark:text-blue-300"
+                                : "bg-muted/50 border-border text-muted-foreground hover:border-muted-foreground/50"
                             }`}
                     >
                         <span className="flex items-center gap-2 text-[12px] font-medium">

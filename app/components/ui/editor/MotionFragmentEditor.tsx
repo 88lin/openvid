@@ -49,15 +49,15 @@ export function MotionFragmentEditor({
     custom.reverse;
 
   return (
-    <div className="flex flex-col h-full text-white">
+    <div className="flex flex-col h-full text-foreground">
       <MotionPresetIconStyles />
 
-      <div className="flex items-center gap-2 p-3 border-b border-white/6 shrink-0">
+      <div className="flex items-center gap-2 p-3 border-b border-border shrink-0">
         <DetailPageHeader label={t("title")} icon="ph:arrow-left-bold" onBack={onClose} />
         <TooltipAction label={t("deleteTooltip")}>
           <button
             onClick={onDelete}
-            className="ml-auto flex items-center gap-1.5 text-[11px] text-red-400/70 hover:text-red-400 px-2 py-1 rounded-md transition-colors shrink-0"
+            className="ml-auto flex items-center gap-1.5 text-[11px] text-destructive/80 hover:text-destructive px-2 py-1 rounded-md transition-colors shrink-0"
           >
             <Icon icon="ph:trash-bold" width="12" />
             {t("actions.delete")}
@@ -85,12 +85,12 @@ export function MotionFragmentEditor({
           />
         </div>
 
-        <div className="space-y-3 p-3 bg-white/3 border border-white/8 squircle-element">
+        <div className="space-y-3 p-3 bg-muted/40 border border-border squircle-element">
           <div className="flex items-center gap-2">
-            <Icon icon="mdi:tune" width="16" className="text-white/60" />
+            <Icon icon="mdi:tune" width="16" className="text-muted-foreground" />
             <div>
-              <p className="text-xs font-medium text-white/80">{t("customize.title")}</p>
-              <p className="text-[11px] text-white/40">{t("customize.subtitle")}</p>
+              <p className="text-xs font-medium text-foreground/90">{t("customize.title")}</p>
+              <p className="text-[11px] text-muted-foreground">{t("customize.subtitle")}</p>
             </div>
           </div>
 
@@ -131,8 +131,8 @@ export function MotionFragmentEditor({
             max={45}
             onChange={(v: number) => updateCustom({ rotateZ: v })}
           />
-          <label className="flex items-center justify-between px-3 py-2.5 rounded-lg bg-white/[0.03] border border-white/5">
-            <span className="text-xs text-white/60">{t("customize.reverseLabel")}</span>
+          <label className="flex items-center justify-between px-3 py-2.5 rounded-lg bg-muted/40 border border-border">
+            <span className="text-xs text-muted-foreground">{t("customize.reverseLabel")}</span>
             <Toggle
               checked={custom.reverse}
               onChange={(v: boolean) => updateCustom({ reverse: v })}
@@ -142,7 +142,7 @@ export function MotionFragmentEditor({
           {hasCustomChanges && (
             <button
               onClick={() => onUpdate({ custom: { ...DEFAULT_MOTION_CUSTOM_OFFSETS } })}
-              className="self-start text-xs text-white/40 hover:text-white transition-colors underline underline-offset-2"
+              className="self-start text-xs text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
             >
               {t("customize.resetButton")}
             </button>

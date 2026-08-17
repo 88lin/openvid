@@ -19,7 +19,7 @@ export function LoadingSpinner({ size = "md", message }: LoadingSpinnerProps) {
                 className={`${sizeClasses[size]} text-blue-500`}
             />
             {message && (
-                <p className="text-xs text-white/40 animate-pulse">{message}</p>
+                <p className="text-xs text-muted-foreground animate-pulse">{message}</p>
             )}
         </div>
     );

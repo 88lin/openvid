@@ -317,7 +317,11 @@
     "logout": "로그아웃",
     "loggingOut": "로그아웃 중...",
     "ariaLabel": "사용자 메뉴",
-    "defaultUser": "사용자"
+    "defaultUser": "사용자",
+    "theme": "테마",
+    "themeLight": "라이트",
+    "themeDark": "다크",
+    "themeSystem": "시스템"
   },
   "donation": {
     "title": "커피 한 잔 후원하기",

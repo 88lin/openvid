@@ -73,26 +73,26 @@ export function SliderControl({
     return (
         <div
             ref={sliderRef}
-            className="relative flex h-[30px] w-full cursor-pointer touch-none select-none items-center rounded-lg bg-[#18181b] overflow-hidden border border-white/5"
+            className="relative flex h-[30px] w-full cursor-pointer touch-none select-none items-center rounded-lg overflow-hidden border border-border"
             onClick={handleClick}
             onMouseDown={handleMouseDown}
         >
             <div
-                className="absolute bottom-0 left-0 top-0 bg-white/10 transition-all duration-75 ease-out"
+                className="absolute bottom-0 left-0 top-0 bg-primary/20 transition-all duration-75 ease-out"
                 style={{ width: `${displayPercentage}%` }}
             />
 
             <div
-                className="absolute top-[6px] bottom-[6px] w-[2px] rounded-full bg-white/90 shadow-[0_0_4px_rgba(0,0,0,0.5)] transition-all duration-75 ease-out z-20"
+                className="absolute top-[6px] bottom-[6px] w-[2px] rounded-full bg-foreground shadow-[0_0_4px_rgba(0,0,0,0.5)] transition-all duration-75 ease-out z-20"
                 style={{ left: `calc(${displayPercentage}% - 1px)` }}
             />
 
             <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-between px-3">
-                <div className="flex items-center gap-2 text-[12px] font-medium text-white/60">
+                <div className="flex items-center gap-2 text-[12px] font-medium text-muted-foreground">
                     {icon && <Icon icon={icon} width="16" />}
                     <span>{label}</span>
                 </div>
-                <span className="text-[12px] font-mono text-white/60">
+                <span className="text-[12px] font-mono text-muted-foreground">
                     {displayValue}
                     {suffix}
                 </span>

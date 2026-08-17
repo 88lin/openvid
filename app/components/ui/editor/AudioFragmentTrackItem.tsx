@@ -204,14 +204,14 @@ export function AudioFragmentTrackItem({
         aria-valuenow={track.startTime}
         tabIndex={0}
       >
-        <div className={`w-1 h-6 rounded-full transition-all ${isResizing === 'start' ? 'bg-violet-300 scale-110' : 'bg-violet-400/60 group-hover/resize:bg-violet-300'}`} />
+        <div className={`w-1 h-6 rounded-full transition-all ${isResizing === 'start' ? 'bg-violet-500 dark:bg-violet-300 scale-110' : 'bg-violet-600/50 group-hover/resize:bg-violet-500 dark:bg-violet-400/60 dark:group-hover/resize:bg-violet-300'}`} />
       </motion.div>
 
       <div className="flex-1 flex flex-col items-center justify-center pointer-events-none overflow-hidden px-2">
-        <span className={`text-[11px] truncate ${isSelected || isInteracting ? 'text-violet-200' : 'text-violet-300/70'}`}>
+        <span className={`text-[11px] truncate ${isSelected || isInteracting ? 'text-violet-700 dark:text-violet-200' : 'text-violet-700/70 dark:text-violet-300/70'}`}>
           Audio
         </span>
-        <span className={`text-[9px] truncate ${isSelected || isInteracting ? 'text-violet-300/70' : 'text-violet-400/45'}`}>
+        <span className={`text-[9px] truncate ${isSelected || isInteracting ? 'text-violet-700/70 dark:text-violet-300/70' : 'text-violet-700/50 dark:text-violet-400/45'}`}>
           {(track.duration / speed).toFixed(1)}s
         </span>
       </div>
@@ -233,7 +233,7 @@ export function AudioFragmentTrackItem({
         aria-valuenow={track.startTime + track.duration}
         tabIndex={0}
       >
-        <div className={`w-1 h-6 rounded-full transition-all ${isResizing === 'end' ? 'bg-violet-300 scale-110' : 'bg-violet-400/60 group-hover/resize:bg-violet-300'}`} />
+        <div className={`w-1 h-6 rounded-full transition-all ${isResizing === 'end' ? 'bg-violet-500 dark:bg-violet-300 scale-110' : 'bg-violet-600/50 group-hover/resize:bg-violet-500 dark:bg-violet-400/60 dark:group-hover/resize:bg-violet-300'}`} />
       </motion.div>
     </motion.div>
   );

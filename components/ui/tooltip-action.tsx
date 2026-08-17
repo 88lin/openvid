@@ -14,7 +14,7 @@ export function TooltipAction({ children, label, side = "bottom" }: TooltipActio
       <TooltipContent 
         side={side} 
         sideOffset={5}
-        className="bg-white text-black border border-gray-200 px-2 py-1 shadow-sm"
+        className="bg-foreground text-background border border-border px-2 py-1 shadow-sm"
       >
         {label}
       </TooltipContent>

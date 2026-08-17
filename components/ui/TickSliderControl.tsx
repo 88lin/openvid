@@ -128,7 +128,7 @@ export function TickSliderControl({
 
     return (
         <div className="flex w-full flex-col gap-3 select-none touch-none font-sans">
-            <span className="flex items-center gap-1.5 text-[11px] uppercase tracking-widest text-white/70 font-bold">
+            <span className="flex items-center gap-1.5 text-[11px] uppercase tracking-widest text-muted-foreground font-bold">
                 {label}
             </span>
 
@@ -139,38 +139,38 @@ export function TickSliderControl({
                     onClick={handleClick}
                     onMouseDown={handleMouseDown}
                 >
-                    <div className="absolute left-0 right-0 h-[2px] bg-white/20 rounded-full" />
+                    <div className="absolute left-0 right-0 h-[2px] bg-input rounded-full" />
 
                     {ticks.map((tickPosition, index) => (
                         <div
                             key={index}
-                            className="absolute top-1/2 h-[6px] w-[2px] -translate-y-1/2 bg-[#8c8c8c] pointer-events-none"
+                            className="absolute top-1/2 h-[6px] w-[2px] -translate-y-1/2 bg-muted-foreground/40 pointer-events-none"
                             style={{ left: `calc(${tickPosition}% - 1px)` }}
                         />
                     ))}
 
                     <div
-                        className="absolute left-0 h-[2px] bg-white rounded-l-full transition-all duration-75 ease-out pointer-events-none"
+                        className="absolute left-0 h-[2px] bg-foreground rounded-l-full transition-all duration-75 ease-out pointer-events-none"
                         style={{ width: `${displayPercentage}%` }}
                     />
 
                     <div
-                        className="absolute top-1/2 h-3.5 w-3.5 -translate-y-1/2 rounded-full bg-white shadow-sm transition-all duration-75 ease-out pointer-events-none z-10"
+                        className="absolute top-1/2 h-3.5 w-3.5 -translate-y-1/2 rounded-full bg-foreground shadow-sm transition-all duration-75 ease-out pointer-events-none z-10"
                         style={{ left: `calc(${displayPercentage}% - 7px)` }}
                     />
                 </div>
 
-                <div className="flex items-center justify-between rounded-md bg-[#2b2b2b] px-3 py-1.5 text-sm font-medium text-[#c4c4c4] w-[60px] focus-within:ring-1 focus-within:ring-white/30 transition-shadow">
+                <div className="flex items-center justify-between rounded-md bg-muted px-3 py-1.5 text-sm font-medium text-foreground w-[60px] focus-within:ring-1 focus-within:ring-ring/60 transition-shadow">
                     <input
                         type="text"
                         value={localInputValue}
                         onChange={handleInputChange}
                         onBlur={applyInputValue}
                         onKeyDown={handleInputKeyDown}
-                        className="w-full bg-transparent outline-none p-0 text-[#c4c4c4] text-left font-mono"
+                        className="w-full bg-transparent outline-none p-0 text-foreground text-left font-mono"
                     />
                     {suffix && (
-                        <span className="pointer-events-none select-none ml-0.5 text-white/60 font-mono">
+                        <span className="pointer-events-none select-none ml-0.5 text-muted-foreground font-mono">
                             {suffix}
                         </span>
                     )}

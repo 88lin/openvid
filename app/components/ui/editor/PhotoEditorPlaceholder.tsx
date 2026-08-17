@@ -127,18 +127,18 @@ export function PhotoEditorPlaceholder({
   if (!previewImageUrl) {
     return (
       <div
-        className={`flex flex-col items-center justify-center bg-black border-t border-white/10 ${className}`}
+        className={`flex flex-col items-center justify-center bg-background border-t border-border ${className}`}
         style={{ height: "180px" }}
       >
-        <div className="flex flex-col items-center gap-3 text-white/40">
-          <div className="p-3 squircle-element-camera bg-white/5 border border-white/10">
+        <div className="flex flex-col items-center gap-3 text-muted-foreground/60">
+          <div className="p-3 squircle-element-camera bg-muted border border-border">
             <Icon icon="lucide:image" width={28} height={28} aria-hidden="true" />
           </div>
           <div className="text-center">
-            <p className="text-sm font-medium text-white/70">
+            <p className="text-sm font-medium text-muted-foreground">
               {t("photoMode.title") || "No Image"}
             </p>
-            <p className="text-xs text-white/40 mt-1 max-w-xs">
+            <p className="text-xs text-muted-foreground/60 mt-1 max-w-xs">
               {t("photoMode.description") || "Upload or capture an image to get started"}
             </p>
           </div>
@@ -195,44 +195,43 @@ export function PhotoEditorPlaceholder({
           if (isCustom) setIsCustomPopoverOpen(true);
         }}
         className={`group relative shrink-0 w-32 sm:w-62 aspect-video squircle-element p-px transition-all duration-300 ease-out outline-none ${isSelected
-          ? `shadow-[0_0_20px_rgba(0,163,255,0.15)]`
+          ? "bg-muted/60 shadow-[0_0_20px_rgba(0,163,255,0.15)]"
           : showCustomPlaceholder
-            ? "bg-gradient-radial-primary border border-dashed border-white/20 hover:border-white/40"
-            : "bg-white/10 hover:bg-white/20"
+            ? "border border-dashed border-border hover:border-muted-foreground/50"
+            : "bg-transparent hover:bg-muted/40"
           }`}
         aria-label={config.label}
         aria-pressed={isSelected}
       >
         <div
-          className={`relative w-full h-full rounded-[10px] overflow-hidden transition-colors ${showCustomPlaceholder ? "bg-transparent" : "bg-black/90"
+          className={`relative w-full h-full rounded-[10px] overflow-hidden transition-colors ${showCustomPlaceholder ? "bg-transparent" : ""
             }`}
         >
           {!showCustomPlaceholder && (
             <div
               className="absolute inset-0 opacity-10 pointer-events-none group-hover:opacity-[0.2] transition-opacity duration-300"
               style={{
-                backgroundImage: `radial-gradient(circle, #ffffff 0.8px, transparent 0.8px)`,
+                backgroundImage: `radial-gradient(circle, var(--foreground) 0.8px, transparent 0.8px)`,
                 backgroundSize: "10px 10px",
               }}
             />
           )}
 
           {showCustomPlaceholder ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-white/3 group-hover:bg-white/5 border border-white/10 transition-colors">
-              <div className="size-8 rounded-full bg-white/5 border border-white/5 flex items-center justify-center">
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-background border border-border transition-colors">
+              <div className="size-8 rounded-full bg-muted border border-border flex items-center justify-center">
                 <Icon
                   icon="mdi:tune-variant"
                   width={16}
-                  className="text-white/70 group-hover:text-[#00A3EE] transition-colors"
+                  className="text-muted-foreground group-hover:text-[#00A3EE] transition-colors"
                 />
               </div>
-              <span className="text-[11px] font-semibold text-white/60 group-hover:text-white/80 transition-colors">
+              <span className="text-[11px] font-semibold text-muted-foreground group-hover:text-foreground/80 transition-colors">
                 {t("photoPreview.custom.customize")}
               </span>
             </div>
           ) : (
             <>
-              <div className="absolute inset-0 bg-linear-to-br from-white/3 to-transparent" />
               {isCustom && (
                 <div className="absolute top-2 left-2 z-20 flex items-center gap-1 bg-black/60 backdrop-blur-md border border-white/10 px-1.5 py-0.5 rounded text-[9px] font-bold text-white/90 uppercase tracking-wider pointer-events-none shadow-lg">
                   <Icon icon="mdi:tune" width={10} className="text-[#00A3EE]" aria-hidden="true" />
@@ -248,7 +247,7 @@ export function PhotoEditorPlaceholder({
                   className="w-full h-full flex items-center justify-center p-3"
                 >
                   <div
-                    className="relative w-full h-full max-w-[92%] max-h-[92%] rounded-lg overflow-hidden border border-white/20 shadow-[0_0_25px_rgba(255,255,255,0.15)]" style={{
+                    className="relative w-full h-full max-w-[92%] max-h-[92%] rounded-lg overflow-hidden border border-border shadow-[0_0_25px_rgba(255,255,255,0.15)]" style={{
                       transform: `rotateX(${config.rotateX}deg) rotateY(${config.rotateY}deg) rotateZ(${config.rotateZ}deg) scale(${config.scale}) translateY(${config.translateY}%)`,
                       transformStyle: "preserve-3d",
                       transition: "transform 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94)",
@@ -295,10 +294,10 @@ export function PhotoEditorPlaceholder({
           <PopoverContent
             align="start"
             sideOffset={12}
-            className="w-64 bg-[#0A0A0A] border-white/10 shadow-2xl p-4 space-y-4 squircle-element-camera z-50"
+            className="w-64 bg-popover dark:bg-black border-border shadow-2xl p-4 space-y-4 squircle-element-camera z-50"
           >
             <PopoverHeader className="mb-2">
-              <PopoverTitle className="text-xs font-semibold text-white/80 tracking-wide uppercase flex items-center gap-2">
+              <PopoverTitle className="text-xs font-semibold text-foreground/80 tracking-wide uppercase flex items-center gap-2">
                 <Icon icon="mdi:tune" width={14} className="text-[#00A3EE]" />
                 {t("photoPreview.custom.title")}
               </PopoverTitle>
@@ -406,12 +405,12 @@ export function PhotoEditorPlaceholder({
             scale: preset.scale,
           });
         }}
-        className={`group relative shrink-0 w-32 sm:w-62 aspect-video squircle-element p-px transition-all duration-300 outline-none ${isSelected ? "shadow-[0_0_20px_rgba(0,163,255,0.15)]" : "bg-white/10 hover:bg-white/20"
+        className={`group relative shrink-0 w-32 sm:w-62 aspect-video squircle-element p-px transition-all duration-300 outline-none ${isSelected ? "bg-muted/60 shadow-[0_0_20px_rgba(0,163,255,0.15)]" : "bg-transparent hover:bg-muted/40"
           }`}
         aria-label={preset.label}
         aria-pressed={isSelected}
       >
-        <div className="relative w-full h-full rounded-[10px] overflow-hidden bg-black/90">
+        <div className="relative w-full h-full rounded-[10px] overflow-hidden bg-muted">
           {preset.imageUrl ? (
             <img
               src={preset.imageUrl}
@@ -420,9 +419,9 @@ export function PhotoEditorPlaceholder({
               draggable={false}
             />
           ) : (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-white/3 border border-dashed border-white/10">
-              <Icon icon="mdi:image-off-outline" width={16} className="text-white/30" aria-hidden="true" />
-              <span className="text-[9px] text-white/30 px-2 text-center">{preset.label}</span>
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-background/60 border border-dashed border-border">
+              <Icon icon="mdi:image-off-outline" width={16} className="text-muted-foreground/60" aria-hidden="true" />
+              <span className="text-[9px] text-muted-foreground/60 px-2 text-center">{preset.label}</span>
             </div>
           )}
 
@@ -446,9 +445,9 @@ export function PhotoEditorPlaceholder({
   };
 
   return (
-    <div className={`flex flex-col bg-black border-t border-white/10 ${className}`}>
-      <div className="h-12 shrink-0 border-t border-white/10 flex items-center justify-between px-3 bg-[#0D0D11] overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-        <div className="flex items-center gap-2 text-white/70 whitespace-nowrap shrink-0">
+    <div className={`flex flex-col bg-background border-t border-border ${className}`}>
+      <div className="h-12 shrink-0 flex items-center justify-between px-3 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+        <div className="flex items-center gap-2 text-muted-foreground whitespace-nowrap shrink-0">
           <Icon icon="mdi:tune-vertical" width={16} aria-hidden="true" />
           <span className="hidden sm:flex text-xs font-semibold tracking-wide uppercase">
             {t("photoPreview.settings")}
@@ -468,8 +467,8 @@ export function PhotoEditorPlaceholder({
                 size="sm"
                 onClick={() => onToggle3DBackground(!apply3DToBackground)}
                 className={`px-2.5 py-2 text-xs font-medium squircle-element transition-all ${apply3DToBackground
-                  ? "bg-gradient-radial-primary text-cyan-500 border border-cyan-500/50!"
-                  : "bg-white/5 text-white/60 border border-white/10 hover:bg-white/10"
+                  ? "text-cyan-500 border border-cyan-500/50!"
+                  : "bg-muted/60 text-muted-foreground border border-border hover:bg-muted"
                   }`}
                 aria-label={t("photoPreview.apply3D")}
                 aria-pressed={apply3DToBackground}
@@ -522,7 +521,7 @@ export function PhotoEditorPlaceholder({
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-1.5 px-3 py-1.5 text-xs bg-transparent border-white/10 hover:bg-white/5"
+                className="gap-1.5 px-3 py-1.5 text-xs bg-transparent border-border hover:bg-muted"
                 onClick={onOpenCropper}
                 aria-label={t("cropper.tooltip")}
               >

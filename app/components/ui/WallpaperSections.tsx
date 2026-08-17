@@ -48,7 +48,7 @@ function CustomImagePickerButton({ onSelect }: { onSelect?: (url: string) => voi
       <TooltipAction label={t("options.upload")}>
         <button
           onClick={() => inputRef.current?.click()}
-          className="aspect-square bg-[#F3F4F6] border border-white/30 squircle-element flex items-center justify-center transition-all active:scale-90 group disabled:opacity-50 hover:opacity-80"
+          className="aspect-square bg-[#F3F4F6] border squircle-element flex items-center justify-center transition-all active:scale-90 group disabled:opacity-50 hover:opacity-80"
           aria-label={t("options.upload")}
         >
           <Icon icon="material-symbols:upload-rounded" width="24" className="text-black transition-colors" aria-hidden="true" />
@@ -65,9 +65,9 @@ export function OptionsGrid({ selectedIndex = -1, onSelect, onUnsplashSelect, on
       <TooltipAction label={t("options.none")}>
         <button
           onClick={() => onSelect?.(-1)}
-          className={`aspect-square squircle-element cursor-pointer transition-all flex items-center justify-center relative overflow-hidden ${selectedIndex === -1
-            ? "ring-2 ring-white/90 shadow-lg shadow-black/40"
-            : "hover:ring-2 ring-white/60"
+          className={`aspect-square squircle-element cursor-pointer transition-all flex items-center justify-center relative overflow-hidden border ${selectedIndex === -1
+            ? "ring-2 ring-foreground/80 shadow-lg shadow-black/40"
+            : "hover:ring-2 ring-foreground/60"
             }`}
           style={{
             backgroundImage:
@@ -94,19 +94,19 @@ function CategoryPopover({ category, selectedIndex, onSelect }: { category: Wall
     <Popover open={open} onOpenChange={setOpen}>
       <TooltipAction label={t("popover.seeMore", { name: categoryName })}>
         <PopoverTrigger asChild>
-          <button className="aspect-square rounded-lg border border-white/10 bg-white/5 flex items-center justify-center hover:bg-white/10 transition group" aria-label={t("popover.seeMore", { name: categoryName })}>
-            <Icon icon="ph:plus-bold" width="16" className="text-blue-400 group-hover:text-blue-300 transition-colors" aria-hidden="true" />
+          <button className="aspect-square rounded-lg border border-border bg-muted flex items-center justify-center hover:bg-muted transition group" aria-label={t("popover.seeMore", { name: categoryName })}>
+            <Icon icon="ph:plus-bold" width="16" className="text-blue-600 dark:text-blue-400 group-hover:text-blue-600 dark:group-hover:text-blue-300 transition-colors" aria-hidden="true" />
           </button>
         </PopoverTrigger>
       </TooltipAction>
       <PopoverContent side="right" align="start" sideOffset={12} className="w-126 p-0 border-0 shadow-2xl">
-        <div className="flex flex-col bg-[#111113] border border-white/10 squircle-element-camera overflow-hidden shadow-2xl">
-          <div className="flex items-center gap-2 px-4 py-3 border-b border-white/10 bg-white/2">
-            <Icon icon={category.icon} width="14" className="text-white/60" aria-hidden="true" />
-            <span className="text-[11px] font-medium uppercase tracking-[0.15em] text-white/60">
+        <div className="flex flex-col bg-popover dark:bg-black border border-border squircle-element-camera overflow-hidden shadow-2xl">
+          <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-muted/40">
+            <Icon icon={category.icon} width="14" className="text-muted-foreground" aria-hidden="true" />
+            <span className="text-[11px] font-medium uppercase tracking-[0.15em] text-muted-foreground">
               {categoryName}
             </span>
-            <span className="ml-auto text-[11px] text-white/70">
+            <span className="ml-auto text-[11px] text-muted-foreground">
               {t("popover.moreCount", { count: category.items.length - PREVIEW_LIMIT })}
             </span>
           </div>
@@ -126,7 +126,7 @@ function PrimaryCategoryGrid({ category, selectedIndex, onSelect }: { category: 
   const visible = category.items.slice(0, PREVIEW_LIMIT);
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-widest text-white/70 font-bold">
+      <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-widest text-muted-foreground font-bold">
         <Icon icon={category.icon} width="12" />
         <span>{t(`categories.${category.id}`)}</span>
       </div>
@@ -151,7 +151,7 @@ function SecondaryCategoryGrid({ category, selectedIndex, onSelect }: { category
       transition={{ duration: 0.3, ease: "easeInOut" }}
       className="flex flex-col gap-2 overflow-hidden"
     >
-      <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-widest text-white/70 font-bold">
+      <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-widest text-muted-foreground font-bold">
         <Icon icon={category.icon} width="12" aria-hidden="true" />
         <span>{t(`categories.${category.id}`)}</span>
       </div>
@@ -185,7 +185,7 @@ export function WallpaperCatalogGrid({
       {secondary.length > 0 && (
         <motion.button
           onClick={() => onShowAllChange?.(!showAll)}
-          className="flex items-center justify-center gap-1.5 text-[11px] uppercase tracking-widest text-white/70 hover:text-white font-bold transition-colors"
+          className="flex items-center justify-center gap-1.5 text-[11px] uppercase tracking-widest text-muted-foreground hover:text-foreground font-bold transition-colors"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
@@ -209,8 +209,8 @@ function WallpaperThumb({ item, isSelected, onSelect }: { item: WallpaperItem; i
     <button
       onClick={() => onSelect?.(item.index)}
       className={`aspect-square squircle-element cursor-pointer transition-all bg-cover bg-center border ${isSelected
-        ? "ring-2 ring-white/90 border-white/40 shadow-md shadow-black/50"
-        : "border-white/10 hover:border-white/30 hover:ring-1 ring-white/20"
+        ? "ring-2 ring-foreground/80 border-border shadow-md shadow-black/50"
+        : "border-border hover:border-muted-foreground/50 hover:ring-1 ring-foreground/20"
         }`}
       style={{ backgroundImage: `url('${item.previewUrl}')` }}
       aria-label={item.filename}
@@ -225,8 +225,8 @@ function WallpaperThumbProgressive({ item, isSelected, onSelect }: { item: Wallp
     <button
       onClick={() => onSelect?.(item.index)}
       className={`aspect-square squircle-element cursor-pointer transition-all bg-cover bg-center border overflow-hidden relative ${isSelected
-        ? "ring-2 ring-white/90 border-white/40 shadow-md shadow-black/50"
-        : "border-white/10 hover:border-white/30 hover:ring-1 ring-white/20"
+        ? "ring-2 ring-foreground/80 border-border shadow-md shadow-black/50"
+        : "border-border hover:border-muted-foreground/50 hover:ring-1 ring-foreground/20"
         }`}
       aria-label={item.filename}
       aria-pressed={isSelected}

@@ -71,40 +71,40 @@ export default function PlaceholderEditor({
 
   return (
     <>
-      <div className="bg-black/50 backdrop-blur-xl flex flex-col justify-center items-center px-4 shrink-0 w-full h-11 border-b border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] rounded-t-xl">
+      <div className="bg-muted backdrop-blur-xl flex flex-col justify-center items-center px-4 shrink-0 w-full h-11 border-b border-border shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] rounded-t-xl">
         <div className="flex items-center justify-between w-full">
           <div className="flex items-center gap-4 w-1/3">
             <div className="flex gap-2">
-              <div className="size-3 rounded-full bg-white/20 hover:bg-[#FF5F56] transition-colors shadow-inner"></div>
-              <div className="size-3 rounded-full bg-white/20 hover:bg-[#FFBD2E] transition-colors shadow-inner"></div>
-              <div className="size-3 rounded-full bg-white/20 hover:bg-[#27C93F] transition-colors shadow-inner"></div>
+              <div className="size-3 rounded-full bg-muted-foreground/30 hover:bg-[#FF5F56] transition-colors shadow-inner"></div>
+              <div className="size-3 rounded-full bg-muted-foreground/30 hover:bg-[#FFBD2E] transition-colors shadow-inner"></div>
+              <div className="size-3 rounded-full bg-muted-foreground/30 hover:bg-[#27C93F] transition-colors shadow-inner"></div>
             </div>
-            <div className="hidden sm:flex items-center gap-3 text-neutral-400 ml-2">
-              <Icon icon="lucide:chevron-left" className="size-4 hover:text-neutral-200 transition-colors cursor-pointer" />
-              <Icon icon="lucide:chevron-right" className="size-4 text-neutral-600" />
+            <div className="hidden sm:flex items-center gap-3 text-muted-foreground ml-2">
+              <Icon icon="lucide:chevron-left" className="size-4 hover:text-foreground transition-colors cursor-pointer" />
+              <Icon icon="lucide:chevron-right" className="size-4 text-muted-foreground/50" />
             </div>
           </div>
 
           <div className="flex-1 flex justify-center w-1/3">
-            <div className="bg-black/40 rounded-md h-7 w-full max-w-sm flex items-center justify-between px-3 border border-white/5 shadow-[inset_0_1px_3px_rgba(0,0,0,0.5)]">
-              <Icon icon="material-symbols:lock-outline" className="size-3.5 text-neutral-400" />
-              <span className="flex-1 text-center text-xs font-medium tracking-wide truncate px-3 text-neutral-300">
+            <div className="bg-muted/60 rounded-md h-7 w-full max-w-sm flex items-center justify-between px-3 border border-border shadow-[inset_0_1px_3px_rgba(0,0,0,0.2)]">
+              <Icon icon="material-symbols:lock-outline" className="size-3.5 text-muted-foreground" />
+              <span className="flex-1 text-center text-xs font-medium tracking-wide truncate px-3 text-muted-foreground">
                 {t("browserBar.newTab")}
               </span>
-              <Icon icon="solar:restart-linear" className="size-3.5 text-neutral-400 hover:text-neutral-200 cursor-pointer transition-colors" />
+              <Icon icon="solar:restart-linear" className="size-3.5 text-muted-foreground hover:text-foreground cursor-pointer transition-colors" />
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-4 text-neutral-400 w-1/3">
-            <Icon icon="solar:upload-linear" className="size-4 hover:text-neutral-200 transition-colors cursor-pointer" />
-            <Icon icon="ic:round-plus" className="size-4 hover:text-neutral-200 transition-colors cursor-pointer" />
-            <Icon icon="solar:copy-linear" className="size-4 hover:text-neutral-200 transition-colors cursor-pointer" />
+          <div className="flex items-center justify-end gap-4 text-muted-foreground w-1/3">
+            <Icon icon="solar:upload-linear" className="size-4 hover:text-foreground transition-colors cursor-pointer" />
+            <Icon icon="ic:round-plus" className="size-4 hover:text-foreground transition-colors cursor-pointer" />
+            <Icon icon="solar:copy-linear" className="size-4 hover:text-foreground transition-colors cursor-pointer" />
           </div>
         </div>
       </div>
 
       <div
-        className="flex-1 flex items-center justify-center p-6 sm:p-12 bg-black/20"
+        className="flex-1 flex items-center justify-center p-6 sm:p-12 bg-muted/40"
         onDragEnter={handleDragEnter}
         onDragOver={handleDragOver}
         onDrop={handleDrop}
@@ -120,11 +120,11 @@ export default function PlaceholderEditor({
           />
 
           <div
-            className={`absolute inset-0 z-[1] squircle-element-camera transition-colors duration-300 ${isDragging ? "bg-blue-500/20" : "bg-black/20 group-hover:bg-black/30"
+            className={`absolute inset-0 z-[1] squircle-element-camera transition-colors duration-300 ${isDragging ? "bg-blue-500/20" : "bg-muted/70 group-hover:bg-muted/90"
               }`}
           />
 
-          <div className="absolute inset-0 z-[2] squircle-element-camera bg-[radial-gradient(circle_at_center,rgba(0,0,0,0.4)_0%,transparent_70%)] pointer-events-none" />
+          <div className="absolute inset-0 z-[2] squircle-element-camera bg-[radial-gradient(circle_at_center,rgba(0,0,0,0.25)_0%,transparent_70%)] pointer-events-none" />
 
           <div className="absolute inset-0 z-[3] shadow-[inset_1px_1px_1px_0_rgba(255,255,255,0.15),_inset_-1px_-1px_1px_0_rgba(255,255,255,0.05)] squircle-element-camera pointer-events-none" />
           {isDragging && (
@@ -137,9 +137,9 @@ export default function PlaceholderEditor({
 
           <div className="relative z-10 flex flex-col items-center pointer-events-none">
             <div
-              className={`w-16 h-16 rounded-full border flex items-center justify-center mb-6 transition-all duration-[400ms] ease-out shadow-[0_4px_16px_rgba(0,0,0,0.4)] ${isDragging
-                ? "bg-blue-500/30 border-blue-400/50 text-white scale-110 shadow-[0_0_20px_rgba(59,130,246,0.5)]"
-                : "bg-black/40 border-white/20 text-zinc-200 group-hover:scale-105 group-hover:bg-black/50"
+              className={`w-16 h-16 rounded-full border flex items-center justify-center mb-6 transition-all duration-[400ms] ease-out shadow-[0_4px_16px_rgba(0,0,0,0.2)] ${isDragging
+                ? "bg-blue-500/20 border-blue-400/50 text-blue-500 dark:text-blue-400 scale-110 shadow-[0_0_20px_rgba(59,130,246,0.5)]"
+                : "bg-muted/70 border-border text-muted-foreground group-hover:scale-105 group-hover:bg-muted"
                 }`}
             >
               <Icon
@@ -153,8 +153,8 @@ export default function PlaceholderEditor({
               />
             </div>
 
-            <div className="space-y-2 mb-8 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-              <p className="text-lg font-semibold text-white">
+            <div className="space-y-2 mb-8">
+              <p className="text-lg font-semibold text-foreground">
                 {isDragging
                   ? isImageMode
                     ? t("upload.draggingImage")
@@ -162,7 +162,7 @@ export default function PlaceholderEditor({
                   : isImageMode
                     ? t("upload.titleImage")
                     : t("upload.title")}
-                <span className="font-normal text-zinc-300 ml-1">
+                <span className="font-normal text-muted-foreground ml-1">
                   {!isDragging &&
                     ` ${isImageMode
                       ? t("upload.subtitleImage")
@@ -170,7 +170,7 @@ export default function PlaceholderEditor({
                     }`}
                 </span>
               </p>
-              <p className="text-sm font-medium text-zinc-300">
+              <p className="text-sm font-medium text-muted-foreground">
                 {isImageMode
                   ? t("upload.formatsImage")
                   : t("upload.formats")}
@@ -182,7 +182,7 @@ export default function PlaceholderEditor({
                 <Button
                   variant="outline"
                   disabled={isUploading}
-                  className="bg-black/30 border-white/20 hover:bg-white/20 hover:border-white/40 hover:text-white text-zinc-100 backdrop-blur-md transition-all shadow-[0_4px_16px_rgba(0,0,0,0.5)] rounded-full px-6 font-medium"
+                  className="bg-muted/60 border-border hover:bg-muted hover:border-foreground/30 hover:text-foreground text-foreground backdrop-blur-md transition-all shadow-[0_4px_16px_rgba(0,0,0,0.2)] rounded-full px-6 font-medium"
                 >
                   {isUploading ? (
                     <>
