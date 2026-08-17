@@ -1450,7 +1450,8 @@
   "heroPreview": {
     "sidebar": {
       "record": "Record",
-      "upload": "Upload"
+      "upload": "Upload",
+      "new": "New"
     },
     "background": {
       "title": "Background",

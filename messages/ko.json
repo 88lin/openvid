@@ -1450,7 +1450,8 @@
   "heroPreview": {
     "sidebar": {
       "record": "녹화",
-      "upload": "업로드"
+      "upload": "업로드",
+      "new": "새로운 기능"
     },
     "background": {
       "title": "배경",

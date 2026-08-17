@@ -124,9 +124,8 @@ export const DraggableRange = memo(function DraggableRange({
         onPointerDown={startDrag("resize-left")}
       >
         <div
-          className={`w-1.5 h-8 rounded-full transition-all ${
-            handleClassName ?? "bg-[#34A853] group-hover/trim:bg-[#4ade80]"
-          }`}
+          className={`w-1.5 h-8 rounded-full transition-all ${handleClassName ?? "bg-[#34A853] group-hover/trim:bg-[#4ade80]"
+            }`}
         />
       </div>
       <div
@@ -134,9 +133,8 @@ export const DraggableRange = memo(function DraggableRange({
         onPointerDown={startDrag("resize-right")}
       >
         <div
-          className={`w-1.5 h-8 rounded-full transition-all ${
-            handleClassName ?? "bg-[#34A853] group-hover/trim:bg-[#4ade80]"
-          }`}
+          className={`w-1.5 h-8 rounded-full transition-all ${handleClassName ?? "bg-[#34A853] group-hover/trim:bg-[#4ade80]"
+            }`}
         />
       </div>
     </div>
@@ -156,11 +154,10 @@ export const TimelineClipContent = memo(function TimelineClipContent({
 }) {
   return (
     <div
-      className={`relative h-full w-full rounded-md overflow-hidden transition-colors duration-200 z-0 bg-emerald-100 ${
-        isSelected
+      className={`relative h-full w-full rounded-md overflow-hidden transition-colors duration-200 z-0 bg-emerald-100 ${isSelected
           ? "border-2 border-[#34A853] shadow-[0_0_12px_rgba(52,168,83,0.3)]"
           : ""
-      }`}
+        }`}
       style={{
         border: isSelected ? undefined : "1px solid rgba(52, 168, 83, 0.4)",
       }}
@@ -222,16 +219,14 @@ export const TimelineZoomContent = memo(function TimelineZoomContent({
 }) {
   return (
     <div
-      className={`flex h-full w-full flex-col items-center justify-center gap-0 rounded-md transition-all duration-200 pointer-events-none ${
-        isSelected
+      className={`flex h-full w-full flex-col items-center justify-center gap-0 rounded-md transition-all duration-200 pointer-events-none ${isSelected
           ? "border-2 border-blue-600 ring-1 ring-blue-600/20 shadow-[0_0_12px_rgba(59,130,246,0.25)] bg-blue-100"
           : "border border-blue-300 hover:border-blue-500 bg-blue-50/90"
-      }`}
+        }`}
     >
       <span
-        className={`flex items-center gap-1 text-[9px] leading-tight font-semibold ${
-          isSelected ? "text-blue-950" : "text-blue-900"
-        }`}
+        className={`flex items-center gap-1 text-[9px] leading-tight font-semibold ${isSelected ? "text-blue-950" : "text-blue-900"
+          }`}
       >
         <Icon
           icon="iconamoon:zoom-in-bold"
@@ -241,9 +236,8 @@ export const TimelineZoomContent = memo(function TimelineZoomContent({
         {zoomLabel}
       </span>
       <span
-        className={`font-mono text-[8px] leading-tight ${
-          isSelected ? "text-blue-800" : "text-blue-700/80"
-        }`}
+        className={`font-mono text-[8px] leading-tight ${isSelected ? "text-blue-800" : "text-blue-700/80"
+          }`}
       >
         {zoomLevelToFactor(zoomLevel).toFixed(1)}× · {duration.toFixed(1)}s
       </span>
@@ -306,19 +300,33 @@ export const MiniSidebar = memo(function MiniSidebar({ t }: { t: TFunc }) {
         return (
           <div key={tool.id} className="relative">
             <div
-              className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-colors ${
-                active ? "bg-[#EAF6FF]" : "hover:bg-black/[0.04]"
-              }`}
+              className={`w-11 h-11 squircle-element flex items-center justify-center transition-all duration-200 relative ${active ? "text-white" : "hover:bg-black/[0.04]"
+                }`}
+              style={
+                active
+                  ? {
+                    background: "radial-gradient(circle at 50% 0%, #555555 0%, #454545 64%)",
+                    boxShadow: "inset 0 1.01rem 0.2rem -1rem #fff, 0 0 0 1px #fff4, 0 4px 4px 0 #0004, 0 0 0 1px #333",
+                  }
+                  : {}
+              }
             >
-              {tool.icon ? (
-                <Icon icon={tool.icon} width={19} style={{ color: active ? ACCENT : "rgba(0,0,0,0.4)" }} />
-              ) : (
-                <ElementsIcon className="w-[19px] h-[19px] text-gray-400" />
+              <div className={`transition-transform duration-300 ${active ? "scale-110" : "hover:scale-105"}`}>
+                {tool.icon ? (
+                  <Icon icon={tool.icon} width={19} style={{ color: active ? "#ffffff" : "rgba(0,0,0,0.4)" }} />
+                ) : (
+                  <ElementsIcon className={`w-[19px] h-[19px] ${active ? "text-white" : "text-gray-400"}`} />
+                )}
+              </div>
+
+              {active && (
+                <div className="absolute -top-3 -left-1 size-8 bg-white rounded-full blur-[5px] rotate-45 opacity-50 pointer-events-none" />
               )}
             </div>
+
             {tool.badge === "new" && (
-              <span className="absolute -top-0.5 -right-0.5 px-[3px] py-[1px] rounded-full bg-amber-700 text-[6px] font-semibold text-white leading-tight">
-                NEW
+              <span className="absolute -top-0.5 -right-0.5 px-[3px] py-[1px] rounded-full bg-amber-700 text-[6px] font-semibold text-white leading-tight uppercase">
+                {t("sidebar.new")}
               </span>
             )}
           </div>
@@ -395,9 +403,8 @@ export const MiniSlider = memo(function MiniSlider({
     <div
       ref={trackRef}
       onPointerDown={handlePointerDown}
-      className={`relative flex h-[28px] w-full items-center overflow-hidden rounded-lg border border-black/6 bg-black/[0.035] ${
-        onChange ? "cursor-pointer touch-none select-none" : ""
-      }`}
+      className={`relative flex h-[28px] w-full items-center overflow-hidden rounded-lg border border-black/6 bg-black/[0.035] ${onChange ? "cursor-pointer touch-none select-none" : ""
+        }`}
     >
       <div
         className="absolute bottom-0 left-0 top-0 bg-black/10 transition-[width] duration-150 ease-out"
@@ -522,7 +529,7 @@ export const BackgroundPanel = memo(function BackgroundPanel({
     <div className="hidden md:flex flex-col w-64 lg:w-72 shrink-0 bg-white overflow-hidden">
       <header className="relative flex items-center justify-between h-12 px-3 shrink-0 bg-transparent isolation-isolate">
         <div
-          className="absolute inset-0 z-0 bg-[url('/images/pages/header-gradient2.avif')] bg-cover bg-center bg-no-repeat pointer-events-none"
+          className="absolute inset-0 z-0 bg-[url('/images/pages/header-gradient-light.png')] bg-cover bg-center bg-no-repeat pointer-events-none"
           style={{
             maskImage: `
               linear-gradient(to bottom, black 55%, transparent 99%),
@@ -539,14 +546,14 @@ export const BackgroundPanel = memo(function BackgroundPanel({
           }}
         />
         <div className="relative flex items-center gap-1.5 z-10">
-          <Image src="/svg/openvid-complete-static.svg" alt="Openvid" width={100} height={80} />
+          <Image src="/svg/openvid-complete-light.svg" alt="Openvid" width={100} height={80} />
         </div>
         <Icon icon="lucide:sidebar-close" width={16} className="relative text-black/30 z-10" />
       </header>
       <div className="flex-1 overflow-y-none custom-scrollbar">
         <div className="p-4 pb-2">
           <div className="flex items-center gap-2 text-black/80 font-medium text-[13px] mb-3">
-            <Icon icon="solar:gallery-wide-linear" width={16} style={{ color: ACCENT }} />
+            <Icon icon="solar:gallery-wide-linear" width={16} />
             <span>{t("background.title")}</span>
           </div>
           <div className="flex bg-black/[0.04] rounded-lg p-0.5 text-[11px] font-medium">
