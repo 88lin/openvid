@@ -26,8 +26,7 @@
 </div>
 
 <div align="center">
-  <video src="https://github.com/user-attachments/assets/d05420b8-7e52-49aa-9f2b-99cf97a2c86d">
-  </video>
+     <img width="1280" height="739" alt="ezgif-1b471ff056bcfd60 (1)" src="https://github.com/user-attachments/assets/2713acc4-88ca-4131-87ba-333eba7db1b7" />
 </div>
 
 ## Features
