@@ -197,10 +197,8 @@ export function ExportImageDropdown({
                     </span>
                     {isTransparent && (
                         <div className="flex items-center gap-2 px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 backdrop-blur-md">
-                            <div className="size-1 bg-cyan-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
-
                             <span className="text-[9px] font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400/90">
-                                Transparente
+                                 {t("transparent")}
                             </span>
                         </div>
                     )}
@@ -244,7 +242,7 @@ export function ExportImageDropdown({
                                 </div>
 
                                 <span
-                                    className={`text-[9px] font-bold tracking-tighter ${isSelected ? "text-foreground" : "text-muted-foreground/60"
+                                    className={`text-[9px] font-bold tracking-tighter ${isSelected ? "text-foreground" : "text-muted-foreground"
                                         }`}
                                 >
                                     {opt.label}

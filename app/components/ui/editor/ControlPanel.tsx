@@ -400,6 +400,7 @@ export function ControlPanel({
                         {selectedZoomFragment ? (
                             <Suspense fallback={<ZoomFragmentEditorSkeleton />}>
                                 <ZoomFragmentEditor
+                                    key={selectedZoomFragment.id}
                                     fragment={selectedZoomFragment}
                                     videoUrl={videoUrl ?? null}
                                     videoThumbnail={videoThumbnail}
