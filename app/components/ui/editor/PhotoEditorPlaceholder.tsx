@@ -233,7 +233,7 @@ export function PhotoEditorPlaceholder({
           ) : (
             <>
               {isCustom && (
-                <div className="absolute top-2 left-2 z-20 flex items-center gap-1 bg-black/60 backdrop-blur-md border border-white/10 px-1.5 py-0.5 rounded text-[9px] font-bold text-white/90 uppercase tracking-wider pointer-events-none shadow-lg">
+                <div className="absolute top-2 left-2 z-20 flex items-center gap-1 bg-background/70 dark:bg-black/60 backdrop-blur-md border border-border/60 dark:border-white/10 px-1.5 py-0.5 rounded text-[9px] font-bold text-foreground/90 dark:text-white/90 uppercase tracking-wider pointer-events-none shadow-sm dark:shadow-lg transition-colors duration-200">
                   <Icon icon="mdi:tune" width={10} className="text-[#00A3EE]" aria-hidden="true" />
                   {t("photoPreview.custom.customize")}
                 </div>
@@ -468,7 +468,7 @@ export function PhotoEditorPlaceholder({
                 onClick={() => onToggle3DBackground(!apply3DToBackground)}
                 className={`px-2.5 py-2 text-xs font-medium squircle-element transition-all ${apply3DToBackground
                   ? "text-cyan-500 border border-cyan-500/50!"
-                  : "bg-muted/60 text-muted-foreground border border-border hover:bg-muted"
+                  : "bg-muted/70 text-foreground border border-border hover:bg-muted"
                   }`}
                 aria-label={t("photoPreview.apply3D")}
                 aria-pressed={apply3DToBackground}
