@@ -26,7 +26,7 @@
 </div>
 
 <div align="center">
-     <img width="1280" height="739" alt="ezgif-1b471ff056bcfd60 (1)" src="https://github.com/user-attachments/assets/2713acc4-88ca-4131-87ba-333eba7db1b7" />
+   <img width="952" height="550" alt="poindeo-video-speed_1 5x_1787010609273 (1) (1)" src="https://github.com/user-attachments/assets/90c23e69-a542-4887-ab4c-955e6e39e981" />
 </div>
 
 ## Features
