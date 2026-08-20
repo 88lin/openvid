@@ -26,8 +26,7 @@
 </div>
 
 <div align="center">
-  <video src="https://github.com/user-attachments/assets/d05420b8-7e52-49aa-9f2b-99cf97a2c86d">
-  </video>
+   <img width="952" height="550" alt="poindeo-video-speed_1 5x_1787010609273 (1) (1)" src="https://github.com/user-attachments/assets/90c23e69-a542-4887-ab4c-955e6e39e981" />
 </div>
 
 ## Features
