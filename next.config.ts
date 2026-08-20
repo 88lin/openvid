@@ -17,6 +17,14 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   compress: true,
+  webpack(config) {
+    config.experiments = {
+      ...config.experiments,
+      asyncWebAssembly: true,
+      layers: true,
+    };
+    return config;
+  },
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
