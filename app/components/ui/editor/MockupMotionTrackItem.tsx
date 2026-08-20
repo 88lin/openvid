@@ -28,7 +28,6 @@ export function MockupMotionTrackItem({
   contentDuration,
   onSelect,
   onUpdate,
-  onDelete,
   onDragStateChange,
   otherFragments,
 }: MockupMotionTrackItemProps) {

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback, lazy, Suspense, useMemo } from "react";
-import { toBlob } from 'html-to-image';
 import { Icon } from "@iconify/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { loadVideoFromIndexedDB, deleteRecordedVideo } from "@/hooks/useScreenRecording";
@@ -18,18 +17,17 @@ import { useUndoRedo } from "@/hooks/useUndoRedo";
 import { clearAllThumbnailCache } from "@/lib/thumbnail-cache";
 import { addVideoToLibrary, addVideoToLibraryWithMetadata, getLibraryVideoCount, getLibraryVideo, findExistingVideo } from "@/lib/videos-library";
 import { calculateTotalDuration, findNextClipPosition, getClipAtTime, splitClipAtTime, type VideoTrackClip } from "@/types/video-track.types";
-import type { ExportQuality, BackgroundTab, VideoCanvasHandle, BackgroundColorConfig, AspectRatio, CropArea, ZoomFragment, AudioTrack, ImageExportFormat, UploadedAudio, ZoomMovement } from "@/types";
+import type { ExportQuality, BackgroundTab, VideoCanvasHandle, BackgroundColorConfig, AspectRatio, CropArea } from "@/types";
 import type { TrimRange } from "@/types/timeline.types";
 import type { MockupConfig, MenuPage } from "@/types/mockup.types";
 import type { EditorState } from "@/types/editor-state.types";
 import { createInitialEditorState } from "@/types/editor-state.types";
 import { DEFAULT_MOCKUP_CONFIG, getMockupDefaultConfig } from "@/types/mockup.types";
-import type { CanvasElement } from "@/types/canvas-elements.types";
 import type { CameraConfig } from "@/types/camera.types";
 import type { Preview3DConfig, ImageMaskConfig } from "@/types/photo.types";
 import { DEFAULT_MASK_CONFIG, PREVIEW_CONFIGS } from "@/types/photo.types";
 import { MOCKUPS } from "@/lib/mockup-data";
-import { gradientToCss, generateDefaultZoomFragments, createZoomFragment, ASPECT_RATIO_DIMENSIONS, getFragmentHoldBounds, findValidFragmentPosition, canAddFragmentAt } from "@/types";
+import { gradientToCss, generateDefaultZoomFragments} from "@/types";
 import { ToolsSidebar } from "@/app/components/ui/editor/ToolsSidebar";
 import { MobileToolsMenu } from "@/app/components/ui/editor/MobileToolsMenu";
 import { MobileControlPanel } from "@/app/components/ui/editor/MobileControlPanel";
@@ -40,14 +38,16 @@ import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { TimelineSkeleton } from "@/app/components/ui/Skeleton";
 import { AudioTrimModal } from "@/app/components/ui/editor/AudioTrimModal";
 import { useMockup3dContext } from "@/app/contexts/Mockup3dContext";
-import { VIDEO_Z_INDEX } from "@/lib/constants";
 import Image from "next/image";
 import Link from "next/link";
 import { TooltipAction } from "@/components/ui/tooltip-action";
-import { DEFAULT_MOCKUP_MOTION_CONFIG, findValidMotionPlacement, MockupMotionFragment, MockupMotionPresetId } from "@/lib/mockup-motion";
-import { findNextMovementSlot } from "@/lib/zoom-movement.utils";
 import { useTranslations } from "next-intl";
-import { MIN_MOVEMENT_TRACK_DURATION } from "@/app/components/ui/editor/ZoomMovementTrackItem";
+import { useCanvasElements } from "@/hooks/useCanvasElements";
+import { useEditorSelection } from "@/hooks/useEditorSelection";
+import { useImageExport } from "@/hooks/useImageExport";
+import { useAudioTracks } from "@/hooks/useAudioTracks";
+import { useMockupMotionFragments } from "@/hooks/useMockupMotionFragments";
+import { useZoomFragments } from "@/hooks/useZoomFragments";
 
 const ControlPanel = lazy(() => import("@/app/components/ui/editor/ControlPanel").then(mod => ({ default: mod.ControlPanel })));
 const Timeline = lazy(() => import("@/app/components/ui/editor/Timeline").then(mod => ({ default: mod.Timeline })));
@@ -105,15 +105,6 @@ export default function Editor() {
     // Image state for photo mode
     const [imageUrl, setImageUrl] = useState<string | null>(null);
     const imageRef = useRef<HTMLImageElement>(null);
-    const [imageExportProgress, setImageExportProgress] = useState<{
-        status: "idle" | "preparing" | "rendering" | "complete" | "error";
-        progress: number;
-        message: string;
-    }>({
-        status: "idle",
-        progress: 0,
-        message: "",
-    });
 
     // Screen capture hook
     const { captureScreen, isCapturing } = useScreenCapture();
@@ -141,7 +132,6 @@ export default function Editor() {
     const [imageMaskConfig, setImageMaskConfig] = useState<ImageMaskConfig>(DEFAULT_MASK_CONFIG);
     const [videoMaskConfig, setVideoMaskConfig] = useState<ImageMaskConfig>(DEFAULT_MASK_CONFIG);
 
-    const [activeTool, setActiveTool] = useActiveTool();
     const [elementsTextTabTrigger] = useState(0);
     const [backgroundTab, setBackgroundTab] = useState<BackgroundTab>("wallpaper");
     const [selectedWallpaper, setSelectedWallpaper] = useState(8);
@@ -170,7 +160,7 @@ export default function Editor() {
 
     // Background color/gradient state
     const [backgroundColorConfig, setBackgroundColorConfig] = useState<BackgroundColorConfig | null>(null);
-
+    const [textToolActive, setTextToolActive] = useState(false);
     // Aspect ratio, fullscreen, and cropper state
     const [aspectRatio, setAspectRatio] = useState<AspectRatio>("auto");
     const [videoDimensions, setVideoDimensions] = useState<{ width: number; height: number } | null>(null);
@@ -178,8 +168,6 @@ export default function Editor() {
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [isCropperOpen, setIsCropperOpen] = useState(false);
     const [cropArea, setCropArea] = useState<CropArea | undefined>(undefined);
-
-    const [selectedVideoClipId, setSelectedVideoClipId] = useState<string | null>(null);
 
     // Multi-video playback: store video blobs and URLs indexed by libraryVideoId
     const videoBlobsRef = useRef<Map<string, Blob>>(new Map());
@@ -253,33 +241,10 @@ export default function Editor() {
     // Ref that is always in sync with scrubTime — avoids stale closure in handlePlayheadDragEnd
     const scrubTimeRef = useRef<number>(0);
 
-    // Zoom fragments state
-    const [zoomFragments, setZoomFragments] = useState<ZoomFragment[]>([]);
-    const [selectedZoomFragmentId, setSelectedZoomFragmentId] = useState<string | null>(null);
-
-    // Ref to always have the latest zoomFragments value (prevents stale closures)
-    const zoomFragmentsRef = useRef<ZoomFragment[]>([]);
-    useEffect(() => {
-        zoomFragmentsRef.current = zoomFragments;
-    }, [zoomFragments]);
-
     // Mockup state
     const [mockupId, setMockupId] = useState<string>("none");
     const [mockupConfig, setMockupConfig] = useState<MockupConfig>(DEFAULT_MOCKUP_CONFIG);
-    const [mockupMotionFragments, setMockupMotionFragments] = useState<MockupMotionFragment[]>([]);
-    const [selectedMockupMotionFragmentId, setSelectedMockupMotionFragmentId] = useState<string | null>(null);
 
-    // Canvas elements state
-    const [canvasElements, setCanvasElements] = useState<CanvasElement[]>([]);
-    const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
-    const [multiSelectedElementIds, setMultiSelectedElementIds] = useState<string[]>([]);
-
-    // Audio state
-    const [uploadedAudios, setUploadedAudios] = useState<UploadedAudio[]>([]);
-    const [audioTracks, setAudioTracks] = useState<AudioTrack[]>([]);
-    const [muteOriginalAudio, setMuteOriginalAudio] = useState<boolean>(false);
-    const [masterVolume, setMasterVolume] = useState<number>(1);
-    const [selectedAudioTrackId, setSelectedAudioTrackId] = useState<string | null>(null);
     // Whether the currently loaded source video file contains an audio stream
     const [videoHasAudioTrack, setVideoHasAudioTrack] = useState<boolean>(true);
 
@@ -288,6 +253,79 @@ export default function Editor() {
     // Camera overlay state (from recorded video's camera track, or post-record adjustments)
     const [cameraConfig, setCameraConfig] = useState<CameraConfig | null>(null);
     const [cameraUrl, setCameraUrl] = useState<string | null>(null);
+
+    const [activeTool, setActiveTool] = useActiveTool();
+    const lastCopyActionRef = useRef<'element' | 'zoom' | 'motion' | null>(null);
+    useEffect(() => {
+        const handleWindowFocus = () => { lastCopyActionRef.current = null; };
+        window.addEventListener('focus', handleWindowFocus);
+        return () => window.removeEventListener('focus', handleWindowFocus);
+    }, []);
+
+    const {
+        selectedElementId, setSelectedElementId,
+        multiSelectedElementIds, setMultiSelectedElementIds,
+        selectedZoomFragmentId, setSelectedZoomFragmentId,
+        selectedZoomMovementId, setSelectedZoomMovementId,
+        selectedAudioTrackId, setSelectedAudioTrackId,
+        selectedVideoClipId, setSelectedVideoClipId,
+        selectedMockupMotionFragmentId, setSelectedMockupMotionFragmentId,
+        selectCanvasElement,
+        selectZoomFragment: handleSelectZoomFragment,
+        selectZoomMovement: handleSelectZoomMovement,
+        selectAudioTrack: handleSelectAudioTrack,
+        selectVideoClip: handleSelectVideoClip,
+        selectMockupMotionFragment: handleSelectMockupMotionFragment,
+    } = useEditorSelection({ setActiveTool });
+
+    const {
+        canvasElements, setCanvasElements, selectedCanvasElement, copiedElements,
+        addCanvasElement, updateCanvasElement, deleteCanvasElement,
+        bringToFront, sendToBack, copySelectedElement, pasteElement,
+    } = useCanvasElements({
+        selectedElementId, multiSelectedElementIds,
+        setSelectedElementId, setMultiSelectedElementIds,
+        setActiveTool, lastCopyActionRef,
+    });
+
+    const { imageExportProgress, handleImageExport } = useImageExport({
+        canvasRef, imageUrl, customAspectRatio, aspectRatio,
+        selectedWallpaper, selectedElementId, selectCanvasElement,
+    });
+
+    const {
+        mockupMotionFragments, setMockupMotionFragments, mockupMotionFragmentsRef,
+        selectedMockupMotionFragment,
+        handleUpdateMockupMotionFragment, handleDeleteMockupMotionFragment,
+        handleAddOrReplaceMotionPreset, handleActivateMotionTool,
+        copySelectedMockupMotionFragment, pasteMockupMotionFragment,copiedMockupMotionFragment
+    } = useMockupMotionFragments({
+        currentTime, videoDuration, setActiveTool, lastCopyActionRef,
+        selectedMockupMotionFragmentId, setSelectedMockupMotionFragmentId,
+    });
+
+    const {
+        zoomFragments, setZoomFragments, zoomFragmentsRef, zoomMovements, setZoomMovements,
+        selectedZoomFragment, handleActivateZoomTool, handleAddZoomFragment, handleAddZoomFragmentAtRange,
+        handleUpdateZoomFragment, handleToggleZoomMovement, handleAddZoomMovement,
+        handleAddZoomMovementAtRange, handleUpdateZoomMovement, handleDeleteZoomMovement,
+        handleDeleteZoomFragment, copySelectedZoomFragment, pasteZoomFragment,copiedZoomFragment
+    } = useZoomFragments({
+        currentTime, videoDuration, setActiveTool, lastCopyActionRef,
+        selectedZoomFragmentId, setSelectedZoomFragmentId,
+        selectedZoomMovementId, setSelectedZoomMovementId,
+        tZoom,
+    });
+
+    const {
+        uploadedAudios, setUploadedAudios, audioTracks, setAudioTracks,
+        muteOriginalAudio, setMuteOriginalAudio, masterVolume, setMasterVolume,
+        audioElementsRef, syncAudioPlayback,
+        handleAudioUpload, handleAudioDelete, handleAddAudioTrack,
+        handleUpdateAudioTrack, handleDeleteAudioTrack,
+        handleToggleMuteOriginalAudio, handleMasterVolumeChange,
+        autoTrimModalOpen, pendingAudioUpload, confirmAudioTrim, cancelAudioTrim,
+    } = useAudioTracks({ videoDuration, isExportingRef });
 
     const handleCameraConfigChange = useCallback((partial: Partial<CameraConfig>) => {
         setCameraConfig((prev) => (prev ? { ...prev, ...partial } : prev));
@@ -302,16 +340,6 @@ export default function Editor() {
     const isRestoringProjectRef = useRef(false);
     const isLoadingFromCacheRef = useRef(false);
     const lastRestoredProjectIdRef = useRef<string | null>(null);
-    const [copiedZoomFragment, setCopiedZoomFragment] = useState<Omit<ZoomFragment, 'id' | 'startTime' | 'endTime'> | null>(null);
-    const [zoomMovements, setZoomMovements] = useState<ZoomMovement[]>([]);
-    const [copiedZoomMovements, setCopiedZoomMovements] = useState<Array<{
-        name: string; startFrac: number; endFrac: number; focusX: number; focusY: number;
-    }>>([]);
-    const [copiedMockupMotionFragment, setCopiedMockupMotionFragment] =
-        useState<Omit<MockupMotionFragment, 'id' | 'startTime' | 'endTime'> | null>(null);
-    const [selectedZoomMovementId, setSelectedZoomMovementId] = useState<string | null>(null);
-    // Default duration for new zoom fragments
-    const DEFAULT_ZOOM_FRAGMENT_DURATION = 2;
 
     useEffect(() => {
         return () => {
@@ -358,75 +386,6 @@ export default function Editor() {
             autoSaveCurrentProject();
         }
     }, [autoSaveCurrentProject, currentProject, isPhotoMode]);
-
-    const selectedMockupMotionFragment = useMemo(
-        () => mockupMotionFragments.find((f) => f.id === selectedMockupMotionFragmentId) ?? null,
-        [mockupMotionFragments, selectedMockupMotionFragmentId]
-    );
-
-    const handleSelectMockupMotionFragment = useCallback((id: string | null) => {
-        setSelectedMockupMotionFragmentId(id);
-        setSelectedZoomFragmentId(null);
-        setSelectedZoomMovementId(null);
-        setSelectedAudioTrackId(null);
-        setSelectedVideoClipId(null);
-        setSelectedElementId(null);
-        setMultiSelectedElementIds([]);
-    }, []);
-
-    const handleUpdateMockupMotionFragment = useCallback(
-        (id: string, updates: Partial<MockupMotionFragment>) => {
-            setMockupMotionFragments((prev) =>
-                prev.map((f) => (f.id === id ? { ...f, ...updates } : f))
-            );
-        },
-        []
-    );
-
-    const handleDeleteMockupMotionFragment = useCallback((id: string) => {
-        setMockupMotionFragments((prev) => prev.filter((f) => f.id !== id));
-        setSelectedMockupMotionFragmentId((prev) => (prev === id ? null : prev));
-    }, []);
-
-    const mockupMotionFragmentsRef = useRef<MockupMotionFragment[]>([]);
-    useEffect(() => {
-        mockupMotionFragmentsRef.current = mockupMotionFragments;
-    }, [mockupMotionFragments]);
-
-    const handleAddOrReplaceMotionPreset = useCallback(
-        (presetId: MockupMotionPresetId) => {
-            const speed = DEFAULT_MOCKUP_MOTION_CONFIG.speed;
-            const intensity = DEFAULT_MOCKUP_MOTION_CONFIG.intensity;
-
-            const placement = findValidMotionPlacement(
-                presetId,
-                speed,
-                currentTime,
-                mockupMotionFragmentsRef.current,
-                videoDuration
-            );
-
-            if (!placement) {
-                return;
-            }
-
-            const newFragment: MockupMotionFragment = {
-                id: `motion_${crypto.randomUUID()}`,
-                presetId,
-                intensity,
-                speed,
-                ...placement,
-            };
-            setMockupMotionFragments((prev) => [...prev, newFragment]);
-            setSelectedMockupMotionFragmentId(newFragment.id);
-            setActiveTool("motion");
-        },
-        [currentTime, videoDuration]
-    );
-
-    const handleActivateMotionTool = useCallback(() => {
-        setActiveTool("motion");
-    }, []);
 
     // Restore current project when project ID changes (not on every currentProject update)
     useEffect(() => {
@@ -568,123 +527,6 @@ export default function Editor() {
         }
     }, [isPhotoMode, handleImageUploadToCanvas]);
 
-    const selectCanvasElement = useCallback((id: string | null) => {
-        setSelectedElementId(id);
-        setMultiSelectedElementIds([]);
-        setSelectedZoomFragmentId(null);
-        setSelectedZoomMovementId(null);
-        setSelectedVideoClipId(null);
-        setSelectedAudioTrackId(null);
-        setSelectedMockupMotionFragmentId(null);
-        if (id) {
-            setActiveTool("elements");
-        }
-    }, []);
-
-    // Image export handler - using html-to-image with fixed dimensions
-    const handleImageExport = useCallback(async (
-        format: ImageExportFormat,
-        quality: number,
-        scale: number
-    ) => {
-        if (!canvasRef.current) return;
-
-        try {
-            setImageExportProgress({ status: "preparing", progress: 0, message: "Preparing export..." });
-
-            const previewContainer = canvasRef.current.getPreviewContainer();
-            if (!previewContainer || !imageUrl) {
-                throw new Error("Preview container or image not available");
-            }
-
-            const imageElements = previewContainer.querySelectorAll('img');
-            const originalSrcs = new Map<HTMLImageElement, string>();
-
-            await Promise.all(Array.from(imageElements).map(async (img) => {
-                const src = img.src;
-                if (!src.startsWith('blob:') && !src.startsWith('data:')) return;
-
-                try {
-                    const response = await fetch(src);
-                    const blob = await response.blob();
-                    const base64 = await new Promise<string>((resolve, reject) => {
-                        const reader = new FileReader();
-                        reader.onload = () => resolve(reader.result as string);
-                        reader.onerror = reject;
-                        reader.readAsDataURL(blob);
-                    });
-                    originalSrcs.set(img, src);
-                    img.src = base64;
-                    if (!img.complete) {
-                        await new Promise<void>((resolve) => { img.onload = () => resolve(); });
-                    }
-                } catch (e) {
-                    console.warn("Could not convert image src to base64:", src, e);
-                }
-            }));
-
-            setImageExportProgress({ status: "rendering", progress: 50, message: "Rendering image..." });
-
-            let exportWidth = 1920;
-            let exportHeight = 1080;
-
-            if (customAspectRatio) {
-                exportWidth = customAspectRatio.width;
-                exportHeight = customAspectRatio.height;
-            } else {
-                const dims = ASPECT_RATIO_DIMENSIONS[aspectRatio];
-                if (dims) { exportWidth = dims.width; exportHeight = dims.height; }
-            }
-
-            exportWidth = Math.round(exportWidth * scale);
-            exportHeight = Math.round(exportHeight * scale);
-
-            const hasTransparentBackground = selectedWallpaper === -1;
-
-            // Temporarily clear ALL selection indicators (single, multi, and mockup border)
-            // so they don't appear in the html-to-image capture
-            const prevSingleSelection = selectedElementId;
-            selectCanvasElement(null);
-            const prevSelectionState = canvasRef.current?.clearAllSelection?.();
-
-            await new Promise(resolve => setTimeout(resolve, 80));
-
-            const blob = await toBlob(previewContainer, {
-                quality,
-                cacheBust: false,
-                ...(hasTransparentBackground ? {} : { backgroundColor: '#09090B' }),
-                type: `image/${format}`,
-                canvasWidth: exportWidth,
-                canvasHeight: exportHeight,
-                pixelRatio: 1,
-            });
-
-            // Restore all selection state after capture
-            if (prevSingleSelection) selectCanvasElement(prevSingleSelection);
-            if (prevSelectionState) canvasRef.current?.restoreSelectionState?.(prevSelectionState);
-
-            originalSrcs.forEach((originalSrc, img) => {
-                img.src = originalSrc;
-            });
-
-            if (!blob) throw new Error("Failed to generate image blob");
-
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.download = `openvid-${Date.now()}.${format}`;
-            link.href = url;
-            link.click();
-            URL.revokeObjectURL(url);
-
-            setImageExportProgress({ status: "complete", progress: 100, message: "Export complete!" });
-            setTimeout(() => setImageExportProgress({ status: "idle", progress: 0, message: "" }), 2000);
-
-        } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
-            setImageExportProgress({ status: "error", progress: 0, message: `Export failed: ${errorMessage}` });
-            setTimeout(() => setImageExportProgress({ status: "idle", progress: 0, message: "" }), 4000);
-        }
-    }, [imageUrl, imageDimensions, selectedWallpaper, aspectRatio, customDimensions, selectedElementId, selectCanvasElement]);
     useEffect(() => {
         if (!isPhotoMode || !imageUrl || !canvasRef.current) {
             setCanvasImageUrl(null);
@@ -759,102 +601,6 @@ export default function Editor() {
     useEffect(() => {
         muteOriginalAudioRef.current = muteOriginalAudio;
     }, [muteOriginalAudio]);
-    // Audio trim modal state
-
-    const [autoTrimModalOpen, setAutoTrimModalOpen] = useState(false);
-    const [pendingAudioUpload, setPendingAudioUpload] = useState<{
-        audio: UploadedAudio;
-        trackId: string;
-    } | null>(null);
-
-    // Audio playback refs - store HTML Audio elements for each track
-    const audioElementsRef = useRef<Map<string, HTMLAudioElement>>(new Map());
-
-    // Initialize audio elements when tracks change
-    useEffect(() => {
-        const currentElements = audioElementsRef.current;
-        const currentTrackIds = new Set(audioTracks.map(t => t.id));
-
-        // Remove audio elements for deleted tracks
-        for (const [trackId, audioEl] of currentElements.entries()) {
-            if (!currentTrackIds.has(trackId)) {
-                audioEl.pause();
-                audioEl.src = '';
-                currentElements.delete(trackId);
-            }
-        }
-
-        // Create audio elements for new tracks
-        for (const track of audioTracks) {
-            if (!currentElements.has(track.id)) {
-                const audio = uploadedAudios.find(a => a.id === track.audioId);
-                if (audio) {
-                    const audioEl = new Audio(audio.url);
-                    audioEl.preload = 'auto';
-                    audioEl.volume = track.volume * masterVolume;
-                    currentElements.set(track.id, audioEl);
-                }
-            }
-        }
-    }, [audioTracks, uploadedAudios, masterVolume]);
-
-    // Update audio volumes when master volume or track volumes change
-    useEffect(() => {
-        const currentElements = audioElementsRef.current;
-        for (const track of audioTracks) {
-            const audioEl = currentElements.get(track.id);
-            if (audioEl) {
-                audioEl.volume = track.volume * masterVolume;
-            }
-        }
-    }, [audioTracks, masterVolume]);
-    const selectedCanvasElement = useMemo(
-        () => canvasElements.find(el => el.id === selectedElementId) ?? null,
-        [canvasElements, selectedElementId]
-    );
-    // Sync audio playback with video current time
-    const syncAudioPlayback = useCallback((videoTime: number, playing: boolean) => {
-        if (isExportingRef.current) return;
-        const currentElements = audioElementsRef.current;
-
-        for (const track of audioTracks) {
-            const audioEl = currentElements.get(track.id);
-            if (!audioEl) continue;
-
-            const trackStart = track.startTime;
-            const trackEnd = track.startTime + track.duration;
-            const trimStart = track.trimStart ?? 0;
-
-            if (videoTime >= trackStart && videoTime < trackEnd) {
-                const audioTime = trimStart + (videoTime - trackStart);
-
-                if (Math.abs(audioEl.currentTime - audioTime) > 0.1) {
-                    audioEl.currentTime = audioTime;
-                }
-
-                if (playing && audioEl.paused) {
-                    audioEl.play().catch(() => { });
-                } else if (!playing && !audioEl.paused) {
-                    audioEl.pause();
-                }
-            } else {
-                if (!audioEl.paused) {
-                    audioEl.pause();
-                }
-            }
-        }
-    }, [audioTracks]);
-
-    useEffect(() => {
-        const elementsRef = audioElementsRef.current;
-        return () => {
-            for (const audioEl of elementsRef.values()) {
-                audioEl.pause();
-                audioEl.src = '';
-            }
-            elementsRef.clear();
-        };
-    }, []);
 
     const updateEditorStateDebounced = useRef<NodeJS.Timeout | null>(null);
     useEffect(() => {
@@ -1034,267 +780,6 @@ export default function Editor() {
     const handleRoundedCornersChange = useCallback((value: number) => {
         setRoundedCorners(value);
         setMockupConfig(prev => ({ ...prev, cornerRadius: value }));
-    }, []);
-
-    const [textToolActive, setTextToolActive] = useState(false);
-
-    // Canvas elements handlers
-    const addCanvasElement = useCallback((element: CanvasElement) => {
-        setCanvasElements(prev => [...prev, element]);
-        setSelectedElementId(element.id);
-    }, []);
-
-    const updateCanvasElement = useCallback((id: string, updates: Partial<CanvasElement>) => {
-        setCanvasElements(prev => prev.map(el =>
-            el.id === id ? { ...el, ...updates } as CanvasElement : el
-        ));
-    }, []);
-
-    const deleteCanvasElement = useCallback((idOrIds: string | string[]) => {
-        const idsToDelete = Array.isArray(idOrIds) ? idOrIds : [idOrIds];
-        const idsSet = new Set(idsToDelete);
-        setCanvasElements(prev => prev.filter(el => !idsSet.has(el.id)));
-        setSelectedElementId(prev => prev && idsSet.has(prev) ? null : prev);
-    }, []);
-
-    const [copiedElements, setCopiedElements] = useState<CanvasElement[]>([]);
-    const lastCopyActionRef = useRef<'element' | 'zoom' | 'motion' | null>(null);
-
-    useEffect(() => {
-        const handleWindowFocus = () => {
-            lastCopyActionRef.current = null;
-        };
-        window.addEventListener('focus', handleWindowFocus);
-        return () => window.removeEventListener('focus', handleWindowFocus);
-    }, []);
-
-    const copySelectedElement = useCallback(() => {
-        const multiSelectionIsValid =
-            multiSelectedElementIds.length > 1 &&
-            (!selectedElementId || multiSelectedElementIds.includes(selectedElementId));
-        const idsToCopy = multiSelectionIsValid
-            ? multiSelectedElementIds
-            : (selectedElementId ? [selectedElementId] : []);
-        if (idsToCopy.length === 0) return;
-        const elements = canvasElements.filter(el => idsToCopy.includes(el.id));
-        if (elements.length > 0) {
-            setCopiedElements(elements);
-            lastCopyActionRef.current = 'element';
-        }
-    }, [selectedElementId, multiSelectedElementIds, canvasElements]);
-
-    const pasteElement = useCallback(() => {
-        if (copiedElements.length === 0) return;
-
-        let nextBehindZ = Math.max(
-            VIDEO_Z_INDEX - 100,
-            ...canvasElements.filter(e => e.zIndex < VIDEO_Z_INDEX).map(e => e.zIndex)
-        );
-        let nextAboveZ = Math.max(
-            VIDEO_Z_INDEX - 1,
-            ...canvasElements.filter(e => e.zIndex >= VIDEO_Z_INDEX).map(e => e.zIndex)
-        );
-
-        const idMap = new Map<string, string>();
-        copiedElements.forEach(el => idMap.set(el.id, `${el.type}-${crypto.randomUUID()}`));
-        const groupIdMap = new Map<string, string>();
-
-        const newElements = copiedElements.map(el => {
-            const isBehindVideo = el.zIndex < VIDEO_Z_INDEX;
-            const zIndex = isBehindVideo ? ++nextBehindZ : ++nextAboveZ;
-
-            let newGroupId: string | undefined;
-            if (el.groupId) {
-                if (!groupIdMap.has(el.groupId)) groupIdMap.set(el.groupId, crypto.randomUUID());
-                newGroupId = groupIdMap.get(el.groupId);
-            }
-
-            return {
-                ...el,
-                id: idMap.get(el.id)!,
-                x: el.x + 5,
-                y: el.y + 5,
-                zIndex,
-                groupId: newGroupId,
-            } as CanvasElement;
-        });
-
-        setCanvasElements(prev => [...prev, ...newElements]);
-        const newIds = newElements.map(el => el.id);
-        setSelectedElementId(newIds[0] ?? null);
-        setMultiSelectedElementIds(newIds);
-        setActiveTool("elements");
-    }, [copiedElements, canvasElements]);
-
-    const bringToFront = useCallback((id: string) => {
-        // Get elements that are above the video (zIndex >= VIDEO_Z_INDEX)
-        const aboveVideoElements = canvasElements.filter(el => el.zIndex >= VIDEO_Z_INDEX);
-        const maxAboveVideo = aboveVideoElements.length > 0
-            ? Math.max(...aboveVideoElements.map(el => el.zIndex))
-            : VIDEO_Z_INDEX - 1;
-        // Ensure the element goes above video and all other above-video elements
-        updateCanvasElement(id, { zIndex: Math.max(maxAboveVideo + 1, VIDEO_Z_INDEX) });
-    }, [canvasElements, updateCanvasElement]);
-
-    const sendToBack = useCallback((id: string) => {
-        const element = canvasElements.find(el => el.id === id);
-        if (!element) return;
-
-        // If element is above video (zIndex >= VIDEO_Z_INDEX), send it just behind video
-        if (element.zIndex >= VIDEO_Z_INDEX) {
-            const behindVideoElements = canvasElements.filter(el => el.zIndex < VIDEO_Z_INDEX);
-            const minBehindVideo = behindVideoElements.length > 0
-                ? Math.min(...behindVideoElements.map(el => el.zIndex))
-                : VIDEO_Z_INDEX - 100;
-            updateCanvasElement(id, { zIndex: Math.min(minBehindVideo - 1, VIDEO_Z_INDEX - 1) });
-        } else {
-            const behindVideoElements = canvasElements.filter(el => el.zIndex < VIDEO_Z_INDEX && el.id !== id);
-            const minBehindVideo = behindVideoElements.length > 0
-                ? Math.min(...behindVideoElements.map(el => el.zIndex))
-                : element.zIndex;
-            updateCanvasElement(id, { zIndex: minBehindVideo - 1 });
-        }
-    }, [canvasElements, updateCanvasElement]);
-
-    const MAX_AUDIO_TRACKS = 8;
-    // Audio handlers
-    const handleAudioUpload = useCallback(async (file: File) => {
-        try {
-            if (audioTracks.length >= MAX_AUDIO_TRACKS) {
-                alert(`Maximum of ${MAX_AUDIO_TRACKS} audio tracks allowed.`);
-                return;
-            }
-
-            const url = URL.createObjectURL(file);
-
-            const audio = new Audio(url);
-            await new Promise<void>((resolve, reject) => {
-                audio.addEventListener('loadedmetadata', () => resolve());
-                audio.addEventListener('error', () => reject(new Error('Failed to load audio')));
-            });
-
-            const newAudio: UploadedAudio = {
-                id: `audio-${crypto.randomUUID()}`,
-                name: file.name,
-                url,
-                duration: audio.duration,
-                fileSize: file.size,
-                mimeType: file.type,
-            };
-
-            setUploadedAudios(prev => [...prev, newAudio]);
-
-            const lastTrackEnd = audioTracks.reduce((max, track) =>
-                Math.max(max, track.startTime + track.duration), 0);
-
-            const trackId = `track-${crypto.randomUUID()}`;
-
-            if (audio.duration > videoDuration) {
-                setPendingAudioUpload({ audio: newAudio, trackId });
-                setAutoTrimModalOpen(true);
-            } else {
-                const newTrack: AudioTrack = {
-                    id: trackId,
-                    audioId: newAudio.id,
-                    name: newAudio.name,
-                    startTime: lastTrackEnd,
-                    duration: newAudio.duration,
-                    volume: 1,
-                    loop: false,
-                };
-
-                setAudioTracks(prev => [...prev, newTrack]);
-
-                if (audioTracks.length === 0) {
-                    setMuteOriginalAudio(true);
-                }
-            }
-        } catch (error) {
-            console.error('Error uploading audio:', error);
-            alert('Error uploading the audio. Please try again.');
-        }
-    }, [audioTracks, videoDuration]);
-
-    const handleAudioDelete = useCallback((audioId: string) => {
-        setUploadedAudios(prev => {
-            const audio = prev.find(a => a.id === audioId);
-            if (audio) {
-                URL.revokeObjectURL(audio.url);
-            }
-            return prev.filter(a => a.id !== audioId);
-        });
-
-        setAudioTracks(prev => prev.filter(track => track.audioId !== audioId));
-    }, []);
-
-    const handleAddAudioTrack = useCallback((audioId: string) => {
-        const audio = uploadedAudios.find(a => a.id === audioId);
-        if (!audio) return;
-
-        if (audioTracks.length >= MAX_AUDIO_TRACKS) {
-            alert(`Maximum of ${MAX_AUDIO_TRACKS} audio tracks allowed.`);
-            return;
-        }
-
-        if (audioTracks.some(track => track.audioId === audioId)) {
-            return;
-        }
-
-        // Calculate startTime as end of last track to prevent overlapping
-        const lastTrackEnd = audioTracks.reduce((max, track) =>
-            Math.max(max, track.startTime + track.duration), 0);
-
-        const newTrack: AudioTrack = {
-            id: `track-${crypto.randomUUID()}`,
-            audioId,
-            name: audio.name,
-            startTime: lastTrackEnd,
-            duration: audio.duration,
-            volume: 1,
-            loop: false,
-        };
-
-        setAudioTracks(prev => [...prev, newTrack]);
-        if (audioTracks.length === 0) {
-            setMuteOriginalAudio(true);
-        }
-    }, [uploadedAudios, audioTracks]);
-
-    const handleUpdateAudioTrack = useCallback((trackId: string, updates: Partial<AudioTrack>) => {
-        setAudioTracks(prev => prev.map(track =>
-            track.id === trackId ? { ...track, ...updates } : track
-        ));
-    }, []);
-
-    const handleDeleteAudioTrack = useCallback((trackId: string) => {
-        setAudioTracks(prev => {
-            const remaining = prev.filter(track => track.id !== trackId);
-            if (remaining.length === 0) {
-                setMuteOriginalAudio(false);
-            }
-            return remaining;
-        });
-    }, []);
-
-    const handleToggleMuteOriginalAudio = useCallback(() => {
-        setMuteOriginalAudio(prev => !prev);
-    }, []);
-
-    const handleMasterVolumeChange = useCallback((volume: number) => {
-        setMasterVolume(volume);
-    }, []);
-
-    const handleSelectAudioTrack = useCallback((trackId: string | null) => {
-        setSelectedAudioTrackId(trackId);
-        setSelectedZoomFragmentId(null);
-        setSelectedZoomMovementId(null);
-        setSelectedVideoClipId(null);
-        setSelectedElementId(null);
-        setSelectedMockupMotionFragmentId(null);
-        setMultiSelectedElementIds([]);
-        if (trackId) {
-            setActiveTool("audio");
-        }
     }, []);
 
     const thumbnailsCacheRef = useRef<Map<string, VideoThumbnail[]>>(new Map());
@@ -1686,20 +1171,6 @@ export default function Editor() {
         if (!activeClipAtPlayhead) return videoUrl;
         return videoUrlsMap.get(activeClipAtPlayhead.libraryVideoId) ?? videoUrl;
     }, [activeClipAtPlayhead, videoUrl, videoUrlsMap]);
-
-    // Handlers for video clip management
-    const handleSelectVideoClip = useCallback((clipId: string | null) => {
-        setSelectedVideoClipId(clipId);
-        setSelectedZoomFragmentId(null);
-        setSelectedZoomMovementId(null);
-        setSelectedAudioTrackId(null);
-        setSelectedElementId(null);
-        setSelectedMockupMotionFragmentId(null);
-        setMultiSelectedElementIds([]);
-        if (clipId) {
-            setActiveTool("video");
-        }
-    }, []);
 
     const handleUpdateVideoClip = useCallback((clipId: string, updates: Partial<VideoTrackClip>) => {
         setVideoClips(prev => {
@@ -2131,67 +1602,6 @@ export default function Editor() {
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [handleUndo, handleRedo, canUndo, canRedo]);
-
-    const pasteMockupMotionFragment = useCallback(() => {
-        if (!copiedMockupMotionFragment) return;
-        const original = selectedMockupMotionFragmentId
-            ? mockupMotionFragmentsRef.current.find(f => f.id === selectedMockupMotionFragmentId)
-            : null;
-        const hintTime = original ? original.endTime : currentTime;
-        const placement = findValidMotionPlacement(
-            copiedMockupMotionFragment.presetId,
-            copiedMockupMotionFragment.speed,
-            hintTime,
-            mockupMotionFragmentsRef.current,
-            videoDuration
-        );
-        if (!placement) return;
-        const newFragment: MockupMotionFragment = {
-            ...copiedMockupMotionFragment,
-            id: `motion_${crypto.randomUUID()}`,
-            ...placement,
-        };
-        setMockupMotionFragments(prev => [...prev, newFragment]);
-        setSelectedMockupMotionFragmentId(newFragment.id);
-        setActiveTool("motion");
-    }, [copiedMockupMotionFragment, selectedMockupMotionFragmentId, currentTime, videoDuration]);
-
-    const pasteZoomFragment = useCallback(() => {
-        if (!copiedZoomFragment) return;
-        const original = selectedZoomFragmentId
-            ? zoomFragmentsRef.current.find(f => f.id === selectedZoomFragmentId)
-            : null;
-        const duration = original ? original.endTime - original.startTime : DEFAULT_ZOOM_FRAGMENT_DURATION;
-        const hintTime = original ? original.endTime : currentTime;
-        const position = findValidFragmentPosition(hintTime, duration, zoomFragmentsRef.current, videoDuration);
-        if (!position) return;
-
-        const newFragment: ZoomFragment = {
-            ...copiedZoomFragment,
-            id: `zoom_${crypto.randomUUID()}`,
-            startTime: position.startTime,
-            endTime: position.endTime,
-        };
-
-        if (copiedZoomFragment.movementEnabled && copiedZoomMovements.length > 0) {
-            const { start: hs, end: he } = getFragmentHoldBounds(newFragment);
-            const span = he - hs;
-            const newMovements: ZoomMovement[] = copiedZoomMovements.map(cm => ({
-                id: crypto.randomUUID(),
-                zoomFragmentId: newFragment.id,
-                name: cm.name,
-                startTime: hs + cm.startFrac * span,
-                endTime: hs + cm.endFrac * span,
-                focusX: cm.focusX,
-                focusY: cm.focusY,
-            }));
-            setZoomMovements(prev => [...prev, ...newMovements]);
-        }
-
-        setZoomFragments(prev => [...prev, newFragment].sort((a, b) => a.startTime - b.startTime));
-        setSelectedZoomFragmentId(newFragment.id);
-        setActiveTool("zoom");
-    }, [copiedZoomFragment, selectedZoomFragmentId, currentTime, videoDuration, zoomMovements, setZoomMovements, copiedZoomMovements]);
 
     useEffect(() => {
         const handlePaste = async (e: ClipboardEvent) => {
@@ -2786,253 +2196,6 @@ export default function Editor() {
 
     // Handler para cambio de color/gradiente
     const handleBackgroundColorChange = useCallback((config: BackgroundColorConfig) => setBackgroundColorConfig(config), []);
-
-    // Zoom fragment handlers
-    const handleSelectZoomFragment = useCallback((fragmentId: string | null) => {
-        setSelectedZoomFragmentId(fragmentId);
-        setSelectedZoomMovementId(null);
-        setSelectedAudioTrackId(null);
-        setSelectedVideoClipId(null);
-        setSelectedElementId(null);
-        setSelectedMockupMotionFragmentId(null);
-        setMultiSelectedElementIds([]);
-    }, []);
-
-    const handleActivateZoomTool = useCallback(() => {
-        setActiveTool("zoom");
-    }, []);
-
-    const handleAddZoomFragment = useCallback((hintTime: number) => {
-        const validPosition = findValidFragmentPosition(
-            hintTime,
-            DEFAULT_ZOOM_FRAGMENT_DURATION,
-            zoomFragmentsRef.current,
-            videoDuration
-        );
-        if (!validPosition) return;
-
-        const newFragment = createZoomFragment(validPosition.startTime, validPosition.endTime);
-        setZoomFragments(prev => [...prev, newFragment].sort((a, b) => a.startTime - b.startTime));
-        setSelectedZoomFragmentId(newFragment.id);
-        setActiveTool("zoom");
-    }, [videoDuration]);
-
-    const handleAddZoomFragmentAtRange = useCallback((startTime: number, endTime: number) => {
-        if (!canAddFragmentAt(startTime, endTime, zoomFragmentsRef.current)) return;
-
-        const newFragment = createZoomFragment(startTime, endTime);
-        setZoomFragments(prev => [...prev, newFragment].sort((a, b) => a.startTime - b.startTime));
-        setSelectedZoomFragmentId(newFragment.id);
-        setActiveTool("zoom");
-    }, []);
-
-    const handleUpdateZoomFragment = useCallback((fragmentId: string, updates: Partial<ZoomFragment>) => {
-        const oldFragment = zoomFragmentsRef.current.find(f => f.id === fragmentId);
-        const affectsHoldBounds = 'startTime' in updates || 'endTime' in updates || 'speed' in updates;
-        const oldBounds = oldFragment && affectsHoldBounds ? getFragmentHoldBounds(oldFragment) : null;
-
-        setZoomFragments(prev =>
-            prev.map(f => (f.id === fragmentId ? { ...f, ...updates } : f)).sort((a, b) => a.startTime - b.startTime)
-        );
-
-        if (!oldFragment || !oldBounds) return;
-
-        const newFragment = { ...oldFragment, ...updates };
-        const newBounds = getFragmentHoldBounds(newFragment);
-
-        if (Math.abs(oldBounds.start - newBounds.start) < 1e-4 && Math.abs(oldBounds.end - newBounds.end) < 1e-4) {
-            return;
-        }
-
-        const newSpan = newBounds.end - newBounds.start;
-
-        setZoomMovements(prev => prev.map(m => {
-            if (m.zoomFragmentId !== fragmentId) return m;
-
-            const duration = m.endTime - m.startTime;
-            const delta = newBounds.start - oldBounds.start;
-
-            let newStart = m.startTime + delta;
-            let newEnd = newStart + duration;
-
-            if (newStart < newBounds.start) {
-                newStart = newBounds.start;
-                newEnd = newStart + duration;
-            }
-            if (newEnd > newBounds.end) {
-                newEnd = newBounds.end;
-                newStart = Math.max(newBounds.start, newEnd - duration);
-            }
-            if (newEnd - newStart > newSpan) {
-                newStart = newBounds.start;
-                newEnd = newBounds.end;
-            }
-
-            return { ...m, startTime: newStart, endTime: newEnd };
-        }));
-    }, []);
-
-    const handleToggleZoomMovement = useCallback((fragmentId: string, enabled: boolean) => {
-        if (enabled) {
-            const fragment = zoomFragments.find(f => f.id === fragmentId);
-            if (!fragment) return;
-
-            const { start, end } = getFragmentHoldBounds(fragment);
-            const holdSpan = end - start;
-
-            if (holdSpan < MIN_MOVEMENT_TRACK_DURATION) {
-                return;
-            }
-
-            const slot = findNextMovementSlot([], start, end, MIN_MOVEMENT_TRACK_DURATION);
-
-            handleUpdateZoomFragment(fragmentId, { movementEnabled: true });
-
-            if (slot) {
-                const newMovement: ZoomMovement = {
-                    id: crypto.randomUUID(),
-                    zoomFragmentId: fragmentId,
-                    name: tZoom("movement.defaultName", { number: 1 }),
-                    startTime: slot.startTime,
-                    endTime: slot.endTime,
-                    focusX: Math.min(85, Math.max(15, fragment.focusX + 25)),
-                    focusY: Math.min(85, Math.max(15, fragment.focusY + 25)),
-                };
-                setZoomMovements(prev => [...prev, newMovement]);
-                setSelectedZoomMovementId(newMovement.id);
-            }
-        } else {
-            handleUpdateZoomFragment(fragmentId, { movementEnabled: false });
-            setZoomMovements(prev => prev.filter(m => m.zoomFragmentId !== fragmentId));
-            setSelectedZoomMovementId(null);
-        }
-    }, [zoomFragments, handleUpdateZoomFragment, tZoom]);
-
-
-    const handleAddZoomMovement = useCallback((fragmentId: string) => {
-        const fragment = zoomFragments.find(f => f.id === fragmentId);
-        if (!fragment) return;
-
-        const siblings = zoomMovements.filter(m => m.zoomFragmentId === fragmentId).sort((a, b) => a.startTime - b.startTime);
-        const { start, end } = getFragmentHoldBounds(fragment);
-        const slot = findNextMovementSlot(siblings, start, end, MIN_MOVEMENT_TRACK_DURATION);
-
-        if (!slot) {
-            return;
-        }
-
-        const last = siblings[siblings.length - 1];
-        const from = last ? { x: last.focusX, y: last.focusY } : { x: fragment.focusX, y: fragment.focusY };
-
-        const newMovement: ZoomMovement = {
-            id: crypto.randomUUID(),
-            zoomFragmentId: fragmentId,
-            name: tZoom("movement.defaultName", { number: siblings.length + 1 }),
-            startTime: slot.startTime,
-            endTime: slot.endTime,
-            focusX: Math.min(85, Math.max(15, from.x + 25)),
-            focusY: Math.min(85, Math.max(15, from.y + 25)),
-        };
-        setZoomMovements(prev => [...prev, newMovement]);
-        setSelectedZoomMovementId(newMovement.id);
-    }, [zoomFragments, zoomMovements, tZoom]);
-
-    const handleAddZoomMovementAtRange = useCallback((fragmentId: string, startTime: number, endTime: number) => {
-        const fragment = zoomFragmentsRef.current.find(f => f.id === fragmentId);
-        if (!fragment) return;
-
-        const siblings = zoomMovements.filter(m => m.zoomFragmentId === fragmentId);
-        const last = [...siblings].sort((a, b) => a.startTime - b.startTime).slice(-1)[0];
-        const from = last ? { x: last.focusX, y: last.focusY } : { x: fragment.focusX, y: fragment.focusY };
-
-        const newMovement: ZoomMovement = {
-            id: crypto.randomUUID(),
-            zoomFragmentId: fragmentId,
-            name: tZoom("movement.defaultName", { number: siblings.length + 1 }),
-            startTime,
-            endTime,
-            focusX: Math.min(85, Math.max(15, from.x + 25)),
-            focusY: Math.min(85, Math.max(15, from.y + 25)),
-        };
-
-        setZoomMovements(prev => [...prev, newMovement]);
-        setSelectedZoomMovementId(newMovement.id);
-    }, [zoomMovements, tZoom]);
-
-    const handleUpdateZoomMovement = useCallback((id: string, updates: Partial<ZoomMovement>) => {
-        setZoomMovements(prev => prev.map(m => m.id === id ? { ...m, ...updates } : m));
-    }, []);
-
-    const handleDeleteZoomMovement = useCallback((id: string) => {
-        setZoomMovements(prev => {
-            const target = prev.find(m => m.id === id);
-            const next = prev.filter(m => m.id !== id);
-            if (target) {
-                const stillHasSiblings = next.some(m => m.zoomFragmentId === target.zoomFragmentId);
-                if (!stillHasSiblings) {
-                    setZoomFragments(fPrev =>
-                        fPrev.map(f => (f.id === target.zoomFragmentId ? { ...f, movementEnabled: false } : f))
-                    );
-                }
-            }
-            return next;
-        });
-        setSelectedZoomMovementId(prev => (prev === id ? null : prev));
-    }, []);
-
-    const handleSelectZoomMovement = useCallback((id: string | null) => {
-        setSelectedZoomMovementId(id);
-        if (id) {
-            setSelectedAudioTrackId(null);
-            setSelectedVideoClipId(null);
-            setSelectedElementId(null);
-            setSelectedMockupMotionFragmentId(null);
-            setMultiSelectedElementIds([]);
-            setActiveTool("zoom");
-        }
-    }, []);
-
-    const handleDeleteZoomFragment = useCallback((fragmentId: string) => {
-        setZoomFragments(prev => prev.filter(f => f.id !== fragmentId));
-        setZoomMovements(prev => prev.filter(m => m.zoomFragmentId !== fragmentId));
-        if (selectedZoomFragmentId === fragmentId) {
-            setSelectedZoomFragmentId(null);
-        }
-        setSelectedZoomMovementId(null);
-    }, [selectedZoomFragmentId]);
-
-    // Get currently selected zoom fragment - memoized
-    const selectedZoomFragment = useMemo(() =>
-        zoomFragments.find(f => f.id === selectedZoomFragmentId) || null,
-        [zoomFragments, selectedZoomFragmentId]
-    );
-
-    const copySelectedMockupMotionFragment = useCallback(() => {
-        if (!selectedMockupMotionFragment) return;
-        const { id, startTime, endTime, ...config } = selectedMockupMotionFragment;
-        setCopiedMockupMotionFragment(config);
-        lastCopyActionRef.current = 'motion';
-    }, [selectedMockupMotionFragment]);
-
-    const copySelectedZoomFragment = useCallback(() => {
-        if (!selectedZoomFragment) return;
-        const { ...config } = selectedZoomFragment;
-        setCopiedZoomFragment(config);
-
-        const { start: hs, end: he } = getFragmentHoldBounds(selectedZoomFragment);
-        const span = he - hs;
-        const related = zoomMovements
-            .filter(m => m.zoomFragmentId === selectedZoomFragment.id)
-            .map(m => ({
-                name: m.name,
-                startFrac: span > 0 ? (m.startTime - hs) / span : 0,
-                endFrac: span > 0 ? (m.endTime - hs) / span : 1,
-                focusX: m.focusX,
-                focusY: m.focusY,
-            }));
-        setCopiedZoomMovements(related);
-        lastCopyActionRef.current = 'zoom';
-    }, [selectedZoomFragment, zoomMovements]);
 
     const backgroundColorCss = useMemo((): string | undefined => {
         if (backgroundTab === "color" && backgroundColorConfig) {
@@ -3737,39 +2900,8 @@ export default function Editor() {
                     audioDuration={pendingAudioUpload.audio.duration}
                     initialTrimStart={0}
                     initialTrimEnd={Math.min(pendingAudioUpload.audio.duration, videoDuration)}
-                    onConfirm={(trimStart, trimEnd) => {
-                        if (pendingAudioUpload) {
-                            const lastTrackEnd = audioTracks.reduce((max, track) =>
-                                Math.max(max, track.startTime + track.duration), 0);
-
-                            const newTrack: AudioTrack = {
-                                id: pendingAudioUpload.trackId,
-                                audioId: pendingAudioUpload.audio.id,
-                                name: pendingAudioUpload.audio.name,
-                                startTime: lastTrackEnd,
-                                duration: trimEnd - trimStart,
-                                trimStart: trimStart,
-                                volume: 1,
-                                loop: false,
-                            };
-
-                            setAudioTracks(prev => [...prev, newTrack]);
-
-                            if (audioTracks.length === 0) {
-                                setMuteOriginalAudio(true);
-                            }
-                        }
-                        setAutoTrimModalOpen(false);
-                        setPendingAudioUpload(null);
-                    }}
-                    onCancel={() => {
-                        if (pendingAudioUpload) {
-                            setUploadedAudios(prev => prev.filter(a => a.id !== pendingAudioUpload.audio.id));
-                            URL.revokeObjectURL(pendingAudioUpload.audio.url);
-                        }
-                        setAutoTrimModalOpen(false);
-                        setPendingAudioUpload(null);
-                    }}
+                    onConfirm={confirmAudioTrim}
+                    onCancel={cancelAudioTrim}
                 />
             )}
         </div>

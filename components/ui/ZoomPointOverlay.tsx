@@ -18,6 +18,8 @@ interface ZoomPointOverlayProps {
     markerId?: string;
 }
 
+export const ZOOM_POINT_VISUAL_SCALE = 0.7;
+
 export function ZoomPointOverlay({
     points,
     zoomLevel,
@@ -27,9 +29,8 @@ export function ZoomPointOverlay({
 }: ZoomPointOverlayProps) {
     if (points.length === 0) return null;
 
-    const VISUAL_SCALE = 0.7;
     const rawBoxSize = 100 / zoomLevelToFactor(zoomLevel);
-    const boxSize = `${rawBoxSize * VISUAL_SCALE}%`;
+    const boxSize = `${rawBoxSize * ZOOM_POINT_VISUAL_SCALE}%`;
 
     return (
         <>
@@ -82,18 +83,16 @@ export function ZoomPointOverlay({
                                 : "linear-gradient(to bottom, rgba(16,185,129,0.5), transparent)",
                         }}
                     />
-                    
+
                     <div
                         data-zoom-drag-handle
-                        className={`absolute z-10 cursor-grab active:cursor-grabbing touch-none transition-[opacity,transform] duration-150 ${
-                            point.id === activePointId ? "" : "scale-90"
-                        }`}
+                        className={`absolute z-10 cursor-grab active:cursor-grabbing touch-none transition-[opacity,transform] duration-150 ${point.id === activePointId ? "" : "scale-90"
+                            }`}
                         style={{ left: `${point.x}%`, top: `${point.y}%`, transform: "translate(-50%, -50%)" }}
                         onPointerDown={(e) => onPointPointerDown(e, point.id)}
                     >
-                        <div className={`size-8 rounded-full shadow-lg border-2 border-white/90 hover:scale-110 transition-transform flex items-center justify-center ${
-                            point.id === "origin" ? "bg-blue-500" : "bg-emerald-500"
-                        }`}>
+                        <div className={`size-8 rounded-full shadow-lg border-2 border-white/90 hover:scale-110 transition-transform flex items-center justify-center ${point.id === "origin" ? "bg-blue-500" : "bg-emerald-500"
+                            }`}>
                             <span className="text-[10px] font-bold text-white">{point.label}</span>
                         </div>
                     </div>

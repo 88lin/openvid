@@ -33,7 +33,7 @@ import { drawPhone3DCompositeWithZoom, type Phone3DCompositeContext } from "@/li
 import { buildMockupMotionCss, MockupMotionTransform, REST_MOCKUP_MOTION, sampleCombinedMockupMotion } from "@/lib/mockup-motion";
 import { Mockup3DFrame } from "./mockups-3d/Mockup3DFrame";
 import { filterVisibleElements } from "@/lib/canvas-elements-timeline.utils";
-import { ZoomPointOverlay } from "@/components/ui/ZoomPointOverlay";
+import { ZoomPointOverlay, ZOOM_POINT_VISUAL_SCALE } from "@/components/ui/ZoomPointOverlay";
 
 export type { VideoCanvasHandle, VideoCanvasProps };
 
@@ -106,6 +106,7 @@ function VideoCanvasInner({
     onMockupConfigChange,
     selectedZoomFragment = null,
     onUpdateZoomFragment,
+    onSelectZoomFragment,
     zoomMovements = [],
     selectedZoomMovementId = null,
     onSelectZoomMovement,
@@ -207,15 +208,27 @@ function VideoCanvasInner({
 
     const handleZoomOverlayClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
         if (!selectedZoomFragment) return;
-        e.stopPropagation();
-        if ((e.target as HTMLElement).closest("[data-zoom-drag-handle]")) return;
+        if ((e.target as HTMLElement).closest("[data-zoom-drag-handle]")) {
+            e.stopPropagation();
+            return;
+        }
         const container = previewContainerRef.current;
         if (!container) return;
         const rect = container.getBoundingClientRect();
         const x = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
         const y = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100));
+        const halfBoxPercent = (100 / zoomLevelToFactor(selectedZoomFragment.zoomLevel)) * ZOOM_POINT_VISUAL_SCALE / 2;
+        const isInsideAnyBox = zoomPointChain.some(
+            (point) => Math.abs(point.x - x) <= halfBoxPercent && Math.abs(point.y - y) <= halfBoxPercent
+        );
+        if (!isInsideAnyBox) {
+            onSelectZoomFragment?.(null);
+            onSelectZoomMovement?.(null);
+            return;
+        }
+        e.stopPropagation();
         updateZoomPoint(zoomActivePointId, x, y);
-    }, [selectedZoomFragment, zoomActivePointId, updateZoomPoint]);
+    }, [selectedZoomFragment, zoomActivePointId, updateZoomPoint, zoomPointChain, onSelectZoomFragment, onSelectZoomMovement]);
 
     const ctrlScrollWheelRef = useRef<((e: WheelEvent) => void) | null>(null);
     const imagePhoneActiveRef = useRef(imagePhoneActive);
@@ -2548,7 +2561,7 @@ function VideoCanvasInner({
                                 {selectedZoomFragment && !textToolActive && (
                                     <div
                                         className="absolute inset-0"
-                                        style={{ zIndex: 250 }}
+                                        style={{ zIndex: 50 }}
                                         onClick={handleZoomOverlayClick}
                                     >
                                         <ZoomPointOverlay
