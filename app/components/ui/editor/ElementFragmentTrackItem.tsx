@@ -127,7 +127,7 @@ export function ElementFragmentTrackItem({
 
   return (
     <motion.div
-      className={`absolute rounded-md flex items-center border transition-shadow select-none focus:outline-none ${isSelected || isInteracting
+      className={`absolute h-[90%] top-[5%] rounded-md flex items-center border transition-shadow select-none focus:outline-none ${isSelected || isInteracting
           ? `${style.activeBorder} ${style.glow} z-10`
           : `${style.idleBorder} hover:brightness-125`
         } ${isDragging ? "cursor-grabbing" : "cursor-grab"}`}

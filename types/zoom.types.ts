@@ -9,10 +9,6 @@ export interface ZoomFragment {
     focusX: number;
     focusY: number;
     movementEnabled?: boolean;
-    movementEndX?: number;
-    movementEndY?: number;
-    movementStartOffset?: number;
-    movementEndOffset?: number;
     enable3D?: boolean;
     perspective3DIntensity?: number;
     perspective3DAngleX?: number;
@@ -26,6 +22,13 @@ export interface ZoomState {
 
 export interface ZoomFragmentEditorProps {
     fragment: ZoomFragment;
+    movements: ZoomMovement[];
+    selectedMovementId?: string | null;
+    onSelectMovement: (id: string | null) => void;
+    onToggleMovement: (enabled: boolean) => void;
+    onAddMovement: () => void;
+    onDeleteMovement: (id: string) => void;
+    onUpdateMovementPoint: (id: string, x: number, y: number) => void;
     videoUrl: string | null;
     videoThumbnail?: string | null;
     currentTime?: number;
@@ -37,7 +40,7 @@ export interface ZoomFragmentEditorProps {
     is3DModelActive?: boolean;
 }
 
-// Smoother easing for professional zoom feel (quart curves)
+
 export function easeOutQuart(t: number): number {
     return 1 - Math.pow(1 - t, 4);
 }
@@ -46,7 +49,7 @@ export function easeInOutQuart(t: number): number {
     return t < 0.5 ? 8 * t * t * t * t : 1 - Math.pow(-2 * t + 2, 4) / 2;
 }
 
-// Calculate 3-phase zoom state based on current time within fragment
+
 export interface ZoomPhaseState {
     phase: 'entry' | 'hold' | 'exit';
     scale: number;
@@ -61,7 +64,8 @@ export interface ZoomPhaseState {
 export function calculateZoomPhaseState(
     fragment: ZoomFragment,
     currentTime: number,
-    forExport: boolean = false
+    movements: ZoomMovement[] = [],
+    forExport: boolean = false,
 ): ZoomPhaseState {
     const totalDuration = fragment.endTime - fragment.startTime;
     const elapsed = currentTime - fragment.startTime;
@@ -73,7 +77,6 @@ export function calculateZoomPhaseState(
     const transitionSeconds = speedToTransitionMs(fragment.speed) / 1000;
     const entryEndTime = fragment.startTime + transitionSeconds;
     const exitStartTime = fragment.endTime;
-    const holdDuration = Math.max(0, exitStartTime - entryEndTime);
 
     let rotateX = 0;
     let rotateY = 0;
@@ -84,12 +87,31 @@ export function calculateZoomPhaseState(
     let phase: 'entry' | 'hold' | 'exit' = 'hold';
     let progress = normalizedTime;
 
-    const movementEndX = fragment.movementEndX ?? fragment.focusX;
-    const movementEndY = fragment.movementEndY ?? fragment.focusY;
+    const sortedMovements = [...movements].sort((a, b) => a.startTime - b.startTime);
+    const finalMovementPoint = sortedMovements.length > 0
+        ? { x: sortedMovements[sortedMovements.length - 1].focusX, y: sortedMovements[sortedMovements.length - 1].focusY }
+        : { x: fragment.focusX, y: fragment.focusY };
 
-    // Determine phase and calculate ZOOM values (independent of 3D)
+    const resolveChainFocus = (time: number): { x: number; y: number } => {
+        let fromPoint = { x: fragment.focusX, y: fragment.focusY };
+        for (const movement of sortedMovements) {
+            if (time <= movement.endTime) {
+                const duration = movement.endTime - movement.startTime;
+                const localProgress = duration > 0 ? (time - movement.startTime) / duration : 1;
+                const eased = easeInOutQuart(Math.max(0, Math.min(1, localProgress)));
+                return {
+                    x: fromPoint.x + (movement.focusX - fromPoint.x) * eased,
+                    y: fromPoint.y + (movement.focusY - fromPoint.y) * eased,
+                };
+            }
+            fromPoint = { x: movement.focusX, y: movement.focusY };
+        }
+        return fromPoint; 
+    };
+
+    
     if (currentTime < entryEndTime && transitionSeconds > 0) {
-        // ENTRY PHASE: Zoom in
+        
         phase = 'entry';
         const entryProgress = (currentTime - fragment.startTime) / transitionSeconds;
         progress = Math.max(0, Math.min(1, entryProgress));
@@ -100,7 +122,7 @@ export function calculateZoomPhaseState(
         }
 
     } else if (currentTime >= exitStartTime && transitionSeconds > 0) {
-        // EXIT PHASE: Zoom out
+        
         phase = 'exit';
         const exitProgress = (currentTime - exitStartTime) / transitionSeconds;
         progress = Math.max(0, Math.min(1, exitProgress));
@@ -111,8 +133,8 @@ export function calculateZoomPhaseState(
         }
 
         if (fragment.movementEnabled) {
-            focusX = movementEndX;
-            focusY = movementEndY;
+            focusX = finalMovementPoint.x;
+            focusY = finalMovementPoint.y;
         }
 
     } else {
@@ -122,29 +144,14 @@ export function calculateZoomPhaseState(
             scale = targetScale;
         }
 
-        if (fragment.movementEnabled && holdDuration > 0) {
-            const movementStartOffset = fragment.movementStartOffset ?? 0;
-            const movementEndOffset = fragment.movementEndOffset ?? holdDuration;
-
-            const movementStartTime = entryEndTime + Math.max(0, Math.min(movementStartOffset, holdDuration));
-            const movementEndTime = entryEndTime + Math.max(movementStartOffset, Math.min(movementEndOffset, holdDuration));
-            const movementDuration = movementEndTime - movementStartTime;
-
-            if (currentTime >= movementStartTime && currentTime <= movementEndTime && movementDuration > 0) {
-                const movementProgress = (currentTime - movementStartTime) / movementDuration;
-                const easedProgress = easeInOutQuart(Math.min(1, movementProgress));
-                focusX = fragment.focusX + (movementEndX - fragment.focusX) * easedProgress;
-                focusY = fragment.focusY + (movementEndY - fragment.focusY) * easedProgress;
-                progress = movementProgress;
-            } else if (currentTime > movementEndTime) {
-                focusX = movementEndX;
-                focusY = movementEndY;
-                progress = 1;
-            }
+        if (fragment.movementEnabled) {
+            const point = resolveChainFocus(currentTime);
+            focusX = point.x;
+            focusY = point.y;
         }
     }
 
-    // 3D EFFECT: Completely separate from zoom animation
+    
     if (enable3D) {
         const intensity = (fragment.perspective3DIntensity ?? 50) / 100;
 
@@ -163,7 +170,7 @@ export function calculateZoomPhaseState(
             effect3DOpacity = 1;
         }
 
-        // Apply 3D with smooth easing
+        
         const smoothOpacity = easeInOutQuart(effect3DOpacity);
         perspective = 500;
 
@@ -184,13 +191,6 @@ export function calculateZoomPhaseState(
     };
 }
 
-// Calculate available hold time for camera movement
-export function calculateHoldDuration(fragment: ZoomFragment): number {
-    const totalDuration = fragment.endTime - fragment.startTime;
-    const transitionSeconds = speedToTransitionMs(fragment.speed) / 1000;
-    return Math.max(0, totalDuration - 2 * transitionSeconds);
-}
-
 export interface ZoomStateCanvas {
     scale: number;
     focusX: number;
@@ -206,7 +206,6 @@ export interface ZoomState {
 const DEFAULT_ZOOM_LEVEL = 1.5;
 const DEFAULT_ZOOM_SPEED = 5;
 
-// Helper to create a new fragment with default values
 export function createZoomFragment(
     startTime: number,
     endTime: number
@@ -223,7 +222,6 @@ export function createZoomFragment(
     };
 }
 
-// Helper to generate default fragments when a video loads
 export function generateDefaultZoomFragments(
     videoDuration: number
 ): ZoomFragment[] {
@@ -249,7 +247,7 @@ export function generateDefaultZoomFragments(
     return fragments;
 }
 
-// Convert zoomLevel (1-10) to actual zoom factor
+
 export function zoomLevelToFactor(level: number): number {
     const minZoom = 1.2;
     const maxZoom = 4.0;
@@ -257,7 +255,7 @@ export function zoomLevelToFactor(level: number): number {
     return minZoom + (maxZoom - minZoom) * normalized;
 }
 
-// Convert speed (1-10) to transition duration in milliseconds
+
 export function speedToTransitionMs(speed: number): number {
     const minMs = 150;
     const maxMs = 2000;
@@ -271,4 +269,137 @@ export function formatZoomTime(seconds: number): string {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+}
+
+export interface ZoomMovement {
+    id: string;
+    zoomFragmentId: string;
+    name: string;
+    startTime: number;
+    endTime: number;
+    focusX: number;
+    focusY: number;
+}
+
+export function getFragmentHoldBounds(fragment: ZoomFragment): { start: number; end: number } {
+    const transitionSec = speedToTransitionMs(fragment.speed) / 1000;
+    const start = fragment.startTime + transitionSec;
+    const end = fragment.endTime; 
+    return start <= end ? { start, end } : { start: fragment.startTime, end: fragment.startTime };
+}
+
+export function calculateHoldDuration(fragment: ZoomFragment): number {
+    const { start, end } = getFragmentHoldBounds(fragment);
+    return Math.max(0, end - start);
+}
+
+export function canAddFragmentAt(
+    startTime: number,
+    endTime: number,
+    existingFragments: ZoomFragment[],
+    excludeFragmentId?: string
+): boolean {
+    for (const fragment of existingFragments) {
+        if (excludeFragmentId && fragment.id === excludeFragmentId) continue;
+
+        const overlaps = startTime < fragment.endTime && endTime > fragment.startTime;
+        if (overlaps) return false;
+    }
+    return true;
+}
+
+function findAllGapsInRange(
+    existingRanges: Array<{ startTime: number; endTime: number }>,
+    rangeStart: number,
+    rangeEnd: number,
+    minDuration: number
+): Array<{ start: number; end: number }> {
+    const gaps: Array<{ start: number; end: number }> = [];
+    const sorted = [...existingRanges].sort((a, b) => a.startTime - b.startTime);
+
+    if (sorted.length === 0) {
+        if (rangeEnd - rangeStart >= minDuration) gaps.push({ start: rangeStart, end: rangeEnd });
+        return gaps;
+    }
+
+    if (sorted[0].startTime - rangeStart >= minDuration) {
+        gaps.push({ start: rangeStart, end: sorted[0].startTime });
+    }
+
+    for (let i = 0; i < sorted.length - 1; i++) {
+        const gapStart = sorted[i].endTime;
+        const gapEnd = sorted[i + 1].startTime;
+        if (gapEnd - gapStart >= minDuration) gaps.push({ start: gapStart, end: gapEnd });
+    }
+
+    const lastEnd = sorted[sorted.length - 1].endTime;
+    if (rangeEnd - lastEnd >= minDuration) gaps.push({ start: lastEnd, end: rangeEnd });
+
+    return gaps;
+}
+
+function findAllGaps(
+    existingFragments: ZoomFragment[],
+    videoDuration: number,
+    minDuration: number
+): Array<{ start: number; end: number }> {
+    return findAllGapsInRange(existingFragments, 0, videoDuration, minDuration);
+}
+
+function findValidPositionInGaps(
+    clickTime: number,
+    defaultDuration: number,
+    gaps: Array<{ start: number; end: number }>
+): { startTime: number; endTime: number } | null {
+    if (gaps.length === 0) return null;
+
+    for (const gap of gaps) {
+        if (clickTime >= gap.start && clickTime <= gap.end) {
+            const halfDuration = defaultDuration / 2;
+            let startTime = clickTime - halfDuration;
+            let endTime = clickTime + halfDuration;
+            if (startTime < gap.start) { startTime = gap.start; endTime = startTime + defaultDuration; }
+            if (endTime > gap.end) { endTime = gap.end; startTime = endTime - defaultDuration; }
+            return { startTime, endTime };
+        }
+    }
+
+    let closestGap = gaps[0];
+    let closestDistance = Infinity;
+    for (const gap of gaps) {
+        const distToStart = Math.abs(clickTime - gap.start);
+        const distToEnd = Math.abs(clickTime - gap.end);
+        const gapCenter = (gap.start + gap.end) / 2;
+        const distToCenter = Math.abs(clickTime - gapCenter);
+        const minDist = Math.min(distToStart, distToEnd, distToCenter);
+        if (minDist < closestDistance) { closestDistance = minDist; closestGap = gap; }
+    }
+
+    if (clickTime <= closestGap.start) {
+        return { startTime: closestGap.start, endTime: closestGap.start + defaultDuration };
+    } else if (clickTime >= closestGap.end) {
+        return { startTime: closestGap.end - defaultDuration, endTime: closestGap.end };
+    } else {
+        return { startTime: closestGap.start, endTime: closestGap.start + defaultDuration };
+    }
+}
+export function findValidFragmentPosition(
+    clickTime: number,
+    defaultDuration: number,
+    existingFragments: ZoomFragment[],
+    videoDuration: number
+): { startTime: number; endTime: number } | null {
+    const gaps = findAllGaps(existingFragments, videoDuration, defaultDuration);
+    return findValidPositionInGaps(clickTime, defaultDuration, gaps);
+}
+
+export function findValidMovementPosition(
+    clickTime: number,
+    defaultDuration: number,
+    existingMovements: ZoomMovement[],
+    holdStart: number,
+    holdEnd: number
+): { startTime: number; endTime: number } | null {
+    const gaps = findAllGapsInRange(existingMovements, holdStart, holdEnd, defaultDuration);
+    return findValidPositionInGaps(clickTime, defaultDuration, gaps);
 }

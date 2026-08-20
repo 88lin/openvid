@@ -1,4 +1,4 @@
-import { ZoomFragment } from "./zoom.types";
+import { ZoomFragment, ZoomMovement } from "./zoom.types";
 import type { AudioTrack, UploadedAudio } from "./audio.types";
 import type { VideoTrackClip } from "./video-track.types";
 import { MockupMotionFragment } from "@/lib/mockup-motion";
@@ -53,4 +53,15 @@ export interface TimelineProps {
     onSelectElement?: (id: string | null) => void;
     onUpdateElement?: (id: string, updates: Partial<CanvasElement>) => void;
     onDeleteElement?: (id: string) => void;
+
+    zoomMovements?: ZoomMovement[];
+    selectedZoomMovementId?: string | null;
+    onSelectZoomMovement?: (id: string | null) => void;
+    onUpdateZoomMovement?: (id: string, updates: Partial<ZoomMovement>) => void;
+    onDeleteZoomMovement?: (id: string) => void;
+    onAddZoomMovementAtRange?: (startTime: number, endTime: number) => void;
 }
+
+export const DEFAULT_ZOOM_FRAGMENT_DURATION = 2;
+export const ELEMENT_ROW_HEIGHT = 55;
+export const DEFAULT_MOVEMENT_DURATION = 1;

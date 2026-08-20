@@ -1,5 +1,5 @@
 import { AspectRatio } from "@/types/editor.types";
-import { ZoomStateCanvas, ZoomFragment, calculateZoomPhaseState, zoomLevelToFactor, speedToTransitionMs, easeOutQuart } from "@/types/zoom.types";
+import { ZoomStateCanvas, ZoomFragment, calculateZoomPhaseState, zoomLevelToFactor, speedToTransitionMs, easeOutQuart, ZoomMovement } from "@/types/zoom.types";
 
 export function drawRoundedRect(
     ctx: CanvasRenderingContext2D,
@@ -204,33 +204,21 @@ export interface ZoomStateCanvasExport extends ZoomStateCanvas {
  */
 export function calculateSmoothZoom(
     frameTime: number,
-    zoomFragments: ZoomFragment[]
+    zoomFragments: ZoomFragment[],
+    zoomMovements: ZoomMovement[] = []
 ): ZoomStateCanvasExport {
     const DEFAULT_STATE: ZoomStateCanvasExport = {
-        scale: 1,
-        focusX: 50,
-        focusY: 50,
-        rotateX: 0,
-        rotateY: 0,
-        perspective: 0,
+        scale: 1, focusX: 50, focusY: 50, rotateX: 0, rotateY: 0, perspective: 0,
     };
 
     if (!zoomFragments.length) return DEFAULT_STATE;
 
     const sortedFragments = [...zoomFragments].sort((a, b) => a.startTime - b.startTime);
-
-    const activeFragment = sortedFragments.find(
-        f => frameTime >= f.startTime && frameTime <= f.endTime
-    );
-
-    const previousFragment = sortedFragments
-        .filter(f => f.endTime < frameTime)
-        .sort((a, b) => b.endTime - a.endTime)[0];
+    const activeFragment = sortedFragments.find(f => frameTime >= f.startTime && frameTime <= f.endTime);
+    const previousFragment = sortedFragments.filter(f => f.endTime < frameTime).sort((a, b) => b.endTime - a.endTime)[0];
 
     const isAdvancedZoom = (f: ZoomFragment) => f.enable3D || f.movementEnabled;
-
-    // Shared scale curve: entry ramps INSIDE the fragment, then holds flat.
-    // Used for BOTH simple and advanced zoom while the fragment is active.
+    const movementsFor = (fragmentId: string) => zoomMovements.filter(m => m.zoomFragmentId === fragmentId);
     const computeHeldScale = (fragment: ZoomFragment, time: number): number => {
         const transitionSec = speedToTransitionMs(fragment.speed) / 1000;
         const targetScale = zoomLevelToFactor(fragment.zoomLevel);
@@ -242,8 +230,6 @@ export function calculateSmoothZoom(
         return targetScale;
     };
 
-    // Shared exit curve: decays AFTER the fragment ends. Returns null once
-    // the exit transition has fully finished (caller falls through to default).
     const computeExitScale = (fragment: ZoomFragment, time: number): number | null => {
         const transitionSec = speedToTransitionMs(fragment.speed) / 1000;
         if (transitionSec <= 0) return null;
@@ -257,62 +243,21 @@ export function calculateSmoothZoom(
 
     if (activeFragment) {
         const scale = computeHeldScale(activeFragment, frameTime);
-
         if (isAdvancedZoom(activeFragment)) {
-            // Rotation + focus/movement still use the existing 3-phase system —
-            // that part already matches preview, we only override `scale`.
-            const phaseState = calculateZoomPhaseState(activeFragment, frameTime, true);
-            return {
-                scale,
-                focusX: phaseState.focusX,
-                focusY: phaseState.focusY,
-                rotateX: phaseState.rotateX,
-                rotateY: phaseState.rotateY,
-                perspective: phaseState.perspective,
-            };
+            const phaseState = calculateZoomPhaseState(activeFragment, frameTime, movementsFor(activeFragment.id), true);
+            return { scale, focusX: phaseState.focusX, focusY: phaseState.focusY, rotateX: phaseState.rotateX, rotateY: phaseState.rotateY, perspective: phaseState.perspective };
         }
-
-        return {
-            scale,
-            focusX: activeFragment.focusX,
-            focusY: activeFragment.focusY,
-            rotateX: 0,
-            rotateY: 0,
-            perspective: 0,
-        };
+        return { scale, focusX: activeFragment.focusX, focusY: activeFragment.focusY, rotateX: 0, rotateY: 0, perspective: 0 };
     }
 
     if (previousFragment) {
         const exitScale = computeExitScale(previousFragment, frameTime);
         if (exitScale !== null) {
             if (isAdvancedZoom(previousFragment)) {
-                const phaseState = calculateZoomPhaseState(previousFragment, frameTime, true);
-
-                const focusX = previousFragment.movementEnabled
-                    ? (previousFragment.movementEndX ?? previousFragment.focusX)
-                    : previousFragment.focusX;
-                const focusY = previousFragment.movementEnabled
-                    ? (previousFragment.movementEndY ?? previousFragment.focusY)
-                    : previousFragment.focusY;
-
-                return {
-                    scale: exitScale,
-                    focusX,
-                    focusY,
-                    rotateX: phaseState.rotateX,
-                    rotateY: phaseState.rotateY,
-                    perspective: phaseState.perspective,
-                };
+                const phaseState = calculateZoomPhaseState(previousFragment, frameTime, movementsFor(previousFragment.id), true);
+                return { scale: exitScale, focusX: phaseState.focusX, focusY: phaseState.focusY, rotateX: phaseState.rotateX, rotateY: phaseState.rotateY, perspective: phaseState.perspective };
             }
-
-            return {
-                scale: exitScale,
-                focusX: previousFragment.focusX,
-                focusY: previousFragment.focusY,
-                rotateX: 0,
-                rotateY: 0,
-                perspective: 0,
-            };
+            return { scale: exitScale, focusX: previousFragment.focusX, focusY: previousFragment.focusY, rotateX: 0, rotateY: 0, perspective: 0 };
         }
     }
 

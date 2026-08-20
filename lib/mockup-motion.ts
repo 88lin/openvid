@@ -370,7 +370,7 @@ export function sampleMockupMotion(
       const i = clamp01(intensity / 100);
       const p = clamp01(currentTime / clipDurationSec);
 
-      // Tiempos del recorrido completo
+      
       const act1 = lerp(0.12, 0.10, speedT);
       const act2 = lerp(0.32, 0.28, speedT);
       const act3 = lerp(0.42, 0.36, speedT);
@@ -378,24 +378,24 @@ export function sampleMockupMotion(
       const act5 = lerp(0.70, 0.62, speedT);
       const act6 = lerp(0.85, 0.78, speedT);
 
-      // Dinámica de escalas
+      
       const heroScale = lerp(1.02, 1.05, i);
       const orbitScale = lerp(1.1, 1.2, i);
-      const macroScale = lerp(1.6, 1.85, i); // Zoom profundo permitido
+      const macroScale = lerp(1.6, 1.85, i); 
 
-      // Rotaciones extremas para las esquinas
+      
       const tiltXMax = lerp(20, 35, i);
       const tiltYMax = lerp(20, 35, i);
 
-      // Coordenadas extremas (calculadas para no salir del Viewport en scale 1.75)
-      // Recordatorio CSS: X negativo empuja el elemento a la izquierda (foco derecho)
+      
+      
       const ptBottomRight = { x: -lerp(0.15, 0.22, i), y: -lerp(0.15, 0.22, i) };
       const ptTopRight = { x: -lerp(0.15, 0.22, i), y: lerp(0.15, 0.22, i) };
       const ptTopLeft = { x: lerp(0.15, 0.22, i), y: lerp(0.15, 0.22, i) };
       const ptBottomLeft = { x: lerp(0.15, 0.22, i), y: -lerp(0.15, 0.22, i) };
       const ptCenter = { x: 0, y: 0 };
 
-      // Curvas de aceleración
+      
       const easeInOutCubic = (t: number) => t < 0.5 ? 4 * t ** 3 : 1 - (-2 * t + 2) ** 3 / 2;
       const smootherStep = (t: number) => t * t * t * (t * (t * 6 - 15) + 10);
       const lensBreath = 1 + Math.sin(currentTime * Math.PI * 1.5) * 0.015 * i;
@@ -424,8 +424,8 @@ export function sampleMockupMotion(
         const t = clamp01((p - act1) / (act2 - act1));
 
         scale = macroScale * lensBreath;
-        anchorX = ptBottomRight.x; // Mantiene anclaje X
-        anchorY = lerp(ptBottomRight.y, ptTopRight.y, t); // Sube por Y
+        anchorX = ptBottomRight.x; 
+        anchorY = lerp(ptBottomRight.y, ptTopRight.y, t); 
 
         tiltX = tiltXMax;
         tiltY = lerp(-tiltYMax, -tiltYMax * 0.6, t);
@@ -435,12 +435,12 @@ export function sampleMockupMotion(
         const lp = easeInOutCubic(t);
         const arc = Math.sin(t * Math.PI);
 
-        scale = lerp(macroScale, macroScale * 0.85, lp) - (arc * 0.15); // Aleja un poco durante el latigazo
+        scale = lerp(macroScale, macroScale * 0.85, lp) - (arc * 0.15); 
         anchorX = lerp(ptTopRight.x, ptTopLeft.x, lp);
-        anchorY = lerp(ptTopRight.y, ptTopLeft.y, lp); // Mantiene altura
+        anchorY = lerp(ptTopRight.y, ptTopLeft.y, lp); 
 
         tiltX = lerp(tiltXMax, tiltXMax * 0.5, lp) + (arc * 15);
-        tiltY = lerp(-tiltYMax * 0.6, tiltYMax, lp); // Gira el eje Y por completo
+        tiltY = lerp(-tiltYMax * 0.6, tiltYMax, lp); 
         tiltZ = arc * lerp(6, 12, i);
         blur = arc * lerp(12, 24, i);
 
@@ -514,33 +514,33 @@ export function sampleMockupMotion(
       const i = clamp01(intensity / 100);
       const p = clamp01(currentTime / clipDurationSec);
 
-      // ── FASES
-      const a1 = lerp(0.12, 0.09, speedT);   // Cenital establishing
-      const a2 = lerp(0.30, 0.25, speedT);   // Crane descent
-      const a3 = lerp(0.44, 0.38, speedT);   // Push feature right
-      const a4 = lerp(0.54, 0.47, speedT);   // Whip orbit right → left
-      const a5 = lerp(0.68, 0.62, speedT);   // Macro feature left
-      const a6 = lerp(0.84, 0.78, speedT);   // Transition to Isometric
-      // a7: Isometric Settle hasta 1.0
+      
+      const a1 = lerp(0.12, 0.09, speedT);   
+      const a2 = lerp(0.30, 0.25, speedT);   
+      const a3 = lerp(0.44, 0.38, speedT);   
+      const a4 = lerp(0.54, 0.47, speedT);   
+      const a5 = lerp(0.68, 0.62, speedT);   
+      const a6 = lerp(0.84, 0.78, speedT);   
+      
 
-      // ── ESCALAS
-      const cenitalScale = lerp(0.88, 0.98, i);  // muy lejos, desde arriba
+      
+      const cenitalScale = lerp(0.88, 0.98, i);  
       const heroScale = lerp(1.02, 1.08, i);
       const macroScale = lerp(1.50, 1.80, i);
 
-      // ── TILT (rotateX es el protagonista aquí)
-      const cenitalTiltX = -lerp(55, 82, i);       // mirando casi desde el techo
-      const hoverTiltX = -lerp(18, 32, i);       // inclinación media
-      const levelTiltX = lerp(2, 5, i);          // casi plano en features
+      
+      const cenitalTiltX = -lerp(55, 82, i);       
+      const hoverTiltX = -lerp(18, 32, i);       
+      const levelTiltX = lerp(2, 5, i);          
 
-      const tiltYMax = lerp(16, 28, i);        // paneo lateral
+      const tiltYMax = lerp(16, 28, i);        
 
-      // ── ANCLAS
+      
       const ptCenter = { x: 0, y: 0 };
       const ptRightFeature = { x: -lerp(0.18, 0.28, i), y: lerp(0.02, 0.06, i) };
       const ptLeftFeature = { x: lerp(0.18, 0.28, i), y: lerp(-0.02, -0.06, i) };
 
-      // ── CURVAS
+      
       const smoothStep = (t: number): number => t * t * (3 - 2 * t);
       const smootherStep = (t: number): number => t * t * t * (t * (t * 6 - 15) + 10);
       const easeInOutCubic = (t: number): number =>
@@ -548,7 +548,7 @@ export function sampleMockupMotion(
       const easeOutCubic = (t: number): number => 1 - (1 - t) ** 3;
       const easeOutExpo = (t: number): number => t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
 
-      // ── HANDHELD + BREATHING
+      
       const hSeed = currentTime * lerp(0.6, 1.4, i);
       const hAmp = lerp(0.06, 0.16, i);
       const handX = Math.sin(hSeed * 2.7) * Math.cos(hSeed * 1.3) * hAmp;
@@ -556,13 +556,13 @@ export function sampleMockupMotion(
       const handRot = Math.sin(hSeed * 3.9) * 0.035 * (i * 0.5 + 0.5);
       const breath = 1 + Math.sin(currentTime * Math.PI * 2 * lerp(0.20, 0.45, i)) * lerp(0.003, 0.008, i);
 
-      // ── WHIP / ORBIT CONFIG
+      
       const orbitRollMax = lerp(4, 10, i);
       const motionBlurMax = lerp(8, 20, i);
 
-      // ═══════════════════════════════════════════════════════════════
-      // HAND-OFFS
-      // ═══════════════════════════════════════════════════════════════
+      
+      
+      
       const h0 = {
         s: cenitalScale, x: 0, y: 0,
         tx: cenitalTiltX, ty: 0, tz: 0, blur: 0
@@ -588,13 +588,13 @@ export function sampleMockupMotion(
         tx: levelTiltX * 0.6, ty: tiltYMax * 0.20, tz: 0, blur: 0
       };
 
-      // NUEVO: Transición intermedia hacia el centro
+      
       const h6 = {
         s: heroScale, x: 0, y: 0,
         tx: lerp(5, 12, i), ty: -lerp(10, 18, i), tz: 0, blur: 0
       };
 
-      // NUEVO: Remate Isométrico Majestuoso (En lugar de volver a h0)
+      
       const h7_end = {
         s: heroScale * lerp(1.1, 1.18, i),
         x: 0,
@@ -605,9 +605,9 @@ export function sampleMockupMotion(
         blur: 0
       };
 
-      // ═══════════════════════════════════════════════════════════════
-      // ACTOS
-      // ═══════════════════════════════════════════════════════════════
+      
+      
+      
       let scale: number;
       let anchorX: number;
       let anchorY: number;
@@ -617,7 +617,7 @@ export function sampleMockupMotion(
       let blur: number;
 
       if (p <= a1) {
-        // ACTO I: Cenital Establishing — mirando desde el techo
+        
         const t = clamp01(p / a1);
         const lp = easeOutCubic(t);
         scale = lerp(h0.s, h1.s, lp) * breath;
@@ -629,7 +629,7 @@ export function sampleMockupMotion(
         blur = 0;
 
       } else if (p <= a2) {
-        // ACTO II: Crane Descent — la grúa baja, el tilt se nivela, se revela la UI
+        
         const t = clamp01((p - a1) / (a2 - a1));
         const lp = smootherStep(t);
         scale = lerp(h1.s, h2.s, lp) * breath;
@@ -641,7 +641,7 @@ export function sampleMockupMotion(
         blur = 0;
 
       } else if (p <= a3) {
-        // ACTO III: Push Feature Right — dolly-in lateral derecho
+        
         const t = clamp01((p - a2) / (a3 - a2));
         const lp = smoothStep(t);
         scale = lerp(h2.s, h3.s, lp) * breath;
@@ -653,22 +653,20 @@ export function sampleMockupMotion(
         blur = 0;
 
       } else if (p <= a4) {
-        // ACTO IV: Whip Orbit — giro violento de derecha a izquierda
+        
         const t = clamp01((p - a3) / (a4 - a3));
         const lp = easeInOutCubic(t);
         const arc = Math.sin(Math.PI * lp);
         const arcAsym = Math.sin(Math.PI * Math.pow(lp, 0.8));
 
         scale = lerp(h3.s, h4.s, lp) * lerp(1, 0.88, arc);
-
-        // Trayectoria en arco por encima del centro
+        
         const midX = (h3.x + h4.x) * 0.5;
         const midY = Math.max(h3.y, h4.y) + lerp(0.04, 0.10, i);
         const u = 1 - lp;
         anchorX = u * u * h3.x + 2 * u * lp * midX + lp * lp * h4.x;
         anchorY = u * u * h3.y + 2 * u * lp * midY + lp * lp * h4.y;
-
-        // Tilt flip + orbit roll masivo
+        
         const flare = arcAsym * lerp(0.55, 1.0, i);
         tiltX = lerp(h3.tx, h4.tx, lp) + flare * hoverTiltX * 0.5;
         tiltY = lerp(h3.ty, h4.ty, lp) + flare * tiltYMax * 0.6;
@@ -676,7 +674,7 @@ export function sampleMockupMotion(
         blur = arcAsym * motionBlurMax;
 
       } else if (p <= a5) {
-        // ACTO V: Macro Feature Left — exploración profunda
+        
         const t = clamp01((p - a4) / (a5 - a4));
         const lp = smoothStep(t);
         scale = lerp(h4.s, h5.s, lp) * breath;
@@ -690,10 +688,10 @@ export function sampleMockupMotion(
         tiltX = lerp(h4.tx, h5.tx, lp) + driftX * lerp(10, 24, i);
         tiltY = lerp(h4.ty, h5.ty, lp) + driftY * lerp(8, 16, i);
         tiltZ = handRot * 0.4;
-        blur = lerp(lerp(2, 5, i), 0, lp); // limpia blur residual
+        blur = lerp(lerp(2, 5, i), 0, lp); 
 
       } else if (p <= a6) {
-        // ACTO VI: Sweep al Centro — la cámara cruza hacia el medio preparándose para el final
+        
         const t = clamp01((p - a5) / (a6 - a5));
         const lp = smootherStep(t);
         scale = lerp(h5.s, h6.s, lp) * breath;
@@ -705,22 +703,21 @@ export function sampleMockupMotion(
         blur = 0;
 
       } else {
-        // ACTO VII: Hero Isometric Settle — remate impactante y elegante en 3D
+        
         const t = clamp01((p - a6) / (1 - a6));
-        const lp = easeOutExpo(t); // Desaceleración premium al final
+        const lp = easeOutExpo(t); 
         scale = lerp(h6.s, h7_end.s, lp) * breath;
         anchorX = lerp(h6.x, h7_end.x, lp);
         anchorY = lerp(h6.y, h7_end.y, lp);
         tiltX = lerp(h6.tx, h7_end.tx, lp);
         tiltY = lerp(h6.ty, h7_end.ty, lp);
 
-        // El ruido manual se desvanece sutilmente para dejar un cuadro final impecable
+        
         const finalSettle = 1 - lp;
         tiltZ = handRot * 0.2 * finalSettle;
         blur = 0;
       }
 
-      // ── HANDHELD EN HOLDS (nunca durante whip orbit ni en el settle final absoluto)
       const inWhip = (p > a3 && p < a4);
       const isSettling = p > a6;
       if (!inWhip) {
@@ -729,11 +726,9 @@ export function sampleMockupMotion(
         anchorY += handY * 0.001 * noiseMultiplier;
       }
 
-      // ── TRADUCCIÓN A TRANSFORM
       const translateXPct = scale * anchorX * 100;
       const translateYPct = scale * anchorY * 100;
-
-      // Perspectiva: más cerrada cuando el tiltX es cenital (más dramático), se relaja al final
+      
       const tiltMag = Math.abs(tiltX) + Math.abs(tiltY);
       const tiltNorm = clamp01(tiltMag / (Math.abs(cenitalTiltX) + tiltYMax || 1));
       const perspective = lerp(3500, 900, tiltNorm);
@@ -756,8 +751,7 @@ export function sampleMockupMotion(
       const speedT = clamp01(speed / 100);
       const i = clamp01(intensity / 100);
       const p = clamp01(currentTime / clipDurationSec);
-
-      // ── TIEMPOS
+      
       const act1 = lerp(0.12, 0.10, speedT);
       const act2 = lerp(0.30, 0.26, speedT);
       const act3 = lerp(0.44, 0.38, speedT);
@@ -765,21 +759,17 @@ export function sampleMockupMotion(
       const act5 = lerp(0.74, 0.68, speedT);
       const act6 = lerp(0.90, 0.84, speedT);
 
-      // ── ESCALAS
       const heroScale = lerp(1.02, 1.08, i);
       const macroScale = lerp(1.55, 1.85, i);
-      const crashScale = lerp(1.35, 1.65, i); // zoom-out durante el whip de caída
-
-      // ── ROTACIONES EXTREMAS
-      const tiltXMax = lerp(22, 38, i); // ángulo bajo inicial (cámara desde abajo)
+      const crashScale = lerp(1.35, 1.65, i); 
+      
+      const tiltXMax = lerp(22, 38, i); 
       const tiltYMax = lerp(14, 26, i);
-
-      // ── ANCLAS
+      
       const ptTop = { x: lerp(0.06, 0.12, i), y: lerp(0.18, 0.32, i) };
       const ptBottom = { x: lerp(-0.08, -0.16, i), y: -lerp(0.18, 0.32, i) };
       const ptCenter = { x: 0, y: 0 };
-
-      // ── CURVAS
+      
       const easeInOutCubic = (t: number): number =>
         t < 0.5 ? 4 * t ** 3 : 1 - (-2 * t + 2) ** 3 / 2;
       const smootherStep = (t: number): number => t * t * t * (t * (t * 6 - 15) + 10);
@@ -798,7 +788,7 @@ export function sampleMockupMotion(
         scale = lerp(heroScale, macroScale, lp);
         anchorX = lerp(0, ptTop.x, lp);
         anchorY = lerp(0, ptTop.y, lp);
-        tiltX = lerp(tiltXMax, tiltXMax * 0.25, lp); // nivela el ángulo bajo
+        tiltX = lerp(tiltXMax, tiltXMax * 0.25, lp); 
         tiltY = lerp(0, tiltYMax * 0.3, lp);
         blur = 0;
 
@@ -814,12 +804,12 @@ export function sampleMockupMotion(
         const t = clamp01((p - act2) / (act3 - act2));
         const lp = easeInOutCubic(t);
         const arc = Math.sin(t * Math.PI);
-        scale = lerp(macroScale, crashScale, lp) * lerp(1, 0.88, arc); // suck effect
+        scale = lerp(macroScale, crashScale, lp) * lerp(1, 0.88, arc); 
         anchorX = lerp(ptTop.x, ptBottom.x, lp);
         anchorY = lerp(ptTop.y, ptBottom.y, lp);
         tiltX = lerp(tiltXMax * 0.25, -tiltXMax * 0.6, lp) + arc * lerp(8, 18, i);
         tiltY = lerp(tiltYMax * 0.15, -tiltYMax * 0.4, lp);
-        tiltZ = arc * lerp(-5, -12, i); // roll negativo en la caída
+        tiltZ = arc * lerp(-5, -12, i); 
         blur = arc * lerp(14, 28, i);
 
       } else if (p <= act4) {
@@ -830,7 +820,7 @@ export function sampleMockupMotion(
         anchorY = ptBottom.y;
         tiltX = lerp(-tiltXMax * 0.6, -tiltXMax * 0.35, lp);
         tiltY = lerp(-tiltYMax * 0.4, -tiltYMax * 0.2, lp);
-        blur = lerp(lerp(3, 6, i), 0, lp); // despeja blur residual del whip
+        blur = lerp(lerp(3, 6, i), 0, lp); 
 
       } else if (p <= act5) {
         const t = clamp01((p - act4) / (act5 - act4));
@@ -850,7 +840,7 @@ export function sampleMockupMotion(
         scale = lerp(macroScale * 1.05, heroScale, lp);
         anchorX = lerp(ptCenter.x, 0, lp);
         anchorY = lerp(ptCenter.y, 0, lp);
-        tiltX = lerp(0, tiltXMax, lp); // vuelve a inclinarse para loop perfecto
+        tiltX = lerp(0, tiltXMax, lp); 
         tiltY = 0;
         tiltZ = 0;
         blur = 0;
@@ -861,7 +851,7 @@ export function sampleMockupMotion(
         scale = heroScale;
         anchorX = 0;
         anchorY = 0;
-        tiltX = tiltXMax; // idéntico al frame 0 del Acto I
+        tiltX = tiltXMax; 
         tiltY = 0;
         tiltZ = 0;
         blur = 0;
@@ -888,33 +878,22 @@ export function sampleMockupMotion(
     case "whip-showcase": {
       const speedT = clamp01(speed / 100);
       const i = clamp01(intensity / 100);
-
-      // ═══════════════════════════════════════════════════════════════
-      // HERO-REVEAL v3  —  Handoffs estrictos, pullback suave, loop perfecto
-      // ═══════════════════════════════════════════════════════════════
-      const a1 = lerp(0.12, 0.08, speedT);  // Hero establishing
-      const a2 = lerp(0.28, 0.22, speedT);  // Push to Feature A
-      const a3 = lerp(0.44, 0.36, speedT);  // Drift on Feature A
-      const a4 = lerp(0.52, 0.44, speedT);  // Whip to Feature B
-      const a5 = lerp(0.68, 0.60, speedT);  // Macro Feature B
-      const a6 = lerp(0.80, 0.72, speedT);  // Pullback Reveal (FIXED)
-      const a7 = lerp(0.90, 0.84, speedT);  // Panoramic sweep
-      // a8: settle final hasta 1.0
-
+      const a1 = lerp(0.12, 0.08, speedT);  
+      const a2 = lerp(0.28, 0.22, speedT);  
+      const a3 = lerp(0.44, 0.36, speedT);  
+      const a4 = lerp(0.52, 0.44, speedT);  
+      const a5 = lerp(0.68, 0.60, speedT);  
+      const a6 = lerp(0.80, 0.72, speedT);  
+      const a7 = lerp(0.90, 0.84, speedT);  
       const p = clamp01(currentTime / clipDurationSec);
 
-      // ── ANCLAS
       const anchorHero = { x: 0, y: 0 };
       const anchorFeatA = { x: lerp(0.26, 0.16, i), y: lerp(-0.14, -0.30, i) };
       const anchorFeatB = { x: lerp(-0.18, -0.28, i), y: lerp(0.18, 0.34, i) };
-
-      // ── ZOOM
       const zoomHero = lerp(1.02, 1.08, i);
       const zoomFeatA = lerp(1.40, 1.95, i);
       const zoomFeatB = lerp(1.52, 2.20, i);
       const zoomMacro = lerp(1.65, 2.35, i);
-
-      // ── TILT
       const heroTiltX = lerp(10, 16, i);
       const heroTiltY = lerp(14, 24, i);
       const featATiltX = lerp(2, 4, i);
@@ -922,7 +901,6 @@ export function sampleMockupMotion(
       const featBTiltX = lerp(1.5, 3.5, i);
       const featBTiltY = lerp(2, 5, i);
 
-      // ── ESTADOS DE HAND-OFF (garantizan 0 saltos entre actos)
       const handoffA = {
         scale: zoomFeatA,
         anchorX: anchorFeatA.x,
@@ -946,51 +924,39 @@ export function sampleMockupMotion(
         tiltX: featBTiltX * 0.4,
         tiltY: featBTiltY * 0.4,
       };
-
-      // FIX v3: Estado final del pullback (Acto 6) → entrada al sweep (Acto 7)
-      // Zoom nunca baja de zoomHero * 1.04. No hay "desaparición" hacia atrás.
+      
       const handoff6End = {
         scale: zoomHero * lerp(1.06, 1.12, i),
-        anchorX: lerp(0.04, 0.10, i),   // ligero offset para iniciar el sweep
+        anchorX: lerp(0.04, 0.10, i),   
         anchorY: lerp(0.01, 0.03, i),
         tiltX: heroTiltX * lerp(0.85, 0.95, i),
         tiltY: heroTiltY * lerp(0.85, 0.95, i),
       };
 
-      // FIX v3: Estado final del sweep (Acto 7) → entrada al settle (Acto 8)
       const handoff7End = {
         scale: zoomHero * lerp(1.02, 1.06, i),
-        anchorX: -lerp(0.04, 0.10, i),  // terminó el sweep del otro lado
+        anchorX: -lerp(0.04, 0.10, i),  
         anchorY: lerp(0.005, 0.015, i),
         tiltX: heroTiltX * lerp(0.9, 1.0, i),
         tiltY: heroTiltY * lerp(0.9, 1.0, i),
       };
-
-      // ── CURVAS TIPADAS
+      
       const smoothStep = (t: number): number => t * t * (3 - 2 * t);
       const smootherStep = (t: number): number => t * t * t * (t * (t * 6 - 15) + 10);
       const easeInOutQuart = (t: number): number =>
         t < 0.5 ? 8 * t * t * t * t : 1 - Math.pow(-2 * t + 2, 4) / 2;
       const easeOutBack = (t: number, o: number = 1.70158): number =>
         1 + (o + 1) * Math.pow(t - 1, 3) + o * Math.pow(t - 1, 2);
-
-      // ── HANDHELD (sutil, solo en holds)
+      
       const hSeed = currentTime * lerp(0.8, 1.8, i);
       const hAmp = lerp(0.08, 0.20, i);
       const handX = Math.sin(hSeed * 3.1) * Math.cos(hSeed * 1.7) * hAmp;
       const handY = Math.sin(hSeed * 2.3) * Math.cos(hSeed * 5.1) * hAmp;
       const handRot = Math.sin(hSeed * 4.7) * 0.04 * (i * 0.5 + 0.5);
-
-      // ── LENS BREATHING
       const breath = 1 + Math.sin(currentTime * Math.PI * 2 * lerp(0.28, 0.55, i)) * lerp(0.003, 0.010, i);
-
-      // ── WHIP
       const whipRollMax = lerp(2.5, 6.5, i);
       const motionBlurMax = lerp(6, 18, i);
 
-      // ═══════════════════════════════════════════════════════════════
-      // ACTOS
-      // ═══════════════════════════════════════════════════════════════
       let scale: number;
       let anchorX: number;
       let anchorY: number;
@@ -1116,14 +1082,14 @@ export function sampleMockupMotion(
         blur = 0;
       }
 
-      // ── HANDHELD (solo en holds, nunca en whips)
+      
       const inWhip = (p > a3 && p < a4);
       if (!inWhip) {
         anchorX += handX * 0.001;
         anchorY += handY * 0.001;
       }
 
-      // ── TRADUCCIÓN A TRANSFORM
+      
       const translateXPct = scale * anchorX * 100;
       const translateYPct = scale * anchorY * 100;
 

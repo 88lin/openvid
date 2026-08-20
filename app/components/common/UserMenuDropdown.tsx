@@ -54,11 +54,13 @@ function writeThemeCookie(theme: Theme) {
 interface UserMenuDropdownProps {
   trigger: React.ReactNode;
   showTheme?: boolean;
+  editorMode?: "video" | "photo";
 }
 
 export function UserMenuDropdown({
   trigger,
   showTheme = false,
+  editorMode,
 }: UserMenuDropdownProps) {
   const t = useTranslations('userMenu');
   const { user, profile } = useAuth();
@@ -122,6 +124,9 @@ export function UserMenuDropdown({
     user?.email?.split("@")[0] ||
     t('defaultUser');
   const provider = profile?.provider || meta.provider || "email";
+  const editorHref = editorMode === "video" ? "/editor?mode=photo" : "/editor";
+  const editorLabel = editorMode === "video" ? t("photoEditor") : editorMode === "photo" ? t("videoEditor") : t("editor");
+  const editorIcon = editorMode === "video" ? "solar:gallery-wide-linear" : "solar:video-frame-cut-2-linear";
 
   return (
     <DropdownMenu.Root>
@@ -149,10 +154,10 @@ export function UserMenuDropdown({
           </DropdownMenu.Item>
 
           <DropdownMenu.Item asChild>
-            <Link href="/editor" className={itemClasses}>
-              <Icon icon="solar:video-frame-cut-2-linear" className="size-4" aria-hidden="true" />
-              <span>{t('editor')}</span>
-            </Link>
+            <a href={editorHref} className={itemClasses}>
+              <Icon icon={editorIcon} className="size-4" aria-hidden="true" />
+              <span>{editorLabel}</span>
+            </a>
           </DropdownMenu.Item>
 
           {showTheme && (
@@ -195,9 +200,9 @@ export function UserMenuDropdown({
             </>
           )}
 
-<DropdownMenu.Separator className="h-px bg-border my-1" />
+          <DropdownMenu.Separator className="h-px bg-border my-1" />
 
-      <SignOutItem />
+          <SignOutItem />
         </DropdownMenu.Content>
       </DropdownMenu.Portal>
     </DropdownMenu.Root>

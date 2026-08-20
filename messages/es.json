@@ -310,6 +310,8 @@
     "connectedWith": "Conectado con {provider}",
     "home": "Inicio",
     "editor": "Editor",
+    "videoEditor": "Ir al editor de video",
+    "photoEditor": "Ir al editor de fotos",
     "logout": "Cerrar sesión",
     "loggingOut": "Cerrando sesión...",
     "ariaLabel": "Menú de usuario",
@@ -781,13 +783,16 @@
       "title": "Movimiento de cámara",
       "subtitle": "Desplazamiento durante el zoom",
       "orbitalDescription": "Trayectoria del cursor generada por Autozoom. Se conserva en la vista previa y la exportación.",
-      "tooShort": "Fragmento muy corto para movimiento. Aumenta la duración o reduce la velocidad de transición.",
+      "tooShort": "Fragmento muy corto para movimiento. Aumenta la duración.",
+      "defaultName": "Movimiento {number}",
       "timeline": {
         "title": "Timeline de movimiento",
         "active": "{seconds}s activo",
         "startLabel": "INICIO",
         "endLabel": "FIN"
-      }
+      },
+      "addMovement": "Añadir punto",
+      "deleteMovement": "Eliminar punto"
     },
     "sliders": {
       "zoomLevel": "Nivel de zoom",
@@ -1423,7 +1428,8 @@
     "zoom": "Zoom",
     "elements": "Objeto",
     "audio": "Audio",
-    "motion": "Mvto"
+    "motion": "Mvto",
+    "movement": "Mov."
   },
   "heroPreview": {
     "sidebar": {

@@ -168,7 +168,7 @@ function EditorCanvas({
             }}
           >
           <div
-            className="absolute overflow-hidden bg-black squircle-corner"
+            className="absolute overflow-hidden bg-black squircle-element sm:squircle-corner"
             style={{
               inset: `${paddingPct}%`,
               borderRadius: `${roundedPx}px`,

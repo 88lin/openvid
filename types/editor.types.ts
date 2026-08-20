@@ -1,5 +1,5 @@
 "use client";
-import type { ZoomFragment } from "./zoom.types";
+import type { ZoomFragment, ZoomMovement } from "./zoom.types";
 import type { CanvasElement } from "./canvas-elements.types";
 import type { ImageMaskConfig } from "@/types/photo.types";
 import type { MockupConfig } from "./mockup.types";
@@ -117,4 +117,10 @@ export interface VideoCanvasProps {
   mockupMotionFragments?: MockupMotionFragment[];
   videoDuration?: number;
   onMockupConfigChange?: (config: Partial<MockupConfig>) => void;
+  selectedZoomFragment?: ZoomFragment | null;
+  onUpdateZoomFragment?: (id: string, updates: Partial<ZoomFragment>) => void;
+  zoomMovements?: ZoomMovement[];
+  selectedZoomMovementId?: string | null;
+  onSelectZoomMovement?: (id: string | null) => void;
+  onUpdateZoomMovement?: (id: string, updates: Partial<ZoomMovement>) => void;
 }

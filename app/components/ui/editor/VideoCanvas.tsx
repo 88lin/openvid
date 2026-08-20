@@ -33,11 +33,12 @@ import { drawPhone3DCompositeWithZoom, type Phone3DCompositeContext } from "@/li
 import { buildMockupMotionCss, MockupMotionTransform, REST_MOCKUP_MOTION, sampleCombinedMockupMotion } from "@/lib/mockup-motion";
 import { Mockup3DFrame } from "./mockups-3d/Mockup3DFrame";
 import { filterVisibleElements } from "@/lib/canvas-elements-timeline.utils";
+import { ZoomPointOverlay } from "@/components/ui/ZoomPointOverlay";
 
 export type { VideoCanvasHandle, VideoCanvasProps };
 
 function VideoCanvasInner({
-    activeTool: _activeTool,
+    activeTool,
     mediaType = "video",
     isPlaying = false,
     imageUrl = null,
@@ -102,7 +103,13 @@ function VideoCanvasInner({
     mockupMotionFragments = [],
     videoDuration = 0,
     onSelectedElementIdsChange,
-    onMockupConfigChange
+    onMockupConfigChange,
+    selectedZoomFragment = null,
+    onUpdateZoomFragment,
+    zoomMovements = [],
+    selectedZoomMovementId = null,
+    onSelectZoomMovement,
+    onUpdateZoomMovement,
 }: VideoCanvasProps & {
     ref?: React.Ref<VideoCanvasHandle>;
     onSelectedElementIdsChange?: (ids: string[]) => void;
@@ -142,6 +149,7 @@ function VideoCanvasInner({
     const pendingPaddingRef = useRef<number | null>(null);
     const zoomWheelRafRef = useRef<number | null>(null);
     const pendingZoomRef = useRef<number | null>(null);
+
     useEffect(() => {
         return () => {
             if (paddingWheelRafRef.current !== null) {
@@ -152,6 +160,62 @@ function VideoCanvasInner({
             }
         };
     }, []);
+
+    const zoomMovementsForSelected = useMemo(
+        () => zoomMovements.filter(m => m.zoomFragmentId === selectedZoomFragment?.id).sort((a, b) => a.startTime - b.startTime),
+        [zoomMovements, selectedZoomFragment?.id]
+    );
+
+    const zoomPointChain = useMemo(() => {
+        if (!selectedZoomFragment) return [];
+        const chain: Array<{ id: string; x: number; y: number; label: string }> = [
+            { id: "origin", x: selectedZoomFragment.focusX, y: selectedZoomFragment.focusY, label: "A" },
+        ];
+        zoomMovementsForSelected.forEach((m, i) => chain.push({ id: m.id, x: m.focusX, y: m.focusY, label: String(i + 1) }));
+        return chain;
+    }, [selectedZoomFragment, zoomMovementsForSelected]);
+
+    const zoomActivePointId = selectedZoomMovementId ?? "origin";
+
+    const updateZoomPoint = useCallback((pointId: string, x: number, y: number) => {
+        if (!selectedZoomFragment) return;
+        if (pointId === "origin") onUpdateZoomFragment?.(selectedZoomFragment.id, { focusX: x, focusY: y });
+        else onUpdateZoomMovement?.(pointId, { focusX: x, focusY: y });
+    }, [selectedZoomFragment, onUpdateZoomFragment, onUpdateZoomMovement]);
+
+    const handleZoomFocusPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>, pointId: string) => {
+        if (!selectedZoomFragment) return;
+        e.preventDefault();
+        e.stopPropagation();
+        e.currentTarget.setPointerCapture(e.pointerId);
+        onSelectZoomMovement?.(pointId === "origin" ? null : pointId);
+        const container = previewContainerRef.current;
+        if (!container) return;
+        const move = (ev: PointerEvent) => {
+            const rect = container.getBoundingClientRect();
+            const x = Math.max(0, Math.min(100, ((ev.clientX - rect.left) / rect.width) * 100));
+            const y = Math.max(0, Math.min(100, ((ev.clientY - rect.top) / rect.height) * 100));
+            updateZoomPoint(pointId, x, y);
+        };
+        const up = () => {
+            window.removeEventListener("pointermove", move);
+            window.removeEventListener("pointerup", up);
+        };
+        window.addEventListener("pointermove", move);
+        window.addEventListener("pointerup", up);
+    }, [selectedZoomFragment, onSelectZoomMovement, updateZoomPoint]);
+
+    const handleZoomOverlayClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+        if (!selectedZoomFragment) return;
+        e.stopPropagation();
+        if ((e.target as HTMLElement).closest("[data-zoom-drag-handle]")) return;
+        const container = previewContainerRef.current;
+        if (!container) return;
+        const rect = container.getBoundingClientRect();
+        const x = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
+        const y = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100));
+        updateZoomPoint(zoomActivePointId, x, y);
+    }, [selectedZoomFragment, zoomActivePointId, updateZoomPoint]);
 
     const ctrlScrollWheelRef = useRef<((e: WheelEvent) => void) | null>(null);
     const imagePhoneActiveRef = useRef(imagePhoneActive);
@@ -211,7 +275,8 @@ function VideoCanvasInner({
         }
 
         // Calculate 3-phase state
-        const phaseState = calculateZoomPhaseState(activeZoomFragment, currentTime);
+        const fragmentMovements = zoomMovements.filter(m => m.zoomFragmentId === activeZoomFragment.id);
+        const phaseState = calculateZoomPhaseState(activeZoomFragment, currentTime, fragmentMovements);
         const translateX = 50 - phaseState.focusX;
         const translateY = 50 - phaseState.focusY;
 
@@ -229,7 +294,7 @@ function VideoCanvasInner({
             perspective: phaseState.perspective,
             isMoving,
         };
-    }, [activeZoomFragment, zoomFragments, currentTime]);
+    }, [activeZoomFragment, zoomFragments, currentTime, zoomMovements]);
 
     const shouldShowUnsplashOverride = backgroundTab === "wallpaper" && unsplashOverrideUrl !== "";
     const shouldShowWallpaper = backgroundTab === "wallpaper" && selectedWallpaper >= 0 && !shouldShowUnsplashOverride;
@@ -1266,7 +1331,7 @@ function VideoCanvasInner({
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-        const zoomState = calculateSmoothZoom(frameTime, zoomFragments);
+        const zoomState = calculateSmoothZoom(frameTime, zoomFragments, zoomMovements);
         const zoomCenterX = canvasWidth / 2;
         const zoomCenterY = canvasHeight / 2;
         const backgroundImage = (shouldShowCustomImage || shouldShowUnsplashOverride) ? customImageRef.current : (shouldShowWallpaper ? wallpaperImageRef.current : null);
@@ -2476,6 +2541,23 @@ function VideoCanvasInner({
                                                 }}
                                             />
                                         </div>
+                                    </div>
+                                )}
+
+                                {/* Zoom fragment focus/movement points overlay */}
+                                {selectedZoomFragment && !textToolActive && (
+                                    <div
+                                        className="absolute inset-0"
+                                        style={{ zIndex: 250 }}
+                                        onClick={handleZoomOverlayClick}
+                                    >
+                                        <ZoomPointOverlay
+                                            points={zoomPointChain}
+                                            zoomLevel={selectedZoomFragment.zoomLevel}
+                                            activePointId={zoomActivePointId}
+                                            onPointPointerDown={handleZoomFocusPointerDown}
+                                            markerId="canvas-zoom-chain-arrowhead"
+                                        />
                                     </div>
                                 )}
 
