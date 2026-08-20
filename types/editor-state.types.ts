@@ -1,4 +1,4 @@
-import type { BackgroundTab, AspectRatio, BackgroundColorConfig, CropArea, ZoomFragment, AudioTrack } from "@/types";
+import type { BackgroundTab, AspectRatio, BackgroundColorConfig, CropArea, ZoomFragment, AudioTrack, ZoomMovement } from "@/types";
 import type { TrimRange } from "@/types/timeline.types";
 import type { MockupConfig } from "@/types/mockup.types";
 import type { CanvasElement } from "@/types/canvas-elements.types";
@@ -55,6 +55,9 @@ export interface EditorState {
     imagePhoneRefWidth: number;
     mockupMotionFragments: MockupMotionFragment[];
     videoClips: VideoTrackClip[];
+    zoomMovements: ZoomMovement[];
+    imageZoomScale: number;
+    unsplashBgUrl: string;
 }
 
 export function createInitialEditorState(overrides?: Partial<EditorState>): EditorState {
@@ -125,5 +128,8 @@ export function createInitialEditorState(overrides?: Partial<EditorState>): Edit
         mockupMotionFragments: [],
         videoClips: [],
         ...overrides,
+        zoomMovements: [],
+        imageZoomScale: 1,
+        unsplashBgUrl: "",
     };
 }

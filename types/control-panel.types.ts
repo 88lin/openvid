@@ -1,6 +1,6 @@
 import { BackgroundTab, Tool, VideoThumbnail } from "./editor.types";
 import { BackgroundColorConfig } from "./background.types";
-import { ZoomFragment } from "./zoom.types";
+import { ZoomFragment, ZoomMovement } from "./zoom.types";
 import { MockupConfig, MenuPage } from "./mockup.types";
 import type { CanvasElement } from "./canvas-elements.types";
 import type { UploadedAudio, AudioTrack } from "./audio.types";
@@ -33,6 +33,13 @@ export interface ControlPanelProps {
     onAddZoomFragment?: () => void;
     onUpdateZoomFragment?: (fragmentId: string, updates: Partial<ZoomFragment>) => void;
     onDeleteZoomFragment?: (fragmentId: string) => void;
+    zoomMovements?: ZoomMovement[];
+    selectedZoomMovementId?: string | null;
+    onSelectZoomMovement?: (id: string | null) => void;
+    onToggleZoomMovement?: (fragmentId: string, enabled: boolean) => void;
+    onAddZoomMovement?: (fragmentId: string) => void;
+    onDeleteZoomMovement?: (id: string) => void;
+    onUpdateZoomMovementPoint?: (id: string, x: number, y: number) => void;
     videoUrl?: string | null;
     videoThumbnail?: string | null;
     currentTime?: number;

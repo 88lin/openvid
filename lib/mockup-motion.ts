@@ -588,13 +588,11 @@ export function sampleMockupMotion(
         tx: levelTiltX * 0.6, ty: tiltYMax * 0.20, tz: 0, blur: 0
       };
 
-      // NUEVO: Transición intermedia hacia el centro
       const h6 = {
         s: heroScale, x: 0, y: 0,
         tx: lerp(5, 12, i), ty: -lerp(10, 18, i), tz: 0, blur: 0
       };
 
-      // NUEVO: Remate Isométrico Majestuoso (En lugar de volver a h0)
       const h7_end = {
         s: heroScale * lerp(1.1, 1.18, i),
         x: 0,
