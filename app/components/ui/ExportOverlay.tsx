@@ -82,7 +82,7 @@ export function ExportOverlay({
             role="dialog"
             aria-modal="true"
             aria-labelledby="export-overlay-title"
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-md transition-all duration-500"
+            className="fixed inset-0 z-9999 flex items-center justify-center bg-black/20 backdrop-blur-md transition-all duration-500"
         >
             <div className="p-10 bg-popover dark:bg-black border border-border squircle-element-camera shadow-[0_0_80px_-15px_rgba(0,0,0,1)] w-full max-w-lg mx-4">
                 <div className="flex justify-center mb-8">
