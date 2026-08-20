@@ -531,9 +531,7 @@ export function sampleMockupMotion(
       // ── TILT (rotateX es el protagonista aquí)
       const cenitalTiltX = -lerp(55, 82, i);       // mirando casi desde el techo
       const hoverTiltX = -lerp(18, 32, i);       // inclinación media
-      const levelTiltX = lerp(2, 5, i);          // casi plano en features
 
-      const tiltYMax = lerp(16, 28, i);        // paneo lateral
 
       // ── ANCLAS
       const ptCenter = { x: 0, y: 0 };
@@ -603,9 +601,6 @@ export function sampleMockupMotion(
         blur: 0
       };
 
-      // ═══════════════════════════════════════════════════════════════
-      // ACTOS
-      // ═══════════════════════════════════════════════════════════════
       let scale: number;
       let anchorX: number;
       let anchorY: number;
@@ -615,7 +610,6 @@ export function sampleMockupMotion(
       let blur: number;
 
       if (p <= a1) {
-        // ACTO I: Cenital Establishing — mirando desde el techo
         const t = clamp01(p / a1);
         const lp = easeOutCubic(t);
         scale = lerp(h0.s, h1.s, lp) * breath;
@@ -627,7 +621,6 @@ export function sampleMockupMotion(
         blur = 0;
 
       } else if (p <= a2) {
-        // ACTO II: Crane Descent — la grúa baja, el tilt se nivela, se revela la UI
         const t = clamp01((p - a1) / (a2 - a1));
         const lp = smootherStep(t);
         scale = lerp(h1.s, h2.s, lp) * breath;
@@ -639,7 +632,6 @@ export function sampleMockupMotion(
         blur = 0;
 
       } else if (p <= a3) {
-        // ACTO III: Push Feature Right — dolly-in lateral derecho
         const t = clamp01((p - a2) / (a3 - a2));
         const lp = smoothStep(t);
         scale = lerp(h2.s, h3.s, lp) * breath;
@@ -651,7 +643,6 @@ export function sampleMockupMotion(
         blur = 0;
 
       } else if (p <= a4) {
-        // ACTO IV: Whip Orbit — giro violento de derecha a izquierda
         const t = clamp01((p - a3) / (a4 - a3));
         const lp = easeInOutCubic(t);
         const arc = Math.sin(Math.PI * lp);
@@ -659,14 +650,12 @@ export function sampleMockupMotion(
 
         scale = lerp(h3.s, h4.s, lp) * lerp(1, 0.88, arc);
 
-        // Trayectoria en arco por encima del centro
         const midX = (h3.x + h4.x) * 0.5;
         const midY = Math.max(h3.y, h4.y) + lerp(0.04, 0.10, i);
         const u = 1 - lp;
         anchorX = u * u * h3.x + 2 * u * lp * midX + lp * lp * h4.x;
         anchorY = u * u * h3.y + 2 * u * lp * midY + lp * lp * h4.y;
 
-        // Tilt flip + orbit roll masivo
         const flare = arcAsym * lerp(0.55, 1.0, i);
         tiltX = lerp(h3.tx, h4.tx, lp) + flare * hoverTiltX * 0.5;
         tiltY = lerp(h3.ty, h4.ty, lp) + flare * tiltYMax * 0.6;
@@ -674,7 +663,6 @@ export function sampleMockupMotion(
         blur = arcAsym * motionBlurMax;
 
       } else if (p <= a5) {
-        // ACTO V: Macro Feature Left — exploración profunda
         const t = clamp01((p - a4) / (a5 - a4));
         const lp = smoothStep(t);
         scale = lerp(h4.s, h5.s, lp) * breath;
@@ -691,7 +679,6 @@ export function sampleMockupMotion(
         blur = lerp(lerp(2, 5, i), 0, lp); // limpia blur residual
 
       } else if (p <= a6) {
-        // ACTO VI: Sweep al Centro — la cámara cruza hacia el medio preparándose para el final
         const t = clamp01((p - a5) / (a6 - a5));
         const lp = smootherStep(t);
         scale = lerp(h5.s, h6.s, lp) * breath;
@@ -703,7 +690,6 @@ export function sampleMockupMotion(
         blur = 0;
 
       } else {
-        // ACTO VII: Hero Isometric Settle — remate impactante y elegante en 3D
         const t = clamp01((p - a6) / (1 - a6));
         const lp = easeOutExpo(t); // Desaceleración premium al final
         scale = lerp(h6.s, h7_end.s, lp) * breath;
@@ -712,7 +698,6 @@ export function sampleMockupMotion(
         tiltX = lerp(h6.tx, h7_end.tx, lp);
         tiltY = lerp(h6.ty, h7_end.ty, lp);
 
-        // El ruido manual se desvanece sutilmente para dejar un cuadro final impecable
         const finalSettle = 1 - lp;
         tiltZ = handRot * 0.2 * finalSettle;
         blur = 0;
