@@ -20,20 +20,29 @@ const ToolButton = ({ label, icon, isActive, onClick, ariaLabel }: ToolButtonPro
     <button
       onClick={onClick}
       className={`flex items-center justify-center p-4 squircle-element transition-all duration-200 group relative flex-col gap-1 active:scale-95 ${isActive
-        ? "bg-[radial-gradient(circle_at_50%_0%,#555555_0%,#454545_64%)] shadow-[inset_0_1rem_0.2rem_-1rem_#fff,0_0_0_1px_#ffffff33,0_4px_4px_0_#00000033,0_0_0_1px_#333333]"
-        : "bg-muted border border-border shadow-sm"
+        ? "text-white border-transparent"
+        : "bg-muted border border-border shadow-sm text-muted-foreground/60"
         }`}
+      style={
+        isActive
+          ? {
+            background: "radial-gradient(circle at 50% 0%, #555555 0%, #121212 100%)",
+            transform: "transform-gpu",
+            boxShadow: "inset 0 1rem 0.2rem -1rem #fff, 0 0 0 1px #ffffff33, 0 4px 4px 0 #00000033, 0 0 0 1px #333333",
+          }
+          : {}
+      }
       aria-label={ariaLabel || label}
       aria-pressed={isActive}
     >
       <div className={`transition-transform duration-300 ${isActive ? "scale-110" : "group-hover:scale-105"}`}>
         {icon}
       </div>
-      <span className={`text-sm font-medium transition-colors ${isActive ? "text-white" : "text-muted-foreground/60"}`}>
+      <span className={`text-sm font-medium transition-colors ${isActive ? "text-white" : ""}`}>
         {label}
       </span>
       {isActive && (
-        <div className="absolute left-2 w-20 h-5 top-1/4 -translate-y-1/2 size-3 bg-white rounded-full blur-[14px] rotate-45 opacity-50 pointer-events-none" />
+        <div className="absolute -top-3 -left-1 size-12 bg-white rounded-full blur-[12px] rotate-45 opacity-50 pointer-events-none" />
       )}
     </button>
   );
