@@ -18,7 +18,7 @@ import { useUndoRedo } from "@/hooks/useUndoRedo";
 import { clearAllThumbnailCache } from "@/lib/thumbnail-cache";
 import { addVideoToLibrary, addVideoToLibraryWithMetadata, getLibraryVideoCount, getLibraryVideo, findExistingVideo } from "@/lib/videos-library";
 import { calculateTotalDuration, findNextClipPosition, getClipAtTime, splitClipAtTime, type VideoTrackClip } from "@/types/video-track.types";
-import type { ExportQuality, BackgroundTab, VideoCanvasHandle, BackgroundColorConfig, AspectRatio, CropArea, ZoomFragment, AudioTrack, ImageExportFormat, UploadedAudio } from "@/types";
+import type { ExportQuality, BackgroundTab, VideoCanvasHandle, BackgroundColorConfig, AspectRatio, CropArea, ZoomFragment, AudioTrack, ImageExportFormat, UploadedAudio, ZoomMovement } from "@/types";
 import type { TrimRange } from "@/types/timeline.types";
 import type { MockupConfig, MenuPage } from "@/types/mockup.types";
 import type { EditorState } from "@/types/editor-state.types";
@@ -29,14 +29,13 @@ import type { CameraConfig } from "@/types/camera.types";
 import type { Preview3DConfig, ImageMaskConfig } from "@/types/photo.types";
 import { DEFAULT_MASK_CONFIG, PREVIEW_CONFIGS } from "@/types/photo.types";
 import { MOCKUPS } from "@/lib/mockup-data";
-import { gradientToCss, generateDefaultZoomFragments, createZoomFragment, ASPECT_RATIO_DIMENSIONS } from "@/types";
+import { gradientToCss, generateDefaultZoomFragments, createZoomFragment, ASPECT_RATIO_DIMENSIONS, getFragmentHoldBounds, findValidFragmentPosition, canAddFragmentAt } from "@/types";
 import { ToolsSidebar } from "@/app/components/ui/editor/ToolsSidebar";
 import { MobileToolsMenu } from "@/app/components/ui/editor/MobileToolsMenu";
 import { MobileControlPanel } from "@/app/components/ui/editor/MobileControlPanel";
 import { EditorTopBar } from "@/app/components/ui/editor/EditorTopBar";
 import { VideoCanvas } from "@/app/components/ui/editor/VideoCanvas";
 import { PlayerControls } from "@/app/components/ui/editor/PlayerControls";
-import { canAddFragmentAt, findValidFragmentPosition } from "@/app/components/ui/editor/ZoomFragmentTrackItem";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { TimelineSkeleton } from "@/app/components/ui/Skeleton";
 import { AudioTrimModal } from "@/app/components/ui/editor/AudioTrimModal";
@@ -46,6 +45,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { TooltipAction } from "@/components/ui/tooltip-action";
 import { DEFAULT_MOCKUP_MOTION_CONFIG, findValidMotionPlacement, MockupMotionFragment, MockupMotionPresetId } from "@/lib/mockup-motion";
+import { findNextMovementSlot } from "@/lib/zoom-movement.utils";
+import { useTranslations } from "next-intl";
+import { MIN_MOVEMENT_TRACK_DURATION } from "@/app/components/ui/editor/ZoomMovementTrackItem";
 
 const ControlPanel = lazy(() => import("@/app/components/ui/editor/ControlPanel").then(mod => ({ default: mod.ControlPanel })));
 const Timeline = lazy(() => import("@/app/components/ui/editor/Timeline").then(mod => ({ default: mod.Timeline })));
@@ -57,6 +59,7 @@ const PhotoEditorPlaceholder = lazy(() => import("@/app/components/ui/editor/Pho
 export default function Editor() {
     // Editor mode (video/photo) from URL params
     const { mode: editorMode, isVideoMode, isPhotoMode } = useEditorMode();
+    const tZoom = useTranslations("zoomFragmentEditor");
 
     const {
         imagePhoneActive, setImagePhoneActive,
@@ -299,6 +302,16 @@ export default function Editor() {
     const isRestoringProjectRef = useRef(false);
     const isLoadingFromCacheRef = useRef(false);
     const lastRestoredProjectIdRef = useRef<string | null>(null);
+    const [copiedZoomFragment, setCopiedZoomFragment] = useState<Omit<ZoomFragment, 'id' | 'startTime' | 'endTime'> | null>(null);
+    const [zoomMovements, setZoomMovements] = useState<ZoomMovement[]>([]);
+    const [copiedZoomMovements, setCopiedZoomMovements] = useState<Array<{
+        name: string; startFrac: number; endFrac: number; focusX: number; focusY: number;
+    }>>([]);
+    const [copiedMockupMotionFragment, setCopiedMockupMotionFragment] =
+        useState<Omit<MockupMotionFragment, 'id' | 'startTime' | 'endTime'> | null>(null);
+    const [selectedZoomMovementId, setSelectedZoomMovementId] = useState<string | null>(null);
+    // Default duration for new zoom fragments
+    const DEFAULT_ZOOM_FRAGMENT_DURATION = 2;
 
     useEffect(() => {
         return () => {
@@ -354,9 +367,11 @@ export default function Editor() {
     const handleSelectMockupMotionFragment = useCallback((id: string | null) => {
         setSelectedMockupMotionFragmentId(id);
         setSelectedZoomFragmentId(null);
+        setSelectedZoomMovementId(null);
         setSelectedAudioTrackId(null);
         setSelectedVideoClipId(null);
         setSelectedElementId(null);
+        setMultiSelectedElementIds([]);
     }, []);
 
     const handleUpdateMockupMotionFragment = useCallback(
@@ -555,7 +570,9 @@ export default function Editor() {
 
     const selectCanvasElement = useCallback((id: string | null) => {
         setSelectedElementId(id);
+        setMultiSelectedElementIds([]);
         setSelectedZoomFragmentId(null);
+        setSelectedZoomMovementId(null);
         setSelectedVideoClipId(null);
         setSelectedAudioTrackId(null);
         setSelectedMockupMotionFragmentId(null);
@@ -842,31 +859,67 @@ export default function Editor() {
     const updateEditorStateDebounced = useRef<NodeJS.Timeout | null>(null);
     useEffect(() => {
         if (updateEditorStateDebounced.current) clearTimeout(updateEditorStateDebounced.current);
-
         updateEditorStateDebounced.current = setTimeout(() => {
             setEditorState({
-                backgroundTab, selectedWallpaper, backgroundBlur, padding, roundedCorners, shadows,
-                selectedImageUrl, backgroundColorConfig, aspectRatio, customDimensions, cropArea,
-                trimRange, zoomFragments, mockupId, mockupConfig, canvasElements, audioTracks,
-                muteOriginalAudio, masterVolume, cameraConfig, videoTransform, imageTransform,
-                apply3DToBackground, imageMaskConfig, videoMaskConfig, imagePhoneActive, imagePhoneX,
-                imagePhoneY, imagePhoneScale, imagePhoneRotX, imagePhoneRotY, imagePhoneRotZ,
-                imagePhonePerspective, imagePhoneDevice, imagePhonePresetId, imagePhoneOpening,
-                imagePhoneShadow, imagePhoneShadowColor, imagePhoneRefWidth, mockupMotionFragments, videoClips,
+                backgroundTab,
+                selectedWallpaper,
+                backgroundBlur,
+                padding,
+                roundedCorners,
+                shadows,
+                selectedImageUrl,
+                unsplashBgUrl,
+                backgroundColorConfig,
+                aspectRatio,
+                customDimensions,
+                cropArea,
+                trimRange,
+                zoomFragments,
+                zoomMovements,
+                mockupId,
+                mockupConfig,
+                canvasElements,
+                audioTracks,
+                muteOriginalAudio,
+                masterVolume,
+                cameraConfig,
+                videoTransform,
+                imageTransform,
+                apply3DToBackground,
+                imageMaskConfig,
+                videoMaskConfig,
+                imageZoomScale,
+                imagePhoneActive,
+                imagePhoneX,
+                imagePhoneY,
+                imagePhoneScale,
+                imagePhoneRotX,
+                imagePhoneRotY,
+                imagePhoneRotZ,
+                imagePhonePerspective,
+                imagePhoneDevice,
+                imagePhonePresetId,
+                imagePhoneOpening,
+                imagePhoneShadow,
+                imagePhoneShadowColor,
+                imagePhoneRefWidth,
+                mockupMotionFragments,
+                videoClips,
             });
         }, 300);
-
         return () => {
             if (updateEditorStateDebounced.current) clearTimeout(updateEditorStateDebounced.current);
         };
     }, [
         backgroundTab, selectedWallpaper, backgroundBlur, padding, roundedCorners, shadows,
-        selectedImageUrl, backgroundColorConfig, aspectRatio, customDimensions, cropArea, trimRange,
-        zoomFragments, mockupId, mockupConfig, canvasElements, audioTracks, muteOriginalAudio,
-        masterVolume, cameraConfig, videoTransform, imageTransform, apply3DToBackground, imageMaskConfig,
-        videoMaskConfig, imagePhoneActive, imagePhoneX, imagePhoneY, imagePhoneScale, imagePhoneRotX,
-        imagePhoneRotY, imagePhoneRotZ, imagePhonePerspective, imagePhoneDevice, imagePhonePresetId,
-        imagePhoneOpening, imagePhoneShadow, imagePhoneShadowColor, imagePhoneRefWidth, setEditorState, videoClips
+        selectedImageUrl, unsplashBgUrl, backgroundColorConfig, aspectRatio, customDimensions,
+        cropArea, trimRange, zoomFragments, zoomMovements, mockupId, mockupConfig, canvasElements,
+        audioTracks, muteOriginalAudio, masterVolume, cameraConfig, videoTransform, imageTransform,
+        apply3DToBackground, imageMaskConfig, videoMaskConfig, imageZoomScale,
+        imagePhoneActive, imagePhoneX, imagePhoneY, imagePhoneScale, imagePhoneRotX, imagePhoneRotY,
+        imagePhoneRotZ, imagePhonePerspective, imagePhoneDevice, imagePhonePresetId, imagePhoneOpening,
+        imagePhoneShadow, imagePhoneShadowColor, imagePhoneRefWidth, mockupMotionFragments,
+        setEditorState, videoClips
     ]);
 
     const prevUndoRedoVersionRef = useRef(undoRedoVersion);
@@ -883,12 +936,14 @@ export default function Editor() {
             setRoundedCorners(editorState.roundedCorners);
             setShadows(editorState.shadows);
             setSelectedImageUrl(editorState.selectedImageUrl);
+            setUnsplashBgUrl(editorState.unsplashBgUrl ?? "");
             setBackgroundColorConfig(editorState.backgroundColorConfig);
             setAspectRatio(editorState.aspectRatio);
             setCustomDimensions(editorState.customDimensions);
             setCropArea(editorState.cropArea);
             setTrimRange(editorState.trimRange);
             setZoomFragments(editorState.zoomFragments);
+            setZoomMovements(editorState.zoomMovements ?? []);
             setMockupId(editorState.mockupId);
             setMockupConfig(editorState.mockupConfig);
             setCanvasElements(editorState.canvasElements);
@@ -900,6 +955,7 @@ export default function Editor() {
             setImageTransform(editorState.imageTransform);
             setApply3DToBackground(editorState.apply3DToBackground);
             setImageMaskConfig(editorState.imageMaskConfig);
+            setImageZoomScale(editorState.imageZoomScale ?? 1);
             setVideoMaskConfig(editorState.videoMaskConfig);
             setImagePhoneActive(editorState.imagePhoneActive);
             setImagePhoneX(editorState.imagePhoneX);
@@ -918,33 +974,33 @@ export default function Editor() {
             setMockupMotionFragments(editorState.mockupMotionFragments ?? []);
 
             const restoredClips = editorState.videoClips ?? [];
+            const clipsUnchanged = restoredClips === videoClipsRef.current;
             setVideoClips(restoredClips);
 
-            if (restoredClips.length > 0) {
-                const newDuration = calculateTotalDuration(restoredClips);
-                setVideoDuration(newDuration);
-                setTrimRange({ start: 0, end: newDuration });
-
-                const clipAtTime = getClipAtTime(restoredClips, currentTime) ?? restoredClips[0];
-                activeClipIdRef.current = clipAtTime.id;
-                activeClipDataRef.current = clipAtTime;
-
-                const url = videoUrlsRef.current.get(clipAtTime.libraryVideoId);
-                if (url) {
-                    setVideoUrl(url);
-                    setVideoId(clipAtTime.libraryVideoId);
-                    if (videoRef.current) {
+            if (!clipsUnchanged) {
+                if (restoredClips.length > 0) {
+                    const newDuration = calculateTotalDuration(restoredClips);
+                    setVideoDuration(newDuration);
+                    const stillActiveClip = activeClipIdRef.current
+                        ? restoredClips.find(c => c.id === activeClipIdRef.current)
+                        : null;
+                    const clipAtTime = stillActiveClip ?? getClipAtTime(restoredClips, currentTime) ?? restoredClips[0];
+                    activeClipIdRef.current = clipAtTime.id;
+                    activeClipDataRef.current = clipAtTime;
+                    const url = videoUrlsRef.current.get(clipAtTime.libraryVideoId);
+                    if (url && videoRef.current && videoRef.current.src !== url) {
+                        setVideoUrl(url);
+                        setVideoId(clipAtTime.libraryVideoId);
                         videoRef.current.src = url;
                         videoRef.current.currentTime = clipAtTime.trimStart;
                     }
+                } else {
+                    setVideoUrl(null);
+                    setVideoId(null);
+                    setVideoDuration(0);
+                    activeClipIdRef.current = null;
+                    activeClipDataRef.current = null;
                 }
-            } else {
-                setVideoUrl(null);
-                setVideoId(null);
-                setVideoDuration(0);
-                setTrimRange({ start: 0, end: 0 });
-                activeClipIdRef.current = null;
-                activeClipDataRef.current = null;
             }
 
             setTimeout(() => {
@@ -1002,7 +1058,7 @@ export default function Editor() {
     }, []);
 
     const [copiedElements, setCopiedElements] = useState<CanvasElement[]>([]);
-    const lastCopyActionRef = useRef<'element' | 'zoom' | null>(null);
+    const lastCopyActionRef = useRef<'element' | 'zoom' | 'motion' | null>(null);
 
     useEffect(() => {
         const handleWindowFocus = () => {
@@ -1013,7 +1069,12 @@ export default function Editor() {
     }, []);
 
     const copySelectedElement = useCallback(() => {
-        const idsToCopy = multiSelectedElementIds.length > 1 ? multiSelectedElementIds : (selectedElementId ? [selectedElementId] : []);
+        const multiSelectionIsValid =
+            multiSelectedElementIds.length > 1 &&
+            (!selectedElementId || multiSelectedElementIds.includes(selectedElementId));
+        const idsToCopy = multiSelectionIsValid
+            ? multiSelectedElementIds
+            : (selectedElementId ? [selectedElementId] : []);
         if (idsToCopy.length === 0) return;
         const elements = canvasElements.filter(el => idsToCopy.includes(el.id));
         if (elements.length > 0) {
@@ -1226,9 +1287,11 @@ export default function Editor() {
     const handleSelectAudioTrack = useCallback((trackId: string | null) => {
         setSelectedAudioTrackId(trackId);
         setSelectedZoomFragmentId(null);
+        setSelectedZoomMovementId(null);
         setSelectedVideoClipId(null);
         setSelectedElementId(null);
         setSelectedMockupMotionFragmentId(null);
+        setMultiSelectedElementIds([]);
         if (trackId) {
             setActiveTool("audio");
         }
@@ -1627,11 +1690,12 @@ export default function Editor() {
     // Handlers for video clip management
     const handleSelectVideoClip = useCallback((clipId: string | null) => {
         setSelectedVideoClipId(clipId);
-        // Clear other selections when selecting video clip (mutual exclusivity)
         setSelectedZoomFragmentId(null);
+        setSelectedZoomMovementId(null);
         setSelectedAudioTrackId(null);
         setSelectedElementId(null);
         setSelectedMockupMotionFragmentId(null);
+        setMultiSelectedElementIds([]);
         if (clipId) {
             setActiveTool("video");
         }
@@ -2068,10 +2132,29 @@ export default function Editor() {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [handleUndo, handleRedo, canUndo, canRedo]);
 
-    const [copiedZoomFragment, setCopiedZoomFragment] = useState<Omit<ZoomFragment, 'id' | 'startTime' | 'endTime'> | null>(null);
-
-    // Default duration for new zoom fragments
-    const DEFAULT_ZOOM_FRAGMENT_DURATION = 2;
+    const pasteMockupMotionFragment = useCallback(() => {
+        if (!copiedMockupMotionFragment) return;
+        const original = selectedMockupMotionFragmentId
+            ? mockupMotionFragmentsRef.current.find(f => f.id === selectedMockupMotionFragmentId)
+            : null;
+        const hintTime = original ? original.endTime : currentTime;
+        const placement = findValidMotionPlacement(
+            copiedMockupMotionFragment.presetId,
+            copiedMockupMotionFragment.speed,
+            hintTime,
+            mockupMotionFragmentsRef.current,
+            videoDuration
+        );
+        if (!placement) return;
+        const newFragment: MockupMotionFragment = {
+            ...copiedMockupMotionFragment,
+            id: `motion_${crypto.randomUUID()}`,
+            ...placement,
+        };
+        setMockupMotionFragments(prev => [...prev, newFragment]);
+        setSelectedMockupMotionFragmentId(newFragment.id);
+        setActiveTool("motion");
+    }, [copiedMockupMotionFragment, selectedMockupMotionFragmentId, currentTime, videoDuration]);
 
     const pasteZoomFragment = useCallback(() => {
         if (!copiedZoomFragment) return;
@@ -2089,10 +2172,26 @@ export default function Editor() {
             startTime: position.startTime,
             endTime: position.endTime,
         };
+
+        if (copiedZoomFragment.movementEnabled && copiedZoomMovements.length > 0) {
+            const { start: hs, end: he } = getFragmentHoldBounds(newFragment);
+            const span = he - hs;
+            const newMovements: ZoomMovement[] = copiedZoomMovements.map(cm => ({
+                id: crypto.randomUUID(),
+                zoomFragmentId: newFragment.id,
+                name: cm.name,
+                startTime: hs + cm.startFrac * span,
+                endTime: hs + cm.endFrac * span,
+                focusX: cm.focusX,
+                focusY: cm.focusY,
+            }));
+            setZoomMovements(prev => [...prev, ...newMovements]);
+        }
+
         setZoomFragments(prev => [...prev, newFragment].sort((a, b) => a.startTime - b.startTime));
         setSelectedZoomFragmentId(newFragment.id);
         setActiveTool("zoom");
-    }, [copiedZoomFragment, selectedZoomFragmentId, currentTime, videoDuration]);
+    }, [copiedZoomFragment, selectedZoomFragmentId, currentTime, videoDuration, zoomMovements, setZoomMovements, copiedZoomMovements]);
 
     useEffect(() => {
         const handlePaste = async (e: ClipboardEvent) => {
@@ -2105,6 +2204,13 @@ export default function Editor() {
                 pasteZoomFragment();
                 return;
             }
+
+            if (lastCopyActionRef.current === 'motion' && activeTool === 'motion' && copiedMockupMotionFragment) {
+                e.preventDefault();
+                pasteMockupMotionFragment();
+                return;
+            }
+
             if (lastCopyActionRef.current === 'element' && copiedElements.length > 0) {
                 e.preventDefault();
                 pasteElement();
@@ -2134,6 +2240,11 @@ export default function Editor() {
                 pasteZoomFragment();
                 return;
             }
+            if (activeTool === 'motion' && copiedMockupMotionFragment) {
+                e.preventDefault();
+                pasteMockupMotionFragment();
+                return;
+            }
             if (copiedElements.length > 0) {
                 e.preventDefault();
                 pasteElement();
@@ -2141,7 +2252,7 @@ export default function Editor() {
         };
         window.addEventListener('paste', handlePaste);
         return () => window.removeEventListener('paste', handlePaste);
-    }, [isPhotoMode, handleImageUploadToCanvas, handleVideoUpload, activeTool, copiedZoomFragment, pasteZoomFragment, copiedElements, pasteElement]);
+    }, [isPhotoMode, handleImageUploadToCanvas, handleVideoUpload, activeTool, copiedZoomFragment, pasteZoomFragment, copiedElements, pasteElement, copiedMockupMotionFragment, pasteMockupMotionFragment]);
 
     const togglePlayPause = useCallback(() => {
         if (videoRef.current) {
@@ -2679,10 +2790,12 @@ export default function Editor() {
     // Zoom fragment handlers
     const handleSelectZoomFragment = useCallback((fragmentId: string | null) => {
         setSelectedZoomFragmentId(fragmentId);
+        setSelectedZoomMovementId(null);
         setSelectedAudioTrackId(null);
         setSelectedVideoClipId(null);
         setSelectedElementId(null);
         setSelectedMockupMotionFragmentId(null);
+        setMultiSelectedElementIds([]);
     }, []);
 
     const handleActivateZoomTool = useCallback(() => {
@@ -2714,16 +2827,178 @@ export default function Editor() {
     }, []);
 
     const handleUpdateZoomFragment = useCallback((fragmentId: string, updates: Partial<ZoomFragment>) => {
-        setZoomFragments(prev => prev.map(f =>
-            f.id === fragmentId ? { ...f, ...updates } : f
-        ).sort((a, b) => a.startTime - b.startTime));
+        const oldFragment = zoomFragmentsRef.current.find(f => f.id === fragmentId);
+        const affectsHoldBounds = 'startTime' in updates || 'endTime' in updates || 'speed' in updates;
+        const oldBounds = oldFragment && affectsHoldBounds ? getFragmentHoldBounds(oldFragment) : null;
+
+        setZoomFragments(prev =>
+            prev.map(f => (f.id === fragmentId ? { ...f, ...updates } : f)).sort((a, b) => a.startTime - b.startTime)
+        );
+
+        if (!oldFragment || !oldBounds) return;
+
+        const newFragment = { ...oldFragment, ...updates };
+        const newBounds = getFragmentHoldBounds(newFragment);
+
+        if (Math.abs(oldBounds.start - newBounds.start) < 1e-4 && Math.abs(oldBounds.end - newBounds.end) < 1e-4) {
+            return;
+        }
+
+        const newSpan = newBounds.end - newBounds.start;
+
+        setZoomMovements(prev => prev.map(m => {
+            if (m.zoomFragmentId !== fragmentId) return m;
+
+            const duration = m.endTime - m.startTime;
+            const delta = newBounds.start - oldBounds.start;
+
+            let newStart = m.startTime + delta;
+            let newEnd = newStart + duration;
+
+            if (newStart < newBounds.start) {
+                newStart = newBounds.start;
+                newEnd = newStart + duration;
+            }
+            if (newEnd > newBounds.end) {
+                newEnd = newBounds.end;
+                newStart = Math.max(newBounds.start, newEnd - duration);
+            }
+            if (newEnd - newStart > newSpan) {
+                newStart = newBounds.start;
+                newEnd = newBounds.end;
+            }
+
+            return { ...m, startTime: newStart, endTime: newEnd };
+        }));
+    }, []);
+
+    const handleToggleZoomMovement = useCallback((fragmentId: string, enabled: boolean) => {
+        if (enabled) {
+            const fragment = zoomFragments.find(f => f.id === fragmentId);
+            if (!fragment) return;
+
+            const { start, end } = getFragmentHoldBounds(fragment);
+            const holdSpan = end - start;
+
+            if (holdSpan < MIN_MOVEMENT_TRACK_DURATION) {
+                return;
+            }
+
+            const slot = findNextMovementSlot([], start, end, MIN_MOVEMENT_TRACK_DURATION);
+
+            handleUpdateZoomFragment(fragmentId, { movementEnabled: true });
+
+            if (slot) {
+                const newMovement: ZoomMovement = {
+                    id: crypto.randomUUID(),
+                    zoomFragmentId: fragmentId,
+                    name: tZoom("movement.defaultName", { number: 1 }),
+                    startTime: slot.startTime,
+                    endTime: slot.endTime,
+                    focusX: Math.min(85, Math.max(15, fragment.focusX + 25)),
+                    focusY: Math.min(85, Math.max(15, fragment.focusY + 25)),
+                };
+                setZoomMovements(prev => [...prev, newMovement]);
+                setSelectedZoomMovementId(newMovement.id);
+            }
+        } else {
+            handleUpdateZoomFragment(fragmentId, { movementEnabled: false });
+            setZoomMovements(prev => prev.filter(m => m.zoomFragmentId !== fragmentId));
+            setSelectedZoomMovementId(null);
+        }
+    }, [zoomFragments, handleUpdateZoomFragment, tZoom]);
+
+
+    const handleAddZoomMovement = useCallback((fragmentId: string) => {
+        const fragment = zoomFragments.find(f => f.id === fragmentId);
+        if (!fragment) return;
+
+        const siblings = zoomMovements.filter(m => m.zoomFragmentId === fragmentId).sort((a, b) => a.startTime - b.startTime);
+        const { start, end } = getFragmentHoldBounds(fragment);
+        const slot = findNextMovementSlot(siblings, start, end, MIN_MOVEMENT_TRACK_DURATION);
+
+        if (!slot) {
+            return;
+        }
+
+        const last = siblings[siblings.length - 1];
+        const from = last ? { x: last.focusX, y: last.focusY } : { x: fragment.focusX, y: fragment.focusY };
+
+        const newMovement: ZoomMovement = {
+            id: crypto.randomUUID(),
+            zoomFragmentId: fragmentId,
+            name: tZoom("movement.defaultName", { number: siblings.length + 1 }),
+            startTime: slot.startTime,
+            endTime: slot.endTime,
+            focusX: Math.min(85, Math.max(15, from.x + 25)),
+            focusY: Math.min(85, Math.max(15, from.y + 25)),
+        };
+        setZoomMovements(prev => [...prev, newMovement]);
+        setSelectedZoomMovementId(newMovement.id);
+    }, [zoomFragments, zoomMovements, tZoom]);
+
+    const handleAddZoomMovementAtRange = useCallback((fragmentId: string, startTime: number, endTime: number) => {
+        const fragment = zoomFragmentsRef.current.find(f => f.id === fragmentId);
+        if (!fragment) return;
+
+        const siblings = zoomMovements.filter(m => m.zoomFragmentId === fragmentId);
+        const last = [...siblings].sort((a, b) => a.startTime - b.startTime).slice(-1)[0];
+        const from = last ? { x: last.focusX, y: last.focusY } : { x: fragment.focusX, y: fragment.focusY };
+
+        const newMovement: ZoomMovement = {
+            id: crypto.randomUUID(),
+            zoomFragmentId: fragmentId,
+            name: tZoom("movement.defaultName", { number: siblings.length + 1 }),
+            startTime,
+            endTime,
+            focusX: Math.min(85, Math.max(15, from.x + 25)),
+            focusY: Math.min(85, Math.max(15, from.y + 25)),
+        };
+
+        setZoomMovements(prev => [...prev, newMovement]);
+        setSelectedZoomMovementId(newMovement.id);
+    }, [zoomMovements, tZoom]);
+
+    const handleUpdateZoomMovement = useCallback((id: string, updates: Partial<ZoomMovement>) => {
+        setZoomMovements(prev => prev.map(m => m.id === id ? { ...m, ...updates } : m));
+    }, []);
+
+    const handleDeleteZoomMovement = useCallback((id: string) => {
+        setZoomMovements(prev => {
+            const target = prev.find(m => m.id === id);
+            const next = prev.filter(m => m.id !== id);
+            if (target) {
+                const stillHasSiblings = next.some(m => m.zoomFragmentId === target.zoomFragmentId);
+                if (!stillHasSiblings) {
+                    setZoomFragments(fPrev =>
+                        fPrev.map(f => (f.id === target.zoomFragmentId ? { ...f, movementEnabled: false } : f))
+                    );
+                }
+            }
+            return next;
+        });
+        setSelectedZoomMovementId(prev => (prev === id ? null : prev));
+    }, []);
+
+    const handleSelectZoomMovement = useCallback((id: string | null) => {
+        setSelectedZoomMovementId(id);
+        if (id) {
+            setSelectedAudioTrackId(null);
+            setSelectedVideoClipId(null);
+            setSelectedElementId(null);
+            setSelectedMockupMotionFragmentId(null);
+            setMultiSelectedElementIds([]);
+            setActiveTool("zoom");
+        }
     }, []);
 
     const handleDeleteZoomFragment = useCallback((fragmentId: string) => {
         setZoomFragments(prev => prev.filter(f => f.id !== fragmentId));
+        setZoomMovements(prev => prev.filter(m => m.zoomFragmentId !== fragmentId));
         if (selectedZoomFragmentId === fragmentId) {
             setSelectedZoomFragmentId(null);
         }
+        setSelectedZoomMovementId(null);
     }, [selectedZoomFragmentId]);
 
     // Get currently selected zoom fragment - memoized
@@ -2732,12 +3007,32 @@ export default function Editor() {
         [zoomFragments, selectedZoomFragmentId]
     );
 
+    const copySelectedMockupMotionFragment = useCallback(() => {
+        if (!selectedMockupMotionFragment) return;
+        const { id, startTime, endTime, ...config } = selectedMockupMotionFragment;
+        setCopiedMockupMotionFragment(config);
+        lastCopyActionRef.current = 'motion';
+    }, [selectedMockupMotionFragment]);
+
     const copySelectedZoomFragment = useCallback(() => {
         if (!selectedZoomFragment) return;
-        const { id, startTime, endTime, ...config } = selectedZoomFragment;
+        const { ...config } = selectedZoomFragment;
         setCopiedZoomFragment(config);
+
+        const { start: hs, end: he } = getFragmentHoldBounds(selectedZoomFragment);
+        const span = he - hs;
+        const related = zoomMovements
+            .filter(m => m.zoomFragmentId === selectedZoomFragment.id)
+            .map(m => ({
+                name: m.name,
+                startFrac: span > 0 ? (m.startTime - hs) / span : 0,
+                endFrac: span > 0 ? (m.endTime - hs) / span : 1,
+                focusX: m.focusX,
+                focusY: m.focusY,
+            }));
+        setCopiedZoomMovements(related);
         lastCopyActionRef.current = 'zoom';
-    }, [selectedZoomFragment]);
+    }, [selectedZoomFragment, zoomMovements]);
 
     const backgroundColorCss = useMemo((): string | undefined => {
         if (backgroundTab === "color" && backgroundColorConfig) {
@@ -2802,10 +3097,14 @@ export default function Editor() {
                     copySelectedZoomFragment();
                     return;
                 }
+
+                if (selectedMockupMotionFragmentId) {
+                    e.preventDefault();
+                    copySelectedMockupMotionFragment();
+                    return;
+                }
             }
-            // Ctrl+V se maneja por completo en el listener de 'paste' (más abajo
-            // en este archivo), para no competir por el mismo atajo con el
-            // pegado de archivos del portapapeles del sistema.
+
             if ((e.key === "Delete" || e.key === "Backspace") && (selectedElementId || multiSelectedElementIds.length > 0)) {
                 e.preventDefault();
                 const idsToDelete = multiSelectedElementIds.length > 1 ? multiSelectedElementIds : selectedElementId;
@@ -2826,22 +3125,31 @@ export default function Editor() {
                 return;
             }
 
+            if ((e.key === "Delete" || e.key === "Backspace") && selectedZoomMovementId) {
+                e.preventDefault();
+                handleDeleteZoomMovement(selectedZoomMovementId);
+                return;
+            }
+
             if ((e.key === "Delete" || e.key === "Backspace") && selectedZoomFragmentId) {
                 e.preventDefault();
                 handleDeleteZoomFragment(selectedZoomFragmentId);
                 return;
             }
+
             if ((e.key === "Delete" || e.key === "Backspace") && selectedMockupMotionFragmentId) {
                 e.preventDefault();
                 handleDeleteMockupMotionFragment(selectedMockupMotionFragmentId);
                 return;
             }
+
             if (e.key === "Escape") {
                 e.preventDefault();
                 if (textToolActive) { setTextToolActive(false); return; }
                 if (selectedElementId) { setSelectedElementId(null); }
                 else if (selectedVideoClipId) { setSelectedVideoClipId(null); }
                 else if (selectedAudioTrackId) { setSelectedAudioTrackId(null); }
+                else if (selectedZoomMovementId) { setSelectedZoomMovementId(null); }
                 else if (selectedZoomFragmentId) { setSelectedZoomFragmentId(null); }
                 else if (selectedMockupMotionFragmentId) { setSelectedMockupMotionFragmentId(null); }
             }
@@ -2849,7 +3157,13 @@ export default function Editor() {
 
         document.addEventListener("keydown", handleKeyDown);
         return () => document.removeEventListener("keydown", handleKeyDown);
-    }, [selectedElementId, multiSelectedElementIds, selectedZoomFragmentId, selectedAudioTrackId, selectedVideoClipId, selectedMockupMotionFragmentId, deleteCanvasElement, handleDeleteZoomFragment, handleDeleteAudioTrack, handleDeleteVideoClip, handleDeleteMockupMotionFragment, copySelectedElement, textToolActive, copySelectedZoomFragment, activeTool]);
+    }, [
+        selectedElementId, multiSelectedElementIds, selectedZoomFragmentId, selectedZoomMovementId,
+        selectedAudioTrackId, selectedVideoClipId, selectedMockupMotionFragmentId,
+        deleteCanvasElement, handleDeleteZoomFragment, handleDeleteZoomMovement,
+        handleDeleteAudioTrack, handleDeleteVideoClip, handleDeleteMockupMotionFragment,
+        copySelectedElement, textToolActive, copySelectedZoomFragment, activeTool, copySelectedMockupMotionFragment
+    ]);
 
     const wasMobileRef = useRef<boolean | null>(null);
     const otherSelectionActive = !!(selectedZoomFragmentId || selectedAudioTrackId || selectedVideoClipId || selectedMockupMotionFragmentId);
@@ -3038,6 +3352,13 @@ export default function Editor() {
                                         onAddZoomFragment={() => handleAddZoomFragment(currentTime)}
                                         onUpdateZoomFragment={handleUpdateZoomFragment}
                                         onDeleteZoomFragment={handleDeleteZoomFragment}
+                                        zoomMovements={zoomMovements}
+                                        selectedZoomMovementId={selectedZoomMovementId}
+                                        onSelectZoomMovement={handleSelectZoomMovement}
+                                        onToggleZoomMovement={handleToggleZoomMovement}
+                                        onAddZoomMovement={handleAddZoomMovement}
+                                        onDeleteZoomMovement={handleDeleteZoomMovement}
+                                        onUpdateZoomMovementPoint={(id, x, y) => handleUpdateZoomMovement(id, { focusX: x, focusY: y })}
                                         videoUrl={videoUrl}
                                         videoThumbnail={zoomFragmentThumbnail}
                                         currentTime={currentTime}
@@ -3199,6 +3520,12 @@ export default function Editor() {
                         mockupMotionFragments={mockupMotionFragments}
                         videoDuration={videoDuration}
                         onMockupConfigChange={handleMockupConfigChange}
+                        selectedZoomFragment={selectedZoomFragment}
+                        onUpdateZoomFragment={handleUpdateZoomFragment}
+                        zoomMovements={zoomMovements}
+                        selectedZoomMovementId={selectedZoomMovementId}
+                        onSelectZoomMovement={handleSelectZoomMovement}
+                        onUpdateZoomMovement={handleUpdateZoomMovement}
                     />
 
                     {/* Video mode: Show player controls and timeline */}
@@ -3250,6 +3577,11 @@ export default function Editor() {
                                     onAddZoomFragment={handleAddZoomFragmentAtRange}
                                     onUpdateZoomFragment={handleUpdateZoomFragment}
                                     onActivateZoomTool={handleActivateZoomTool}
+                                    zoomMovements={zoomMovements}
+                                    selectedZoomMovementId={selectedZoomMovementId}
+                                    onSelectZoomMovement={handleSelectZoomMovement}
+                                    onUpdateZoomMovement={handleUpdateZoomMovement}
+                                    onDeleteZoomMovement={handleDeleteZoomMovement}
                                     onActivateMotionTool={handleActivateMotionTool}
                                     audioTracks={audioTracks}
                                     uploadedAudios={uploadedAudios}
@@ -3269,6 +3601,9 @@ export default function Editor() {
                                     onSelectElement={selectCanvasElement}
                                     onUpdateElement={updateCanvasElement}
                                     onDeleteElement={deleteCanvasElement}
+                                    onAddZoomMovementAtRange={(start, end) =>
+                                        selectedZoomFragmentId && handleAddZoomMovementAtRange(selectedZoomFragmentId, start, end)
+                                    }
                                 />
                             </Suspense>
                         </>

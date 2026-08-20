@@ -3,9 +3,9 @@ import { useRef, useMemo, useCallback, useEffect, useState } from "react";
 import { motion, useMotionValue, useTransform, animate, PanInfo } from "framer-motion";
 import { formatTime, getZoomMultiplier } from "@/lib/video.utils";
 import { TIMELINE_LABEL_WIDTH, MIN_TRIM_DURATION } from "@/lib/constants";
-import type { TimelineProps } from "@/types/timeline.types";
+import { DEFAULT_MOVEMENT_DURATION, DEFAULT_ZOOM_FRAGMENT_DURATION, ELEMENT_ROW_HEIGHT, type TimelineProps } from "@/types/timeline.types";
 import LabelSidebar from "./LabelSidebar";
-import { ZoomFragmentTrackItem, findValidFragmentPosition } from "./ZoomFragmentTrackItem";
+import { ZoomFragmentTrackItem } from "./ZoomFragmentTrackItem";
 import { AudioFragmentTrackItem } from "./AudioFragmentTrackItem";
 import { VideoClipTrackItem } from "./VideoClipTrackItem";
 import { Icon } from "@iconify/react";
@@ -15,9 +15,8 @@ import { assignAudioLanes } from "@/lib/audio.utils";
 import { MIN_VISUAL_WIDTH_PX } from "@/types";
 import { assignElementLanes } from "@/lib/canvas-elements-timeline.utils";
 import { ElementFragmentTrackItem } from "./ElementFragmentTrackItem";
-
-const DEFAULT_ZOOM_FRAGMENT_DURATION = 2;
-const ELEMENT_ROW_HEIGHT = 48;
+import { findValidFragmentPosition, findValidMovementPosition, getFragmentHoldBounds } from "@/types/zoom.types";
+import { ZoomMovementTrackItem, MIN_MOVEMENT_TRACK_DURATION } from "./ZoomMovementTrackItem";
 
 export function Timeline({
     videoDuration,
@@ -60,6 +59,11 @@ export function Timeline({
     globalSpeed = 1,
     isPlaying = false,
     onZoomChange,
+    zoomMovements = [],
+    selectedZoomMovementId = null,
+    onSelectZoomMovement,
+    onUpdateZoomMovement,
+    onAddZoomMovementAtRange
 }: TimelineProps) {
     const t = useTranslations("timeline");
     const trackRef = useRef<HTMLDivElement>(null);
@@ -78,6 +82,14 @@ export function Timeline({
     const ghostRafRef = useRef<number | null>(null);
     const pendingGhostXRef = useRef<number | null>(null);
     const lastValidPositionRef = useRef<{ startTime: number; endTime: number } | null>(null);
+
+    const [draggingMovementId, setDraggingMovementId] = useState<string | null>(null);
+    const [hoveredMovementId, setHoveredMovementId] = useState<string | null>(null);
+    const [isHoveringMovementRow, setIsHoveringMovementRow] = useState(false);
+    const [movementGhostX, setMovementGhostX] = useState(0);
+    const movementGhostRafRef = useRef<number | null>(null);
+    const pendingMovementGhostXRef = useRef<number | null>(null);
+    const lastValidMovementPositionRef = useRef<{ startTime: number; endTime: number } | null>(null);
 
     const isOverFragment = useMemo(() => {
         return hoveredFragmentId ? zoomFragments.some(f => f.id === hoveredFragmentId) : false;
@@ -176,13 +188,20 @@ export function Timeline({
         [elementLanes],
     );
 
+    const selectedFragmentForMovement = useMemo(
+        () => zoomFragments.find(f => f.id === selectedZoomFragmentId) ?? null,
+        [zoomFragments, selectedZoomFragmentId]
+    );
+
+    const showMovementRow = !!selectedFragmentForMovement?.movementEnabled;
     const totalLanesCount = useMemo(() => {
         let count = 0;
+        if (showMovementRow) count += 1;
         if (canvasElements.length > 0) count += elementLaneCount;
         if (audioTracks.length > 0) count += audioLaneCount;
         if (mockupMotionFragments.length > 0) count += 1;
         return count;
-    }, [canvasElements.length, elementLaneCount, audioTracks.length, audioLaneCount, mockupMotionFragments.length]);
+    }, [showMovementRow, canvasElements.length, elementLaneCount, audioTracks.length, audioLaneCount, mockupMotionFragments.length]);
 
     useEffect(() => {
         if (!isDraggingTrim) {
@@ -415,6 +434,48 @@ export function Timeline({
         lastValidPositionRef.current = ghostState?.validPosition ?? null;
     }, [ghostState]);
 
+    const fragmentMovements = useMemo(
+        () => selectedFragmentForMovement
+            ? zoomMovements.filter(m => m.zoomFragmentId === selectedFragmentForMovement.id)
+            : [],
+        [zoomMovements, selectedFragmentForMovement]
+    );
+
+    const movementHoldBounds = useMemo(
+        () => selectedFragmentForMovement ? getFragmentHoldBounds(selectedFragmentForMovement) : null,
+        [selectedFragmentForMovement]
+    );
+
+    const isOverMovement = useMemo(
+        () => hoveredMovementId ? fragmentMovements.some(m => m.id === hoveredMovementId) : false,
+        [hoveredMovementId, fragmentMovements]
+    );
+
+    const isDraggingMovementItem = useMemo(
+        () => draggingMovementId ? fragmentMovements.some(m => m.id === draggingMovementId) : false,
+        [draggingMovementId, fragmentMovements]
+    );
+
+    const movementGhostState = useMemo(() => {
+        if (!isHoveringMovementRow || isDraggingMovementItem || isOverMovement) return null;
+        if (contentWidth === 0 || scaledDuration === 0 || !movementHoldBounds) return null;
+        const holdSpan = movementHoldBounds.end - movementHoldBounds.start;
+        if (holdSpan < MIN_MOVEMENT_TRACK_DURATION) return null;
+        const hoverTime = (movementGhostX / contentWidth) * scaledDuration;
+        const validPosition = findValidMovementPosition(
+            hoverTime,
+            Math.min(DEFAULT_MOVEMENT_DURATION, holdSpan),
+            fragmentMovements,
+            movementHoldBounds.start,
+            movementHoldBounds.end
+        );
+        return { validPosition };
+    }, [isHoveringMovementRow, isDraggingMovementItem, isOverMovement, movementGhostX, contentWidth, scaledDuration, movementHoldBounds, fragmentMovements]);
+
+    useEffect(() => {
+        lastValidMovementPositionRef.current = movementGhostState?.validPosition ?? null;
+    }, [movementGhostState]);
+
     return (
         <div ref={containerRef} className="flex flex-col w-full pr-2">
             <div
@@ -434,15 +495,15 @@ export function Timeline({
                         audioTracksCount={audioTracks.length}
                         motionTracksCount={mockupMotionFragments.length}
                         elementsCount={canvasElements.length}
+                        showMovementRow={showMovementRow}
                     />
 
                     <div
                         ref={trackRef}
-                        className={`flex-1 flex flex-col overflow-x-auto custom-scrollbar pl-14 pr-2 ${audioTracks.length > 0 || elementLaneCount > 1 || canvasElements.length > 0
+                        className={`flex-1 flex flex-col overflow-x-auto custom-scrollbar pl-14 pr-2 ${audioTracks.length > 0 || elementLaneCount > 1 || canvasElements.length > 0 || showMovementRow
                             ? "overflow-y-auto no-scrollbar"
                             : "overflow-y-hidden"
-                            }`}
-                    >
+                            }`}>
                         <div
                             className="relative flex flex-col min-h-full h-max pb-1"
                             style={{ width: timelineWidth > 0 ? timelineWidth : '100%', minWidth: '100%' }}
@@ -514,7 +575,7 @@ export function Timeline({
 
                             <div className="flex-1 flex flex-col min-h-max" onClick={handleTrackClick}>
 
-                                <div className="flex-1 min-h-[55px] shrink-0 flex items-center py-0.5 relative">
+                                <div className="flex-1 min-h-[55px] max-h-[65px] shrink-0 flex items-center py-0.5 relative">
                                     <div className="h-full w-full rounded-md flex items-center relative bg-muted/40 dark:bg-[#0a1510] border border-border">
                                         {videoClips.length > 0 ? (
                                             <>
@@ -701,15 +762,104 @@ export function Timeline({
                                         )}
                                     </div>
                                 </div>
+                                {(() => {
+                                    if (!selectedFragmentForMovement?.movementEnabled || !movementHoldBounds) return null;
+                                    const { start: holdStart, end: holdEnd } = movementHoldBounds;
+                                    const leftPx = (holdStart / scaledDuration) * contentWidth;
+                                    const rightPx = (holdEnd / scaledDuration) * contentWidth;
 
-                                {canvasElements.length > 0 && (
-                                    <div className="shrink-0 w-full relative" style={{ minHeight: elementLaneCount * ELEMENT_ROW_HEIGHT }}>
+                                    return (
                                         <div
-                                            className="h-full w-full relative"
+                                            className="min-h-[55px] shrink-0 w-full flex items-center relative bg-black/10 dark:bg-white/10"
+                                            onMouseMove={(e) => {
+                                                if (isDraggingMovementItem) return;
+                                                const rect = e.currentTarget.getBoundingClientRect();
+                                                pendingMovementGhostXRef.current = e.clientX - rect.left;
+                                                if (movementGhostRafRef.current === null) {
+                                                    movementGhostRafRef.current = requestAnimationFrame(() => {
+                                                        if (pendingMovementGhostXRef.current !== null) setMovementGhostX(pendingMovementGhostXRef.current);
+                                                        movementGhostRafRef.current = null;
+                                                    });
+                                                }
+                                                setIsHoveringMovementRow(true);
+                                            }}
+                                            onMouseLeave={() => setIsHoveringMovementRow(false)}
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                onSelectElement?.(null);
+                                                if (isOverMovement || isDraggingMovementItem || !onAddZoomMovementAtRange) return;
+                                                const validPosition = lastValidMovementPositionRef.current;
+                                                if (validPosition) {
+                                                    onAddZoomMovementAtRange(validPosition.startTime, validPosition.endTime);
+                                                }
                                             }}
+                                        >
+                                            <div className="h-full w-full relative">
+                                                <div className="absolute top-0 bottom-0 left-0 bg-white dark:bg-black pointer-events-none" style={{ width: leftPx }} />
+                                                <div className="absolute top-0 bottom-0 bg-white dark:bg-black pointer-events-none" style={{ left: rightPx, right: 0 }} />
+
+                                                {fragmentMovements
+                                                    .slice()
+                                                    .sort((a, b) => a.startTime - b.startTime)
+                                                    .map((movement, i) => (
+                                                        <ZoomMovementTrackItem
+                                                            key={movement.id}
+                                                            movement={movement}
+                                                            index={i + 1}
+                                                            isSelected={movement.id === selectedZoomMovementId}
+                                                            contentWidth={contentWidth}
+                                                            videoDuration={scaledDuration}
+                                                            holdStart={holdStart}
+                                                            holdEnd={holdEnd}
+                                                            otherMovements={fragmentMovements.filter(m => m.id !== movement.id)}
+                                                            onSelect={() => onSelectZoomMovement?.(movement.id)}
+                                                            onUpdate={(updates) => onUpdateZoomMovement?.(movement.id, updates)}
+                                                            onDragStateChange={(dragging) => {
+                                                                if (dragging) {
+                                                                    setDraggingMovementId(movement.id);
+                                                                    setHoveredMovementId(movement.id);
+                                                                    setIsHoveringMovementRow(false);
+                                                                } else {
+                                                                    setDraggingMovementId(prev => (prev === movement.id ? null : prev));
+                                                                }
+                                                            }}
+                                                            onMouseEnter={() => setHoveredMovementId(movement.id)}
+                                                            onMouseLeave={() => setHoveredMovementId(prev => (prev === movement.id ? null : prev))}
+                                                        />
+                                                    ))}
+
+                                                {movementGhostState?.validPosition && (
+                                                    <motion.div
+                                                        className="absolute top-1/2 -translate-y-1/2 h-[80%] pointer-events-none"
+                                                        initial={false}
+                                                        animate={{
+                                                            left: (movementGhostState.validPosition.startTime / scaledDuration) * contentWidth,
+                                                            width: ((movementGhostState.validPosition.endTime - movementGhostState.validPosition.startTime) / scaledDuration) * contentWidth,
+                                                        }}
+                                                        transition={{ duration: 0 }}
+                                                    >
+                                                        <div className="w-full h-full rounded border border-dashed border-emerald-400/50 bg-emerald-500/10 flex flex-col items-center justify-center gap-0.5">
+                                                            <Icon icon="qlementine-icons:zoom-12" width="12" height="12" className="text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+                                                            <span className="text-[8px] font-mono text-emerald-600/60 dark:text-emerald-400/60">+ Movement</span>
+                                                        </div>
+                                                    </motion.div>
+                                                )}
+
+                                                {isHoveringMovementRow && !isDraggingMovementItem && !isOverMovement && movementGhostState && !movementGhostState.validPosition && (
+                                                    <div className="absolute top-[10%] h-[80%] w-32 pointer-events-none" style={{ left: movementGhostX - 64 }}>
+                                                        <div className="w-full h-full rounded border border-dashed border-red-400/50 bg-red-500/10 flex flex-col items-center justify-center gap-0.5">
+                                                            <span className="text-[8px] font-mono text-red-600/60 dark:text-red-400/60">{t("noSpace")}</span>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
+
+                                {canvasElements.length > 0 && (
+                                    <div className="min-h-[55px] shrink-0 w-full flex items-center relative">
+                                        <div className="h-full w-full flex items-center relative"
+                                            onClick={(e) => { e.stopPropagation(); onSelectElement?.(null); }}
                                         >
                                             {canvasElements.map((element) => (
                                                 <ElementFragmentTrackItem
@@ -731,7 +881,7 @@ export function Timeline({
                                 )}
 
                                 {audioTracks.length > 0 && (
-                                    <div className="shrink-0 w-full relative" style={{ minHeight: audioLaneCount * 55 }}>
+                                    <div className="shrink-0 w-full relative">
                                         <div className="h-full w-full relative">
                                             {audioTracks.map((track) => {
                                                 const audio = uploadedAudios?.find(a => a.id === track.audioId);
@@ -762,12 +912,8 @@ export function Timeline({
                                     </div>
                                 )}
                                 {mockupMotionFragments.length > 0 && (
-                                    <div
-                                        className="min-h-[55px] shrink-0 w-full flex items-center relative"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            onSelectMockupMotionFragment?.(null);
-                                        }}
+                                    <div className="min-h-[55px] shrink-0 w-full flex items-center relative"
+                                        onClick={(e) => { e.stopPropagation(); onSelectMockupMotionFragment?.(null); }}
                                     >
                                         <div className="h-full w-full relative">
                                             {mockupMotionFragments.map((fragment) => (

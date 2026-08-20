@@ -66,6 +66,13 @@ export function ControlPanel({
     onAddZoomFragment,
     onUpdateZoomFragment,
     onDeleteZoomFragment,
+    zoomMovements =[],
+    selectedZoomMovementId,
+    onSelectZoomMovement,
+    onToggleZoomMovement,
+    onAddZoomMovement,
+    onDeleteZoomMovement,
+    onUpdateZoomMovementPoint,
     videoUrl,
     videoThumbnail,
     currentTime = 0,
@@ -134,16 +141,16 @@ export function ControlPanel({
     const hasMockup2D = mediaType === "video" && !imagePhoneActive;
 
     const [isDark, setIsDark] = useState(
-      () => typeof window !== "undefined" && document.documentElement.classList.contains("dark")
+        () => typeof window !== "undefined" && document.documentElement.classList.contains("dark")
     );
 
     useEffect(() => {
-      const html = document.documentElement;
-      const update = () => setIsDark(html.classList.contains("dark"));
-      update();
-      const observer = new MutationObserver(update);
-      observer.observe(html, { attributes: true, attributeFilter: ["class"] });
-      return () => observer.disconnect();
+        const html = document.documentElement;
+        const update = () => setIsDark(html.classList.contains("dark"));
+        update();
+        const observer = new MutationObserver(update);
+        observer.observe(html, { attributes: true, attributeFilter: ["class"] });
+        return () => observer.disconnect();
     }, []);
 
     return (
@@ -402,6 +409,13 @@ export function ControlPanel({
                                 <ZoomFragmentEditor
                                     key={selectedZoomFragment.id}
                                     fragment={selectedZoomFragment}
+                                    movements={zoomMovements.filter(m => m.zoomFragmentId === selectedZoomFragment.id)}
+                                    selectedMovementId={selectedZoomMovementId}
+                                    onSelectMovement={(id) => onSelectZoomMovement?.(id)}
+                                    onToggleMovement={(enabled) => onToggleZoomMovement?.(selectedZoomFragment.id, enabled)}
+                                    onAddMovement={() => onAddZoomMovement?.(selectedZoomFragment.id)}
+                                    onDeleteMovement={(id) => onDeleteZoomMovement?.(id)}
+                                    onUpdateMovementPoint={(id, x, y) => onUpdateZoomMovementPoint?.(id, x, y)}
                                     videoUrl={videoUrl ?? null}
                                     videoThumbnail={videoThumbnail}
                                     currentTime={currentTime}

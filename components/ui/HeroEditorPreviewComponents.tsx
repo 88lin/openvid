@@ -466,7 +466,7 @@ export const SwatchGrid = memo(function SwatchGrid({
               boxShadow:
                 isActiveCategory && i === activeIndex
                   ? `0 0 0 2px white, 0 0 0 3.5px ${ACCENT}`
-                  : "0 0 0 1px rgba(0,0,0,0.08)",
+                  : "0 0 0 2px rgba(0,0,0,0.05)",
             }}
           />
         ))}

@@ -598,7 +598,7 @@ export default function RecordingSetupDialog({ open, onClose, onStart }: Props) 
           </div>
         </div>
 
-        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-border bg-muted">
+        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-border">
           <Button variant="outline" onClick={handleCancel}>
             {t("actions.cancel")}
           </Button>

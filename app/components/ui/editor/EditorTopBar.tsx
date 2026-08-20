@@ -159,6 +159,7 @@ export function EditorTopBar({
                 ) : (
                     <UserMenuDropdown
                         showTheme
+                        editorMode={editorMode}
                         trigger={
                             <button
                                 className="flex items-center gap-1.5 px-2 border-border hover:opacity-80 transition-opacity focus:outline-none"
