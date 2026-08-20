@@ -2561,7 +2561,7 @@ function VideoCanvasInner({
                                 {selectedZoomFragment && !textToolActive && (
                                     <div
                                         className="absolute inset-0"
-                                        style={{ zIndex: 250 }}
+                                        style={{ zIndex: 50 }}
                                         onClick={handleZoomOverlayClick}
                                     >
                                         <ZoomPointOverlay

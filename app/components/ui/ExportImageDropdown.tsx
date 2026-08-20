@@ -51,7 +51,7 @@ const FORMAT_OPTIONS: FormatOption[] = [
         label: "AVIF",
         description: "Mejor compresión moderna",
         icon: "mdi:image-multiple",
-        supportsTransparency: true,
+        supportsTransparency: false,
     },
     {
         format: "webp",
@@ -198,7 +198,7 @@ export function ExportImageDropdown({
                     {isTransparent && (
                         <div className="flex items-center gap-2 px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 backdrop-blur-md">
                             <span className="text-[9px] font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400/90">
-                                 {t("transparent")}
+                                {t("transparent")}
                             </span>
                         </div>
                     )}
@@ -214,18 +214,18 @@ export function ExportImageDropdown({
                                 key={opt.format}
                                 onClick={() => !disabled && setSelectedFormat(opt.format)}
                                 disabled={disabled}
-                                className={`relative flex flex-col items-center gap-2 transition-all duration-300 group ${disabled ? "opacity-20 cursor-not-allowed" : "cursor-pointer"
+                                className={`relative flex flex-col items-center gap-2 transition-all duration-300 group ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
                                     }`}
                                 aria-label={`${opt.label} format - ${opt.description}`}
                                 aria-pressed={isSelected}
                             >
                                 <div
                                     className={`relative size-12 squircle-element flex items-center justify-center transition-all duration-300 border overflow-hidden ${isSelected
-                                            ? "border-transparent scale-105 text-white"
-                                            : "border-border hover:border-foreground/30"
+                                        ? "border-transparent scale-105 text-white"
+                                        : "border-border hover:border-foreground/30"
                                         }`}
                                     style={isSelected ? {
-                                        background: "radial-gradient(circle at 50% 0%, #555555 0%, #454545 64%)",
+                                        background: "radial-gradient(circle at 50% 0%, #555555 0%, #121212 75%)",
                                         boxShadow: "inset 0 1.01rem 0.2rem -1rem #fff, 0 0 0 1px #fff4, 0 4px 4px 0 #0004, 0 0 0 1px #333",
                                     } : undefined}
                                 >
@@ -254,7 +254,7 @@ export function ExportImageDropdown({
                 </div>
 
                 <div className="px-2 pb-2">
-                    <div className="bg-muted/50 squircle-element border border-border overflow-hidden max-h-64 overflow-y-auto custom-scrollbar">
+                    <div className="bg-muted/50 squircle-element border border-border overflow-hidden max-h-100 overflow-y-auto custom-scrollbar">
                         {qualityPresets.map((preset, i) => (
                             <button
                                 key={i}

@@ -159,7 +159,7 @@ export function FeedbackWidget() {
                                                 : "bg-transparent border-border text-muted-foreground hover:bg-muted hover:text-foreground hover:border-muted-foreground/50"
                                             }`}
                                         style={isSelected ? {
-                                            background: "radial-gradient(circle at 50% 0%, #555555 0%, #454545 64%)",
+                                            background: "radial-gradient(circle at 50% 0%, #555555 0%, #121212 75%)",
                                             boxShadow: "inset 0 1.01rem 0.2rem -1rem #fff, 0 0 0 1px #fff4, 0 4px 4px 0 #0004, 0 0 0 1px #333",
                                         } : undefined}
                                     >
@@ -175,7 +175,6 @@ export function FeedbackWidget() {
                                             {t(`types.${opt.value}`)}
                                         </span>
                                     </button>
-
                                 );
                             })}
                         </div>

@@ -393,7 +393,7 @@ export function VideoCropperModal({
                                                 style={
                                                     selectedAspectRatio === ratio.value
                                                         ? {
-                                                            background: "radial-gradient(circle at 50% 0%, #555555 0%, #252525 64%)",
+                                                            background: "radial-gradient(circle at 50% 0%, #555555 0%, #121212 75%)",
                                                             boxShadow: "0 0 0 1px #fff3, 0 4px 4px 0 #0004, 0 0 0 1px #333",
                                                         }
                                                         : {}
