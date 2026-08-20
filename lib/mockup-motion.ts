@@ -369,7 +369,6 @@ export function sampleMockupMotion(
       const speedT = clamp01(speed / 100);
       const i = clamp01(intensity / 100);
       const p = clamp01(currentTime / clipDurationSec);
-
       
       const act1 = lerp(0.12, 0.10, speedT);
       const act2 = lerp(0.32, 0.28, speedT);
@@ -377,17 +376,11 @@ export function sampleMockupMotion(
       const act4 = lerp(0.60, 0.52, speedT);
       const act5 = lerp(0.70, 0.62, speedT);
       const act6 = lerp(0.85, 0.78, speedT);
-
-      
       const heroScale = lerp(1.02, 1.05, i);
       const orbitScale = lerp(1.1, 1.2, i);
       const macroScale = lerp(1.6, 1.85, i); 
-
-      
       const tiltXMax = lerp(20, 35, i);
       const tiltYMax = lerp(20, 35, i);
-
-      
       
       const ptBottomRight = { x: -lerp(0.15, 0.22, i), y: -lerp(0.15, 0.22, i) };
       const ptTopRight = { x: -lerp(0.15, 0.22, i), y: lerp(0.15, 0.22, i) };
@@ -395,7 +388,6 @@ export function sampleMockupMotion(
       const ptBottomLeft = { x: lerp(0.15, 0.22, i), y: -lerp(0.15, 0.22, i) };
       const ptCenter = { x: 0, y: 0 };
 
-      
       const easeInOutCubic = (t: number) => t < 0.5 ? 4 * t ** 3 : 1 - (-2 * t + 2) ** 3 / 2;
       const smootherStep = (t: number) => t * t * t * (t * (t * 6 - 15) + 10);
       const lensBreath = 1 + Math.sin(currentTime * Math.PI * 1.5) * 0.015 * i;
@@ -513,8 +505,6 @@ export function sampleMockupMotion(
       const speedT = clamp01(speed / 100);
       const i = clamp01(intensity / 100);
       const p = clamp01(currentTime / clipDurationSec);
-
-      
       const a1 = lerp(0.12, 0.09, speedT);   
       const a2 = lerp(0.30, 0.25, speedT);   
       const a3 = lerp(0.44, 0.38, speedT);   
@@ -522,47 +512,34 @@ export function sampleMockupMotion(
       const a5 = lerp(0.68, 0.62, speedT);   
       const a6 = lerp(0.84, 0.78, speedT);   
       
-
-      
       const cenitalScale = lerp(0.88, 0.98, i);  
       const heroScale = lerp(1.02, 1.08, i);
       const macroScale = lerp(1.50, 1.80, i);
-
       
       const cenitalTiltX = -lerp(55, 82, i);       
       const hoverTiltX = -lerp(18, 32, i);       
       const levelTiltX = lerp(2, 5, i);          
 
       const tiltYMax = lerp(16, 28, i);        
-
       
       const ptCenter = { x: 0, y: 0 };
       const ptRightFeature = { x: -lerp(0.18, 0.28, i), y: lerp(0.02, 0.06, i) };
       const ptLeftFeature = { x: lerp(0.18, 0.28, i), y: lerp(-0.02, -0.06, i) };
-
-      
       const smoothStep = (t: number): number => t * t * (3 - 2 * t);
       const smootherStep = (t: number): number => t * t * t * (t * (t * 6 - 15) + 10);
       const easeInOutCubic = (t: number): number =>
         t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
       const easeOutCubic = (t: number): number => 1 - (1 - t) ** 3;
       const easeOutExpo = (t: number): number => t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
-
-      
       const hSeed = currentTime * lerp(0.6, 1.4, i);
       const hAmp = lerp(0.06, 0.16, i);
       const handX = Math.sin(hSeed * 2.7) * Math.cos(hSeed * 1.3) * hAmp;
       const handY = Math.sin(hSeed * 1.9) * Math.cos(hSeed * 4.3) * hAmp;
       const handRot = Math.sin(hSeed * 3.9) * 0.035 * (i * 0.5 + 0.5);
       const breath = 1 + Math.sin(currentTime * Math.PI * 2 * lerp(0.20, 0.45, i)) * lerp(0.003, 0.008, i);
-
-      
       const orbitRollMax = lerp(4, 10, i);
       const motionBlurMax = lerp(8, 20, i);
 
-      
-      
-      
       const h0 = {
         s: cenitalScale, x: 0, y: 0,
         tx: cenitalTiltX, ty: 0, tz: 0, blur: 0
