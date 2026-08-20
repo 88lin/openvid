@@ -314,6 +314,8 @@
     "connectedWith": "{provider}(으)로 연결됨",
     "home": "홈",
     "editor": "에디터",
+    "videoEditor": "동영상 에디터로 이동",
+    "photoEditor": "사진 에디터로 이동",
     "logout": "로그아웃",
     "loggingOut": "로그아웃 중...",
     "ariaLabel": "사용자 메뉴",
@@ -825,13 +827,16 @@
       "title": "카메라 이동",
       "subtitle": "확대 중 화면 이동",
       "orbitalDescription": "Autozoom이 생성한 커서 경로입니다. 미리보기와 내보내기에서 그대로 유지됩니다.",
-      "tooShort": "구간이 너무 짧아 이동을 적용할 수 없습니다. 길이를 늘리거나 전환 속도를 줄이세요.",
+      "tooShort": "움직임을 기르기에는 조각이 너무 짧습니다. 지속 시간을 늘려주세요.",
+      "defaultName": "이동 {number}",
       "timeline": {
         "title": "이동 타임라인",
         "active": "{seconds}초 동안 활성",
         "startLabel": "시작",
         "endLabel": "종료"
-      }
+      },
+      "addMovement": "포인트 추가",
+      "deleteMovement": "포인트 삭제"
     },
     "sliders": {
       "zoomLevel": "확대 배율",
@@ -1445,7 +1450,8 @@
     "zoom": "줌",
     "elements": "오브젝트",
     "audio": "오디오",
-    "motion": "모션"
+    "motion": "모션",
+    "movement": "이동"
   },
   "heroPreview": {
     "sidebar": {
