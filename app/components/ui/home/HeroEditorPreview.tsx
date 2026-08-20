@@ -167,71 +167,71 @@ function EditorCanvas({
               transformOrigin: "center center",
             }}
           >
-          <div
-            className="absolute overflow-hidden bg-black squircle-element sm:squircle-corner"
-            style={{
-              inset: `${paddingPct}%`,
-              borderRadius: `${roundedPx}px`,
-              boxShadow: dynamicShadow,
-            }}
-          >
-            <video
-              ref={videoRef}
-              autoPlay
-              loop
-              muted
-              playsInline
-              preload="metadata"
-              poster="/images/pages/preview-editor-poster.webp"
-              onLoadedMetadata={onLoadedMetadata}
-              draggable={false}
-              onDragStart={(e) => e.preventDefault()}
-              className="block w-full h-full object-cover pointer-events-none"
+            <div
+              className="absolute overflow-hidden bg-black squircle-element sm:squircle-corner"
+              style={{
+                inset: `${paddingPct}%`,
+                borderRadius: `${roundedPx}px`,
+                boxShadow: dynamicShadow,
+              }}
             >
-              <source src="/videos/hero/demo-preview-editor.mp4" type="video/mp4" />
-            </video>
-            <AnimatePresence>
-              {isZoomActive && focusPoint && (
-                <motion.div
-                  key="focus-cursor"
-                  className="absolute z-10 pointer-events-none"
-                  style={{
-                    left: `${focusPoint.x}%`,
-                    top: `${focusPoint.y}%`,
-                    translateX: "-50%",
-                    translateY: "-50%",
-                    transition: "left 90ms ease-out, top 90ms ease-out",
-                  }}
-                  initial={{ opacity: 0, scale: 1.4 * inverseScale * RENDER_HEADROOM }}
-                  animate={{ opacity: 0.9, scale: inverseScale * RENDER_HEADROOM }}
-                  exit={{ opacity: 0, scale: 1.4 * inverseScale * RENDER_HEADROOM }}
-                  transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                >
-                  <div className="w-6 h-6 rounded-full border border-white/70" />
-                  <div className="absolute inset-0 m-auto w-1 h-1 rounded-full bg-white" />
-                </motion.div>
-              )}
-            </AnimatePresence>
-            <AnimatePresence>
-              {pulseKey && focusPoint && (
-                <motion.div
-                  key={pulseKey}
-                  className="absolute z-[9] pointer-events-none rounded-full border border-white/50"
-                  style={{
-                    left: `${focusPoint.x}%`,
-                    top: `${focusPoint.y}%`,
-                    translateX: "-50%",
-                    translateY: "-50%",
-                    width: 24,
-                    height: 24,
-                  }}
-                  initial={{ opacity: 0.55, scale: 0.4 * inverseScale * RENDER_HEADROOM }}
-                  animate={{ opacity: 0, scale: 2.4 * inverseScale * RENDER_HEADROOM }}
-                  transition={{ duration: 0.55, ease: "easeOut" }}
-                />
-              )}
-            </AnimatePresence>
-          </div>
+              <video
+                ref={videoRef}
+                autoPlay
+                loop
+                muted
+                playsInline
+                preload="metadata"
+                poster="/images/pages/preview-editor-poster.webp"
+                onLoadedMetadata={onLoadedMetadata}
+                draggable={false}
+                onDragStart={(e) => e.preventDefault()}
+                className="block w-full h-full object-cover pointer-events-none"
+              >
+                <source src="/videos/hero/demo-preview-editor.mp4" type="video/mp4" />
+              </video>
+              <AnimatePresence>
+                {isZoomActive && focusPoint && (
+                  <motion.div
+                    key="focus-cursor"
+                    className="absolute z-10 pointer-events-none"
+                    style={{
+                      left: `${focusPoint.x}%`,
+                      top: `${focusPoint.y}%`,
+                      translateX: "-50%",
+                      translateY: "-50%",
+                      transition: "left 90ms ease-out, top 90ms ease-out",
+                    }}
+                    initial={{ opacity: 0, scale: 1.4 * inverseScale * RENDER_HEADROOM }}
+                    animate={{ opacity: 0.9, scale: inverseScale * RENDER_HEADROOM }}
+                    exit={{ opacity: 0, scale: 1.4 * inverseScale * RENDER_HEADROOM }}
+                    transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                  >
+                    <div className="w-6 h-6 rounded-full border border-white/70" />
+                    <div className="absolute inset-0 m-auto w-1 h-1 rounded-full bg-white" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              <AnimatePresence>
+                {pulseKey && focusPoint && (
+                  <motion.div
+                    key={pulseKey}
+                    className="absolute z-[9] pointer-events-none rounded-full border border-white/50"
+                    style={{
+                      left: `${focusPoint.x}%`,
+                      top: `${focusPoint.y}%`,
+                      translateX: "-50%",
+                      translateY: "-50%",
+                      width: 24,
+                      height: 24,
+                    }}
+                    initial={{ opacity: 0.55, scale: 0.4 * inverseScale * RENDER_HEADROOM }}
+                    animate={{ opacity: 0, scale: 2.4 * inverseScale * RENDER_HEADROOM }}
+                    transition={{ duration: 0.55, ease: "easeOut" }}
+                  />
+                )}
+              </AnimatePresence>
+            </div>
           </div>
         </div>
         <AnimatePresence>

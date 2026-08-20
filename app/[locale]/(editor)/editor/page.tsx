@@ -27,7 +27,7 @@ import type { CameraConfig } from "@/types/camera.types";
 import type { Preview3DConfig, ImageMaskConfig } from "@/types/photo.types";
 import { DEFAULT_MASK_CONFIG, PREVIEW_CONFIGS } from "@/types/photo.types";
 import { MOCKUPS } from "@/lib/mockup-data";
-import { gradientToCss, generateDefaultZoomFragments} from "@/types";
+import { gradientToCss, generateDefaultZoomFragments } from "@/types";
 import { ToolsSidebar } from "@/app/components/ui/editor/ToolsSidebar";
 import { MobileToolsMenu } from "@/app/components/ui/editor/MobileToolsMenu";
 import { MobileControlPanel } from "@/app/components/ui/editor/MobileControlPanel";
@@ -48,6 +48,7 @@ import { useImageExport } from "@/hooks/useImageExport";
 import { useAudioTracks } from "@/hooks/useAudioTracks";
 import { useMockupMotionFragments } from "@/hooks/useMockupMotionFragments";
 import { useZoomFragments } from "@/hooks/useZoomFragments";
+import { useEditorShortcuts } from "@/hooks/useEditorShortcuts";
 
 const ControlPanel = lazy(() => import("@/app/components/ui/editor/ControlPanel").then(mod => ({ default: mod.ControlPanel })));
 const Timeline = lazy(() => import("@/app/components/ui/editor/Timeline").then(mod => ({ default: mod.Timeline })));
@@ -298,7 +299,7 @@ export default function Editor() {
         selectedMockupMotionFragment,
         handleUpdateMockupMotionFragment, handleDeleteMockupMotionFragment,
         handleAddOrReplaceMotionPreset, handleActivateMotionTool,
-        copySelectedMockupMotionFragment, pasteMockupMotionFragment,copiedMockupMotionFragment
+        copySelectedMockupMotionFragment, pasteMockupMotionFragment, copiedMockupMotionFragment
     } = useMockupMotionFragments({
         currentTime, videoDuration, setActiveTool, lastCopyActionRef,
         selectedMockupMotionFragmentId, setSelectedMockupMotionFragmentId,
@@ -309,7 +310,7 @@ export default function Editor() {
         selectedZoomFragment, handleActivateZoomTool, handleAddZoomFragment, handleAddZoomFragmentAtRange,
         handleUpdateZoomFragment, handleToggleZoomMovement, handleAddZoomMovement,
         handleAddZoomMovementAtRange, handleUpdateZoomMovement, handleDeleteZoomMovement,
-        handleDeleteZoomFragment, copySelectedZoomFragment, pasteZoomFragment,copiedZoomFragment
+        handleDeleteZoomFragment, copySelectedZoomFragment, pasteZoomFragment, copiedZoomFragment
     } = useZoomFragments({
         currentTime, videoDuration, setActiveTool, lastCopyActionRef,
         selectedZoomFragmentId, setSelectedZoomFragmentId,
@@ -1573,97 +1574,6 @@ export default function Editor() {
         }
     }, [muteOriginalAudio]);
 
-    // Keyboard shortcuts for undo/redo
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            const target = e.target as HTMLElement;
-            const isInputFocused = target.tagName === 'INPUT' ||
-                target.tagName === 'TEXTAREA' ||
-                target.isContentEditable;
-
-            if (isInputFocused) return;
-
-            if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
-                e.preventDefault();
-                if (canUndo) {
-                    handleUndo();
-                }
-            }
-
-            if (((e.ctrlKey || e.metaKey) && e.key === 'y') ||
-                ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'z')) {
-                e.preventDefault();
-                if (canRedo) {
-                    handleRedo();
-                }
-            }
-        };
-
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [handleUndo, handleRedo, canUndo, canRedo]);
-
-    useEffect(() => {
-        const handlePaste = async (e: ClipboardEvent) => {
-            const target = e.target as HTMLElement;
-            const isInputFocused = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
-            if (isInputFocused) return;
-
-            if (lastCopyActionRef.current === 'zoom' && activeTool === 'zoom' && copiedZoomFragment) {
-                e.preventDefault();
-                pasteZoomFragment();
-                return;
-            }
-
-            if (lastCopyActionRef.current === 'motion' && activeTool === 'motion' && copiedMockupMotionFragment) {
-                e.preventDefault();
-                pasteMockupMotionFragment();
-                return;
-            }
-
-            if (lastCopyActionRef.current === 'element' && copiedElements.length > 0) {
-                e.preventDefault();
-                pasteElement();
-                return;
-            }
-
-            const items = e.clipboardData?.items;
-            if (items) {
-                const wantedPrefix = isPhotoMode ? 'image/' : 'video/';
-                for (const item of Array.from(items)) {
-                    if (item.type.startsWith(wantedPrefix)) {
-                        e.preventDefault();
-                        const file = item.getAsFile();
-                        if (!file) break;
-                        if (isPhotoMode) {
-                            handleImageUploadToCanvas(file);
-                        } else {
-                            await handleVideoUpload(file, { forceReplace: true });
-                        }
-                        return;
-                    }
-                }
-            }
-
-            if (activeTool === 'zoom' && copiedZoomFragment) {
-                e.preventDefault();
-                pasteZoomFragment();
-                return;
-            }
-            if (activeTool === 'motion' && copiedMockupMotionFragment) {
-                e.preventDefault();
-                pasteMockupMotionFragment();
-                return;
-            }
-            if (copiedElements.length > 0) {
-                e.preventDefault();
-                pasteElement();
-            }
-        };
-        window.addEventListener('paste', handlePaste);
-        return () => window.removeEventListener('paste', handlePaste);
-    }, [isPhotoMode, handleImageUploadToCanvas, handleVideoUpload, activeTool, copiedZoomFragment, pasteZoomFragment, copiedElements, pasteElement, copiedMockupMotionFragment, pasteMockupMotionFragment]);
-
     const togglePlayPause = useCallback(() => {
         if (videoRef.current) {
             if (isPlaying) {
@@ -2234,99 +2144,22 @@ export default function Editor() {
         return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
     }, []);
 
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-                return;
-            }
-            // Also skip if inside a contenteditable element
-            if ((e.target as HTMLElement)?.isContentEditable) return;
-
-            // T key — Figma-style text tool: activate crosshair cursor to place text on canvas
-            if (e.key === 't' && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) {
-                e.preventDefault();
-                setTextToolActive(true);
-                return;
-            }
-
-            if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
-                if (selectedElementId || multiSelectedElementIds.length > 0) {
-                    e.preventDefault();
-                    copySelectedElement();
-                    return;
-                }
-                if (selectedZoomFragmentId) {
-                    e.preventDefault();
-                    copySelectedZoomFragment();
-                    return;
-                }
-
-                if (selectedMockupMotionFragmentId) {
-                    e.preventDefault();
-                    copySelectedMockupMotionFragment();
-                    return;
-                }
-            }
-
-            if ((e.key === "Delete" || e.key === "Backspace") && (selectedElementId || multiSelectedElementIds.length > 0)) {
-                e.preventDefault();
-                const idsToDelete = multiSelectedElementIds.length > 1 ? multiSelectedElementIds : selectedElementId;
-                if (idsToDelete) deleteCanvasElement(idsToDelete);
-                return;
-            }
-
-            if ((e.key === "Delete" || e.key === "Backspace") && selectedVideoClipId) {
-                e.preventDefault();
-                handleDeleteVideoClip(selectedVideoClipId);
-                return;
-            }
-
-            if ((e.key === "Delete" || e.key === "Backspace") && selectedAudioTrackId) {
-                e.preventDefault();
-                handleDeleteAudioTrack(selectedAudioTrackId);
-                setSelectedAudioTrackId(null);
-                return;
-            }
-
-            if ((e.key === "Delete" || e.key === "Backspace") && selectedZoomMovementId) {
-                e.preventDefault();
-                handleDeleteZoomMovement(selectedZoomMovementId);
-                return;
-            }
-
-            if ((e.key === "Delete" || e.key === "Backspace") && selectedZoomFragmentId) {
-                e.preventDefault();
-                handleDeleteZoomFragment(selectedZoomFragmentId);
-                return;
-            }
-
-            if ((e.key === "Delete" || e.key === "Backspace") && selectedMockupMotionFragmentId) {
-                e.preventDefault();
-                handleDeleteMockupMotionFragment(selectedMockupMotionFragmentId);
-                return;
-            }
-
-            if (e.key === "Escape") {
-                e.preventDefault();
-                if (textToolActive) { setTextToolActive(false); return; }
-                if (selectedElementId) { setSelectedElementId(null); }
-                else if (selectedVideoClipId) { setSelectedVideoClipId(null); }
-                else if (selectedAudioTrackId) { setSelectedAudioTrackId(null); }
-                else if (selectedZoomMovementId) { setSelectedZoomMovementId(null); }
-                else if (selectedZoomFragmentId) { setSelectedZoomFragmentId(null); }
-                else if (selectedMockupMotionFragmentId) { setSelectedMockupMotionFragmentId(null); }
-            }
-        };
-
-        document.addEventListener("keydown", handleKeyDown);
-        return () => document.removeEventListener("keydown", handleKeyDown);
-    }, [
-        selectedElementId, multiSelectedElementIds, selectedZoomFragmentId, selectedZoomMovementId,
-        selectedAudioTrackId, selectedVideoClipId, selectedMockupMotionFragmentId,
-        deleteCanvasElement, handleDeleteZoomFragment, handleDeleteZoomMovement,
-        handleDeleteAudioTrack, handleDeleteVideoClip, handleDeleteMockupMotionFragment,
-        copySelectedElement, textToolActive, copySelectedZoomFragment, activeTool, copySelectedMockupMotionFragment
-    ]);
+    useEditorShortcuts({
+        handleUndo, handleRedo, canUndo, canRedo,
+        activeTool, isPhotoMode,
+        textToolActive, setTextToolActive,
+        selectedElementId, setSelectedElementId, multiSelectedElementIds,
+        deleteCanvasElement, copySelectedElement, copiedElements, pasteElement,
+        selectedVideoClipId, setSelectedVideoClipId, handleDeleteVideoClip,
+        selectedAudioTrackId, setSelectedAudioTrackId, handleDeleteAudioTrack,
+        selectedZoomFragmentId, setSelectedZoomFragmentId, handleDeleteZoomFragment,
+        copySelectedZoomFragment, copiedZoomFragment, pasteZoomFragment,
+        selectedZoomMovementId, setSelectedZoomMovementId, handleDeleteZoomMovement,
+        selectedMockupMotionFragmentId, setSelectedMockupMotionFragmentId, handleDeleteMockupMotionFragment,
+        copySelectedMockupMotionFragment, copiedMockupMotionFragment, pasteMockupMotionFragment,
+        lastCopyActionRef,
+        handleImageUploadToCanvas, handleVideoUpload,
+    });
 
     const wasMobileRef = useRef<boolean | null>(null);
     const otherSelectionActive = !!(selectedZoomFragmentId || selectedAudioTrackId || selectedVideoClipId || selectedMockupMotionFragmentId);
