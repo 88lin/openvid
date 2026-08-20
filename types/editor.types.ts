@@ -123,4 +123,5 @@ export interface VideoCanvasProps {
   selectedZoomMovementId?: string | null;
   onSelectZoomMovement?: (id: string | null) => void;
   onUpdateZoomMovement?: (id: string, updates: Partial<ZoomMovement>) => void;
+  onSelectZoomFragment?: (id: string | null) => void;
 }

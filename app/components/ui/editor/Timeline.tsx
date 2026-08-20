@@ -3,7 +3,7 @@ import { useRef, useMemo, useCallback, useEffect, useState } from "react";
 import { motion, useMotionValue, useTransform, animate, PanInfo } from "framer-motion";
 import { formatTime, getZoomMultiplier } from "@/lib/video.utils";
 import { TIMELINE_LABEL_WIDTH, MIN_TRIM_DURATION } from "@/lib/constants";
-import { DEFAULT_MOVEMENT_DURATION, DEFAULT_ZOOM_FRAGMENT_DURATION, ELEMENT_ROW_HEIGHT, type TimelineProps } from "@/types/timeline.types";
+import { DEFAULT_MOVEMENT_DURATION, DEFAULT_ZOOM_FRAGMENT_DURATION, ELEMENT_ROW_HEIGHT, VIDEO_ROW_MAX_HEIGHT, VIDEO_ROW_MIN_HEIGHT, type TimelineProps } from "@/types/timeline.types";
 import LabelSidebar from "./LabelSidebar";
 import { ZoomFragmentTrackItem } from "./ZoomFragmentTrackItem";
 import { AudioFragmentTrackItem } from "./AudioFragmentTrackItem";
@@ -491,452 +491,476 @@ export function Timeline({
                     } shrink-0 bg-background border-t border-border flex flex-col font-mono text-[11px] transition-all duration-200`}
             >
                 <div className="flex-1 flex flex-col relative overflow-hidden">
-                    <LabelSidebar
-                        audioTracksCount={audioTracks.length}
-                        motionTracksCount={mockupMotionFragments.length}
-                        elementsCount={canvasElements.length}
-                        showMovementRow={showMovementRow}
-                    />
-
                     <div
                         ref={trackRef}
-                        className={`flex-1 flex flex-col overflow-x-auto custom-scrollbar pl-14 pr-2 ${audioTracks.length > 0 || elementLaneCount > 1 || canvasElements.length > 0 || showMovementRow
+                        className={`flex-1 overflow-x-auto custom-scrollbar pr-2 ${audioTracks.length > 0 || elementLaneCount > 1 || canvasElements.length > 0 || showMovementRow
                             ? "overflow-y-auto no-scrollbar"
                             : "overflow-y-hidden"
-                            }`}>
+                            }`}
+                    >
                         <div
-                            className="relative flex flex-col min-h-full h-max pb-1"
-                            style={{ width: timelineWidth > 0 ? timelineWidth : '100%', minWidth: '100%' }}
+                            className="relative grid min-h-full"
+                            style={{
+                                gridTemplateColumns: `${TIMELINE_LABEL_WIDTH}px ${timelineWidth > 0 ? `${timelineWidth}px` : '100%'}`,
+                                width: timelineWidth > 0 ? timelineWidth + TIMELINE_LABEL_WIDTH : '100%',
+                                minWidth: '100%',
+                            }}
                         >
-                            <motion.div
-                                className="absolute top-0 bottom-0 z-20 flex flex-col items-center cursor-ew-resize group select-none focus:outline-none"
-                                style={{ x: playheadX, translateX: "-50%" }}
-                                role="slider"
-                                aria-label={`Playhead at ${formatTime(currentTime)}`}
-                                aria-valuemin={videoClips.length > 0 ? 0 : trimRange.start}
-                                aria-valuemax={videoClips.length > 0 ? validDuration : trimRange.end}
-                                aria-valuenow={currentTime}
-                                tabIndex={0}
-                                drag="x"
-                                dragConstraints={{
-                                    left: videoClips.length > 0 ? 0 : trimStartPosition,
-                                    right: videoClips.length > 0 ? timelineWidth : trimEndPosition
-                                }}
-                                dragElastic={0}
-                                dragMomentum={false}
-                                onDrag={handleDrag}
-                                onDragStart={handleDragStart}
-                                onDragEnd={handleDragEnd}
-                            >
-                                <div
-                                    className={`w-3.5 h-3.5 mt-0.75 shrink-0 transition-all duration-150 origin-top ${isDragging
-                                        ? 'bg-blue-200 scale-135 shadow-[0_0_15px_rgba(147,197,253,0.9)] ease-out'
-                                        : 'bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.4)] group-hover:bg-blue-300 group-hover:scale-110 ease-in-out'
-                                        }`}
-                                    style={{ clipPath: 'polygon(0% 0%, 100% 0%, 100% 60%, 50% 100%, 0% 60%)' }}
-                                />
-                                <div
-                                    className={`w-px h-full transition-all duration-150 ${isDragging
-                                        ? 'bg-blue-200 w-[2px] shadow-[0_0_8px_rgba(147,197,253,0.5)] ease-out'
-                                        : 'bg-blue-400 group-hover:bg-blue-300'
-                                        }`}
-                                />
-                            </motion.div>
-
-                            <div
-                                className="h-5.5 border-b border-border relative shrink-0 cursor-pointer bg-muted/40 select-none overflow-hidden"
-                                onClick={handleTrackClick}
-                            >
-                                <div
-                                    className="absolute inset-0 opacity-20 pointer-events-none"
-                                    style={{
-                                        backgroundImage: `linear-gradient(to right, #ccc 1px, transparent 1px)`,
-                                        backgroundSize: `${10 * zoomLevel}px 6px`,
-                                        backgroundPosition: `0px 6px`,
-                                        backgroundRepeat: 'repeat-x'
+                            <LabelSidebar
+                                elementLaneCount={canvasElements.length > 0 ? elementLaneCount : 0}
+                                audioLaneCount={audioTracks.length > 0 ? audioLaneCount : 0}
+                                motionTracksCount={mockupMotionFragments.length}
+                                showMovementRow={showMovementRow}
+                            />
+                            <div className="relative flex flex-col pb-1 min-w-0">
+                                <motion.div
+                                    className="absolute top-0 bottom-0 z-20 flex flex-col items-center cursor-ew-resize group select-none focus:outline-none"
+                                    style={{ x: playheadX, translateX: "-50%" }}
+                                    role="slider"
+                                    aria-label={`Playhead at ${formatTime(currentTime)}`}
+                                    aria-valuemin={videoClips.length > 0 ? 0 : trimRange.start}
+                                    aria-valuemax={videoClips.length > 0 ? validDuration : trimRange.end}
+                                    aria-valuenow={currentTime}
+                                    tabIndex={0}
+                                    drag="x"
+                                    dragConstraints={{
+                                        left: videoClips.length > 0 ? 0 : trimStartPosition,
+                                        right: videoClips.length > 0 ? timelineWidth : trimEndPosition
                                     }}
-                                />
-                                <div className="absolute inset-0 pointer-events-none">
-                                    {validDuration > 0 && timeMarkers.map((marker, i) => (
-                                        <span
-                                            key={i}
-                                            className="absolute top-1 select-none text-[11px] leading-none text-muted-foreground/70 font-mono"
-                                            style={{
-                                                left: marker.position,
-                                                transform: i === 0 ? 'translateX(0)' : i === timeMarkers.length - 1 ? 'translateX(-100%)' : 'translateX(-50%)',
-                                                textShadow: '0 0 2px var(--color-background), 0 0 4px var(--color-background)'
-                                            }}
-                                        >
-                                            {formatTime(marker.time)}
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div className="flex-1 flex flex-col min-h-max" onClick={handleTrackClick}>
-
-                                <div className="flex-1 min-h-[55px] max-h-[65px] shrink-0 flex items-center py-0.5 relative">
-                                    <div className="h-full w-full rounded-md flex items-center relative bg-muted/40 dark:bg-[#0a1510] border border-border">
-                                        {videoClips.length > 0 ? (
-                                            <>
-                                                {videoClips.map((clip) => (
-                                                    <VideoClipTrackItem
-                                                        key={clip.id}
-                                                        clip={clip}
-                                                        isSelected={selectedVideoClipId === clip.id}
-                                                        contentWidth={contentWidth}
-                                                        totalDuration={scaledDuration}
-                                                        speed={speed}
-                                                        otherClips={videoClips.filter(c => c.id !== clip.id)}
-                                                        currentTime={currentTime}
-                                                        playheadX={playheadX}
-                                                        onSelect={() => onSelectVideoClip?.(clip.id)}
-                                                        onUpdate={(updates) => onUpdateVideoClip?.(clip.id, updates)}
-                                                        onDelete={() => onDeleteVideoClip?.(clip.id)}
-                                                        onDragStateChange={setIsDraggingVideoClip}
-                                                        zoomLevel={zoomLevel}
-                                                    />
-                                                ))}
-                                            </>
-                                        ) : (
-                                            <>
-                                                {trimRange.start > 0 && (
-                                                    <motion.div className="absolute left-0 top-0 bottom-0 bg-black/60 rounded-l-md z-10" style={{ width: trimOverlayLeftWidth }} />
-                                                )}
-                                                {trimRange.end < validDuration && (
-                                                    <motion.div className="absolute right-0 top-0 bottom-0 bg-black/60 rounded-r-md z-10" style={{ left: trimOverlayRightLeft, width: trimOverlayRightWidth }} />
-                                                )}
-                                                <motion.div
-                                                    className="absolute top-0 bottom-0 rounded-md border border-[#34A853]/40 bg-emerald-100 dark:bg-[#182e20] overflow-hidden"
-                                                    style={{ left: clipLeftMotion, width: clipWidthMotion }}
-                                                >
-                                                    <div className="absolute inset-0 flex items-center overflow-hidden">
-                                                        <div className="flex h-full w-full">
-                                                            {videoUrl && Array.from({ length: Math.max(1, Math.ceil(getZoomMultiplier(zoomLevel) * 3)) }).map((_, i) => (
-                                                                <div
-                                                                    key={i}
-                                                                    className="h-full flex-1 border-r border-[#34A853]/10 last:border-r-0"
-                                                                    style={{
-                                                                        background: 'linear-gradient(to top, rgba(0, 0, 0, 0) 0%, rgba(20, 80, 40, 0.1) 50%, rgba(52, 168, 83, 0.1) 100%)',
-                                                                        boxShadow: 'inset 0px 1px 0px rgba(255, 255, 255, 0.05)'
-                                                                    }}
-                                                                />
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                    <motion.div
-                                                        className="absolute top-0 bottom-0 -left-px border-r-2 border-[#4ade80]"
-                                                        style={{
-                                                            width: progressWidth,
-                                                            background: `linear-gradient(to bottom, rgba(52, 168, 83, 0.9) 0%, rgba(34, 139, 34, 1) 50%, rgba(20, 80, 40, 1) 100%)`,
-                                                            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2)'
-                                                        }}
-                                                    />
-                                                    <motion.span
-                                                        className="flex items-center justify-center gap-2 text-emerald-400 text-[11px] font-medium ml-3 relative z-10 drop-shadow-sm h-full"
-                                                    >
-                                                        {trimmedDurationLabel}
-                                                    </motion.span>
-                                                </motion.div>
-                                                <motion.div
-                                                    className="absolute top-0 bottom-0 w-3 cursor-ew-resize z-20 group/trim flex items-center justify-center"
-                                                    style={{ x: trimStartX, translateX: "-50%" }}
-                                                    role="slider"
-                                                    aria-label={`Trim start at ${formatTime(trimRange.start)}`}
-                                                    aria-valuemin={0}
-                                                    aria-valuemax={trimRange.end}
-                                                    aria-valuenow={trimRange.start}
-                                                    tabIndex={0}
-                                                    drag="x"
-                                                    dragConstraints={{ left: 0, right: timelineWidth }}
-                                                    dragElastic={0}
-                                                    dragMomentum={false}
-                                                    onDrag={handleTrimStartDrag}
-                                                    onDragStart={() => handleTrimDragStart('start')}
-                                                    onDragEnd={handleTrimDragEnd}
-                                                >
-                                                    <div className={`w-1.5 h-8 rounded-full transition-all ${isDraggingTrim === 'start' ? 'bg-[#4ade80] scale-110' : 'bg-[#34A853] group-hover/trim:bg-[#4ade80]'}`} aria-hidden="true" />
-                                                </motion.div>
-                                                <motion.div
-                                                    className="absolute top-0 bottom-0 w-3 cursor-ew-resize z-20 group/trim flex items-center justify-center"
-                                                    style={{ x: trimEndX, translateX: "-50%" }}
-                                                    role="slider"
-                                                    aria-label={`Trim end at ${formatTime(trimRange.end)}`}
-                                                    aria-valuemin={trimRange.start}
-                                                    aria-valuemax={validDuration}
-                                                    aria-valuenow={trimRange.end}
-                                                    tabIndex={0}
-                                                    drag="x"
-                                                    dragConstraints={{ left: 0, right: timelineWidth }}
-                                                    dragElastic={0}
-                                                    dragMomentum={false}
-                                                    onDrag={handleTrimEndDrag}
-                                                    onDragStart={() => handleTrimDragStart('end')}
-                                                    onDragEnd={handleTrimDragEnd}
-                                                >
-                                                    <div className={`w-1.5 h-8 rounded-full transition-all ${isDraggingTrim === 'end' ? 'bg-[#4ade80] scale-110' : 'bg-[#34A853] group-hover/trim:bg-[#4ade80]'}`} aria-hidden="true" />
-                                                </motion.div>
-                                            </>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <div
-                                    className="min-h-[55px] shrink-0 w-full flex items-center relative"
-                                    onMouseMove={(e) => {
-                                        if (isDraggingZoomFragment) return;
-                                        const rect = e.currentTarget.getBoundingClientRect();
-                                        pendingGhostXRef.current = e.clientX - rect.left;
-                                        if (ghostRafRef.current === null) {
-                                            ghostRafRef.current = requestAnimationFrame(() => {
-                                                if (pendingGhostXRef.current !== null) setGhostX(pendingGhostXRef.current);
-                                                ghostRafRef.current = null;
-                                            });
-                                        }
-                                        setIsHoveringZoomRow(true);
-                                    }}
-                                    onMouseLeave={() => setIsHoveringZoomRow(false)}
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        if (isOverFragment || isDraggingZoomFragment || !onAddZoomFragment) return;
-                                        const validPosition = lastValidPositionRef.current;
-                                        if (validPosition) {
-                                            onAddZoomFragment(validPosition.startTime, validPosition.endTime);
-                                        }
-                                    }}
+                                    dragElastic={0}
+                                    dragMomentum={false}
+                                    onDrag={handleDrag}
+                                    onDragStart={handleDragStart}
+                                    onDragEnd={handleDragEnd}
                                 >
-                                    <div className="h-full w-full flex items-center relative">
-                                        {zoomFragments.map((fragment) => (
-                                            <ZoomFragmentTrackItem
-                                                key={fragment.id}
-                                                fragment={fragment}
-                                                isSelected={fragment.id === selectedZoomFragmentId}
-                                                contentWidth={contentWidth}
-                                                videoDuration={scaledDuration}
-                                                contentDuration={validDuration}
-                                                speed={speed}
-                                                otherFragments={zoomFragments.filter(f => f.id !== fragment.id)}
-                                                onSelect={() => {
-                                                    onSelectZoomFragment?.(fragment.id);
-                                                    onActivateZoomTool?.();
+                                    <div
+                                        className={`w-3.5 h-3.5 mt-0.75 shrink-0 transition-all duration-150 origin-top ${isDragging
+                                            ? 'bg-blue-200 scale-135 shadow-[0_0_15px_rgba(147,197,253,0.9)] ease-out'
+                                            : 'bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.4)] group-hover:bg-blue-300 group-hover:scale-110 ease-in-out'
+                                            }`}
+                                        style={{ clipPath: 'polygon(0% 0%, 100% 0%, 100% 60%, 50% 100%, 0% 60%)' }}
+                                    />
+                                    <div
+                                        className={`w-px h-full transition-all duration-150 ${isDragging
+                                            ? 'bg-blue-200 w-[2px] shadow-[0_0_8px_rgba(147,197,253,0.5)] ease-out'
+                                            : 'bg-blue-400 group-hover:bg-blue-300'
+                                            }`}
+                                    />
+                                </motion.div>
+
+                                <div
+                                    className="h-5.5 border-b border-border relative shrink-0 cursor-pointer bg-muted/40 select-none overflow-hidden"
+                                    onClick={handleTrackClick}
+                                >
+                                    <div
+                                        className="absolute inset-0 opacity-20 pointer-events-none"
+                                        style={{
+                                            backgroundImage: `linear-gradient(to right, #ccc 1px, transparent 1px)`,
+                                            backgroundSize: `${10 * zoomLevel}px 6px`,
+                                            backgroundPosition: `0px 6px`,
+                                            backgroundRepeat: 'repeat-x'
+                                        }}
+                                    />
+                                    <div className="absolute inset-0 pointer-events-none">
+                                        {validDuration > 0 && timeMarkers.map((marker, i) => (
+                                            <span
+                                                key={i}
+                                                className="absolute top-1 select-none text-[11px] leading-none text-muted-foreground/70 font-mono"
+                                                style={{
+                                                    left: marker.position,
+                                                    transform: i === 0 ? 'translateX(0)' : i === timeMarkers.length - 1 ? 'translateX(-100%)' : 'translateX(-50%)',
+                                                    textShadow: '0 0 2px var(--color-background), 0 0 4px var(--color-background)'
                                                 }}
-                                                onUpdate={(updates) => onUpdateZoomFragment?.(fragment.id, updates)}
-                                                onDragStateChange={(dragging) => {
-                                                    if (dragging) {
-                                                        setDraggingFragmentId(fragment.id);
-                                                        setHoveredFragmentId(fragment.id);
-                                                        setIsHoveringZoomRow(false);
-                                                    } else {
-                                                        setDraggingFragmentId(prev => prev === fragment.id ? null : prev);
-                                                    }
-                                                }}
-                                                onMouseEnter={() => setHoveredFragmentId(fragment.id)}
-                                                onMouseLeave={() => setHoveredFragmentId(prev => prev === fragment.id ? null : prev)}
-                                            />
+                                            >
+                                                {formatTime(marker.time)}
+                                            </span>
                                         ))}
-                                        {ghostState?.validPosition && (
-                                            <motion.div
-                                                className="absolute top-[5%] h-[90%] pointer-events-none"
-                                                initial={false}
-                                                animate={{
-                                                    left: (ghostState.validPosition.startTime / scaledDuration) * contentWidth,
-                                                    width: ((ghostState.validPosition.endTime - ghostState.validPosition.startTime) / scaledDuration) * contentWidth,
-                                                }}
-                                                transition={{ duration: 0 }}
-                                            >
-                                                <div className="w-full h-full rounded border border-dashed border-blue-400/50 bg-blue-500/10 flex flex-col items-center justify-center gap-0.5">
-                                                    <Icon icon="qlementine-icons:zoom-12" width="12" height="12" className="text-blue-600 dark:text-blue-400" aria-hidden="true" />
-                                                    <span className="text-[8px] font-mono text-blue-600/60 dark:text-blue-400/60">+ Zoom</span>
-                                                </div>
-                                            </motion.div>
-                                        )}
-                                        {isHoveringZoomRow && !isDraggingZoomFragment && !isOverFragment && ghostState && !ghostState.validPosition && (
-                                            <div
-                                                className="absolute top-[10%] h-[80%] w-32 pointer-events-none"
-                                                style={{ left: ghostX - 64 }}
-                                            >
-                                                <div className="w-full h-full rounded border border-dashed border-red-400/50 bg-red-500/10 flex flex-col items-center justify-center gap-0.5">
-                                                    <span className="text-[8px] font-mono text-red-600/60 dark:text-red-400/60"> {t("noSpace")}</span>
-                                                </div>
-                                            </div>
-                                        )}
                                     </div>
                                 </div>
-                                {(() => {
-                                    if (!selectedFragmentForMovement?.movementEnabled || !movementHoldBounds) return null;
-                                    const { start: holdStart, end: holdEnd } = movementHoldBounds;
-                                    const leftPx = (holdStart / scaledDuration) * contentWidth;
-                                    const rightPx = (holdEnd / scaledDuration) * contentWidth;
 
-                                    return (
-                                        <div
-                                            className="min-h-[55px] shrink-0 w-full flex items-center relative bg-black/10 dark:bg-white/10"
-                                            onMouseMove={(e) => {
-                                                if (isDraggingMovementItem) return;
-                                                const rect = e.currentTarget.getBoundingClientRect();
-                                                pendingMovementGhostXRef.current = e.clientX - rect.left;
-                                                if (movementGhostRafRef.current === null) {
-                                                    movementGhostRafRef.current = requestAnimationFrame(() => {
-                                                        if (pendingMovementGhostXRef.current !== null) setMovementGhostX(pendingMovementGhostXRef.current);
-                                                        movementGhostRafRef.current = null;
-                                                    });
-                                                }
-                                                setIsHoveringMovementRow(true);
-                                            }}
-                                            onMouseLeave={() => setIsHoveringMovementRow(false)}
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                if (isOverMovement || isDraggingMovementItem || !onAddZoomMovementAtRange) return;
-                                                const validPosition = lastValidMovementPositionRef.current;
-                                                if (validPosition) {
-                                                    onAddZoomMovementAtRange(validPosition.startTime, validPosition.endTime);
-                                                }
-                                            }}
-                                        >
-                                            <div className="h-full w-full relative">
-                                                <div className="absolute top-0 bottom-0 left-0 bg-white dark:bg-black pointer-events-none" style={{ width: leftPx }} />
-                                                <div className="absolute top-0 bottom-0 bg-white dark:bg-black pointer-events-none" style={{ left: rightPx, right: 0 }} />
+                                <div className="flex-1 flex flex-col min-h-max" onClick={handleTrackClick}>
 
-                                                {fragmentMovements
-                                                    .slice()
-                                                    .sort((a, b) => a.startTime - b.startTime)
-                                                    .map((movement, i) => (
-                                                        <ZoomMovementTrackItem
-                                                            key={movement.id}
-                                                            movement={movement}
-                                                            index={i + 1}
-                                                            isSelected={movement.id === selectedZoomMovementId}
+                                    <div
+                                        className="flex-1 shrink-0 flex items-center py-0.5 relative"
+                                        style={{ minHeight: VIDEO_ROW_MIN_HEIGHT, maxHeight: VIDEO_ROW_MAX_HEIGHT }}
+                                    >
+                                        <div className="h-full w-full rounded-md flex items-center relative bg-muted/40 dark:bg-[#0a1510] border border-border">
+                                            {videoClips.length > 0 ? (
+                                                <>
+                                                    {videoClips.map((clip) => (
+                                                        <VideoClipTrackItem
+                                                            key={clip.id}
+                                                            clip={clip}
+                                                            isSelected={selectedVideoClipId === clip.id}
                                                             contentWidth={contentWidth}
-                                                            videoDuration={scaledDuration}
-                                                            holdStart={holdStart}
-                                                            holdEnd={holdEnd}
-                                                            otherMovements={fragmentMovements.filter(m => m.id !== movement.id)}
-                                                            onSelect={() => onSelectZoomMovement?.(movement.id)}
-                                                            onUpdate={(updates) => onUpdateZoomMovement?.(movement.id, updates)}
-                                                            onDragStateChange={(dragging) => {
-                                                                if (dragging) {
-                                                                    setDraggingMovementId(movement.id);
-                                                                    setHoveredMovementId(movement.id);
-                                                                    setIsHoveringMovementRow(false);
-                                                                } else {
-                                                                    setDraggingMovementId(prev => (prev === movement.id ? null : prev));
-                                                                }
-                                                            }}
-                                                            onMouseEnter={() => setHoveredMovementId(movement.id)}
-                                                            onMouseLeave={() => setHoveredMovementId(prev => (prev === movement.id ? null : prev))}
+                                                            totalDuration={scaledDuration}
+                                                            speed={speed}
+                                                            otherClips={videoClips.filter(c => c.id !== clip.id)}
+                                                            currentTime={currentTime}
+                                                            playheadX={playheadX}
+                                                            onSelect={() => onSelectVideoClip?.(clip.id)}
+                                                            onUpdate={(updates) => onUpdateVideoClip?.(clip.id, updates)}
+                                                            onDelete={() => onDeleteVideoClip?.(clip.id)}
+                                                            onDragStateChange={setIsDraggingVideoClip}
+                                                            zoomLevel={zoomLevel}
                                                         />
                                                     ))}
-
-                                                {movementGhostState?.validPosition && (
+                                                </>
+                                            ) : (
+                                                <>
+                                                    {trimRange.start > 0 && (
+                                                        <motion.div className="absolute left-0 top-0 bottom-0 bg-black/60 rounded-l-md z-10" style={{ width: trimOverlayLeftWidth }} />
+                                                    )}
+                                                    {trimRange.end < validDuration && (
+                                                        <motion.div className="absolute right-0 top-0 bottom-0 bg-black/60 rounded-r-md z-10" style={{ left: trimOverlayRightLeft, width: trimOverlayRightWidth }} />
+                                                    )}
                                                     <motion.div
-                                                        className="absolute top-1/2 -translate-y-1/2 h-[80%] pointer-events-none"
-                                                        initial={false}
-                                                        animate={{
-                                                            left: (movementGhostState.validPosition.startTime / scaledDuration) * contentWidth,
-                                                            width: ((movementGhostState.validPosition.endTime - movementGhostState.validPosition.startTime) / scaledDuration) * contentWidth,
-                                                        }}
-                                                        transition={{ duration: 0 }}
+                                                        className="absolute top-0 bottom-0 rounded-md border border-[#34A853]/40 bg-emerald-100 dark:bg-[#182e20] overflow-hidden"
+                                                        style={{ left: clipLeftMotion, width: clipWidthMotion }}
                                                     >
-                                                        <div className="w-full h-full rounded border border-dashed border-emerald-400/50 bg-emerald-500/10 flex flex-col items-center justify-center gap-0.5">
-                                                            <Icon icon="qlementine-icons:zoom-12" width="12" height="12" className="text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
-                                                            <span className="text-[8px] font-mono text-emerald-600/60 dark:text-emerald-400/60">+ Movement</span>
+                                                        <div className="absolute inset-0 flex items-center overflow-hidden">
+                                                            <div className="flex h-full w-full">
+                                                                {videoUrl && Array.from({ length: Math.max(1, Math.ceil(getZoomMultiplier(zoomLevel) * 3)) }).map((_, i) => (
+                                                                    <div
+                                                                        key={i}
+                                                                        className="h-full flex-1 border-r border-[#34A853]/10 last:border-r-0"
+                                                                        style={{
+                                                                            background: 'linear-gradient(to top, rgba(0, 0, 0, 0) 0%, rgba(20, 80, 40, 0.1) 50%, rgba(52, 168, 83, 0.1) 100%)',
+                                                                            boxShadow: 'inset 0px 1px 0px rgba(255, 255, 255, 0.05)'
+                                                                        }}
+                                                                    />
+                                                                ))}
+                                                            </div>
                                                         </div>
+                                                        <motion.div
+                                                            className="absolute top-0 bottom-0 -left-px border-r-2 border-[#4ade80]"
+                                                            style={{
+                                                                width: progressWidth,
+                                                                background: `linear-gradient(to bottom, rgba(52, 168, 83, 0.9) 0%, rgba(34, 139, 34, 1) 50%, rgba(20, 80, 40, 1) 100%)`,
+                                                                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2)'
+                                                            }}
+                                                        />
+                                                        <motion.span
+                                                            className="flex items-center justify-center gap-2 text-emerald-400 text-[11px] font-medium ml-3 relative z-10 drop-shadow-sm h-full"
+                                                        >
+                                                            {trimmedDurationLabel}
+                                                        </motion.span>
                                                     </motion.div>
-                                                )}
-
-                                                {isHoveringMovementRow && !isDraggingMovementItem && !isOverMovement && movementGhostState && !movementGhostState.validPosition && (
-                                                    <div className="absolute top-[10%] h-[80%] w-32 pointer-events-none" style={{ left: movementGhostX - 64 }}>
-                                                        <div className="w-full h-full rounded border border-dashed border-red-400/50 bg-red-500/10 flex flex-col items-center justify-center gap-0.5">
-                                                            <span className="text-[8px] font-mono text-red-600/60 dark:text-red-400/60">{t("noSpace")}</span>
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </div>
+                                                    <motion.div
+                                                        className="absolute top-0 bottom-0 w-3 cursor-ew-resize z-20 group/trim flex items-center justify-center"
+                                                        style={{ x: trimStartX, translateX: "-50%" }}
+                                                        role="slider"
+                                                        aria-label={`Trim start at ${formatTime(trimRange.start)}`}
+                                                        aria-valuemin={0}
+                                                        aria-valuemax={trimRange.end}
+                                                        aria-valuenow={trimRange.start}
+                                                        tabIndex={0}
+                                                        drag="x"
+                                                        dragConstraints={{ left: 0, right: timelineWidth }}
+                                                        dragElastic={0}
+                                                        dragMomentum={false}
+                                                        onDrag={handleTrimStartDrag}
+                                                        onDragStart={() => handleTrimDragStart('start')}
+                                                        onDragEnd={handleTrimDragEnd}
+                                                    >
+                                                        <div className={`w-1.5 h-8 rounded-full transition-all ${isDraggingTrim === 'start' ? 'bg-[#4ade80] scale-110' : 'bg-[#34A853] group-hover/trim:bg-[#4ade80]'}`} aria-hidden="true" />
+                                                    </motion.div>
+                                                    <motion.div
+                                                        className="absolute top-0 bottom-0 w-3 cursor-ew-resize z-20 group/trim flex items-center justify-center"
+                                                        style={{ x: trimEndX, translateX: "-50%" }}
+                                                        role="slider"
+                                                        aria-label={`Trim end at ${formatTime(trimRange.end)}`}
+                                                        aria-valuemin={trimRange.start}
+                                                        aria-valuemax={validDuration}
+                                                        aria-valuenow={trimRange.end}
+                                                        tabIndex={0}
+                                                        drag="x"
+                                                        dragConstraints={{ left: 0, right: timelineWidth }}
+                                                        dragElastic={0}
+                                                        dragMomentum={false}
+                                                        onDrag={handleTrimEndDrag}
+                                                        onDragStart={() => handleTrimDragStart('end')}
+                                                        onDragEnd={handleTrimDragEnd}
+                                                    >
+                                                        <div className={`w-1.5 h-8 rounded-full transition-all ${isDraggingTrim === 'end' ? 'bg-[#4ade80] scale-110' : 'bg-[#34A853] group-hover/trim:bg-[#4ade80]'}`} aria-hidden="true" />
+                                                    </motion.div>
+                                                </>
+                                            )}
                                         </div>
-                                    );
-                                })()}
+                                    </div>
 
-                                {canvasElements.length > 0 && (
-                                    <div className="min-h-[55px] shrink-0 w-full flex items-center relative">
-                                        <div className="h-full w-full flex items-center relative"
-                                            onClick={(e) => { e.stopPropagation(); onSelectElement?.(null); }}
-                                        >
-                                            {canvasElements.map((element) => (
-                                                <ElementFragmentTrackItem
-                                                    key={element.id}
-                                                    element={element}
-                                                    isSelected={element.id === selectedElementId}
+                                    <div
+                                        className="shrink-0 w-full flex items-center relative"
+                                        style={{ minHeight: ELEMENT_ROW_HEIGHT }}
+                                        onMouseMove={(e) => {
+                                            if (isDraggingZoomFragment) return;
+                                            const rect = e.currentTarget.getBoundingClientRect();
+                                            pendingGhostXRef.current = e.clientX - rect.left;
+                                            if (ghostRafRef.current === null) {
+                                                ghostRafRef.current = requestAnimationFrame(() => {
+                                                    if (pendingGhostXRef.current !== null) setGhostX(pendingGhostXRef.current);
+                                                    ghostRafRef.current = null;
+                                                });
+                                            }
+                                            setIsHoveringZoomRow(true);
+                                        }}
+                                        onMouseLeave={() => setIsHoveringZoomRow(false)}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (isOverFragment || isDraggingZoomFragment || !onAddZoomFragment) return;
+                                            const validPosition = lastValidPositionRef.current;
+                                            if (validPosition) {
+                                                onAddZoomFragment(validPosition.startTime, validPosition.endTime);
+                                            }
+                                        }}
+                                    >
+                                        <div className="h-full w-full flex items-center relative">
+                                            {zoomFragments.map((fragment) => (
+                                                <ZoomFragmentTrackItem
+                                                    key={fragment.id}
+                                                    fragment={fragment}
+                                                    isSelected={fragment.id === selectedZoomFragmentId}
                                                     contentWidth={contentWidth}
                                                     videoDuration={scaledDuration}
                                                     contentDuration={validDuration}
-                                                    lane={elementLanes.get(element.id) ?? 0}
-                                                    laneHeight={ELEMENT_ROW_HEIGHT}
-                                                    onSelect={() => onSelectElement?.(element.id)}
-                                                    onUpdate={(updates) => onUpdateElement?.(element.id, updates)}
-                                                    onDelete={() => onDeleteElement?.(element.id)}
+                                                    speed={speed}
+                                                    otherFragments={zoomFragments.filter(f => f.id !== fragment.id)}
+                                                    onSelect={() => {
+                                                        onSelectZoomFragment?.(fragment.id);
+                                                        onActivateZoomTool?.();
+                                                    }}
+                                                    onUpdate={(updates) => onUpdateZoomFragment?.(fragment.id, updates)}
+                                                    onDragStateChange={(dragging) => {
+                                                        if (dragging) {
+                                                            setDraggingFragmentId(fragment.id);
+                                                            setHoveredFragmentId(fragment.id);
+                                                            setIsHoveringZoomRow(false);
+                                                        } else {
+                                                            setDraggingFragmentId(prev => prev === fragment.id ? null : prev);
+                                                        }
+                                                    }}
+                                                    onMouseEnter={() => setHoveredFragmentId(fragment.id)}
+                                                    onMouseLeave={() => setHoveredFragmentId(prev => prev === fragment.id ? null : prev)}
                                                 />
                                             ))}
+                                            {ghostState?.validPosition && (
+                                                <motion.div
+                                                    className="absolute top-[5%] h-[90%] pointer-events-none"
+                                                    initial={false}
+                                                    animate={{
+                                                        left: (ghostState.validPosition.startTime / scaledDuration) * contentWidth,
+                                                        width: ((ghostState.validPosition.endTime - ghostState.validPosition.startTime) / scaledDuration) * contentWidth,
+                                                    }}
+                                                    transition={{ duration: 0 }}
+                                                >
+                                                    <div className="w-full h-full rounded border border-dashed border-blue-400/50 bg-blue-500/10 flex flex-col items-center justify-center gap-0.5">
+                                                        <Icon icon="qlementine-icons:zoom-12" width="12" height="12" className="text-blue-600 dark:text-blue-400" aria-hidden="true" />
+                                                        <span className="text-[8px] font-mono text-blue-600/60 dark:text-blue-400/60">+ Zoom</span>
+                                                    </div>
+                                                </motion.div>
+                                            )}
+                                            {isHoveringZoomRow && !isDraggingZoomFragment && !isOverFragment && ghostState && !ghostState.validPosition && (
+                                                <div
+                                                    className="absolute top-[10%] h-[80%] w-32 pointer-events-none"
+                                                    style={{ left: ghostX - 64 }}
+                                                >
+                                                    <div className="w-full h-full rounded border border-dashed border-red-400/50 bg-red-500/10 flex flex-col items-center justify-center gap-0.5">
+                                                        <span className="text-[8px] font-mono text-red-600/60 dark:text-red-400/60"> {t("noSpace")}</span>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
-                                )}
+                                    {(() => {
+                                        if (!selectedFragmentForMovement?.movementEnabled || !movementHoldBounds) return null;
+                                        const { start: holdStart, end: holdEnd } = movementHoldBounds;
+                                        const leftPx = (holdStart / scaledDuration) * contentWidth;
+                                        const rightPx = (holdEnd / scaledDuration) * contentWidth;
 
-                                {audioTracks.length > 0 && (
-                                    <div className="shrink-0 w-full relative">
-                                        <div className="h-full w-full relative">
-                                            {audioTracks.map((track) => {
-                                                const audio = uploadedAudios?.find(a => a.id === track.audioId);
-                                                const trackLane = audioLanes.get(track.id) ?? 0;
-                                                const sameLaneOtherTracks = audioTracks.filter(
-                                                    (t) => t.id !== track.id && (audioLanes.get(t.id) ?? 0) === trackLane
-                                                );
-                                                return (
-                                                    <AudioFragmentTrackItem
-                                                        key={track.id}
-                                                        track={track}
-                                                        audio={audio}
-                                                        isSelected={track.id === selectedAudioTrackId}
+                                        return (
+                                            <div
+                                                className="shrink-0 w-full flex items-center relative bg-black/10 dark:bg-white/10"
+                                                style={{ minHeight: ELEMENT_ROW_HEIGHT }}
+                                                onMouseMove={(e) => {
+                                                    if (isDraggingMovementItem) return;
+                                                    const rect = e.currentTarget.getBoundingClientRect();
+                                                    pendingMovementGhostXRef.current = e.clientX - rect.left;
+                                                    if (movementGhostRafRef.current === null) {
+                                                        movementGhostRafRef.current = requestAnimationFrame(() => {
+                                                            if (pendingMovementGhostXRef.current !== null) setMovementGhostX(pendingMovementGhostXRef.current);
+                                                            movementGhostRafRef.current = null;
+                                                        });
+                                                    }
+                                                    setIsHoveringMovementRow(true);
+                                                }}
+                                                onMouseLeave={() => setIsHoveringMovementRow(false)}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    if (isOverMovement || isDraggingMovementItem || !onAddZoomMovementAtRange) return;
+                                                    const validPosition = lastValidMovementPositionRef.current;
+                                                    if (validPosition) {
+                                                        onAddZoomMovementAtRange(validPosition.startTime, validPosition.endTime);
+                                                    }
+                                                }}
+                                            >
+                                                <div className="h-full w-full relative">
+                                                    <div className="absolute top-0 bottom-0 left-0 bg-white dark:bg-black pointer-events-none" style={{ width: leftPx }} />
+                                                    <div className="absolute top-0 bottom-0 bg-white dark:bg-black pointer-events-none" style={{ left: rightPx, right: 0 }} />
+
+                                                    {fragmentMovements
+                                                        .slice()
+                                                        .sort((a, b) => a.startTime - b.startTime)
+                                                        .map((movement, i) => (
+                                                            <ZoomMovementTrackItem
+                                                                key={movement.id}
+                                                                movement={movement}
+                                                                index={i + 1}
+                                                                isSelected={movement.id === selectedZoomMovementId}
+                                                                contentWidth={contentWidth}
+                                                                videoDuration={scaledDuration}
+                                                                holdStart={holdStart}
+                                                                holdEnd={holdEnd}
+                                                                otherMovements={fragmentMovements.filter(m => m.id !== movement.id)}
+                                                                onSelect={() => onSelectZoomMovement?.(movement.id)}
+                                                                onUpdate={(updates) => onUpdateZoomMovement?.(movement.id, updates)}
+                                                                onDragStateChange={(dragging) => {
+                                                                    if (dragging) {
+                                                                        setDraggingMovementId(movement.id);
+                                                                        setHoveredMovementId(movement.id);
+                                                                        setIsHoveringMovementRow(false);
+                                                                    } else {
+                                                                        setDraggingMovementId(prev => (prev === movement.id ? null : prev));
+                                                                    }
+                                                                }}
+                                                                onMouseEnter={() => setHoveredMovementId(movement.id)}
+                                                                onMouseLeave={() => setHoveredMovementId(prev => (prev === movement.id ? null : prev))}
+                                                            />
+                                                        ))}
+
+                                                    {movementGhostState?.validPosition && (
+                                                        <motion.div
+                                                            className="absolute top-1/2 -translate-y-1/2 h-[80%] pointer-events-none"
+                                                            initial={false}
+                                                            animate={{
+                                                                left: (movementGhostState.validPosition.startTime / scaledDuration) * contentWidth,
+                                                                width: ((movementGhostState.validPosition.endTime - movementGhostState.validPosition.startTime) / scaledDuration) * contentWidth,
+                                                            }}
+                                                            transition={{ duration: 0 }}
+                                                        >
+                                                            <div className="w-full h-full rounded border border-dashed border-emerald-400/50 bg-emerald-500/10 flex flex-col items-center justify-center gap-0.5">
+                                                                <Icon icon="qlementine-icons:zoom-12" width="12" height="12" className="text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+                                                                <span className="text-[8px] font-mono text-emerald-600/60 dark:text-emerald-400/60">+ Movement</span>
+                                                            </div>
+                                                        </motion.div>
+                                                    )}
+
+                                                    {isHoveringMovementRow && !isDraggingMovementItem && !isOverMovement && movementGhostState && !movementGhostState.validPosition && (
+                                                        <div className="absolute top-[10%] h-[80%] w-32 pointer-events-none" style={{ left: movementGhostX - 64 }}>
+                                                            <div className="w-full h-full rounded border border-dashed border-red-400/50 bg-red-500/10 flex flex-col items-center justify-center gap-0.5">
+                                                                <span className="text-[8px] font-mono text-red-600/60 dark:text-red-400/60">{t("noSpace")}</span>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
+
+                                    {canvasElements.length > 0 && (
+                                        <div
+                                            className="shrink-0 w-full relative overflow-hidden"
+                                            style={{ height: elementLaneCount * ELEMENT_ROW_HEIGHT }}
+                                        >
+                                            <div
+                                                className="h-full w-full relative"
+                                                onClick={(e) => {
+                                                    if (e.target !== e.currentTarget) return;
+                                                    e.stopPropagation();
+                                                    onSelectElement?.(null);
+                                                }}
+                                            >
+                                                {canvasElements.map((element) => (
+                                                    <ElementFragmentTrackItem
+                                                        key={element.id}
+                                                        element={element}
+                                                        isSelected={element.id === selectedElementId}
                                                         contentWidth={contentWidth}
                                                         videoDuration={scaledDuration}
                                                         contentDuration={validDuration}
-                                                        speed={speed}
-                                                        lane={trackLane}
-                                                        laneHeight={55}
-                                                        laneCount={audioLaneCount}
-                                                        otherTracks={sameLaneOtherTracks}
-                                                        onSelect={() => onSelectAudioTrack?.(track.id)}
-                                                        onUpdate={(updates) => onUpdateAudioTrack?.(track.id, updates)}
+                                                        lane={elementLanes.get(element.id) ?? 0}
+                                                        laneHeight={ELEMENT_ROW_HEIGHT}
+                                                        onSelect={() => onSelectElement?.(element.id)}
+                                                        onUpdate={(updates) => onUpdateElement?.(element.id, updates)}
+                                                        onDelete={() => onDeleteElement?.(element.id)}
                                                     />
-                                                );
-                                            })}
+                                                ))}
+                                            </div>
                                         </div>
-                                    </div>
-                                )}
-                                {mockupMotionFragments.length > 0 && (
-                                    <div className="min-h-[55px] shrink-0 w-full flex items-center relative"
-                                        onClick={(e) => { e.stopPropagation(); onSelectMockupMotionFragment?.(null); }}
-                                    >
-                                        <div className="h-full w-full relative">
-                                            {mockupMotionFragments.map((fragment) => (
-                                                <MockupMotionTrackItem
-                                                    key={fragment.id}
-                                                    fragment={fragment}
-                                                    isSelected={fragment.id === selectedMockupMotionFragmentId}
-                                                    contentWidth={contentWidth}
-                                                    videoDuration={scaledDuration}
-                                                    contentDuration={validDuration}
-                                                    otherFragments={mockupMotionFragments.filter((f) => f.id !== fragment.id)}
-                                                    onSelect={() => {
-                                                        onSelectMockupMotionFragment?.(fragment.id);
-                                                        onActivateMotionTool?.();
-                                                    }}
-                                                    onUpdate={(updates) => onUpdateMockupMotionFragment?.(fragment.id, updates)}
-                                                    onDelete={() => onDeleteMockupMotionFragment?.(fragment.id)}
-                                                />
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
+                                    )}
 
+                                    {audioTracks.length > 0 && (
+                                        <div
+                                            className="shrink-0 w-full relative overflow-hidden"
+                                            style={{ height: audioLaneCount * ELEMENT_ROW_HEIGHT }}
+                                        >
+                                            <div className="h-full w-full relative">
+                                                {audioTracks.map((track) => {
+                                                    const audio = uploadedAudios?.find(a => a.id === track.audioId);
+                                                    const trackLane = audioLanes.get(track.id) ?? 0;
+                                                    const sameLaneOtherTracks = audioTracks.filter(
+                                                        (t) => t.id !== track.id && (audioLanes.get(t.id) ?? 0) === trackLane
+                                                    );
+                                                    return (
+                                                        <AudioFragmentTrackItem
+                                                            key={track.id}
+                                                            track={track}
+                                                            audio={audio}
+                                                            isSelected={track.id === selectedAudioTrackId}
+                                                            contentWidth={contentWidth}
+                                                            videoDuration={scaledDuration}
+                                                            contentDuration={validDuration}
+                                                            speed={speed}
+                                                            lane={trackLane}
+                                                            laneHeight={ELEMENT_ROW_HEIGHT}
+                                                            laneCount={audioLaneCount}
+                                                            otherTracks={sameLaneOtherTracks}
+                                                            onSelect={() => onSelectAudioTrack?.(track.id)}
+                                                            onUpdate={(updates) => onUpdateAudioTrack?.(track.id, updates)}
+                                                        />
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {mockupMotionFragments.length > 0 && (
+                                        <div className="shrink-0 w-full flex items-center relative"
+                                            style={{ minHeight: ELEMENT_ROW_HEIGHT }}
+                                            onClick={(e) => { e.stopPropagation(); onSelectMockupMotionFragment?.(null); }}
+                                        >
+                                            <div className="h-full w-full relative">
+                                                {mockupMotionFragments.map((fragment) => (
+                                                    <MockupMotionTrackItem
+                                                        key={fragment.id}
+                                                        fragment={fragment}
+                                                        isSelected={fragment.id === selectedMockupMotionFragmentId}
+                                                        contentWidth={contentWidth}
+                                                        videoDuration={scaledDuration}
+                                                        contentDuration={validDuration}
+                                                        otherFragments={mockupMotionFragments.filter((f) => f.id !== fragment.id)}
+                                                        onSelect={() => {
+                                                            onSelectMockupMotionFragment?.(fragment.id);
+                                                            onActivateMotionTool?.();
+                                                        }}
+                                                        onUpdate={(updates) => onUpdateMockupMotionFragment?.(fragment.id, updates)}
+                                                        onDelete={() => onDeleteMockupMotionFragment?.(fragment.id)}
+                                                    />
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                </div>
                             </div>
                         </div>
                     </div>

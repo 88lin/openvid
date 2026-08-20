@@ -65,3 +65,5 @@ export interface TimelineProps {
 export const DEFAULT_ZOOM_FRAGMENT_DURATION = 2;
 export const ELEMENT_ROW_HEIGHT = 55;
 export const DEFAULT_MOVEMENT_DURATION = 1;
+export const VIDEO_ROW_MIN_HEIGHT = 64;
+export const VIDEO_ROW_MAX_HEIGHT = 78;
