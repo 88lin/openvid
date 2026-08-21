@@ -5,6 +5,7 @@ import type { ImageMaskConfig } from "@/types/photo.types";
 import type { MockupConfig } from "./mockup.types";
 import type { CameraConfig } from "./camera.types";
 import { MockupMotionFragment } from "@/lib/mockup-motion";
+import type { VideoTrackClip } from "./video-track.types";
 
 export type Tool = "screenshot" | "elements" | "audio" | "zoom" | "mockup" | "cursor" | "video" | "camera" | "history" | "motion";
 export type BackgroundTab = "wallpaper" | "image" | "color";
@@ -124,4 +125,6 @@ export interface VideoCanvasProps {
   onSelectZoomMovement?: (id: string | null) => void;
   onUpdateZoomMovement?: (id: string, updates: Partial<ZoomMovement>) => void;
   onSelectZoomFragment?: (id: string | null) => void;
+  videoClips?: VideoTrackClip[];
+  cameraClipUrls?: Map<string, string> | null;
 }

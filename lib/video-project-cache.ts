@@ -92,6 +92,7 @@ export interface CachedCameraBlob {
     blob: Blob;
     mimeType: string;
     savedAt: number;
+    cameraConfig?: CameraConfig | null;
 }
 
 let dbInstance: IDBDatabase | null = null;
@@ -380,8 +381,17 @@ export async function clearAllAudioBlobs(): Promise<void> {
 
 /**
  * Persist (or replace) the camera-overlay blob for a given clip.
+ *
+ * `cameraConfig` is optional; when provided it is stored alongside the blob so
+ * the camera settings (shape, size, position, etc.) can be restored when the
+ * clip is re-added from the videos library, not only on a full project reload.
  */
-export async function saveCameraBlob(id: string, blob: Blob, mimeType: string): Promise<CachedCameraBlob> {
+export async function saveCameraBlob(
+    id: string,
+    blob: Blob,
+    mimeType: string,
+    cameraConfig?: CameraConfig | null,
+): Promise<CachedCameraBlob> {
     try {
         const db = await openDB();
         const data: CachedCameraBlob = {
@@ -389,6 +399,7 @@ export async function saveCameraBlob(id: string, blob: Blob, mimeType: string): 
             blob,
             mimeType,
             savedAt: Date.now(),
+            cameraConfig: cameraConfig ?? null,
         };
 
         return new Promise((resolve, reject) => {

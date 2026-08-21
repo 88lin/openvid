@@ -25,6 +25,7 @@ import type { EditorState } from "@/types/editor-state.types";
 import { createInitialEditorState } from "@/types/editor-state.types";
 import { DEFAULT_MOCKUP_CONFIG, getMockupDefaultConfig } from "@/types/mockup.types";
 import type { CameraConfig } from "@/types/camera.types";
+import { DEFAULT_CAMERA_CONFIG } from "@/types/camera.types";
 import type { Preview3DConfig, ImageMaskConfig } from "@/types/photo.types";
 import { DEFAULT_MASK_CONFIG, PREVIEW_CONFIGS } from "@/types/photo.types";
 import { MOCKUPS } from "@/lib/mockup-data";
@@ -1182,6 +1183,15 @@ export default function Editor() {
             probe.src = probeUrl;
         });
 
+        // Restore the persisted camera overlay (if any) for this library video.
+        // The camera blob is keyed by the clip's `libraryVideoId`, so a video
+        // recorded with a camera can recover its overlay when re-added from
+        // the library/history — not only on page reload via the saved project.
+        const persistedCamera = await getCameraBlob(videoId).catch((err) => {
+            console.error("Failed to restore camera blob from library:", err);
+            return null;
+        });
+
         setVideoClips(prevClips => {
             const startTime = findNextClipPosition(prevClips);
             const newClip: VideoTrackClip = {
@@ -1193,6 +1203,7 @@ export default function Editor() {
                 trimStart: 0,
                 trimEnd: duration,
                 thumbnailUrl: libraryVideo.thumbnailUrl,
+                hasCamera: !!persistedCamera,
                 width: clipWidth || undefined,
                 height: clipHeight || undefined,
             };
@@ -1226,6 +1237,22 @@ export default function Editor() {
 
                     setCurrentTime(0);
                     setIsPlaying(false);
+                }
+
+                // Restore the camera overlay from the persisted blob. The
+                // camera URL/config are project-level singletons, so we only
+                // set them when no other clip already owns the camera —
+                // otherwise the new clip's camera would clobber another
+                // clip's. The `hasCamera` flag on the clip itself is what
+                // gates visibility per-clip via `shouldShowCamera` at render
+                // time.
+                if (persistedCamera && !prevClips.some(c => c.hasCamera)) {
+                    const restoredCameraUrl = URL.createObjectURL(persistedCamera.blob);
+                    setCameraUrl(restoredCameraUrl);
+                    setCameraConfig(
+                        persistedCamera.cameraConfig
+                            ?? { ...DEFAULT_CAMERA_CONFIG, enabled: true }
+                    );
                 }
 
                 showNewVideosBadge(0);
@@ -1753,7 +1780,12 @@ export default function Editor() {
                                 ?? activeClipDataRef.current?.libraryVideoId
                                 ?? null;
                             if (owningClipId && 'cameraBlob' in videoToLoad && videoToLoad.cameraBlob) {
-                                saveCameraBlob(owningClipId, videoToLoad.cameraBlob as Blob, "video/webm")
+                                saveCameraBlob(
+                                    owningClipId,
+                                    videoToLoad.cameraBlob as Blob,
+                                    "video/webm",
+                                    'cameraConfig' in videoToLoad ? videoToLoad.cameraConfig : null,
+                                )
                                     .catch(err => console.error("Failed to persist camera blob:", err));
                             }
                         } else {
