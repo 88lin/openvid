@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Icon } from "@iconify/react";
 import { getCameraLayout, type CameraConfig } from "@/types/camera.types";
+import { useTranslations } from "next-intl";
 
 interface Props {
     stream: MediaStream;
@@ -12,7 +13,7 @@ interface Props {
 
 function shapeRadius(shape: CameraConfig["shape"], size: number): string {
     const sizeMultiplier = 0.5 + (size - 20) / 40;
-    
+
     if (shape === "circle") return "50%";
     if (shape === "squircle") {
         const baseRadiusPx = 20;
@@ -23,6 +24,8 @@ function shapeRadius(shape: CameraConfig["shape"], size: number): string {
 }
 
 export default function FloatingCameraPreview({ stream, config, onConfigChange }: Props) {
+    const t = useTranslations("recordingSetup");
+
     const videoRef = useRef<HTMLVideoElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const dragStateRef = useRef<{
@@ -100,9 +103,8 @@ export default function FloatingCameraPreview({ stream, config, onConfigChange }
             onPointerMove={onPointerMove}
             onPointerUp={onPointerUp}
             onPointerCancel={onPointerUp}
-            className={`fixed pointer-events-auto select-none z-60 group ${
-                isDragging ? "cursor-grabbing" : "cursor-grab"
-            }`}
+            className={`fixed pointer-events-auto select-none z-60 group ${isDragging ? "cursor-grabbing" : "cursor-grab"
+                }`}
             style={{
                 left: `${left}px`,
                 top: `${top}px`,
@@ -118,9 +120,8 @@ export default function FloatingCameraPreview({ stream, config, onConfigChange }
                 autoPlay
                 muted
                 playsInline
-                className={`size-full object-cover shadow-[0_10px_40px_rgba(0,0,0,0.55)] ring-1 ring-foreground/20 ${
-                    isSquircle ? "squircle-element-camera" : ""
-                }`}
+                className={`size-full object-cover shadow-[0_10px_40px_rgba(0,0,0,0.55)] ring-1 ring-foreground/20 ${isSquircle ? "squircle-element-camera" : ""
+                    }`}
                 style={{
                     borderRadius: radius,
                     transform: config.mirror ? "scaleX(-1)" : undefined,
@@ -133,11 +134,11 @@ export default function FloatingCameraPreview({ stream, config, onConfigChange }
                     borderRadius: radius,
                 }}
             >
-            <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-black/60 text-white text-[11px] font-medium">
-                <Icon icon="solar:hand-move-bold" className="size-3.5" />
-                Arrastrar
+                <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-black/60 text-white text-[11px] font-medium">
+                    <Icon icon="solar:hand-move-bold" className="size-3.5" />
+                    {t("drag")}
+                </div>
             </div>
         </div>
-    </div>
-);
+    );
 }

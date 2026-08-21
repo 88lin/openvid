@@ -405,7 +405,8 @@
       "top-right": "Top right",
       "bottom-left": "Bottom left",
       "bottom-right": "Bottom right"
-    }
+    },
+    "drag": "Drag"
   },
   "controlPanel": {
     "header": {
@@ -1486,5 +1487,13 @@
       "crop": "Crop",
       "auto": "Auto"
     }
+  },
+  "exportSuccess": {
+    "title": "Export completed!",
+    "photoSuccess": "Your image was exported successfully.",
+    "videoSuccess": "Your video was exported successfully.",
+    "supportCoffee": "Support us with a coffee",
+    "starGithub": "Give us a star on GitHub",
+    "close": "Close"
   }
 }

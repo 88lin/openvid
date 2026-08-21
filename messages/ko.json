@@ -405,7 +405,8 @@
       "top-right": "오른쪽 위",
       "bottom-left": "왼쪽 아래",
       "bottom-right": "오른쪽 아래"
-    }
+    },
+    "drag": "드래그"
   },
   "controlPanel": {
     "header": {
@@ -1486,5 +1487,13 @@
       "crop": "자르기",
       "auto": "자동"
     }
+  },
+  "exportSuccess": {
+    "title": "내보내기 완료!",
+    "photoSuccess": "이미지가 성공적으로 내보내졌습니다.",
+    "videoSuccess": "비디오가 성공적으로 내보내졌습니다.",
+    "supportCoffee": "커피로 후원하기",
+    "starGithub": "GitHub에서 별표 주기",
+    "close": "닫기"
   }
 }

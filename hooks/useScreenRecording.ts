@@ -8,6 +8,7 @@ import { DEFAULT_RECORDING_SETUP, requestCameraStream, requestMicrophoneStream }
 import { clearAllThumbnailCache } from "@/lib/thumbnail-cache";
 import { convertToMp4 } from "@/lib/video-conversion";
 import { clearVideoTrack } from "@/lib/video-upload-cache";
+import { clearVideoProjectAndAudios } from "@/lib/video-project-cache";
 
 export type { RecordingState, RecordingResult, VideoData, RecordingContextType };
 
@@ -389,6 +390,7 @@ export function useScreenRecording() {
               cameraConfig: cameraConfigRef.current,
             });
             await clearVideoTrack();
+            await clearVideoProjectAndAudios();
             if (pathname === "/editor") {
               window.location.reload();
             } else {

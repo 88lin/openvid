@@ -6,7 +6,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { loadVideoFromIndexedDB, deleteRecordedVideo } from "@/hooks/useScreenRecording";
 import { useVideoUpload } from "@/hooks/useVideoUpload";
 import { useImageProjects } from "@/hooks/useImageProjects";
-import { getUploadedVideo, deleteUploadedVideo, saveVideoTrack, getVideoTrack } from "@/lib/video-upload-cache";
+import { getUploadedVideo, deleteUploadedVideo, saveVideoTrack, getVideoTrack, clearVideoTrack } from "@/lib/video-upload-cache";
+import { saveVideoProject, cleanupOrphanAudios, getVideoProject, saveCameraBlob, getCameraBlob, clearVideoProjectAndAudios } from "@/lib/video-project-cache";
 import { getUploadedImage, deleteUploadedImage } from "@/lib/image-upload-cache";
 import { useEditorMode } from "@/hooks/useEditorMode";
 import { useActiveTool } from "@/hooks/useActiveTool";
@@ -24,10 +25,11 @@ import type { EditorState } from "@/types/editor-state.types";
 import { createInitialEditorState } from "@/types/editor-state.types";
 import { DEFAULT_MOCKUP_CONFIG, getMockupDefaultConfig } from "@/types/mockup.types";
 import type { CameraConfig } from "@/types/camera.types";
+import { DEFAULT_CAMERA_CONFIG } from "@/types/camera.types";
 import type { Preview3DConfig, ImageMaskConfig } from "@/types/photo.types";
 import { DEFAULT_MASK_CONFIG, PREVIEW_CONFIGS } from "@/types/photo.types";
 import { MOCKUPS } from "@/lib/mockup-data";
-import { gradientToCss, generateDefaultZoomFragments} from "@/types";
+import { gradientToCss, generateDefaultZoomFragments } from "@/types";
 import { ToolsSidebar } from "@/app/components/ui/editor/ToolsSidebar";
 import { MobileToolsMenu } from "@/app/components/ui/editor/MobileToolsMenu";
 import { MobileControlPanel } from "@/app/components/ui/editor/MobileControlPanel";
@@ -48,6 +50,8 @@ import { useImageExport } from "@/hooks/useImageExport";
 import { useAudioTracks } from "@/hooks/useAudioTracks";
 import { useMockupMotionFragments } from "@/hooks/useMockupMotionFragments";
 import { useZoomFragments } from "@/hooks/useZoomFragments";
+import { useEditorShortcuts } from "@/hooks/useEditorShortcuts";
+import { ExportSuccessModal } from "@/app/components/ui/Exportsuccessmodal";
 
 const ControlPanel = lazy(() => import("@/app/components/ui/editor/ControlPanel").then(mod => ({ default: mod.ControlPanel })));
 const Timeline = lazy(() => import("@/app/components/ui/editor/Timeline").then(mod => ({ default: mod.Timeline })));
@@ -298,7 +302,7 @@ export default function Editor() {
         selectedMockupMotionFragment,
         handleUpdateMockupMotionFragment, handleDeleteMockupMotionFragment,
         handleAddOrReplaceMotionPreset, handleActivateMotionTool,
-        copySelectedMockupMotionFragment, pasteMockupMotionFragment,copiedMockupMotionFragment
+        copySelectedMockupMotionFragment, pasteMockupMotionFragment, copiedMockupMotionFragment
     } = useMockupMotionFragments({
         currentTime, videoDuration, setActiveTool, lastCopyActionRef,
         selectedMockupMotionFragmentId, setSelectedMockupMotionFragmentId,
@@ -309,7 +313,7 @@ export default function Editor() {
         selectedZoomFragment, handleActivateZoomTool, handleAddZoomFragment, handleAddZoomFragmentAtRange,
         handleUpdateZoomFragment, handleToggleZoomMovement, handleAddZoomMovement,
         handleAddZoomMovementAtRange, handleUpdateZoomMovement, handleDeleteZoomMovement,
-        handleDeleteZoomFragment, copySelectedZoomFragment, pasteZoomFragment,copiedZoomFragment
+        handleDeleteZoomFragment, copySelectedZoomFragment, pasteZoomFragment, copiedZoomFragment
     } = useZoomFragments({
         currentTime, videoDuration, setActiveTool, lastCopyActionRef,
         selectedZoomFragmentId, setSelectedZoomFragmentId,
@@ -325,6 +329,7 @@ export default function Editor() {
         handleUpdateAudioTrack, handleDeleteAudioTrack,
         handleToggleMuteOriginalAudio, handleMasterVolumeChange,
         autoTrimModalOpen, pendingAudioUpload, confirmAudioTrim, cancelAudioTrim,
+        restoreAudios,
     } = useAudioTracks({ videoDuration, isExportingRef });
 
     const handleCameraConfigChange = useCallback((partial: Partial<CameraConfig>) => {
@@ -602,6 +607,10 @@ export default function Editor() {
         muteOriginalAudioRef.current = muteOriginalAudio;
     }, [muteOriginalAudio]);
 
+    const [globalSpeed, setGlobalSpeed] = useState<number>(1);
+    const globalSpeedRef = useRef<number>(1);
+    useEffect(() => { globalSpeedRef.current = globalSpeed; }, [globalSpeed]);
+
     const updateEditorStateDebounced = useRef<NodeJS.Timeout | null>(null);
     useEffect(() => {
         if (updateEditorStateDebounced.current) clearTimeout(updateEditorStateDebounced.current);
@@ -651,6 +660,7 @@ export default function Editor() {
                 imagePhoneRefWidth,
                 mockupMotionFragments,
                 videoClips,
+                globalSpeed,
             });
         }, 300);
         return () => {
@@ -665,7 +675,7 @@ export default function Editor() {
         imagePhoneActive, imagePhoneX, imagePhoneY, imagePhoneScale, imagePhoneRotX, imagePhoneRotY,
         imagePhoneRotZ, imagePhonePerspective, imagePhoneDevice, imagePhonePresetId, imagePhoneOpening,
         imagePhoneShadow, imagePhoneShadowColor, imagePhoneRefWidth, mockupMotionFragments,
-        setEditorState, videoClips
+        setEditorState, videoClips, globalSpeed
     ]);
 
     const prevUndoRedoVersionRef = useRef(undoRedoVersion);
@@ -718,6 +728,7 @@ export default function Editor() {
             setImagePhoneShadowColor(editorState.imagePhoneShadowColor);
             setImagePhoneRefWidth(editorState.imagePhoneRefWidth ?? 0);
             setMockupMotionFragments(editorState.mockupMotionFragments ?? []);
+            setGlobalSpeed(editorState.globalSpeed ?? 1);
 
             const restoredClips = editorState.videoClips ?? [];
             const clipsUnchanged = restoredClips === videoClipsRef.current;
@@ -920,9 +931,6 @@ export default function Editor() {
     const isDraggingPlayheadRef = useRef(isDraggingPlayhead);
     const trimRangeRef = useRef(trimRange);
     const syncAudioPlaybackRef = useRef(syncAudioPlayback);
-    const [globalSpeed, setGlobalSpeed] = useState<number>(1);
-    const globalSpeedRef = useRef<number>(1);
-    useEffect(() => { globalSpeedRef.current = globalSpeed; }, [globalSpeed]);
 
     useEffect(() => { isPlayingRef.current = isPlaying; }, [isPlaying]);
     useEffect(() => { isDraggingPlayheadRef.current = isDraggingPlayhead; }, [isDraggingPlayhead]);
@@ -933,6 +941,78 @@ export default function Editor() {
     useEffect(() => {
         currentTimeRef.current = currentTime;
     }, [currentTime]);
+
+    const buildVideoProjectSnapshot = useCallback(() => ({
+        videoClips,
+        trimRange,
+        globalSpeed,
+        zoomFragments,
+        zoomMovements,
+        audioTracks,
+        uploadedAudioIds: uploadedAudios.map(a => a.id),
+        muteOriginalAudio,
+        masterVolume,
+        canvasElements,
+        mockupId,
+        mockupConfig,
+        mockupMotionFragments,
+        backgroundTab,
+        selectedWallpaper,
+        backgroundBlur,
+        selectedImageUrl,
+        unsplashBgUrl,
+        backgroundColorConfig,
+        padding,
+        roundedCorners,
+        shadows,
+        aspectRatio,
+        customDimensions,
+        cropArea,
+        videoTransform,
+        imageTransform,
+        apply3DToBackground,
+        imageMaskConfig,
+        videoMaskConfig,
+        imageZoomScale,
+        cameraConfig,
+        cameraVideoId: cameraUrl
+            ? (videoClips.find(c => c.hasCamera)?.libraryVideoId ?? null)
+            : null,
+    }), [
+        videoClips, trimRange, globalSpeed,
+        zoomFragments, zoomMovements,
+        audioTracks, uploadedAudios, muteOriginalAudio, masterVolume,
+        canvasElements,
+        mockupId, mockupConfig,
+        mockupMotionFragments,
+        backgroundTab, selectedWallpaper, backgroundBlur, selectedImageUrl,
+        unsplashBgUrl, backgroundColorConfig,
+        padding, roundedCorners, shadows, aspectRatio, customDimensions, cropArea,
+        videoTransform, imageTransform, apply3DToBackground,
+        imageMaskConfig, videoMaskConfig, imageZoomScale,
+        cameraConfig, cameraUrl,
+    ]);
+
+    const [showExportSuccess, setShowExportSuccess] = useState(false);
+    const [exportSuccessMediaType, setExportSuccessMediaType] = useState<"video" | "photo">("video");
+
+    const prevVideoExportStatusRef = useRef(exportProgress.status);
+    useEffect(() => {
+        if (prevVideoExportStatusRef.current !== "complete" && exportProgress.status === "complete") {
+            setExportSuccessMediaType("video");
+            setShowExportSuccess(true);
+        }
+        prevVideoExportStatusRef.current = exportProgress.status;
+    }, [exportProgress.status]);
+
+    const prevImageExportStatusRef = useRef(imageExportProgress.status);
+    useEffect(() => {
+        if (prevImageExportStatusRef.current !== "complete" && imageExportProgress.status === "complete") {
+            setExportSuccessMediaType("photo");
+            setShowExportSuccess(true);
+        }
+        prevImageExportStatusRef.current = imageExportProgress.status;
+    }, [imageExportProgress.status]);
 
     const handleExport = useCallback((quality: ExportQuality) => {
         isExportingRef.current = true;
@@ -1103,6 +1183,15 @@ export default function Editor() {
             probe.src = probeUrl;
         });
 
+        // Restore the persisted camera overlay (if any) for this library video.
+        // The camera blob is keyed by the clip's `libraryVideoId`, so a video
+        // recorded with a camera can recover its overlay when re-added from
+        // the library/history — not only on page reload via the saved project.
+        const persistedCamera = await getCameraBlob(videoId).catch((err) => {
+            console.error("Failed to restore camera blob from library:", err);
+            return null;
+        });
+
         setVideoClips(prevClips => {
             const startTime = findNextClipPosition(prevClips);
             const newClip: VideoTrackClip = {
@@ -1114,6 +1203,7 @@ export default function Editor() {
                 trimStart: 0,
                 trimEnd: duration,
                 thumbnailUrl: libraryVideo.thumbnailUrl,
+                hasCamera: !!persistedCamera,
                 width: clipWidth || undefined,
                 height: clipHeight || undefined,
             };
@@ -1147,6 +1237,22 @@ export default function Editor() {
 
                     setCurrentTime(0);
                     setIsPlaying(false);
+                }
+
+                // Restore the camera overlay from the persisted blob. The
+                // camera URL/config are project-level singletons, so we only
+                // set them when no other clip already owns the camera —
+                // otherwise the new clip's camera would clobber another
+                // clip's. The `hasCamera` flag on the clip itself is what
+                // gates visibility per-clip via `shouldShowCamera` at render
+                // time.
+                if (persistedCamera && !prevClips.some(c => c.hasCamera)) {
+                    const restoredCameraUrl = URL.createObjectURL(persistedCamera.blob);
+                    setCameraUrl(restoredCameraUrl);
+                    setCameraConfig(
+                        persistedCamera.cameraConfig
+                            ?? { ...DEFAULT_CAMERA_CONFIG, enabled: true }
+                    );
                 }
 
                 showNewVideosBadge(0);
@@ -1382,9 +1488,145 @@ export default function Editor() {
         if (isPhotoMode) return;
         const loadVideo = async () => {
             try {
+          
+                const savedProject = await getVideoProject();
+                if (savedProject && savedProject.videoClips?.length > 0 && videoClipsRef.current.length === 0) {
+                    isRestoringProjectRef.current = true;
+
+                    const validClips: VideoTrackClip[] = [];
+                    for (const clip of savedProject.videoClips) {
+                        const libVideo = await getLibraryVideo(clip.libraryVideoId);
+                        if (!libVideo) continue;
+                        validClips.push(clip);
+                        if (!videoBlobsRef.current.has(clip.libraryVideoId)) {
+                            videoBlobsRef.current.set(clip.libraryVideoId, libVideo.blob);
+                            const url = URL.createObjectURL(libVideo.blob);
+                            setClipUrl(clip.libraryVideoId, url);
+                        }
+                        clipAudioStateRef.current.set(clip.libraryVideoId, libVideo.hasAudio !== false);
+                    }
+
+                    if (validClips.length > 0) {
+                        const sorted = [...validClips].sort((a, b) => a.startTime - b.startTime);
+                        const totalDuration = calculateTotalDuration(sorted);
+
+                        setVideoClips(sorted);
+                        setVideoDuration(totalDuration);
+
+                        const persistedTrim = savedProject.trimRange ?? { start: 0, end: totalDuration };
+                        const clampedStart = Math.max(0, Math.min(persistedTrim.start, totalDuration));
+                        const clampedEnd = Math.max(clampedStart, Math.min(persistedTrim.end, totalDuration));
+                        setTrimRange({ start: clampedStart, end: clampedEnd });
+
+                        const firstClip = sorted[0];
+                        activeClipIdRef.current = firstClip.id;
+                        activeClipDataRef.current = firstClip;
+                        const firstUrl = videoUrlsRef.current.get(firstClip.libraryVideoId);
+                        if (firstUrl) {
+                            setVideoUrl(firstUrl);
+                            setVideoId(firstClip.libraryVideoId);
+                            lastLoadedVideoIdRef.current = firstClip.libraryVideoId;
+                            if (videoRef.current) {
+                                videoRef.current.src = firstUrl;
+                            }
+                        }
+
+                        // Restore full editor state from project snapshot
+                        setBackgroundTab(savedProject.backgroundTab);
+                        setSelectedWallpaper(savedProject.selectedWallpaper);
+                        setBackgroundBlur(savedProject.backgroundBlur);
+                        setSelectedImageUrl(savedProject.selectedImageUrl);
+                        setUnsplashBgUrl(savedProject.unsplashBgUrl ?? "");
+                        setBackgroundColorConfig(savedProject.backgroundColorConfig);
+                        setPadding(savedProject.padding);
+                        setRoundedCorners(savedProject.roundedCorners);
+                        setShadows(savedProject.shadows);
+
+                        // ── Bloque I.6: aspectRatio / customDimensions consistency ──
+                        // Guard against stale or corrupt data: only accept
+                        // customDimensions when aspectRatio === "custom", and
+                        // require positive finite width/height. Otherwise fall
+                        // back to the ratio's own dimensions (or null for
+                        // non-custom ratios).
+                        const persistedRatio = (savedProject.aspectRatio ?? "auto") as AspectRatio;
+                        const persistedDims = savedProject.customDimensions;
+                        const validCustom =
+                            persistedRatio === "custom" &&
+                            persistedDims != null &&
+                            Number.isFinite(persistedDims.width) && persistedDims.width > 0 &&
+                            Number.isFinite(persistedDims.height) && persistedDims.height > 0;
+                        setAspectRatio(persistedRatio);
+                        setCustomDimensions(validCustom ? persistedDims : null);
+
+                        setCropArea(savedProject.cropArea);
+                        setZoomFragments(savedProject.zoomFragments ?? []);
+                        setZoomMovements(savedProject.zoomMovements ?? []);
+                        setMockupId(savedProject.mockupId);
+                        setMockupConfig(savedProject.mockupConfig);
+                        setCanvasElements(savedProject.canvasElements ?? []);
+                        setAudioTracks(savedProject.audioTracks ?? []);
+                        setMuteOriginalAudio(savedProject.muteOriginalAudio ?? false);
+                        setMasterVolume(savedProject.masterVolume ?? 1);
+                        setCameraConfig(savedProject.cameraConfig ?? null);
+
+                        if (savedProject.cameraVideoId) {
+                            try {
+                                const cameraBlob = await getCameraBlob(savedProject.cameraVideoId);
+                                if (cameraBlob) {
+                                    const restoredCameraUrl = URL.createObjectURL(cameraBlob.blob);
+                                    setCameraUrl(restoredCameraUrl);
+                                } else {
+                                    setCameraUrl(null);
+                                    setCameraConfig(null);
+                                }
+                            } catch (err) {
+                                console.error("Failed to restore camera blob:", err);
+                                setCameraUrl(null);
+                            }
+                        } else {
+                            setCameraUrl(null);
+                        }
+                        setVideoTransform(savedProject.videoTransform);
+                        setImageTransform(savedProject.imageTransform);
+                        setApply3DToBackground(savedProject.apply3DToBackground);
+                        setImageMaskConfig(savedProject.imageMaskConfig);
+                        setVideoMaskConfig(savedProject.videoMaskConfig);
+                        setImageZoomScale(savedProject.imageZoomScale ?? 1);
+                        setMockupMotionFragments(savedProject.mockupMotionFragments ?? []);
+                        setGlobalSpeed(savedProject.globalSpeed ?? 1);
+
+                        // ── Bloque F: restore audio blobs from IndexedDB ────────
+                        // Recreates UploadedAudio objects with fresh blob: URLs.
+                        // Overwrites audioTracks/mute/volume with saved values
+                        // if any audios were persisted.
+                        if (savedProject.uploadedAudioIds?.length > 0) {
+                            restoreAudios(
+                                savedProject.uploadedAudioIds,
+                                savedProject.audioTracks ?? [],
+                                savedProject.muteOriginalAudio ?? false,
+                                savedProject.masterVolume ?? 1,
+                            );
+                        }
+
+                        setVideosLibraryRefresh(prev => prev + 1);
+                        setTimeout(() => {
+                            clearHistory();
+                            isRestoringProjectRef.current = false;
+                        }, 500);
+                    } else {
+                        isRestoringProjectRef.current = false;
+                    }
+                    return;
+                }
+
+                // ── Fallback: legacy load from video-track / uploaded / recorded ──
                 const persistedClips = await getVideoTrack();
                 if (persistedClips !== null) {
                     if (persistedClips.length > 0 && videoClipsRef.current.length === 0) {
+                        // Bloque G: mark for migration — once the auto-save
+                        // persists the new-format project we clear the
+                        // legacy video-track store.
+                        pendingLegacyMigrationRef.current = true;
                         const validClips: VideoTrackClip[] = [];
                         for (const clip of persistedClips) {
                             const libVideo = await getLibraryVideo(clip.libraryVideoId);
@@ -1534,6 +1776,18 @@ export default function Editor() {
 
                         if ('cameraUrl' in videoToLoad && videoToLoad.cameraUrl) {
                             setCameraUrl(videoToLoad.cameraUrl);
+                            const owningClipId = videoClipsRef.current.find(c => c.hasCamera)?.libraryVideoId
+                                ?? activeClipDataRef.current?.libraryVideoId
+                                ?? null;
+                            if (owningClipId && 'cameraBlob' in videoToLoad && videoToLoad.cameraBlob) {
+                                saveCameraBlob(
+                                    owningClipId,
+                                    videoToLoad.cameraBlob as Blob,
+                                    "video/webm",
+                                    'cameraConfig' in videoToLoad ? videoToLoad.cameraConfig : null,
+                                )
+                                    .catch(err => console.error("Failed to persist camera blob:", err));
+                            }
                         } else {
                             setCameraUrl(null);
                         }
@@ -1572,97 +1826,6 @@ export default function Editor() {
             videoRef.current.muted = muteOriginalAudio;
         }
     }, [muteOriginalAudio]);
-
-    // Keyboard shortcuts for undo/redo
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            const target = e.target as HTMLElement;
-            const isInputFocused = target.tagName === 'INPUT' ||
-                target.tagName === 'TEXTAREA' ||
-                target.isContentEditable;
-
-            if (isInputFocused) return;
-
-            if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
-                e.preventDefault();
-                if (canUndo) {
-                    handleUndo();
-                }
-            }
-
-            if (((e.ctrlKey || e.metaKey) && e.key === 'y') ||
-                ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'z')) {
-                e.preventDefault();
-                if (canRedo) {
-                    handleRedo();
-                }
-            }
-        };
-
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [handleUndo, handleRedo, canUndo, canRedo]);
-
-    useEffect(() => {
-        const handlePaste = async (e: ClipboardEvent) => {
-            const target = e.target as HTMLElement;
-            const isInputFocused = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
-            if (isInputFocused) return;
-
-            if (lastCopyActionRef.current === 'zoom' && activeTool === 'zoom' && copiedZoomFragment) {
-                e.preventDefault();
-                pasteZoomFragment();
-                return;
-            }
-
-            if (lastCopyActionRef.current === 'motion' && activeTool === 'motion' && copiedMockupMotionFragment) {
-                e.preventDefault();
-                pasteMockupMotionFragment();
-                return;
-            }
-
-            if (lastCopyActionRef.current === 'element' && copiedElements.length > 0) {
-                e.preventDefault();
-                pasteElement();
-                return;
-            }
-
-            const items = e.clipboardData?.items;
-            if (items) {
-                const wantedPrefix = isPhotoMode ? 'image/' : 'video/';
-                for (const item of Array.from(items)) {
-                    if (item.type.startsWith(wantedPrefix)) {
-                        e.preventDefault();
-                        const file = item.getAsFile();
-                        if (!file) break;
-                        if (isPhotoMode) {
-                            handleImageUploadToCanvas(file);
-                        } else {
-                            await handleVideoUpload(file, { forceReplace: true });
-                        }
-                        return;
-                    }
-                }
-            }
-
-            if (activeTool === 'zoom' && copiedZoomFragment) {
-                e.preventDefault();
-                pasteZoomFragment();
-                return;
-            }
-            if (activeTool === 'motion' && copiedMockupMotionFragment) {
-                e.preventDefault();
-                pasteMockupMotionFragment();
-                return;
-            }
-            if (copiedElements.length > 0) {
-                e.preventDefault();
-                pasteElement();
-            }
-        };
-        window.addEventListener('paste', handlePaste);
-        return () => window.removeEventListener('paste', handlePaste);
-    }, [isPhotoMode, handleImageUploadToCanvas, handleVideoUpload, activeTool, copiedZoomFragment, pasteZoomFragment, copiedElements, pasteElement, copiedMockupMotionFragment, pasteMockupMotionFragment]);
 
     const togglePlayPause = useCallback(() => {
         if (videoRef.current) {
@@ -2234,99 +2397,22 @@ export default function Editor() {
         return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
     }, []);
 
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-                return;
-            }
-            // Also skip if inside a contenteditable element
-            if ((e.target as HTMLElement)?.isContentEditable) return;
-
-            // T key — Figma-style text tool: activate crosshair cursor to place text on canvas
-            if (e.key === 't' && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) {
-                e.preventDefault();
-                setTextToolActive(true);
-                return;
-            }
-
-            if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
-                if (selectedElementId || multiSelectedElementIds.length > 0) {
-                    e.preventDefault();
-                    copySelectedElement();
-                    return;
-                }
-                if (selectedZoomFragmentId) {
-                    e.preventDefault();
-                    copySelectedZoomFragment();
-                    return;
-                }
-
-                if (selectedMockupMotionFragmentId) {
-                    e.preventDefault();
-                    copySelectedMockupMotionFragment();
-                    return;
-                }
-            }
-
-            if ((e.key === "Delete" || e.key === "Backspace") && (selectedElementId || multiSelectedElementIds.length > 0)) {
-                e.preventDefault();
-                const idsToDelete = multiSelectedElementIds.length > 1 ? multiSelectedElementIds : selectedElementId;
-                if (idsToDelete) deleteCanvasElement(idsToDelete);
-                return;
-            }
-
-            if ((e.key === "Delete" || e.key === "Backspace") && selectedVideoClipId) {
-                e.preventDefault();
-                handleDeleteVideoClip(selectedVideoClipId);
-                return;
-            }
-
-            if ((e.key === "Delete" || e.key === "Backspace") && selectedAudioTrackId) {
-                e.preventDefault();
-                handleDeleteAudioTrack(selectedAudioTrackId);
-                setSelectedAudioTrackId(null);
-                return;
-            }
-
-            if ((e.key === "Delete" || e.key === "Backspace") && selectedZoomMovementId) {
-                e.preventDefault();
-                handleDeleteZoomMovement(selectedZoomMovementId);
-                return;
-            }
-
-            if ((e.key === "Delete" || e.key === "Backspace") && selectedZoomFragmentId) {
-                e.preventDefault();
-                handleDeleteZoomFragment(selectedZoomFragmentId);
-                return;
-            }
-
-            if ((e.key === "Delete" || e.key === "Backspace") && selectedMockupMotionFragmentId) {
-                e.preventDefault();
-                handleDeleteMockupMotionFragment(selectedMockupMotionFragmentId);
-                return;
-            }
-
-            if (e.key === "Escape") {
-                e.preventDefault();
-                if (textToolActive) { setTextToolActive(false); return; }
-                if (selectedElementId) { setSelectedElementId(null); }
-                else if (selectedVideoClipId) { setSelectedVideoClipId(null); }
-                else if (selectedAudioTrackId) { setSelectedAudioTrackId(null); }
-                else if (selectedZoomMovementId) { setSelectedZoomMovementId(null); }
-                else if (selectedZoomFragmentId) { setSelectedZoomFragmentId(null); }
-                else if (selectedMockupMotionFragmentId) { setSelectedMockupMotionFragmentId(null); }
-            }
-        };
-
-        document.addEventListener("keydown", handleKeyDown);
-        return () => document.removeEventListener("keydown", handleKeyDown);
-    }, [
-        selectedElementId, multiSelectedElementIds, selectedZoomFragmentId, selectedZoomMovementId,
-        selectedAudioTrackId, selectedVideoClipId, selectedMockupMotionFragmentId,
-        deleteCanvasElement, handleDeleteZoomFragment, handleDeleteZoomMovement,
-        handleDeleteAudioTrack, handleDeleteVideoClip, handleDeleteMockupMotionFragment,
-        copySelectedElement, textToolActive, copySelectedZoomFragment, activeTool, copySelectedMockupMotionFragment
-    ]);
+    useEditorShortcuts({
+        handleUndo, handleRedo, canUndo, canRedo,
+        activeTool, isPhotoMode,
+        textToolActive, setTextToolActive,
+        selectedElementId, setSelectedElementId, multiSelectedElementIds,
+        deleteCanvasElement, copySelectedElement, copiedElements, pasteElement,
+        selectedVideoClipId, setSelectedVideoClipId, handleDeleteVideoClip,
+        selectedAudioTrackId, setSelectedAudioTrackId, handleDeleteAudioTrack,
+        selectedZoomFragmentId, setSelectedZoomFragmentId, handleDeleteZoomFragment,
+        copySelectedZoomFragment, copiedZoomFragment, pasteZoomFragment,
+        selectedZoomMovementId, setSelectedZoomMovementId, handleDeleteZoomMovement,
+        selectedMockupMotionFragmentId, setSelectedMockupMotionFragmentId, handleDeleteMockupMotionFragment,
+        copySelectedMockupMotionFragment, copiedMockupMotionFragment, pasteMockupMotionFragment,
+        lastCopyActionRef,
+        handleImageUploadToCanvas, handleVideoUpload,
+    });
 
     const wasMobileRef = useRef<boolean | null>(null);
     const otherSelectionActive = !!(selectedZoomFragmentId || selectedAudioTrackId || selectedVideoClipId || selectedMockupMotionFragmentId);
@@ -2413,17 +2499,59 @@ export default function Editor() {
         }, 300);
     }, [trimRange.end, videoDuration, syncAudioPlayback]);
 
-    const saveVideoTrackTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const autoSaveVideoProjectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+   
+    const pendingLegacyMigrationRef = useRef<boolean>(false);
+    const autoSaveVideoProject = useCallback(async () => {
+        if (isPhotoMode) return;
+        if (videoClips.length === 0) return;
+        if (isRestoringProjectRef.current) return;
+
+        if (autoSaveVideoProjectTimeoutRef.current) {
+            clearTimeout(autoSaveVideoProjectTimeoutRef.current);
+        }
+        autoSaveVideoProjectTimeoutRef.current = setTimeout(async () => {
+            try {
+                const snapshot = buildVideoProjectSnapshot();
+                await cleanupOrphanAudios(snapshot.uploadedAudioIds);
+                await saveVideoProject(snapshot);
+
+                if (pendingLegacyMigrationRef.current) {
+                    pendingLegacyMigrationRef.current = false;
+                    clearVideoTrack().catch(err =>
+                        console.warn("Failed to clear legacy video-track after migration:", err)
+                    );
+                }
+            } catch (error) {
+                console.error("Video project auto-save failed:", error);
+            }
+        }, 1500);
+    }, [isPhotoMode, videoClips, isRestoringProjectRef, buildVideoProjectSnapshot]);
+
+    useEffect(() => {
+        autoSaveVideoProject();
+        return () => {
+            if (autoSaveVideoProjectTimeoutRef.current) {
+                clearTimeout(autoSaveVideoProjectTimeoutRef.current);
+            }
+        };
+    }, [autoSaveVideoProject]);
+
     useEffect(() => {
         if (isPhotoMode) return;
-        if (saveVideoTrackTimeoutRef.current) clearTimeout(saveVideoTrackTimeoutRef.current);
-        saveVideoTrackTimeoutRef.current = setTimeout(() => {
-            saveVideoTrack(videoClips).catch(() => { });
-        }, 500);
-        return () => {
-            if (saveVideoTrackTimeoutRef.current) clearTimeout(saveVideoTrackTimeoutRef.current);
-        };
-    }, [videoClips, isPhotoMode]);
+        if (isRestoringProjectRef.current) return;
+        if (videoClips.length > 0) return;
+
+        const timer = setTimeout(() => {
+            if (isRestoringProjectRef.current) return;
+            if (videoClipsRef.current.length > 0) return;
+            clearVideoProjectAndAudios().catch(err =>
+                console.warn("Failed to clear video project on empty editor:", err)
+            );
+        }, 800);
+
+        return () => clearTimeout(timer);
+    }, [isPhotoMode, videoClips.length]);
 
     const layersPanelToolbar = useMemo(() => (
         <EditorTopBar
@@ -2871,6 +2999,11 @@ export default function Editor() {
                     isTransparentExport={selectedWallpaper === -1}
                 />
             </Suspense>
+            <ExportSuccessModal
+                isOpen={showExportSuccess}
+                onClose={() => setShowExportSuccess(false)}
+                mediaType={exportSuccessMediaType}
+            />
             <Suspense fallback={null}>
                 {isVideoMode ? (
                     <VideoCropperModal
