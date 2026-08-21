@@ -1019,6 +1019,16 @@ export default function Editor() {
         for (const audioEl of audioElementsRef.current.values()) {
             audioEl.pause();
         }
+        // Stop timeline playback before exporting: the rAF playback loop mutates
+        // video.src/currentTime for clip switching and would race against the
+        // exporter's own seeks, causing flicker and wrong frames.
+        justEndedRef.current = false;
+        clipSwitchTimeRef.current = null;
+        isSwitchingClipRef.current = false;
+        if (videoRef.current) {
+            videoRef.current.pause();
+        }
+        setIsPlaying(false);
         exportVideo({
             quality,
             videoBlob: videoBlob ?? undefined,
@@ -1045,7 +1055,7 @@ export default function Editor() {
         }).finally(() => {
             isExportingRef.current = false;
         });
-    }, [videoBlob, selectedWallpaper, trimRange, muteOriginalAudio, videoHasAudioTrack, audioTracks, uploadedAudios, masterVolume, videoClips, globalSpeed, exportVideo]);
+    }, [videoBlob, selectedWallpaper, trimRange, muteOriginalAudio, videoHasAudioTrack, audioTracks, uploadedAudios, masterVolume, videoClips, globalSpeed, exportVideo, setIsPlaying]);
 
     const showNewVideosBadge = useCallback((count: number) => {
         if (newVideosBadgeTimeoutRef.current) {
@@ -2000,8 +2010,14 @@ export default function Editor() {
                             const nextClip = sortedClips[currentIndex + 1];
 
                             if (nextClip) {
-                                const nextUrl = videoUrlsRef.current.get(nextClip.libraryVideoId);
+                                let nextUrl = videoUrlsRef.current.get(nextClip.libraryVideoId);
                                 const nextBlob = videoBlobsRef.current.get(nextClip.libraryVideoId);
+
+                                // If the URL isn't preloaded yet but we have the blob, create one on the fly.
+                                if (!nextUrl && nextBlob) {
+                                    nextUrl = URL.createObjectURL(nextBlob);
+                                    setClipUrl(nextClip.libraryVideoId, nextUrl);
+                                }
 
                                 if (nextUrl && videoRef.current) {
                                     const nextClipSnapshot = { ...nextClip };
@@ -2015,7 +2031,23 @@ export default function Editor() {
                                     currentVideo.pause();
                                     currentVideo.src = nextUrl;
 
+                                    let switchTimeoutId: ReturnType<typeof setTimeout> | null = null;
+                                    let pendingSeekedHandler: (() => void) | null = null;
+
+                                    const cleanupSwitchListeners = () => {
+                                        currentVideo.removeEventListener('canplay', onCanPlay);
+                                        if (pendingSeekedHandler) {
+                                            currentVideo.removeEventListener('seeked', pendingSeekedHandler);
+                                            pendingSeekedHandler = null;
+                                        }
+                                        if (switchTimeoutId) {
+                                            clearTimeout(switchTimeoutId);
+                                            switchTimeoutId = null;
+                                        }
+                                    };
+
                                     const startPlayback = () => {
+                                        cleanupSwitchListeners();
                                         clipSwitchTimeRef.current = null;
                                         isSwitchingClipRef.current = false;
                                         justEndedRef.current = false;
@@ -2037,18 +2069,50 @@ export default function Editor() {
                                                 startPlayback();
                                             } else {
                                                 const onSeeked = () => {
+                                                    pendingSeekedHandler = null;
                                                     startPlayback();
-                                                    currentVideo.removeEventListener('seeked', onSeeked);
                                                 };
+                                                pendingSeekedHandler = onSeeked;
                                                 currentVideo.addEventListener('seeked', onSeeked);
                                                 currentVideo.currentTime = targetTime;
                                             }
                                         }
-                                        currentVideo?.removeEventListener('canplay', onCanPlay);
                                     };
+
+                                    // Safety timeout: if the next clip never becomes ready to play
+                                    // (corrupt blob, unsupported codec, missing metadata, etc.),
+                                    // recover the switching state so playback isn't stuck forever.
+                                    switchTimeoutId = setTimeout(() => {
+                                        cleanupSwitchListeners();
+                                        clipSwitchTimeRef.current = null;
+                                        isSwitchingClipRef.current = false;
+                                        // If enough data is available, try to play anyway; otherwise stop gracefully.
+                                        if (currentVideo.readyState >= 2) {
+                                            try {
+                                                currentVideo.currentTime = Math.max(0, nextClipSnapshot.trimStart);
+                                            } catch { /* ignore seek errors */ }
+                                            startPlayback();
+                                        } else {
+                                            justEndedRef.current = true;
+                                            setIsPlaying(false);
+                                            setCurrentTime(nextClipSnapshot.startTime);
+                                            setTimeout(() => { justEndedRef.current = false; }, 300);
+                                        }
+                                    }, 4000);
+
                                     currentVideo.addEventListener('canplay', onCanPlay);
                                     setCurrentTime(nextClipSnapshot.startTime);
                                     scheduleUpdateFrame();
+                                    return;
+                                } else {
+                                    // No URL and no blob available for the next clip — stop gracefully
+                                    // instead of letting the playhead drift past the clip boundary.
+                                    videoRef.current.pause();
+                                    syncAudioPlaybackRef.current(clipEndOnTimeline, false);
+                                    setIsPlaying(false);
+                                    justEndedRef.current = true;
+                                    setCurrentTime(clipEndOnTimeline);
+                                    setTimeout(() => { justEndedRef.current = false; }, 300);
                                     return;
                                 }
                             } else {
@@ -2829,9 +2893,10 @@ export default function Editor() {
                         onUpdateZoomFragment={handleUpdateZoomFragment}
                         zoomMovements={zoomMovements}
                         selectedZoomMovementId={selectedZoomMovementId}
-                        onSelectZoomMovement={handleSelectZoomMovement}
-                        onUpdateZoomMovement={handleUpdateZoomMovement}
-                    />
+                         onSelectZoomMovement={handleSelectZoomMovement}
+                         onUpdateZoomMovement={handleUpdateZoomMovement}
+                         videoClips={videoClips}
+                     />
 
                     {/* Video mode: Show player controls and timeline */}
                     {isVideoMode && (
