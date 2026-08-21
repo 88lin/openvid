@@ -68,3 +68,25 @@ export function splitClipAtTime(clip: VideoTrackClip, timelineTime: number): Spl
 
     return { updatedClip, newClip };
 }
+
+// Reads the real media duration from metadata. Returns 0 if it can't be read.
+// Used to clamp clip durations because recordings store a wall-clock duration
+// that can overshoot the real length after WebM→MP4 conversion, which freezes
+// multi-clip playback (currentTime never reaches trimEnd).
+export async function probeMediaDuration(url: string): Promise<number> {
+    return new Promise((resolve) => {
+        const probe = document.createElement("video");
+        probe.preload = "metadata";
+        probe.onloadedmetadata = () => resolve(Number.isFinite(probe.duration) && probe.duration > 0 ? probe.duration : 0);
+        probe.onerror = () => resolve(0);
+        probe.src = url;
+    });
+}
+
+export function clampClipToRealDuration(clip: VideoTrackClip, realDuration: number): VideoTrackClip {
+    if (realDuration > 0 && realDuration < clip.trimEnd) {
+        const clamped = Math.min(clip.trimEnd, realDuration);
+        return { ...clip, duration: Math.min(clip.duration, clamped), trimEnd: clamped };
+    }
+    return clip;
+}

@@ -17,7 +17,7 @@ import { useVideoThumbnails, type VideoThumbnail } from "@/hooks/useVideoThumbna
 import { useUndoRedo } from "@/hooks/useUndoRedo";
 import { clearAllThumbnailCache } from "@/lib/thumbnail-cache";
 import { addVideoToLibrary, addVideoToLibraryWithMetadata, getLibraryVideoCount, getLibraryVideo, findExistingVideo } from "@/lib/videos-library";
-import { calculateTotalDuration, findNextClipPosition, getClipAtTime, splitClipAtTime, type VideoTrackClip } from "@/types/video-track.types";
+import { calculateTotalDuration, clampClipToRealDuration, findNextClipPosition, getClipAtTime, probeMediaDuration, splitClipAtTime, type VideoTrackClip } from "@/types/video-track.types";
 import type { ExportQuality, BackgroundTab, VideoCanvasHandle, BackgroundColorConfig, AspectRatio, CropArea } from "@/types";
 import type { TrimRange } from "@/types/timeline.types";
 import type { MockupConfig, MenuPage } from "@/types/mockup.types";
@@ -1019,6 +1019,16 @@ export default function Editor() {
         for (const audioEl of audioElementsRef.current.values()) {
             audioEl.pause();
         }
+        // Stop timeline playback before exporting: the rAF playback loop mutates
+        // video.src/currentTime for clip switching and would race against the
+        // exporter's own seeks, causing flicker and wrong frames.
+        justEndedRef.current = false;
+        clipSwitchTimeRef.current = null;
+        isSwitchingClipRef.current = false;
+        if (videoRef.current) {
+            videoRef.current.pause();
+        }
+        setIsPlaying(false);
         exportVideo({
             quality,
             videoBlob: videoBlob ?? undefined,
@@ -1045,7 +1055,7 @@ export default function Editor() {
         }).finally(() => {
             isExportingRef.current = false;
         });
-    }, [videoBlob, selectedWallpaper, trimRange, muteOriginalAudio, videoHasAudioTrack, audioTracks, uploadedAudios, masterVolume, videoClips, globalSpeed, exportVideo]);
+    }, [videoBlob, selectedWallpaper, trimRange, muteOriginalAudio, videoHasAudioTrack, audioTracks, uploadedAudios, masterVolume, videoClips, globalSpeed, exportVideo, setIsPlaying]);
 
     const showNewVideosBadge = useCallback((count: number) => {
         if (newVideosBadgeTimeoutRef.current) {
@@ -1174,15 +1184,23 @@ export default function Editor() {
 
         if (!videoBlobsRef.current.has(videoId)) { videoBlobsRef.current.set(videoId, blob); const blobUrl = URL.createObjectURL(blob); setClipUrl(videoId, blobUrl); }
 
-        const { width: clipWidth, height: clipHeight } = await new Promise<{ width: number; height: number }>((resolve) => {
+        const { width: clipWidth, height: clipHeight, duration: realDuration } = await new Promise<{ width: number; height: number; duration: number }>((resolve) => {
             const probe = document.createElement('video');
             probe.preload = 'metadata';
             const probeUrl = videoUrlsRef.current.get(videoId)!;
-            probe.onloadedmetadata = () => resolve({ width: probe.videoWidth, height: probe.videoHeight });
-            probe.onerror = () => resolve({ width: 0, height: 0 });
+            probe.onloadedmetadata = () => resolve({ width: probe.videoWidth, height: probe.videoHeight, duration: probe.duration });
+            probe.onerror = () => resolve({ width: 0, height: 0, duration: 0 });
             probe.src = probeUrl;
         });
 
+        // Library videos recorded in-browser store a wall-clock duration that can
+        // overshoot the real media length after WebM→MP4 conversion. An inflated
+        // trimEnd makes currentTime never reach the clip end, so multi-clip
+        // playback freezes instead of advancing. Clamp to the probed metadata.
+        const safeDuration =
+            Number.isFinite(realDuration) && realDuration > 0
+                ? Math.min(duration, realDuration)
+                : duration;
         // Restore the persisted camera overlay (if any) for this library video.
         // The camera blob is keyed by the clip's `libraryVideoId`, so a video
         // recorded with a camera can recover its overlay when re-added from
@@ -1199,9 +1217,9 @@ export default function Editor() {
                 libraryVideoId: videoId,
                 name: libraryVideo.fileName,
                 startTime,
-                duration,
+                duration: safeDuration,
                 trimStart: 0,
-                trimEnd: duration,
+                trimEnd: safeDuration,
                 thumbnailUrl: libraryVideo.thumbnailUrl,
                 hasCamera: !!persistedCamera,
                 width: clipWidth || undefined,
@@ -1274,9 +1292,21 @@ export default function Editor() {
     }, [activeClipAtPlayhead]);
 
     const activeClipUrl = useMemo(() => {
-        if (!activeClipAtPlayhead) return videoUrl;
-        return videoUrlsMap.get(activeClipAtPlayhead.libraryVideoId) ?? videoUrl;
-    }, [activeClipAtPlayhead, videoUrl, videoUrlsMap]);
+        if (videoClips.length > 0) {
+            if (activeClipAtPlayhead) {
+                return videoUrlsMap.get(activeClipAtPlayhead.libraryVideoId) ?? videoUrl;
+            }
+            if (currentTime > 0) {
+             
+                const sorted = [...videoClips].sort((a, b) => a.startTime - b.startTime);
+                const previous = sorted.reverse().find(c => c.startTime <= currentTime);
+                if (previous) {
+                    return videoUrlsMap.get(previous.libraryVideoId) ?? videoUrl;
+                }
+            }
+        }
+        return videoUrl;
+    }, [activeClipAtPlayhead, videoUrl, videoUrlsMap, videoClips, currentTime]);
 
     const handleUpdateVideoClip = useCallback((clipId: string, updates: Partial<VideoTrackClip>) => {
         setVideoClips(prev => {
@@ -1497,13 +1527,15 @@ export default function Editor() {
                     for (const clip of savedProject.videoClips) {
                         const libVideo = await getLibraryVideo(clip.libraryVideoId);
                         if (!libVideo) continue;
-                        validClips.push(clip);
                         if (!videoBlobsRef.current.has(clip.libraryVideoId)) {
                             videoBlobsRef.current.set(clip.libraryVideoId, libVideo.blob);
                             const url = URL.createObjectURL(libVideo.blob);
                             setClipUrl(clip.libraryVideoId, url);
                         }
                         clipAudioStateRef.current.set(clip.libraryVideoId, libVideo.hasAudio !== false);
+                        const clipUrl = videoUrlsRef.current.get(clip.libraryVideoId);
+                        const realDuration = clipUrl ? await probeMediaDuration(clipUrl) : 0;
+                        validClips.push(clampClipToRealDuration(clip, realDuration));
                     }
 
                     if (validClips.length > 0) {
@@ -1631,13 +1663,15 @@ export default function Editor() {
                         for (const clip of persistedClips) {
                             const libVideo = await getLibraryVideo(clip.libraryVideoId);
                             if (!libVideo) continue;
-                            validClips.push(clip);
                             if (!videoBlobsRef.current.has(clip.libraryVideoId)) {
                                 videoBlobsRef.current.set(clip.libraryVideoId, libVideo.blob);
                                 const url = URL.createObjectURL(libVideo.blob);
                                 setClipUrl(clip.libraryVideoId, url);
                             }
                             clipAudioStateRef.current.set(clip.libraryVideoId, libVideo.hasAudio !== false);
+                            const clipUrl = videoUrlsRef.current.get(clip.libraryVideoId);
+                            const realDuration = clipUrl ? await probeMediaDuration(clipUrl) : 0;
+                            validClips.push(clampClipToRealDuration(clip, realDuration));
                         }
 
                         if (validClips.length > 0) {
@@ -1703,9 +1737,11 @@ export default function Editor() {
                         if (videoRef.current) {
                             videoRef.current.src = videoToLoad.url;
                         }
-                        setVideoDuration(videoToLoad.duration);
-                        setTrimRange({ start: 0, end: videoToLoad.duration });
-                        const defaultFragments = generateDefaultZoomFragments(videoToLoad.duration);
+                        const probedDuration = await probeMediaDuration(videoToLoad.url);
+                        const safeLoadDuration = probedDuration > 0 ? Math.min(videoToLoad.duration, probedDuration) : videoToLoad.duration;
+                        setVideoDuration(safeLoadDuration);
+                        setTrimRange({ start: 0, end: safeLoadDuration });
+                        const defaultFragments = generateDefaultZoomFragments(safeLoadDuration);
                         setZoomFragments(defaultFragments);
 
                         if ('aspectRatio' in videoToLoad) {
@@ -1749,9 +1785,9 @@ export default function Editor() {
                                     libraryVideoId: libraryVideo.id,
                                     name: libraryVideo.fileName,
                                     startTime: 0,
-                                    duration: libraryVideo.duration,
+                                    duration: safeLoadDuration,
                                     trimStart: 0,
-                                    trimEnd: libraryVideo.duration,
+                                    trimEnd: safeLoadDuration,
                                     thumbnailUrl: libraryVideo.thumbnailUrl,
                                     hasCamera: 'cameraUrl' in videoToLoad && !!videoToLoad.cameraUrl,
                                     width,
@@ -1986,8 +2022,14 @@ export default function Editor() {
                             const nextClip = sortedClips[currentIndex + 1];
 
                             if (nextClip) {
-                                const nextUrl = videoUrlsRef.current.get(nextClip.libraryVideoId);
+                                let nextUrl = videoUrlsRef.current.get(nextClip.libraryVideoId);
                                 const nextBlob = videoBlobsRef.current.get(nextClip.libraryVideoId);
+
+                                // If the URL isn't preloaded yet but we have the blob, create one on the fly.
+                                if (!nextUrl && nextBlob) {
+                                    nextUrl = URL.createObjectURL(nextBlob);
+                                    setClipUrl(nextClip.libraryVideoId, nextUrl);
+                                }
 
                                 if (nextUrl && videoRef.current) {
                                     const nextClipSnapshot = { ...nextClip };
@@ -2001,7 +2043,23 @@ export default function Editor() {
                                     currentVideo.pause();
                                     currentVideo.src = nextUrl;
 
+                                    let switchTimeoutId: ReturnType<typeof setTimeout> | null = null;
+                                    let pendingSeekedHandler: (() => void) | null = null;
+
+                                    const cleanupSwitchListeners = () => {
+                                        currentVideo.removeEventListener('canplay', onCanPlay);
+                                        if (pendingSeekedHandler) {
+                                            currentVideo.removeEventListener('seeked', pendingSeekedHandler);
+                                            pendingSeekedHandler = null;
+                                        }
+                                        if (switchTimeoutId) {
+                                            clearTimeout(switchTimeoutId);
+                                            switchTimeoutId = null;
+                                        }
+                                    };
+
                                     const startPlayback = () => {
+                                        cleanupSwitchListeners();
                                         clipSwitchTimeRef.current = null;
                                         isSwitchingClipRef.current = false;
                                         justEndedRef.current = false;
@@ -2023,18 +2081,50 @@ export default function Editor() {
                                                 startPlayback();
                                             } else {
                                                 const onSeeked = () => {
+                                                    pendingSeekedHandler = null;
                                                     startPlayback();
-                                                    currentVideo.removeEventListener('seeked', onSeeked);
                                                 };
+                                                pendingSeekedHandler = onSeeked;
                                                 currentVideo.addEventListener('seeked', onSeeked);
                                                 currentVideo.currentTime = targetTime;
                                             }
                                         }
-                                        currentVideo?.removeEventListener('canplay', onCanPlay);
                                     };
+
+                                    // Safety timeout: if the next clip never becomes ready to play
+                                    // (corrupt blob, unsupported codec, missing metadata, etc.),
+                                    // recover the switching state so playback isn't stuck forever.
+                                    switchTimeoutId = setTimeout(() => {
+                                        cleanupSwitchListeners();
+                                        clipSwitchTimeRef.current = null;
+                                        isSwitchingClipRef.current = false;
+                                        // If enough data is available, try to play anyway; otherwise stop gracefully.
+                                        if (currentVideo.readyState >= 2) {
+                                            try {
+                                                currentVideo.currentTime = Math.max(0, nextClipSnapshot.trimStart);
+                                            } catch { /* ignore seek errors */ }
+                                            startPlayback();
+                                        } else {
+                                            justEndedRef.current = true;
+                                            setIsPlaying(false);
+                                            setCurrentTime(nextClipSnapshot.startTime);
+                                            setTimeout(() => { justEndedRef.current = false; }, 300);
+                                        }
+                                    }, 4000);
+
                                     currentVideo.addEventListener('canplay', onCanPlay);
                                     setCurrentTime(nextClipSnapshot.startTime);
                                     scheduleUpdateFrame();
+                                    return;
+                                } else {
+                                    // No URL and no blob available for the next clip — stop gracefully
+                                    // instead of letting the playhead drift past the clip boundary.
+                                    videoRef.current.pause();
+                                    syncAudioPlaybackRef.current(clipEndOnTimeline, false);
+                                    setIsPlaying(false);
+                                    justEndedRef.current = true;
+                                    setCurrentTime(clipEndOnTimeline);
+                                    setTimeout(() => { justEndedRef.current = false; }, 300);
                                     return;
                                 }
                             } else {
@@ -2815,9 +2905,10 @@ export default function Editor() {
                         onUpdateZoomFragment={handleUpdateZoomFragment}
                         zoomMovements={zoomMovements}
                         selectedZoomMovementId={selectedZoomMovementId}
-                        onSelectZoomMovement={handleSelectZoomMovement}
-                        onUpdateZoomMovement={handleUpdateZoomMovement}
-                    />
+                         onSelectZoomMovement={handleSelectZoomMovement}
+                         onUpdateZoomMovement={handleUpdateZoomMovement}
+                         videoClips={videoClips}
+                     />
 
                     {/* Video mode: Show player controls and timeline */}
                     {isVideoMode && (

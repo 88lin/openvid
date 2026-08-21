@@ -25,6 +25,7 @@ import { GetMediaMaskStyles } from "@/lib/media-mask.utils";
 import { MediaContent } from "@/components/ui/MediaContent";
 import { RotationGuideLine } from "@/components/ui/RotationGuideLine";
 import { drawCameraOverlayToCtx } from "@/lib/camera-overlay.utils";
+import { getActiveClipAtTime } from "@/lib/ffmpeg.utils";
 import DropMedia from "@/components/ui/DropMedia";
 import { renderCanvasElements } from "@/lib/canvas-elements-render.utils";
 import { drawMaskedImage } from "@/lib/masked-image-draw.utils";
@@ -111,6 +112,7 @@ function VideoCanvasInner({
     selectedZoomMovementId = null,
     onSelectZoomMovement,
     onUpdateZoomMovement,
+    videoClips = [],
 }: VideoCanvasProps & {
     ref?: React.Ref<VideoCanvasHandle>;
     onSelectedElementIdsChange?: (ids: string[]) => void;
@@ -1541,7 +1543,15 @@ function VideoCanvasInner({
         await renderCanvasElements(ctx, visibleElementsAtFrame, canvasWidth, canvasHeight, true, svgImageCacheRef.current, elementImagesRef.current);
         ctx.restore();
 
-        await drawCameraOverlayToCtx(ctx, canvasWidth, canvasHeight, cameraVideoRef.current, videoRef.current, cameraConfig);
+        // Mirror the preview's per-clip gating: only paint the camera overlay on
+        // frames belonging to a clip that was recorded with a camera. Without this,
+        // multi-clip exports paint the camera over every clip.
+        const activeExportClip = videoClips.length > 0 ? getActiveClipAtTime(videoClips, frameTime) : null;
+        const showCameraOverlay = videoClips.length === 0 || activeExportClip?.clip.hasCamera === true;
+
+        if (showCameraOverlay) {
+            await drawCameraOverlayToCtx(ctx, canvasWidth, canvasHeight, cameraVideoRef.current, videoRef.current, cameraConfig);
+        }
 
         const { containerX, containerY, containerWidth, containerHeight } = computeContainer();
 
@@ -1698,7 +1708,9 @@ function VideoCanvasInner({
         await renderCanvasElements(ctx, visibleElementsAtFrame, canvasWidth, canvasHeight, false, svgImageCacheRef.current, elementImagesRef.current);
         ctx.restore();
 
-        await drawCameraOverlayToCtx(ctx, canvasWidth, canvasHeight, cameraVideoRef.current, videoRef.current, cameraConfig);
+        if (showCameraOverlay) {
+            await drawCameraOverlayToCtx(ctx, canvasWidth, canvasHeight, cameraVideoRef.current, videoRef.current, cameraConfig);
+        }
     };
 
     const [activeVideoElement, setActiveVideoElement] = useState<HTMLVideoElement | null>(null);
