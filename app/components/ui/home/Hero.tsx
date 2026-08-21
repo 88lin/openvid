@@ -1,10 +1,10 @@
 "use client";
 import { Icon } from "@iconify/react";
 import { useRef, useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import { saveUploadedVideo, clearVideoTrack } from "@/lib/video-upload-cache";
 import { saveUploadedImage } from "@/lib/image-upload-cache";
-import { useTranslations } from "next-intl";
+import { clearVideoProjectAndAudios } from "@/lib/video-project-cache";
+import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 import GitHubBadge from "@/components/ui/GitHubStars";
 
@@ -15,7 +15,7 @@ interface HeroProps {
 
 export default function Hero({ onVideoUpload, onPhotoUpload }: HeroProps) {
   const t = useTranslations("hero");
-  const router = useRouter();
+  const locale = useLocale();
 
   const videoInputRef = useRef<HTMLInputElement>(null);
   const [isDraggingVideo, setIsDraggingVideo] = useState(false);
@@ -28,16 +28,17 @@ export default function Hero({ onVideoUpload, onPhotoUpload }: HeroProps) {
       try {
         await saveUploadedVideo(file);
         await clearVideoTrack();
+        await clearVideoProjectAndAudios();
         if (onVideoUpload) {
           onVideoUpload(file);
         }
-        router.push("/editor?mode=video");
+        window.location.href = `/${locale}/editor?mode=video`;
       } catch (error) {
         console.error("Error uploading video:", error);
         setIsUploadingVideo(false);
       }
     },
-    [onVideoUpload, router]
+    [onVideoUpload, locale]
   );
 
   const handleVideoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -77,13 +78,13 @@ export default function Hero({ onVideoUpload, onPhotoUpload }: HeroProps) {
         if (onPhotoUpload) {
           onPhotoUpload(file);
         }
-        router.push("/editor?mode=photo");
+        window.location.href = `/${locale}/editor?mode=photo`;
       } catch (error) {
         console.error("Error uploading photo:", error);
         setIsUploadingPhoto(false);
       }
     },
-    [onPhotoUpload, router]
+    [onPhotoUpload, locale]
   );
 
   const handlePhotoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -243,19 +244,6 @@ export default function Hero({ onVideoUpload, onPhotoUpload }: HeroProps) {
           />
         </div>
       </div>
-      <script
-        type="speculationrules"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            prerender: [
-              {
-                urls: ["/editor?mode=video", "/editor?mode=photo"],
-                eagerness: "moderate",
-              },
-            ],
-          }),
-        }}
-      />
     </>
   );
 }

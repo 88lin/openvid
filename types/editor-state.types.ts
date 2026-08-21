@@ -58,6 +58,7 @@ export interface EditorState {
     zoomMovements: ZoomMovement[];
     imageZoomScale: number;
     unsplashBgUrl: string;
+    globalSpeed: number;
 }
 
 export function createInitialEditorState(overrides?: Partial<EditorState>): EditorState {
@@ -131,5 +132,6 @@ export function createInitialEditorState(overrides?: Partial<EditorState>): Edit
         zoomMovements: [],
         imageZoomScale: 1,
         unsplashBgUrl: "",
+        globalSpeed: 1,
     };
 }

@@ -528,3 +528,20 @@ button {
 .driver-popover.minimal-dark-theme .driver-popover-arrow-side-bottom.driver-popover-arrow {
   border-bottom-color: oklch(0.145 0 0);
 }
+
+.svg-check-path {
+  stroke-dasharray: 50;
+  stroke-dashoffset: 50;
+
+  animation: check-draw-infinite 1.5s cubic-bezier(0.65, 0, 0.45, 1) infinite alternate;
+}
+
+@keyframes check-draw-infinite {
+  0% {
+    stroke-dashoffset: 50;
+  }
+
+  100% {
+    stroke-dashoffset: 0;
+  }
+}

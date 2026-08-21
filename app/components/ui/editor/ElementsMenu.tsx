@@ -229,11 +229,11 @@ export function ElementsMenu({
             </div>
 
             <div className="grid grid-cols-2 bg-muted squircle-element p-1 text-xs font-medium border border-border" role="tablist" aria-label={t("title")}>
-                <button className={`flex justify-center items-center gap-1.5 py-1.5 rounded transition ${mode === "elements" ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground/80"}`} onClick={() => setMode("elements")} role="tab" aria-selected={mode === "elements"} aria-controls="elements-panel">
+                <button className={`flex justify-center items-center gap-1.5 py-1.5 squircle-element transition ${mode === "elements" ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground/80"}`} onClick={() => setMode("elements")} role="tab" aria-selected={mode === "elements"} aria-controls="elements-panel">
                     <Icon icon="iconoir:hexagon" width="14" aria-hidden="true" />
                     {t("tabs.elements")}
                 </button>
-                <button className={`flex justify-center items-center gap-1.5 py-1.5 rounded transition ${mode === "text" ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground/80"}`} onClick={() => setMode("text")} role="tab" aria-selected={mode === "text"} aria-controls="text-panel">
+                <button className={`flex justify-center items-center gap-1.5 py-1.5 squircle-element transition ${mode === "text" ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground/80"}`} onClick={() => setMode("text")} role="tab" aria-selected={mode === "text"} aria-controls="text-panel">
                     <Icon icon="iconoir:text-size" width="14" aria-hidden="true" />
                     {t("tabs.text")}
                 </button>
@@ -271,12 +271,12 @@ export function ElementsMenu({
                                 <PopoverContent side="right" align="start" sideOffset={12} className="w-120 p-0 border-0 shadow-2xl">
                                     <div className="flex flex-col bg-popover dark:bg-black border border-border squircle-element-camera overflow-hidden shadow-2xl max-h-125">
                                         <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-muted/40 flex-wrap">
-                                            <button onClick={() => setSelectedSvgCategory("all")} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium uppercase tracking-wider transition-all ${selectedSvgCategory === "all" ? "bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/40" : "bg-muted text-muted-foreground hover:text-muted-foreground border border-transparent hover:border-border"}`}>
+                                            <button onClick={() => setSelectedSvgCategory("all")} className={`flex items-center gap-1.5 px-3 py-1.5 squircle-element text-[11px] font-medium uppercase tracking-wider transition-all ${selectedSvgCategory === "all" ? "bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/40" : "bg-muted text-muted-foreground hover:text-muted-foreground border border-transparent hover:border-border"}`}>
                                                 <Icon icon="ph:grid-four-bold" width="12" />
                                                 <span>{t("filters.all")}</span>
                                             </button>
                                             {SVG_CATEGORIES.map((cat) => (
-                                                <button key={cat.id} onClick={() => setSelectedSvgCategory(cat.id)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium uppercase tracking-wider transition-all ${selectedSvgCategory === cat.id ? "bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/40" : "bg-muted text-muted-foreground hover:text-muted-foreground border border-transparent hover:border-border"}`}>
+                                                <button key={cat.id} onClick={() => setSelectedSvgCategory(cat.id)} className={`flex items-center gap-1.5 px-3 py-1.5 squircle-element text-[11px] font-medium uppercase tracking-wider transition-all ${selectedSvgCategory === cat.id ? "bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/40" : "bg-muted text-muted-foreground hover:text-muted-foreground border border-transparent hover:border-border"}`}>
                                                     <span>{cat.title}</span>
                                                 </button>
                                             ))}
@@ -327,12 +327,12 @@ export function ElementsMenu({
                                 <PopoverContent side="right" align="start" sideOffset={12} className="w-130 p-0 border-0 shadow-2xl">
                                     <div className="flex flex-col bg-popover dark:bg-black border border-border squircle-element-camera overflow-hidden shadow-2xl max-h-125">
                                         <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-muted/40 flex-wrap">
-                                            <button onClick={() => setSelectedImageCategory("all")} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium uppercase tracking-wider transition-all ${selectedImageCategory === "all" ? "bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/40" : "bg-muted text-muted-foreground hover:text-muted-foreground border border-transparent hover:border-border"}`}>
+                                            <button onClick={() => setSelectedImageCategory("all")} className={`flex items-center gap-1.5 px-3 py-1.5 squircle-element text-[11px] font-medium uppercase tracking-wider transition-all ${selectedImageCategory === "all" ? "bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/40" : "bg-muted text-muted-foreground hover:text-muted-foreground border border-transparent hover:border-border"}`}>
                                                 <Icon icon="ph:grid-four-bold" width="12" />
                                                 <span>{t("filters.all")}</span>
                                             </button>
                                             {IMAGE_CATEGORIES.map((cat) => (
-                                                <button key={cat.id} onClick={() => setSelectedImageCategory(cat.id)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium uppercase tracking-wider transition-all ${selectedImageCategory === cat.id ? "bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/40" : "bg-muted text-muted-foreground hover:text-muted-foreground border border-transparent hover:border-border"}`}>
+                                                <button key={cat.id} onClick={() => setSelectedImageCategory(cat.id)} className={`flex items-center gap-1.5 px-3 py-1.5 squircle-element text-[11px] font-medium uppercase tracking-wider transition-all ${selectedImageCategory === cat.id ? "bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/40" : "bg-muted text-muted-foreground hover:text-muted-foreground border border-transparent hover:border-border"}`}>
                                                     <span>{cat.title}</span>
                                                 </button>
                                             ))}
@@ -457,7 +457,7 @@ export function ElementsMenu({
                         <div className="text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">{t("text.weight")}</div>
                         <div className="grid grid-cols-3 gap-2">
                             {FONT_WEIGHTS.map((w) => (
-                                <button key={w.key} onClick={() => setTextFontWeight(w.key)} className={`px-3 py-2 rounded-lg text-xs transition-all squircle-element ${textFontWeight === w.key ? "bg-muted text-foreground border border-border" : "bg-muted/50 text-muted-foreground/50 hover:text-muted-foreground border border-border"}`}>
+                                <button key={w.key} onClick={() => setTextFontWeight(w.key)} className={`px-3 py-2 squircle-element text-xs transition-all squircle-element ${textFontWeight === w.key ? "bg-muted text-foreground border border-border" : "bg-muted/50 text-muted-foreground/50 hover:text-muted-foreground border border-border"}`}>
                                     {w.label}
                                 </button>
                             ))}
@@ -516,7 +516,7 @@ function UploadImageButton({ onUpload, isUploading }: { onUpload: (files: FileLi
                 >
                     {isUploading ? (
                         <Icon icon="svg-spinners:180-ring-with-bg" width="16" className="text-muted-foreground" aria-hidden="true" />
-) : (
+                    ) : (
                         <Icon icon="material-symbols:upload-rounded" width="24" className="text-muted-foreground group-hover:text-foreground transition-colors" aria-hidden="true" />
                     )}
                 </button>

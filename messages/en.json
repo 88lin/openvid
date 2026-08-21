@@ -405,7 +405,8 @@
       "top-right": "Top right",
       "bottom-left": "Bottom left",
       "bottom-right": "Bottom right"
-    }
+    },
+    "drag": "Drag"
   },
   "controlPanel": {
     "header": {

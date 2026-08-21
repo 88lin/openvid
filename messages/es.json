@@ -401,7 +401,8 @@
       "top-right": "Arriba a la derecha",
       "bottom-left": "Abajo a la izquierda",
       "bottom-right": "Abajo a la derecha"
-    }
+    },
+    "drag": "Arrastrar"
   },
   "controlPanel": {
     "header": {

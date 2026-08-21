@@ -372,7 +372,8 @@
       "top-right": "Сверху справа",
       "bottom-left": "Снизу слева",
       "bottom-right": "Снизу справа"
-    }
+    },
+    "drag": "Перетащить"
   },
   "controlPanel": {
     "header": {

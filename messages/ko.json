@@ -405,7 +405,8 @@
       "top-right": "오른쪽 위",
       "bottom-left": "왼쪽 아래",
       "bottom-right": "오른쪽 아래"
-    }
+    },
+    "drag": "드래그"
   },
   "controlPanel": {
     "header": {

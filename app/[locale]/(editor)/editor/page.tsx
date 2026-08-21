@@ -6,7 +6,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { loadVideoFromIndexedDB, deleteRecordedVideo } from "@/hooks/useScreenRecording";
 import { useVideoUpload } from "@/hooks/useVideoUpload";
 import { useImageProjects } from "@/hooks/useImageProjects";
-import { getUploadedVideo, deleteUploadedVideo, saveVideoTrack, getVideoTrack } from "@/lib/video-upload-cache";
+import { getUploadedVideo, deleteUploadedVideo, saveVideoTrack, getVideoTrack, clearVideoTrack } from "@/lib/video-upload-cache";
+import { saveVideoProject, cleanupOrphanAudios, getVideoProject, saveCameraBlob, getCameraBlob, clearVideoProjectAndAudios } from "@/lib/video-project-cache";
 import { getUploadedImage, deleteUploadedImage } from "@/lib/image-upload-cache";
 import { useEditorMode } from "@/hooks/useEditorMode";
 import { useActiveTool } from "@/hooks/useActiveTool";
@@ -49,6 +50,7 @@ import { useAudioTracks } from "@/hooks/useAudioTracks";
 import { useMockupMotionFragments } from "@/hooks/useMockupMotionFragments";
 import { useZoomFragments } from "@/hooks/useZoomFragments";
 import { useEditorShortcuts } from "@/hooks/useEditorShortcuts";
+import { ExportSuccessModal } from "@/app/components/ui/Exportsuccessmodal";
 
 const ControlPanel = lazy(() => import("@/app/components/ui/editor/ControlPanel").then(mod => ({ default: mod.ControlPanel })));
 const Timeline = lazy(() => import("@/app/components/ui/editor/Timeline").then(mod => ({ default: mod.Timeline })));
@@ -326,6 +328,7 @@ export default function Editor() {
         handleUpdateAudioTrack, handleDeleteAudioTrack,
         handleToggleMuteOriginalAudio, handleMasterVolumeChange,
         autoTrimModalOpen, pendingAudioUpload, confirmAudioTrim, cancelAudioTrim,
+        restoreAudios,
     } = useAudioTracks({ videoDuration, isExportingRef });
 
     const handleCameraConfigChange = useCallback((partial: Partial<CameraConfig>) => {
@@ -603,6 +606,10 @@ export default function Editor() {
         muteOriginalAudioRef.current = muteOriginalAudio;
     }, [muteOriginalAudio]);
 
+    const [globalSpeed, setGlobalSpeed] = useState<number>(1);
+    const globalSpeedRef = useRef<number>(1);
+    useEffect(() => { globalSpeedRef.current = globalSpeed; }, [globalSpeed]);
+
     const updateEditorStateDebounced = useRef<NodeJS.Timeout | null>(null);
     useEffect(() => {
         if (updateEditorStateDebounced.current) clearTimeout(updateEditorStateDebounced.current);
@@ -652,6 +659,7 @@ export default function Editor() {
                 imagePhoneRefWidth,
                 mockupMotionFragments,
                 videoClips,
+                globalSpeed,
             });
         }, 300);
         return () => {
@@ -666,7 +674,7 @@ export default function Editor() {
         imagePhoneActive, imagePhoneX, imagePhoneY, imagePhoneScale, imagePhoneRotX, imagePhoneRotY,
         imagePhoneRotZ, imagePhonePerspective, imagePhoneDevice, imagePhonePresetId, imagePhoneOpening,
         imagePhoneShadow, imagePhoneShadowColor, imagePhoneRefWidth, mockupMotionFragments,
-        setEditorState, videoClips
+        setEditorState, videoClips, globalSpeed
     ]);
 
     const prevUndoRedoVersionRef = useRef(undoRedoVersion);
@@ -719,6 +727,7 @@ export default function Editor() {
             setImagePhoneShadowColor(editorState.imagePhoneShadowColor);
             setImagePhoneRefWidth(editorState.imagePhoneRefWidth ?? 0);
             setMockupMotionFragments(editorState.mockupMotionFragments ?? []);
+            setGlobalSpeed(editorState.globalSpeed ?? 1);
 
             const restoredClips = editorState.videoClips ?? [];
             const clipsUnchanged = restoredClips === videoClipsRef.current;
@@ -921,9 +930,6 @@ export default function Editor() {
     const isDraggingPlayheadRef = useRef(isDraggingPlayhead);
     const trimRangeRef = useRef(trimRange);
     const syncAudioPlaybackRef = useRef(syncAudioPlayback);
-    const [globalSpeed, setGlobalSpeed] = useState<number>(1);
-    const globalSpeedRef = useRef<number>(1);
-    useEffect(() => { globalSpeedRef.current = globalSpeed; }, [globalSpeed]);
 
     useEffect(() => { isPlayingRef.current = isPlaying; }, [isPlaying]);
     useEffect(() => { isDraggingPlayheadRef.current = isDraggingPlayhead; }, [isDraggingPlayhead]);
@@ -934,6 +940,78 @@ export default function Editor() {
     useEffect(() => {
         currentTimeRef.current = currentTime;
     }, [currentTime]);
+
+    const buildVideoProjectSnapshot = useCallback(() => ({
+        videoClips,
+        trimRange,
+        globalSpeed,
+        zoomFragments,
+        zoomMovements,
+        audioTracks,
+        uploadedAudioIds: uploadedAudios.map(a => a.id),
+        muteOriginalAudio,
+        masterVolume,
+        canvasElements,
+        mockupId,
+        mockupConfig,
+        mockupMotionFragments,
+        backgroundTab,
+        selectedWallpaper,
+        backgroundBlur,
+        selectedImageUrl,
+        unsplashBgUrl,
+        backgroundColorConfig,
+        padding,
+        roundedCorners,
+        shadows,
+        aspectRatio,
+        customDimensions,
+        cropArea,
+        videoTransform,
+        imageTransform,
+        apply3DToBackground,
+        imageMaskConfig,
+        videoMaskConfig,
+        imageZoomScale,
+        cameraConfig,
+        cameraVideoId: cameraUrl
+            ? (videoClips.find(c => c.hasCamera)?.libraryVideoId ?? null)
+            : null,
+    }), [
+        videoClips, trimRange, globalSpeed,
+        zoomFragments, zoomMovements,
+        audioTracks, uploadedAudios, muteOriginalAudio, masterVolume,
+        canvasElements,
+        mockupId, mockupConfig,
+        mockupMotionFragments,
+        backgroundTab, selectedWallpaper, backgroundBlur, selectedImageUrl,
+        unsplashBgUrl, backgroundColorConfig,
+        padding, roundedCorners, shadows, aspectRatio, customDimensions, cropArea,
+        videoTransform, imageTransform, apply3DToBackground,
+        imageMaskConfig, videoMaskConfig, imageZoomScale,
+        cameraConfig, cameraUrl,
+    ]);
+
+    const [showExportSuccess, setShowExportSuccess] = useState(false);
+    const [exportSuccessMediaType, setExportSuccessMediaType] = useState<"video" | "photo">("video");
+
+    const prevVideoExportStatusRef = useRef(exportProgress.status);
+    useEffect(() => {
+        if (prevVideoExportStatusRef.current !== "complete" && exportProgress.status === "complete") {
+            setExportSuccessMediaType("video");
+            setShowExportSuccess(true);
+        }
+        prevVideoExportStatusRef.current = exportProgress.status;
+    }, [exportProgress.status]);
+
+    const prevImageExportStatusRef = useRef(imageExportProgress.status);
+    useEffect(() => {
+        if (prevImageExportStatusRef.current !== "complete" && imageExportProgress.status === "complete") {
+            setExportSuccessMediaType("photo");
+            setShowExportSuccess(true);
+        }
+        prevImageExportStatusRef.current = imageExportProgress.status;
+    }, [imageExportProgress.status]);
 
     const handleExport = useCallback((quality: ExportQuality) => {
         isExportingRef.current = true;
@@ -1383,9 +1461,145 @@ export default function Editor() {
         if (isPhotoMode) return;
         const loadVideo = async () => {
             try {
+          
+                const savedProject = await getVideoProject();
+                if (savedProject && savedProject.videoClips?.length > 0 && videoClipsRef.current.length === 0) {
+                    isRestoringProjectRef.current = true;
+
+                    const validClips: VideoTrackClip[] = [];
+                    for (const clip of savedProject.videoClips) {
+                        const libVideo = await getLibraryVideo(clip.libraryVideoId);
+                        if (!libVideo) continue;
+                        validClips.push(clip);
+                        if (!videoBlobsRef.current.has(clip.libraryVideoId)) {
+                            videoBlobsRef.current.set(clip.libraryVideoId, libVideo.blob);
+                            const url = URL.createObjectURL(libVideo.blob);
+                            setClipUrl(clip.libraryVideoId, url);
+                        }
+                        clipAudioStateRef.current.set(clip.libraryVideoId, libVideo.hasAudio !== false);
+                    }
+
+                    if (validClips.length > 0) {
+                        const sorted = [...validClips].sort((a, b) => a.startTime - b.startTime);
+                        const totalDuration = calculateTotalDuration(sorted);
+
+                        setVideoClips(sorted);
+                        setVideoDuration(totalDuration);
+
+                        const persistedTrim = savedProject.trimRange ?? { start: 0, end: totalDuration };
+                        const clampedStart = Math.max(0, Math.min(persistedTrim.start, totalDuration));
+                        const clampedEnd = Math.max(clampedStart, Math.min(persistedTrim.end, totalDuration));
+                        setTrimRange({ start: clampedStart, end: clampedEnd });
+
+                        const firstClip = sorted[0];
+                        activeClipIdRef.current = firstClip.id;
+                        activeClipDataRef.current = firstClip;
+                        const firstUrl = videoUrlsRef.current.get(firstClip.libraryVideoId);
+                        if (firstUrl) {
+                            setVideoUrl(firstUrl);
+                            setVideoId(firstClip.libraryVideoId);
+                            lastLoadedVideoIdRef.current = firstClip.libraryVideoId;
+                            if (videoRef.current) {
+                                videoRef.current.src = firstUrl;
+                            }
+                        }
+
+                        // Restore full editor state from project snapshot
+                        setBackgroundTab(savedProject.backgroundTab);
+                        setSelectedWallpaper(savedProject.selectedWallpaper);
+                        setBackgroundBlur(savedProject.backgroundBlur);
+                        setSelectedImageUrl(savedProject.selectedImageUrl);
+                        setUnsplashBgUrl(savedProject.unsplashBgUrl ?? "");
+                        setBackgroundColorConfig(savedProject.backgroundColorConfig);
+                        setPadding(savedProject.padding);
+                        setRoundedCorners(savedProject.roundedCorners);
+                        setShadows(savedProject.shadows);
+
+                        // ── Bloque I.6: aspectRatio / customDimensions consistency ──
+                        // Guard against stale or corrupt data: only accept
+                        // customDimensions when aspectRatio === "custom", and
+                        // require positive finite width/height. Otherwise fall
+                        // back to the ratio's own dimensions (or null for
+                        // non-custom ratios).
+                        const persistedRatio = (savedProject.aspectRatio ?? "auto") as AspectRatio;
+                        const persistedDims = savedProject.customDimensions;
+                        const validCustom =
+                            persistedRatio === "custom" &&
+                            persistedDims != null &&
+                            Number.isFinite(persistedDims.width) && persistedDims.width > 0 &&
+                            Number.isFinite(persistedDims.height) && persistedDims.height > 0;
+                        setAspectRatio(persistedRatio);
+                        setCustomDimensions(validCustom ? persistedDims : null);
+
+                        setCropArea(savedProject.cropArea);
+                        setZoomFragments(savedProject.zoomFragments ?? []);
+                        setZoomMovements(savedProject.zoomMovements ?? []);
+                        setMockupId(savedProject.mockupId);
+                        setMockupConfig(savedProject.mockupConfig);
+                        setCanvasElements(savedProject.canvasElements ?? []);
+                        setAudioTracks(savedProject.audioTracks ?? []);
+                        setMuteOriginalAudio(savedProject.muteOriginalAudio ?? false);
+                        setMasterVolume(savedProject.masterVolume ?? 1);
+                        setCameraConfig(savedProject.cameraConfig ?? null);
+
+                        if (savedProject.cameraVideoId) {
+                            try {
+                                const cameraBlob = await getCameraBlob(savedProject.cameraVideoId);
+                                if (cameraBlob) {
+                                    const restoredCameraUrl = URL.createObjectURL(cameraBlob.blob);
+                                    setCameraUrl(restoredCameraUrl);
+                                } else {
+                                    setCameraUrl(null);
+                                    setCameraConfig(null);
+                                }
+                            } catch (err) {
+                                console.error("Failed to restore camera blob:", err);
+                                setCameraUrl(null);
+                            }
+                        } else {
+                            setCameraUrl(null);
+                        }
+                        setVideoTransform(savedProject.videoTransform);
+                        setImageTransform(savedProject.imageTransform);
+                        setApply3DToBackground(savedProject.apply3DToBackground);
+                        setImageMaskConfig(savedProject.imageMaskConfig);
+                        setVideoMaskConfig(savedProject.videoMaskConfig);
+                        setImageZoomScale(savedProject.imageZoomScale ?? 1);
+                        setMockupMotionFragments(savedProject.mockupMotionFragments ?? []);
+                        setGlobalSpeed(savedProject.globalSpeed ?? 1);
+
+                        // ── Bloque F: restore audio blobs from IndexedDB ────────
+                        // Recreates UploadedAudio objects with fresh blob: URLs.
+                        // Overwrites audioTracks/mute/volume with saved values
+                        // if any audios were persisted.
+                        if (savedProject.uploadedAudioIds?.length > 0) {
+                            restoreAudios(
+                                savedProject.uploadedAudioIds,
+                                savedProject.audioTracks ?? [],
+                                savedProject.muteOriginalAudio ?? false,
+                                savedProject.masterVolume ?? 1,
+                            );
+                        }
+
+                        setVideosLibraryRefresh(prev => prev + 1);
+                        setTimeout(() => {
+                            clearHistory();
+                            isRestoringProjectRef.current = false;
+                        }, 500);
+                    } else {
+                        isRestoringProjectRef.current = false;
+                    }
+                    return;
+                }
+
+                // ── Fallback: legacy load from video-track / uploaded / recorded ──
                 const persistedClips = await getVideoTrack();
                 if (persistedClips !== null) {
                     if (persistedClips.length > 0 && videoClipsRef.current.length === 0) {
+                        // Bloque G: mark for migration — once the auto-save
+                        // persists the new-format project we clear the
+                        // legacy video-track store.
+                        pendingLegacyMigrationRef.current = true;
                         const validClips: VideoTrackClip[] = [];
                         for (const clip of persistedClips) {
                             const libVideo = await getLibraryVideo(clip.libraryVideoId);
@@ -1535,6 +1749,13 @@ export default function Editor() {
 
                         if ('cameraUrl' in videoToLoad && videoToLoad.cameraUrl) {
                             setCameraUrl(videoToLoad.cameraUrl);
+                            const owningClipId = videoClipsRef.current.find(c => c.hasCamera)?.libraryVideoId
+                                ?? activeClipDataRef.current?.libraryVideoId
+                                ?? null;
+                            if (owningClipId && 'cameraBlob' in videoToLoad && videoToLoad.cameraBlob) {
+                                saveCameraBlob(owningClipId, videoToLoad.cameraBlob as Blob, "video/webm")
+                                    .catch(err => console.error("Failed to persist camera blob:", err));
+                            }
                         } else {
                             setCameraUrl(null);
                         }
@@ -2246,17 +2467,59 @@ export default function Editor() {
         }, 300);
     }, [trimRange.end, videoDuration, syncAudioPlayback]);
 
-    const saveVideoTrackTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const autoSaveVideoProjectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+   
+    const pendingLegacyMigrationRef = useRef<boolean>(false);
+    const autoSaveVideoProject = useCallback(async () => {
+        if (isPhotoMode) return;
+        if (videoClips.length === 0) return;
+        if (isRestoringProjectRef.current) return;
+
+        if (autoSaveVideoProjectTimeoutRef.current) {
+            clearTimeout(autoSaveVideoProjectTimeoutRef.current);
+        }
+        autoSaveVideoProjectTimeoutRef.current = setTimeout(async () => {
+            try {
+                const snapshot = buildVideoProjectSnapshot();
+                await cleanupOrphanAudios(snapshot.uploadedAudioIds);
+                await saveVideoProject(snapshot);
+
+                if (pendingLegacyMigrationRef.current) {
+                    pendingLegacyMigrationRef.current = false;
+                    clearVideoTrack().catch(err =>
+                        console.warn("Failed to clear legacy video-track after migration:", err)
+                    );
+                }
+            } catch (error) {
+                console.error("Video project auto-save failed:", error);
+            }
+        }, 1500);
+    }, [isPhotoMode, videoClips, isRestoringProjectRef, buildVideoProjectSnapshot]);
+
+    useEffect(() => {
+        autoSaveVideoProject();
+        return () => {
+            if (autoSaveVideoProjectTimeoutRef.current) {
+                clearTimeout(autoSaveVideoProjectTimeoutRef.current);
+            }
+        };
+    }, [autoSaveVideoProject]);
+
     useEffect(() => {
         if (isPhotoMode) return;
-        if (saveVideoTrackTimeoutRef.current) clearTimeout(saveVideoTrackTimeoutRef.current);
-        saveVideoTrackTimeoutRef.current = setTimeout(() => {
-            saveVideoTrack(videoClips).catch(() => { });
-        }, 500);
-        return () => {
-            if (saveVideoTrackTimeoutRef.current) clearTimeout(saveVideoTrackTimeoutRef.current);
-        };
-    }, [videoClips, isPhotoMode]);
+        if (isRestoringProjectRef.current) return;
+        if (videoClips.length > 0) return;
+
+        const timer = setTimeout(() => {
+            if (isRestoringProjectRef.current) return;
+            if (videoClipsRef.current.length > 0) return;
+            clearVideoProjectAndAudios().catch(err =>
+                console.warn("Failed to clear video project on empty editor:", err)
+            );
+        }, 800);
+
+        return () => clearTimeout(timer);
+    }, [isPhotoMode, videoClips.length]);
 
     const layersPanelToolbar = useMemo(() => (
         <EditorTopBar
@@ -2704,6 +2967,11 @@ export default function Editor() {
                     isTransparentExport={selectedWallpaper === -1}
                 />
             </Suspense>
+            <ExportSuccessModal
+                isOpen={showExportSuccess}
+                onClose={() => setShowExportSuccess(false)}
+                mediaType={exportSuccessMediaType}
+            />
             <Suspense fallback={null}>
                 {isVideoMode ? (
                     <VideoCropperModal

@@ -1,6 +1,7 @@
 "use client";
 import { useState, useCallback, useRef, useEffect } from "react";
 import type { AudioTrack, UploadedAudio } from "@/types";
+import { saveAudioBlob, getAudioBlobs, deleteAudioBlob } from "@/lib/video-project-cache";
 
 const MAX_AUDIO_TRACKS = 8;
 
@@ -18,6 +19,7 @@ export function useAudioTracks({ videoDuration, isExportingRef }: UseAudioTracks
   const [pendingAudioUpload, setPendingAudioUpload] = useState<{ audio: UploadedAudio; trackId: string } | null>(null);
 
   const audioElementsRef = useRef<Map<string, HTMLAudioElement>>(new Map());
+  const restoredAudiosRef = useRef(false);
 
   useEffect(() => {
     const currentElements = audioElementsRef.current;
@@ -90,6 +92,15 @@ export function useAudioTracks({ videoDuration, isExportingRef }: UseAudioTracks
       });
       const newAudio: UploadedAudio = { id: `audio-${crypto.randomUUID()}`, name: file.name, url, duration: audio.duration, fileSize: file.size, mimeType: file.type };
       setUploadedAudios(prev => [...prev, newAudio]);
+
+      // Bloque F: persist audio blob to IndexedDB for survival across reloads
+      saveAudioBlob(newAudio.id, file, {
+        fileName: file.name,
+        fileSize: file.size,
+        mimeType: file.type,
+        duration: audio.duration,
+      }).catch(err => console.error("Failed to persist audio blob:", err));
+
       const lastTrackEnd = audioTracks.reduce((max, track) => Math.max(max, track.startTime + track.duration), 0);
       const trackId = `track-${crypto.randomUUID()}`;
       if (audio.duration > videoDuration) {
@@ -113,6 +124,8 @@ export function useAudioTracks({ videoDuration, isExportingRef }: UseAudioTracks
       return prev.filter(a => a.id !== audioId);
     });
     setAudioTracks(prev => prev.filter(track => track.audioId !== audioId));
+    // Bloque F: remove persisted blob from IndexedDB
+    deleteAudioBlob(audioId).catch(err => console.error("Failed to delete audio blob:", err));
   }, []);
 
   const handleAddAudioTrack = useCallback((audioId: string) => {
@@ -156,10 +169,44 @@ export function useAudioTracks({ videoDuration, isExportingRef }: UseAudioTracks
     if (pendingAudioUpload) {
       setUploadedAudios(prev => prev.filter(a => a.id !== pendingAudioUpload.audio.id));
       URL.revokeObjectURL(pendingAudioUpload.audio.url);
+      // Bloque F: also delete the persisted blob since upload was cancelled
+      deleteAudioBlob(pendingAudioUpload.audio.id).catch(err => console.error("Failed to delete audio blob:", err));
     }
     setAutoTrimModalOpen(false);
     setPendingAudioUpload(null);
   }, [pendingAudioUpload]);
+
+  /**
+   * Bloque F: Restore uploaded audios from IndexedDB.
+   * Called by the editor after restoring the video project snapshot.
+   * Reconstructs UploadedAudio objects with fresh blob: URLs.
+   */
+  const restoreAudios = useCallback(async (audioIds: string[], savedTracks: AudioTrack[], savedMute: boolean, savedMasterVolume: number) => {
+    if (restoredAudiosRef.current) return;
+    if (audioIds.length === 0) return;
+
+    restoredAudiosRef.current = true;
+    const cached = await getAudioBlobs(audioIds);
+
+    const restored: UploadedAudio[] = cached.map(item => ({
+      id: item.id,
+      name: item.fileName,
+      url: URL.createObjectURL(item.blob),
+      duration: item.duration,
+      fileSize: item.fileSize,
+      mimeType: item.mimeType,
+    }));
+
+    if (restored.length > 0) {
+      setUploadedAudios(restored);
+      // Only keep tracks whose audio blob was successfully restored,
+      // so we never reference a missing UploadedAudio.
+      const restoredIds = new Set(restored.map(a => a.id));
+      setAudioTracks((savedTracks ?? []).filter(t => restoredIds.has(t.audioId)));
+      setMuteOriginalAudio(savedMute ?? false);
+      setMasterVolume(savedMasterVolume ?? 1);
+    }
+  }, []);
 
   return {
     uploadedAudios, setUploadedAudios, audioTracks, setAudioTracks,
@@ -169,5 +216,6 @@ export function useAudioTracks({ videoDuration, isExportingRef }: UseAudioTracks
     handleUpdateAudioTrack, handleDeleteAudioTrack,
     handleToggleMuteOriginalAudio, handleMasterVolumeChange,
     autoTrimModalOpen, pendingAudioUpload, confirmAudioTrim, cancelAudioTrim,
+    restoreAudios,
   };
 }
