@@ -1464,5 +1464,13 @@
       "crop": "Crop",
       "auto": "Auto"
     }
+  },
+  "exportSuccess": {
+    "title": "¡Exportación completada!",
+    "photoSuccess": "Tu imagen se exportó correctamente.",
+    "videoSuccess": "Tu video se exportó correctamente.",
+    "supportCoffee": "Apóyanos con un café",
+    "starGithub": "Danos una estrella en GitHub",
+    "close": "Cerrar"
   }
 }
