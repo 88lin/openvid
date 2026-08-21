@@ -17,7 +17,7 @@ import { useVideoThumbnails, type VideoThumbnail } from "@/hooks/useVideoThumbna
 import { useUndoRedo } from "@/hooks/useUndoRedo";
 import { clearAllThumbnailCache } from "@/lib/thumbnail-cache";
 import { addVideoToLibrary, addVideoToLibraryWithMetadata, getLibraryVideoCount, getLibraryVideo, findExistingVideo } from "@/lib/videos-library";
-import { calculateTotalDuration, findNextClipPosition, getClipAtTime, splitClipAtTime, type VideoTrackClip } from "@/types/video-track.types";
+import { calculateTotalDuration, clampClipToRealDuration, findNextClipPosition, getClipAtTime, probeMediaDuration, splitClipAtTime, type VideoTrackClip } from "@/types/video-track.types";
 import type { ExportQuality, BackgroundTab, VideoCanvasHandle, BackgroundColorConfig, AspectRatio, CropArea } from "@/types";
 import type { TrimRange } from "@/types/timeline.types";
 import type { MockupConfig, MenuPage } from "@/types/mockup.types";
@@ -1174,15 +1174,23 @@ export default function Editor() {
 
         if (!videoBlobsRef.current.has(videoId)) { videoBlobsRef.current.set(videoId, blob); const blobUrl = URL.createObjectURL(blob); setClipUrl(videoId, blobUrl); }
 
-        const { width: clipWidth, height: clipHeight } = await new Promise<{ width: number; height: number }>((resolve) => {
+        const { width: clipWidth, height: clipHeight, duration: realDuration } = await new Promise<{ width: number; height: number; duration: number }>((resolve) => {
             const probe = document.createElement('video');
             probe.preload = 'metadata';
             const probeUrl = videoUrlsRef.current.get(videoId)!;
-            probe.onloadedmetadata = () => resolve({ width: probe.videoWidth, height: probe.videoHeight });
-            probe.onerror = () => resolve({ width: 0, height: 0 });
+            probe.onloadedmetadata = () => resolve({ width: probe.videoWidth, height: probe.videoHeight, duration: probe.duration });
+            probe.onerror = () => resolve({ width: 0, height: 0, duration: 0 });
             probe.src = probeUrl;
         });
 
+        // Library videos recorded in-browser store a wall-clock duration that can
+        // overshoot the real media length after WebM→MP4 conversion. An inflated
+        // trimEnd makes currentTime never reach the clip end, so multi-clip
+        // playback freezes instead of advancing. Clamp to the probed metadata.
+        const safeDuration =
+            Number.isFinite(realDuration) && realDuration > 0
+                ? Math.min(duration, realDuration)
+                : duration;
         // Restore the persisted camera overlay (if any) for this library video.
         // The camera blob is keyed by the clip's `libraryVideoId`, so a video
         // recorded with a camera can recover its overlay when re-added from
@@ -1199,9 +1207,9 @@ export default function Editor() {
                 libraryVideoId: videoId,
                 name: libraryVideo.fileName,
                 startTime,
-                duration,
+                duration: safeDuration,
                 trimStart: 0,
-                trimEnd: duration,
+                trimEnd: safeDuration,
                 thumbnailUrl: libraryVideo.thumbnailUrl,
                 hasCamera: !!persistedCamera,
                 width: clipWidth || undefined,
@@ -1497,13 +1505,15 @@ export default function Editor() {
                     for (const clip of savedProject.videoClips) {
                         const libVideo = await getLibraryVideo(clip.libraryVideoId);
                         if (!libVideo) continue;
-                        validClips.push(clip);
                         if (!videoBlobsRef.current.has(clip.libraryVideoId)) {
                             videoBlobsRef.current.set(clip.libraryVideoId, libVideo.blob);
                             const url = URL.createObjectURL(libVideo.blob);
                             setClipUrl(clip.libraryVideoId, url);
                         }
                         clipAudioStateRef.current.set(clip.libraryVideoId, libVideo.hasAudio !== false);
+                        const clipUrl = videoUrlsRef.current.get(clip.libraryVideoId);
+                        const realDuration = clipUrl ? await probeMediaDuration(clipUrl) : 0;
+                        validClips.push(clampClipToRealDuration(clip, realDuration));
                     }
 
                     if (validClips.length > 0) {
@@ -1631,13 +1641,15 @@ export default function Editor() {
                         for (const clip of persistedClips) {
                             const libVideo = await getLibraryVideo(clip.libraryVideoId);
                             if (!libVideo) continue;
-                            validClips.push(clip);
                             if (!videoBlobsRef.current.has(clip.libraryVideoId)) {
                                 videoBlobsRef.current.set(clip.libraryVideoId, libVideo.blob);
                                 const url = URL.createObjectURL(libVideo.blob);
                                 setClipUrl(clip.libraryVideoId, url);
                             }
                             clipAudioStateRef.current.set(clip.libraryVideoId, libVideo.hasAudio !== false);
+                            const clipUrl = videoUrlsRef.current.get(clip.libraryVideoId);
+                            const realDuration = clipUrl ? await probeMediaDuration(clipUrl) : 0;
+                            validClips.push(clampClipToRealDuration(clip, realDuration));
                         }
 
                         if (validClips.length > 0) {
@@ -1703,9 +1715,11 @@ export default function Editor() {
                         if (videoRef.current) {
                             videoRef.current.src = videoToLoad.url;
                         }
-                        setVideoDuration(videoToLoad.duration);
-                        setTrimRange({ start: 0, end: videoToLoad.duration });
-                        const defaultFragments = generateDefaultZoomFragments(videoToLoad.duration);
+                        const probedDuration = await probeMediaDuration(videoToLoad.url);
+                        const safeLoadDuration = probedDuration > 0 ? Math.min(videoToLoad.duration, probedDuration) : videoToLoad.duration;
+                        setVideoDuration(safeLoadDuration);
+                        setTrimRange({ start: 0, end: safeLoadDuration });
+                        const defaultFragments = generateDefaultZoomFragments(safeLoadDuration);
                         setZoomFragments(defaultFragments);
 
                         if ('aspectRatio' in videoToLoad) {
@@ -1749,9 +1763,9 @@ export default function Editor() {
                                     libraryVideoId: libraryVideo.id,
                                     name: libraryVideo.fileName,
                                     startTime: 0,
-                                    duration: libraryVideo.duration,
+                                    duration: safeLoadDuration,
                                     trimStart: 0,
-                                    trimEnd: libraryVideo.duration,
+                                    trimEnd: safeLoadDuration,
                                     thumbnailUrl: libraryVideo.thumbnailUrl,
                                     hasCamera: 'cameraUrl' in videoToLoad && !!videoToLoad.cameraUrl,
                                     width,
