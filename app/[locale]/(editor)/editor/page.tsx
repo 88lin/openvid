@@ -1292,9 +1292,21 @@ export default function Editor() {
     }, [activeClipAtPlayhead]);
 
     const activeClipUrl = useMemo(() => {
-        if (!activeClipAtPlayhead) return videoUrl;
-        return videoUrlsMap.get(activeClipAtPlayhead.libraryVideoId) ?? videoUrl;
-    }, [activeClipAtPlayhead, videoUrl, videoUrlsMap]);
+        if (videoClips.length > 0) {
+            if (activeClipAtPlayhead) {
+                return videoUrlsMap.get(activeClipAtPlayhead.libraryVideoId) ?? videoUrl;
+            }
+            if (currentTime > 0) {
+             
+                const sorted = [...videoClips].sort((a, b) => a.startTime - b.startTime);
+                const previous = sorted.reverse().find(c => c.startTime <= currentTime);
+                if (previous) {
+                    return videoUrlsMap.get(previous.libraryVideoId) ?? videoUrl;
+                }
+            }
+        }
+        return videoUrl;
+    }, [activeClipAtPlayhead, videoUrl, videoUrlsMap, videoClips, currentTime]);
 
     const handleUpdateVideoClip = useCallback((clipId: string, updates: Partial<VideoTrackClip>) => {
         setVideoClips(prev => {
