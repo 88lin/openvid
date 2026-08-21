@@ -1019,9 +1019,7 @@ export default function Editor() {
         for (const audioEl of audioElementsRef.current.values()) {
             audioEl.pause();
         }
-        // Stop timeline playback before exporting: the rAF playback loop mutates
-        // video.src/currentTime for clip switching and would race against the
-        // exporter's own seeks, causing flicker and wrong frames.
+  
         justEndedRef.current = false;
         clipSwitchTimeRef.current = null;
         isSwitchingClipRef.current = false;
@@ -1193,18 +1191,11 @@ export default function Editor() {
             probe.src = probeUrl;
         });
 
-        // Library videos recorded in-browser store a wall-clock duration that can
-        // overshoot the real media length after WebM→MP4 conversion. An inflated
-        // trimEnd makes currentTime never reach the clip end, so multi-clip
-        // playback freezes instead of advancing. Clamp to the probed metadata.
         const safeDuration =
             Number.isFinite(realDuration) && realDuration > 0
                 ? Math.min(duration, realDuration)
                 : duration;
-        // Restore the persisted camera overlay (if any) for this library video.
-        // The camera blob is keyed by the clip's `libraryVideoId`, so a video
-        // recorded with a camera can recover its overlay when re-added from
-        // the library/history — not only on page reload via the saved project.
+ 
         const persistedCamera = await getCameraBlob(videoId).catch((err) => {
             console.error("Failed to restore camera blob from library:", err);
             return null;
@@ -1257,13 +1248,6 @@ export default function Editor() {
                     setIsPlaying(false);
                 }
 
-                // Restore the camera overlay from the persisted blob. The
-                // camera URL/config are project-level singletons, so we only
-                // set them when no other clip already owns the camera —
-                // otherwise the new clip's camera would clobber another
-                // clip's. The `hasCamera` flag on the clip itself is what
-                // gates visibility per-clip via `shouldShowCamera` at render
-                // time.
                 if (persistedCamera && !prevClips.some(c => c.hasCamera)) {
                     const restoredCameraUrl = URL.createObjectURL(persistedCamera.blob);
                     setCameraUrl(restoredCameraUrl);
@@ -1651,13 +1635,9 @@ export default function Editor() {
                     return;
                 }
 
-                // ── Fallback: legacy load from video-track / uploaded / recorded ──
                 const persistedClips = await getVideoTrack();
                 if (persistedClips !== null) {
                     if (persistedClips.length > 0 && videoClipsRef.current.length === 0) {
-                        // Bloque G: mark for migration — once the auto-save
-                        // persists the new-format project we clear the
-                        // legacy video-track store.
                         pendingLegacyMigrationRef.current = true;
                         const validClips: VideoTrackClip[] = [];
                         for (const clip of persistedClips) {
@@ -2091,9 +2071,6 @@ export default function Editor() {
                                         }
                                     };
 
-                                    // Safety timeout: if the next clip never becomes ready to play
-                                    // (corrupt blob, unsupported codec, missing metadata, etc.),
-                                    // recover the switching state so playback isn't stuck forever.
                                     switchTimeoutId = setTimeout(() => {
                                         cleanupSwitchListeners();
                                         clipSwitchTimeRef.current = null;
@@ -2117,8 +2094,6 @@ export default function Editor() {
                                     scheduleUpdateFrame();
                                     return;
                                 } else {
-                                    // No URL and no blob available for the next clip — stop gracefully
-                                    // instead of letting the playhead drift past the clip boundary.
                                     videoRef.current.pause();
                                     syncAudioPlaybackRef.current(clipEndOnTimeline, false);
                                     setIsPlaying(false);
