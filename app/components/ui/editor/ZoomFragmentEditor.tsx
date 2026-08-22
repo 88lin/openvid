@@ -102,7 +102,23 @@ export function ZoomFragmentEditor({
   const isTooShort = holdDuration < MIN_MOVEMENT_TRACK_DURATION;
   const canAddMovement = hasMovementSpaceAvailable(sortedMovements, holdBounds.start, holdBounds.end);
 
-  const handleToggle3D = () => onUpdate({ enable3D: !(fragment.enable3D ?? false) });
+  const handleToggle3D = () => {
+    const enabling = !(fragment.enable3D ?? false);
+    if (enabling && (fragment.perspective3DAngleX === undefined || fragment.perspective3DAngleY === undefined)) {
+
+      const baseAngleX = Math.round(((fragment.focusY - 50) / 50) * 15);
+      const baseAngleY = Math.round(-((fragment.focusX - 50) / 50) * 15);
+
+      onUpdate({
+        enable3D: true,
+        perspective3DAngleX: baseAngleX + 15,
+        perspective3DAngleY: baseAngleY - 15,
+        ...(fragment.perspective3DIntensity === undefined ? { perspective3DIntensity: 50 } : {}),
+      });
+      return;
+    }
+    onUpdate({ enable3D: enabling });
+  };
 
   return (
     <div className="flex flex-col h-full text-foreground">
