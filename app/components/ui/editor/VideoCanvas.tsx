@@ -435,7 +435,7 @@ function VideoCanvasInner({
             lastSetVideoUrlRef.current = null;
             lastLogicalUrlRef.current = null;
         }
-    }, [videoUrl, activeClipUrl, videoRef, mockupId]);
+    }, [videoUrl, activeClipUrl, videoRef, mockupId, mediaType]);
 
     // Track the real intrinsic aspect ratio of the video so the "none"
     useEffect(() => {

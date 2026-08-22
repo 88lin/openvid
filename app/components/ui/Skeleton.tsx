@@ -442,54 +442,54 @@ export function AudioMenuSkeleton() {
 }
 
 export function VideosMenuSkeleton() {
-  return (
-    <div className="p-4 flex flex-col gap-5 h-full relative">
-      
-      <div className="flex items-center gap-2">
-        <Skeleton width={20} height={20} variant="circle" />
-        <Skeleton height={16} width={50} />
-      </div>
+    return (
+        <div className="p-4 flex flex-col gap-5 h-full relative">
 
-      <div className="flex-1 overflow-y-hidden flex flex-col gap-2 -mx-1 px-1">
-        
-        <div className="mb-4">
-          <Skeleton height={32} variant="square" className="w-full rounded-md" />
-        </div>
-
-        <div className="flex flex-col gap-2">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div
-              key={i}
-              className="bg-muted/30 border border-border squircle-element overflow-hidden p-2.5 flex items-center gap-3"
-            >
-              <div className="shrink-0">
-                <Skeleton width={80} height={48} variant="square" className="rounded-md" />
-              </div>
-
-              <div className="flex-1 min-w-0 flex flex-col justify-center gap-2">
-                <Skeleton height={12} width="85%" />
-                <div className="flex items-center gap-2">
-                  <Skeleton height={10} width="35%" />
-                  <Skeleton height={10} width={8} />
-                  <Skeleton height={10} width="30%" />
-                </div>
-              </div>
-
-              <div className="flex items-center gap-1 shrink-0">
-                <Skeleton width={28} height={28} variant="square" className="rounded-md" />
-                <Skeleton width={28} height={28} variant="square" className="rounded-md" />
-              </div>
+            <div className="flex items-center gap-2">
+                <Skeleton width={20} height={20} variant="circle" />
+                <Skeleton height={16} width={50} />
             </div>
-          ))}
-        </div>
-      </div>
 
-      <div className="pt-2 border-t border-border shrink-0 flex justify-center">
-        <Skeleton height={10} width="70%" />
-      </div>
-      
-    </div>
-  );
+            <div className="flex-1 overflow-y-hidden flex flex-col gap-2 -mx-1 px-1">
+
+                <div className="mb-4">
+                    <Skeleton height={32} variant="square" className="w-full rounded-md" />
+                </div>
+
+                <div className="flex flex-col gap-2">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                        <div
+                            key={i}
+                            className="bg-muted/30 border border-border squircle-element overflow-hidden p-2.5 flex items-center gap-3"
+                        >
+                            <div className="shrink-0">
+                                <Skeleton width={80} height={48} variant="square" className="rounded-md" />
+                            </div>
+
+                            <div className="flex-1 min-w-0 flex flex-col justify-center gap-2">
+                                <Skeleton height={12} width="85%" />
+                                <div className="flex items-center gap-2">
+                                    <Skeleton height={10} width="35%" />
+                                    <Skeleton height={10} width={8} />
+                                    <Skeleton height={10} width="30%" />
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-1 shrink-0">
+                                <Skeleton width={28} height={28} variant="square" className="rounded-md" />
+                                <Skeleton width={28} height={28} variant="square" className="rounded-md" />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            <div className="pt-2 border-t border-border shrink-0 flex justify-center">
+                <Skeleton height={10} width="70%" />
+            </div>
+
+        </div>
+    );
 }
 
 export function HistoryMenuSkeleton() {
@@ -503,10 +503,10 @@ export function HistoryMenuSkeleton() {
                 <div className="grid grid-cols-2 gap-3">
                     {Array.from({ length: 6 }).map((_, i) => (
                         <div key={i} className="flex flex-col gap-2 p-2 rounded-lg bg-muted/40 border border-border">
-                            <Skeleton 
-                                variant="square" 
-                                className="w-full rounded-md" 
-                                style={{ aspectRatio: "16/9" } as React.CSSProperties} 
+                            <Skeleton
+                                variant="square"
+                                className="w-full rounded-md"
+                                style={{ aspectRatio: "16/9" } as React.CSSProperties}
                             />
                             <div className="space-y-1.5 mt-1">
                                 <Skeleton height={10} width="80%" />
@@ -521,89 +521,89 @@ export function HistoryMenuSkeleton() {
 }
 
 export function MotionGlobalConfigSkeleton() {
-  return (
-    <div className="p-4 flex flex-col gap-4 h-full relative">
-      <div className="flex items-center gap-2 shrink-0">
-        <Skeleton width={20} height={20} variant="circle" />
-        <Skeleton height={14} width={50} />
-      </div>
-
-      <div className="flex-1 overflow-y-hidden -mx-1 px-1">
-        <div className="flex flex-col gap-6">
-          {[6, 6, 2].map((count, sectionIndex) => (
-            <div key={sectionIndex}>
-              <div className="flex items-center gap-2 mb-3">
-                <Skeleton height={9} width={60} />
-                <div className="h-px flex-1 bg-muted" />
-              </div>
-
-              <div className="grid grid-cols-2 gap-2.5">
-                {Array.from({ length: count }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="squircle-element-camera border border-border bg-card p-2 flex flex-col gap-2"
-                  >
-                    <Skeleton
-                      variant="square"
-                      className="w-full aspect-[16/10] rounded-lg"
-                    />
-                    <Skeleton height={9} width="75%" />
-                  </div>
-                ))}
-              </div>
+    return (
+        <div className="p-4 flex flex-col gap-4 h-full relative">
+            <div className="flex items-center gap-2 shrink-0">
+                <Skeleton width={20} height={20} variant="circle" />
+                <Skeleton height={14} width={50} />
             </div>
-          ))}
-        </div>
-      </div>
 
-      <div className="shrink-0 flex flex-col gap-4 pt-4 border-t border-border">
-        {Array.from({ length: 2 }).map((_, i) => (
-          <div key={i} className="flex items-center gap-3">
-            <Skeleton width={14} height={14} variant="circle" />
-            <Skeleton height={10} width={70} />
-            <Skeleton height={6} className="flex-1" variant="default" />
-            <Skeleton height={10} width={24} />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+            <div className="flex-1 overflow-y-hidden -mx-1 px-1">
+                <div className="flex flex-col gap-6">
+                    {[2, 2].map((count, sectionIndex) => (
+                        <div key={sectionIndex}>
+                            <div className="flex items-center gap-2 mb-3">
+                                <Skeleton height={9} width={60} />
+                                <div className="h-px flex-1 bg-muted" />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2.5">
+                                {Array.from({ length: count }).map((_, i) => (
+                                    <div
+                                        key={i}
+                                        className="squircle-element-camera border border-border bg-card p-2 flex flex-col gap-2"
+                                    >
+                                        <Skeleton
+                                            variant="square"
+                                            className="w-full aspect-[16/10] rounded-lg"
+                                        />
+                                        <Skeleton height={9} width="75%" />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            <div className="shrink-0 flex flex-col gap-4 pt-4 border-t border-border">
+                {Array.from({ length: 2 }).map((_, i) => (
+                    <div key={i} className="flex items-center gap-3">
+                        <Skeleton width={14} height={14} variant="circle" />
+                        <Skeleton height={10} width={70} />
+                        <Skeleton height={6} className="flex-1" variant="default" />
+                        <Skeleton height={10} width={24} />
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
 }
 
 export function MotionFragmentEditorSkeleton() {
-  return (
-    <div className="flex flex-col h-full">
-      <div className="flex items-center gap-2 p-3 border-b border-border shrink-0">
-        <Skeleton width={28} height={28} variant="square" />
-        <Skeleton height={14} width={120} />
-      </div>
+    return (
+        <div className="flex flex-col h-full">
+            <div className="flex items-center gap-2 p-3 border-b border-border shrink-0">
+                <Skeleton width={28} height={28} variant="square" />
+                <Skeleton height={14} width={120} />
+            </div>
 
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6">
-        
-        <div className="flex flex-col gap-4">
-          <Skeleton height={44} variant="square" className="rounded-lg w-full" />
-          <Skeleton height={44} variant="square" className="rounded-lg w-full" />
+            <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6">
+
+                <div className="flex flex-col gap-4">
+                    <Skeleton height={44} variant="square" className="rounded-lg w-full" />
+                    <Skeleton height={44} variant="square" className="rounded-lg w-full" />
+                </div>
+
+                <div className="space-y-6 p-4 bg-muted/40 border border-border squircle-element">
+
+                    <div className="flex items-center gap-3">
+                        <Skeleton width={20} height={20} variant="circle" />
+                        <Skeleton height={14} width="50%" />
+                    </div>
+
+                    <div className="flex flex-col gap-5 items-center w-full">
+                        <Skeleton height={160} variant="square" className="w-full rounded-xl" />
+                        <Skeleton variant="circle" className="aspect-square w-full max-w-[180px]" />
+                    </div>
+
+                    <div className="space-y-3 pt-2">
+                        <Skeleton height={40} variant="square" className="rounded-lg w-full" />
+                        <Skeleton height={40} variant="square" className="rounded-lg w-full" />
+                    </div>
+
+                </div>
+            </div>
         </div>
-
-        <div className="space-y-6 p-4 bg-muted/40 border border-border squircle-element">
-          
-          <div className="flex items-center gap-3">
-            <Skeleton width={20} height={20} variant="circle" />
-            <Skeleton height={14} width="50%" />
-          </div>
-
-          <div className="flex flex-col gap-5 items-center w-full">
-             <Skeleton height={160} variant="square" className="w-full rounded-xl" />
-             <Skeleton variant="circle" className="aspect-square w-full max-w-[180px]" />
-          </div>
-
-          <div className="space-y-3 pt-2">
-             <Skeleton height={40} variant="square" className="rounded-lg w-full" />
-             <Skeleton height={40} variant="square" className="rounded-lg w-full" />
-          </div>
-
-        </div>
-      </div>
-    </div>
-  );
+    );
 }

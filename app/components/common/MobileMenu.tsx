@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Link } from "@/navigation";
+import { Link, useRouter } from "@/navigation";
 import { Icon } from "@iconify/react";
 import { useAuth } from "@/app/contexts/useAuth";
 import { hasAnyVideo } from "@/lib/video-cache-utils";
@@ -12,6 +12,7 @@ import { useTranslations } from "next-intl";
 
 export function MobileMenu() {
   const t = useTranslations('header');
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [hasCachedVideo, setHasCachedVideo] = useState(false);
   const { user, signOut } = useAuth();
@@ -49,7 +50,7 @@ export function MobileMenu() {
     try {
       await signOut();
       setIsOpen(false);
-      window.location.href = "/";
+      router.push("/");
     } catch (error) {
       console.error("Error signing out:", error);
       setIsLoggingOut(false);
@@ -128,17 +129,16 @@ export function MobileMenu() {
                 <Icon icon="solar:external-link-linear" className="w-4 h-4 ml-auto opacity-50" aria-hidden="true" />
               </a>
 
-              <a
+              <Link
                 href="/donate"
                 target="_blank"
-                rel="noopener noreferrer"
                 onClick={closeMenu}
                 className="flex items-center gap-3 px-4 py-3 text-neutral-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
               >
                 <Icon icon="mdi:donate" className="w-5 h-5" aria-hidden="true" />
                 <span>{t('donate')}</span>
                 <Icon icon="solar:external-link-linear" className="w-4 h-4 ml-auto opacity-50" aria-hidden="true" />
-              </a>
+              </Link>
             </div>
           </nav>
 

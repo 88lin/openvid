@@ -61,41 +61,28 @@ export function ToolsSidebar({
 
     const isPhotoMode = editorMode === "photo";
 
+    // Consolidated scroll-into-view: a single effect avoids multiple forced
+    // synchronous layouts. Using 'auto' (instant) instead of 'smooth' prevents
+    // a long-running scroll animation from blocking the main thread on selection.
     useEffect(() => {
-        if (newVideosCount > 0 && videosToolRef.current && activeTool !== "video") {
-            videosToolRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-    }, [newVideosCount, activeTool]);
+        let targetRef: React.RefObject<HTMLButtonElement | null> | null = null;
 
-    useEffect(() => {
-        if (selectedZoomFragmentId && zoomToolRef.current) {
-            zoomToolRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (newVideosCount > 0 && activeTool !== "video") {
+            targetRef = videosToolRef;
+        } else if (selectedZoomFragmentId) {
+            targetRef = zoomToolRef;
+        } else if (selectedAudioTrackId) {
+            targetRef = audioToolRef;
+        } else if (selectedVideoClipId) {
+            targetRef = videosToolRef;
+        } else if (activeTool === "camera") {
+            targetRef = cameraToolRef;
+        } else if (selectedElementId) {
+            targetRef = elementsToolRef;
         }
-    }, [selectedZoomFragmentId]);
 
-    useEffect(() => {
-        if (selectedAudioTrackId && audioToolRef.current) {
-            audioToolRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-    }, [selectedAudioTrackId]);
-
-    useEffect(() => {
-        if (selectedVideoClipId && videosToolRef.current) {
-            videosToolRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-    }, [selectedVideoClipId]);
-
-    useEffect(() => {
-        if (activeTool === "camera" && cameraToolRef.current) {
-            cameraToolRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-    }, [activeTool]);
-
-    useEffect(() => {
-        if (selectedElementId && elementsToolRef.current) {
-            elementsToolRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-    }, [selectedElementId]);
+        targetRef?.current?.scrollIntoView({ block: 'center' });
+    }, [newVideosCount, activeTool, selectedZoomFragmentId, selectedAudioTrackId, selectedVideoClipId, selectedElementId]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];

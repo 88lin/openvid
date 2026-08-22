@@ -35,7 +35,6 @@ import { MobileToolsMenu } from "@/app/components/ui/editor/MobileToolsMenu";
 import { MobileControlPanel } from "@/app/components/ui/editor/MobileControlPanel";
 import { EditorTopBar } from "@/app/components/ui/editor/EditorTopBar";
 import { VideoCanvas } from "@/app/components/ui/editor/VideoCanvas";
-import { PlayerControls } from "@/app/components/ui/editor/PlayerControls";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { TimelineSkeleton } from "@/app/components/ui/Skeleton";
 import { AudioTrimModal } from "@/app/components/ui/editor/AudioTrimModal";
@@ -62,6 +61,7 @@ const ExportOverlay = lazy(() => import("@/app/components/ui/ExportOverlay").the
 const VideoCropperModal = lazy(() => import("@/app/components/ui/editor/VideoCropperModal").then(mod => ({ default: mod.VideoCropperModal })));
 const ImageCropperModal = lazy(() => import("@/app/components/ui/editor/ImageCropperModal").then(mod => ({ default: mod.ImageCropperModal })));
 const PhotoEditorPlaceholder = lazy(() => import("@/app/components/ui/editor/PhotoEditorPlaceholder").then(mod => ({ default: mod.PhotoEditorPlaceholder })));
+const PlayerControls = lazy(() => import("@/app/components/ui/editor/PlayerControls").then(mod => ({ default: mod.PlayerControls })));
 
 export default function Editor() {
     // Editor mode (video/photo) from URL params
@@ -2948,6 +2948,7 @@ export default function Editor() {
                     {/* Video mode: Show player controls and timeline */}
                     {isVideoMode && (
                         <>
+                            <Suspense fallback={<div className="h-13 border-b border-border" />}>
                             <PlayerControls
                                 isPlaying={isPlaying}
                                 currentTime={currentTime}
@@ -2970,6 +2971,8 @@ export default function Editor() {
                                 onSplitClip={handleSplitVideoClip}
                                 canSplitClip={canSplitClip}
                             />
+
+                            </Suspense>
 
                             <Suspense fallback={<TimelineSkeleton />}>
                                 <Timeline

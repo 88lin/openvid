@@ -120,6 +120,13 @@ export function Mockup3DFrame({ device, ...stageProps }: FrameProps) {
     return () => window.removeEventListener("pointerup", onWinPointerUp);
   }, []);
 
+  const hoverRafRef = useRef<number | null>(null);
+  useEffect(() => {
+    return () => {
+      if (hoverRafRef.current !== null) cancelAnimationFrame(hoverRafRef.current);
+    };
+  }, []);
+
   const overlayStyle: React.CSSProperties =
     layout.overlay.kind === "inset"
       ? { position: "absolute", inset: `-${layout.overlay.inset}px`, zIndex: 2, overflow: "visible" }
@@ -181,13 +188,17 @@ export function Mockup3DFrame({ device, ...stageProps }: FrameProps) {
             setGrabbing(true);
           }}
           onPointerMove={(e) => {
-            if (!grabbing) {
-              const isCurrentlyHovering = hitsModel(e.clientX, e.clientY);
-              if (isCurrentlyHovering !== modelHovered) {
-                setModelHovered(isCurrentlyHovering);
-                stageProps.onHoverChange?.(isCurrentlyHovering);
+            if (grabbing || hoverRafRef.current !== null) return;
+            const clientX = e.clientX;
+            const clientY = e.clientY;
+            hoverRafRef.current = requestAnimationFrame(() => {
+              hoverRafRef.current = null;
+              const hit = hitsModel(clientX, clientY);
+              if (hit !== modelHovered) {
+                setModelHovered(hit);
+                stageProps.onHoverChange?.(hit);
               }
-            }
+            });
           }}
           onPointerUp={() => setGrabbing(false)}
           onPointerLeave={() => {

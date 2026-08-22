@@ -13,7 +13,6 @@ import { Button } from "@/components/ui/button";
 import { useRecording } from "@/app/contexts/RecordingContext";
 import RecordingSetupDialog from "../ui/RecordingSetupDialog";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { driver } from "driver.js";
 
 export default function Header() {
   const t = useTranslations("header");
@@ -49,48 +48,50 @@ export default function Header() {
       const driverTimer = setTimeout(() => {
         if (getIsMobileSnapshot()) return;
         if (document.getElementById("tour-video-upload")) {
-          const driverObj = driver({
-            showProgress: true,
-            animate: true,
-            nextBtnText: tTour("nextBtn"), 
-            prevBtnText: tTour("prevBtn"),
-            doneBtnText: tTour("doneBtn"),
-            popoverClass: "minimal-dark-theme",
-            onDestroyed: () => {
-              localStorage.setItem("openvid-tour-completed", "true");
-            },
-            steps: [
-              {
-                element: "#tour-record-btn",
-                popover: {
-                  title: tTour("step1.title"),
-                  description: `${tTour("step1.description")} <a href="/guide" target="_blank" style="color: #60a5fa; text-decoration: underline;">${tTour("step1.guideLinkText")}</a>`,
-                  side: "bottom",
-                  align: "center",
-                },
+          import("driver.js").then(({ driver }) => {
+            const driverObj = driver({
+              showProgress: true,
+              animate: true,
+              nextBtnText: tTour("nextBtn"), 
+              prevBtnText: tTour("prevBtn"),
+              doneBtnText: tTour("doneBtn"),
+              popoverClass: "minimal-dark-theme",
+              onDestroyed: () => {
+                localStorage.setItem("openvid-tour-completed", "true");
               },
-              {
-                element: "#tour-video-upload",
-                popover: {
-                  title: tTour("step2.title"),
-                  description: tTour("step2.description"),
-                  side: "bottom",
-                  align: "center",
+              steps: [
+                {
+                  element: "#tour-record-btn",
+                  popover: {
+                    title: tTour("step1.title"),
+                    description: `${tTour("step1.description")} <a href="/guide" target="_blank" style="color: #60a5fa; text-decoration: underline;">${tTour("step1.guideLinkText")}</a>`,
+                    side: "bottom",
+                    align: "center",
+                  },
                 },
-              },
-              {
-                element: "#tour-photo-upload",
-                popover: {
-                  title: tTour("step3.title"),
-                  description: tTour("step3.description"),
-                  side: "bottom",
-                  align: "center",
+                {
+                  element: "#tour-video-upload",
+                  popover: {
+                    title: tTour("step2.title"),
+                    description: tTour("step2.description"),
+                    side: "bottom",
+                    align: "center",
+                  },
                 },
-              },
-            ],
-          });
+                {
+                  element: "#tour-photo-upload",
+                  popover: {
+                    title: tTour("step3.title"),
+                    description: tTour("step3.description"),
+                    side: "bottom",
+                    align: "center",
+                  },
+                },
+              ],
+            });
 
-          driverObj.drive();
+            driverObj.drive();
+          });
         }
       }, 800);
 

@@ -6,7 +6,7 @@ import { useAuth } from "@/app/contexts/useAuth";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/utils/supabase/client";
-import { usePathname } from "@/navigation";
+import { usePathname, useRouter } from "@/navigation";
 
 type Theme = "light" | "dark" | "system";
 
@@ -65,6 +65,7 @@ export function UserMenuDropdown({
   const t = useTranslations('userMenu');
   const { user, profile } = useAuth();
   const pathname = usePathname();
+  const router = useRouter();
   const isEditorPage = pathname.startsWith("/editor");
   const [theme, setTheme] = useState<Theme>("system");
   const [isSavingTheme, setIsSavingTheme] = useState(false);
@@ -124,7 +125,7 @@ export function UserMenuDropdown({
     user?.email?.split("@")[0] ||
     t('defaultUser');
   const provider = profile?.provider || meta.provider || "email";
-  const editorHref = editorMode === "video" ? "/editor?mode=photo" : "/editor";
+  const editorHref = editorMode === "video" ? "/editor?mode=photo" : "/editor?mode=video";
   const editorLabel = editorMode === "video" ? t("photoEditor") : editorMode === "photo" ? t("videoEditor") : t("editor");
   const editorIcon = editorMode === "video" ? "solar:gallery-wide-linear" : "solar:video-frame-cut-2-linear";
 
@@ -154,10 +155,10 @@ export function UserMenuDropdown({
           </DropdownMenu.Item>
 
           <DropdownMenu.Item asChild>
-            <a href={editorHref} className={itemClasses}>
+            <Link href={editorHref} className={itemClasses}>
               <Icon icon={editorIcon} className="size-4" aria-hidden="true" />
               <span>{editorLabel}</span>
-            </a>
+            </Link>
           </DropdownMenu.Item>
 
           {showTheme && (
@@ -202,14 +203,14 @@ export function UserMenuDropdown({
 
           <DropdownMenu.Separator className="h-px bg-border my-1" />
 
-          <SignOutItem />
+          <SignOutItem router={router} />
         </DropdownMenu.Content>
       </DropdownMenu.Portal>
     </DropdownMenu.Root>
   );
 }
 
-function SignOutItem() {
+function SignOutItem({ router }: { router: ReturnType<typeof useRouter> }) {
   const t = useTranslations('userMenu');
   const { signOut } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -218,7 +219,7 @@ function SignOutItem() {
     setIsLoggingOut(true);
     try {
       await signOut();
-      window.location.href = "/";
+      router.push("/");
     } catch (error) {
       console.error("Error signing out:", error);
       setIsLoggingOut(false);
