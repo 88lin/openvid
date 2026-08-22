@@ -12,6 +12,12 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Generated browser assets are served as-is and are not application source.
+    "public/ffmpeg/**",
+    "public/draco/**",
+    // Independent backend and desktop projects have their own toolchains.
+    "openvid-back/**",
+    "openvid-autozoom/**",
   ]),
 ]);
 
