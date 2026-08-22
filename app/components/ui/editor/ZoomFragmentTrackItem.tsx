@@ -3,7 +3,8 @@
 import { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import { motion, useMotionValue } from "framer-motion";
 import type { ZoomFragment } from "@/types/zoom.types";
-import { zoomLevelToFactor } from "@/types/zoom.types";
+import { zoomLevelToFactor, speedToTransitionMs } from "@/types/zoom.types";
+import { MIN_MOVEMENT_TRACK_DURATION } from "./ZoomMovementTrackItem";
 
 const MIN_FRAGMENT_DURATION = 0.5;
 
@@ -80,6 +81,12 @@ export function ZoomFragmentTrackItem({
         return { minStart, maxEnd };
     }, [otherFragments, fragment.startTime, fragment.endTime, videoDuration, contentDuration]);
 
+    const minDurationSeconds = useMemo(() => {
+        if (!fragment.movementEnabled) return MIN_FRAGMENT_DURATION;
+        const transitionSec = speedToTransitionMs(fragment.speed) / 1000;
+        return Math.max(MIN_FRAGMENT_DURATION, MIN_MOVEMENT_TRACK_DURATION + transitionSec);
+    }, [fragment.movementEnabled, fragment.speed]);
+
 
     const handleDrag = useCallback((e: MouseEvent | TouchEvent | PointerEvent, info: { delta: { x: number } }) => {
         if (contentWidth === 0 || videoDuration === 0) return;
@@ -123,7 +130,7 @@ export function ZoomFragmentTrackItem({
         let newX = currentX + info.delta.x;
         let newWidth = currentWidth - info.delta.x;
 
-        const minWidth = timeToPixels(MIN_FRAGMENT_DURATION);
+        const minWidth = timeToPixels(minDurationSeconds);
         if (newWidth < minWidth) {
             newWidth = minWidth;
             newX = currentX + currentWidth - minWidth;
@@ -131,14 +138,14 @@ export function ZoomFragmentTrackItem({
 
         const minX = timeToPixels(boundaries.minStart);
         if (newX < minX) {
-            const diff = minX - newX;
+            const allowedShrink = currentX + currentWidth - minX;
             newX = minX;
-            newWidth = currentWidth - diff;
+            newWidth = Math.max(minWidth, Math.min(newWidth, allowedShrink));
         }
 
         fragmentX.set(newX);
         fragmentWidth.set(newWidth);
-    }, [contentWidth, videoDuration, fragmentX, fragmentWidth, boundaries, timeToPixels]);
+    }, [contentWidth, videoDuration, fragmentX, fragmentWidth, boundaries, minDurationSeconds, timeToPixels]);
 
     const handleResizeEndDrag = useCallback((e: MouseEvent | TouchEvent | PointerEvent, info: { delta: { x: number } }) => {
         if (contentWidth === 0 || videoDuration === 0) return;
@@ -147,15 +154,13 @@ export function ZoomFragmentTrackItem({
 
         let newWidth = currentWidth + info.delta.x;
 
-        const minWidth = timeToPixels(MIN_FRAGMENT_DURATION);
-        newWidth = Math.max(minWidth, newWidth);
-
         const currentX = fragmentX.get();
         const maxWidth = timeToPixels(boundaries.maxEnd) - currentX;
-        newWidth = Math.min(newWidth, maxWidth);
+        const minWidth = timeToPixels(minDurationSeconds);
+        newWidth = Math.max(minWidth, Math.min(newWidth, Math.max(minWidth, maxWidth)));
 
         fragmentWidth.set(newWidth);
-    }, [contentWidth, videoDuration, fragmentWidth, fragmentX, boundaries, timeToPixels]);
+    }, [contentWidth, videoDuration, fragmentWidth, fragmentX, boundaries, minDurationSeconds, timeToPixels]);
 
     const handleResizeStart = useCallback((handle: 'start' | 'end') => {
         setIsResizing(handle);

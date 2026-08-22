@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useMemo, useEffect } from "react";
+import { useRef, useMemo, useEffect, useState } from "react";
 import { Icon } from "@iconify/react";
 import { useTranslations } from "next-intl";
 import { SliderControl } from "../../../../components/ui/SliderControl";
@@ -100,7 +100,31 @@ export function ZoomFragmentEditor({
   const holdBounds = useMemo(() => getFragmentHoldBounds(fragment), [fragment]);
   const holdDuration = Math.max(0, holdBounds.end - holdBounds.start);
   const isTooShort = holdDuration < MIN_MOVEMENT_TRACK_DURATION;
+  const [showTooShortWarning, setShowTooShortWarning] = useState(false);
   const canAddMovement = hasMovementSpaceAvailable(sortedMovements, holdBounds.start, holdBounds.end);
+
+  useEffect(() => {
+    if (!showTooShortWarning) return;
+    const id = setTimeout(() => setShowTooShortWarning(false), 3000);
+    return () => clearTimeout(id);
+  }, [showTooShortWarning]);
+
+  const handleMovementToggleClick = () => {
+    if (isTooShort) {
+      setShowTooShortWarning(true);
+      return;
+    }
+    onToggleMovement(!movementEnabled);
+  };
+
+  const minAllowedSpeed = useMemo(() => {
+    if (!movementEnabled) return 1;
+    const SPEED_MIN_MS = 150;
+    const SPEED_MAX_MS = 2000;
+    const fragmentDurationSec = Math.max(0, fragment.endTime - fragment.startTime);
+    const maxAllowedTransitionMs = (fragmentDurationSec - MIN_MOVEMENT_TRACK_DURATION) * 1000;
+    return Math.max(1, Math.min(10, 1 + (9 * (SPEED_MAX_MS - Math.max(SPEED_MIN_MS, Math.min(SPEED_MAX_MS, maxAllowedTransitionMs)))) / (SPEED_MAX_MS - SPEED_MIN_MS)));
+  }, [movementEnabled, fragment.startTime, fragment.endTime]);
 
   const handleToggle3D = () => {
     const enabling = !(fragment.enable3D ?? false);
@@ -172,13 +196,13 @@ export function ZoomFragmentEditor({
             <div className={isTooShort ? "opacity-50 cursor-not-allowed" : ""}>
               <Toggle
                 checked={movementEnabled}
-                onChange={() => !isTooShort && onToggleMovement(!movementEnabled)}
+                onChange={handleMovementToggleClick}
                 activeColor="bg-emerald-500"
               />
             </div>
           </div>
 
-          {isTooShort ? (
+          {isTooShort && showTooShortWarning ? (
             <div className="p-3 bg-amber-500/10 border border-amber-500/20 squircle-element">
               <div className="flex items-center gap-2 text-xs text-amber-600 dark:text-amber-400">
                 <span>{t("movement.tooShort")}</span>
@@ -259,7 +283,7 @@ export function ZoomFragmentEditor({
         )}
 
         <SliderControl icon="mdi:magnify-plus-outline" label={t("sliders.zoomLevel")} value={fragment.zoomLevel} min={1} max={10} step={0.1} onChange={(value) => onUpdate({ zoomLevel: value })} />
-        <SliderControl icon="mdi:speedometer" label={t("sliders.transitionSpeed")} value={fragment.speed} min={1} max={10} step={0.1} onChange={(value) => onUpdate({ speed: value })} />
+        <SliderControl icon="mdi:speedometer" label={t("sliders.transitionSpeed")} value={Math.max(minAllowedSpeed, fragment.speed)} min={minAllowedSpeed} max={10} step={0.1} onChange={(value) => onUpdate({ speed: value })} />
 
         <div className="h-px bg-border" />
 
