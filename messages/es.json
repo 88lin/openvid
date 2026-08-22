@@ -963,7 +963,8 @@
           "label": "JPEG Media",
           "description": "Calidad 80% — Tamaño reducido"
         }
-      }
+      },
+      "exporting": "Exportando..."
     },
     "effect3d": {
       "title": "Efecto 3D",

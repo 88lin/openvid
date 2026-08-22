@@ -2222,7 +2222,7 @@ function VideoCanvasInner({
 
                                                         {(isVideoSelected || isVideoHovered) && hasMedia && !isDraggingRotation && !imagePhoneActive && !PHOTO_MOCKUPS.includes(mockupId) && (
                                                             <div
-                                                                className={`absolute -inset-px border pointer-events-none z-10 opacity-80 ${isVideoSelected ? "border-blue-500" : "border-foreground/60"
+                                                                className={`absolute -inset-px border pointer-events-none z-10 opacity-80 ${isVideoSelected ? "border-blue-500" : "border-white/80"
                                                                     }`}
                                                                 style={{ borderRadius: `${getMockupOuterRadius(mockupId, roundedCorners) + 1}px` }}
                                                             />
@@ -2484,14 +2484,14 @@ function VideoCanvasInner({
                                         {mockupAlignmentGuides.vertical.map((x, index) => (
                                             <div
                                                 key={`mockup-v-${index}`}
-                                                className="absolute top-0 bottom-0 w-0.5 bg-foreground/30 pointer-events-none"
+                                                className="absolute top-0 bottom-0 w-0.5 bg-white/30 pointer-events-none"
                                                 style={{ left: `${x}%`, zIndex: VIDEO_Z_INDEX + 100 }}
                                             />
                                         ))}
                                         {mockupAlignmentGuides.horizontal.map((y, index) => (
                                             <div
                                                 key={`mockup-h-${index}`}
-                                                className="absolute left-0 right-0 h-0.5 bg-foreground/30 pointer-events-none"
+                                                className="absolute left-0 right-0 h-0.5 bg-white/30 pointer-events-none"
                                                 style={{ top: `${y}%`, zIndex: VIDEO_Z_INDEX + 100 }}
                                             />
                                         ))}

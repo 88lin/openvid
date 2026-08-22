@@ -360,7 +360,7 @@ export function CanvasElementsLayer({
 
                 const selectionBorder = (isSelected || isHovered) ? (
                     <div
-                        className={`absolute inset-0 border pointer-events-none ${isSelected ? 'border-blue-500' : 'border-foreground/40'}`}
+                        className={`absolute inset-0 border pointer-events-none ${isSelected ? 'border-blue-500' : 'border-white/70'}`}
                         style={{ borderRadius: '2px' }}
                         aria-hidden="true"
                     />

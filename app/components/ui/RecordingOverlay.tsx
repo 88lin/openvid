@@ -67,89 +67,64 @@ export default function RecordingOverlay() {
 
             {isRecording && (
                 <div className="absolute top-20 left-1/2 -translate-x-1/2 pointer-events-auto">
-                    <div className="relative flex items-center gap-4 border border-white/10 squircle-element-camera pl-5 pr-2 py-2 shadow-[0_8px_32px_rgba(0,0,0,0.6)] overflow-hidden">
+                    <div className="relative flex items-center gap-5 p-3.5 pl-6 border border-transparent squircle-element-camera transition-all duration-300 min-w-[340px] overflow-hidden focus:outline-none"
+                        style={{
+                            background: "radial-gradient(ellipse at 50% 0%, rgb(48, 48, 52) 0%, rgb(18, 18, 20) 85%)",
+                            boxShadow: `
+                            rgba(255, 255, 255, 0.22) 0px 1px 0px 0px inset, 
+                            rgba(255, 255, 255, 0.04) 0px 0px 0px 1px, 
+                            rgba(0, 0, 0, 0.8) 0px 24px 48px -12px
+                        `
+                        }}>
 
-                        <div className="absolute inset-0 z-0 backdrop-blur-[8px] isolate" style={{ filter: "url(#glass-distortion)" }} />
-                        <div className="absolute inset-0 z-[1] bg-[#1E1E20]/60 transition-colors duration-300" />
-                        <div className="absolute inset-0 z-[2] bg-[radial-gradient(circle_at_center,rgba(0,0,0,0.4)_0%,transparent_70%)] pointer-events-none" />
-                        <div className="absolute inset-0 z-[3] shadow-[inset_1px_1px_1px_0_rgba(255,255,255,0.15),_inset_-1px_-1px_1px_0_rgba(255,255,255,0.05)] pointer-events-none" />
+                        <div className="absolute top-0 left-1/4 right-1/4 h-[1px] bg-gradient-to-r from-transparent via-white/40 to-transparent pointer-events-none z-20" />
 
-                        <div className="relative z-10 flex items-center gap-4">
-                            <div className="flex items-center gap-3 pr-2 border-r border-white/10">
-                                <div className="w-3 h-3 rounded-full bg-red-500 animate-pulse" />
-                                <span className="text-sm text-white font-medium">{t('recording.status')}</span>
-                                <span className="text-sm text-red-400 font-mono font-bold">
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-6 bg-white/5 rounded-full blur-md pointer-events-none z-15" />
+
+                        <div className="absolute -top-4 -left-4 size-20 bg-white/10 rounded-full blur-[15px] pointer-events-none" />
+
+                        <div className="absolute top-0 right-2 bottom-0 hidden h-full w-px bg-gradient-to-b from-transparent via-white/10 to-transparent lg:flex pointer-events-none" />
+
+                        <div className="relative z-10 flex items-center justify-between w-full gap-6">
+
+                            <div className="relative flex items-center gap-5 pr-2">
+
+                                <div className="flex items-center gap-3">
+                                    <div className="relative flex size-2.5 items-center justify-center">
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
+                                        <span className="relative inline-flex rounded-full size-2.5 bg-red-500"></span>
+                                    </div>
+                                    <span className="text-[11px] text-zinc-300 font-medium tracking-wider uppercase">{t('recording.status')}</span>
+                                </div>
+
+                                <div className="h-4 w-px bg-gradient-to-b from-transparent via-white/15 to-transparent" />
+
+                                <span className="text-base text-white font-mono font-bold tracking-tight">
                                     {formatTime(recordingTime)}
                                 </span>
                             </div>
+
                             <button
                                 onClick={stopRecording}
-                                className="group flex items-center gap-3 px-4 py-1.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 hover:border-red-500/50 squircle-element-camera transition-all"
+                                className="group flex items-center gap-3.5 px-4 py-2 bg-red-600 hover:bg-red-500 text-white font-medium rounded-lg transition-all duration-200 active:scale-[0.97] cursor-pointer shadow-[0_4px_12px_rgba(220,38,38,0.25)] hover:shadow-[0_4px_16px_rgba(239,68,68,0.4)] border border-transparent"
+                                style={{
+                                    boxShadow: "rgba(255, 255, 255, 0.3) 0px 1px 0px 0px inset"
+                                }}
                                 aria-label={t('recording.stop')}
                             >
-                                <div className="flex items-center gap-2 text-red-400 text-sm font-medium">
-                                    <div className="w-3 h-3 bg-red-500 rounded-sm group-hover:scale-110 transition-transform" />
+                                <div className="flex items-center gap-2.5 text-sm font-semibold tracking-wide">
+                                    <div className="size-2.5 bg-white rounded-[2px] group-hover:scale-90 transition-transform duration-200" />
                                     {t('recording.stop')}
                                 </div>
-                                <div className="flex items-center gap-1 text-[11px] bg-red-500/10 text-red-300 px-1.5 py-0.5 rounded border border-red-500/20">
-                                    <kbd>Alt</kbd>
-                                    <span>+</span>
-                                    <kbd>D</kbd>
+
+                                <div className="flex items-center gap-0.5 text-[10px] bg-black/20 text-red-100/90 px-2 py-0.5 rounded border border-black/10 font-medium">
+                                    <kbd className="font-sans">Alt</kbd>
+                                    <span className="opacity-60">+</span>
+                                    <kbd className="font-sans">D</kbd>
                                 </div>
                             </button>
                         </div>
                     </div>
-
-                    <svg style={{ display: "none" }}>
-                        <filter
-                            id="glass-distortion"
-                            x="0%"
-                            y="0%"
-                            width="100%"
-                            height="100%"
-                            filterUnits="objectBoundingBox"
-                        >
-                            <feTurbulence
-                                type="fractalNoise"
-                                baseFrequency="0.01 0.01"
-                                numOctaves="1"
-                                seed="5"
-                                result="turbulence"
-                            />
-                            <feComponentTransfer in="turbulence" result="mapped">
-                                <feFuncR type="gamma" amplitude="1" exponent="10" offset="0.5" />
-                                <feFuncG type="gamma" amplitude="0" exponent="1" offset="0" />
-                                <feFuncB type="gamma" amplitude="0" exponent="1" offset="0.5" />
-                            </feComponentTransfer>
-                            <feGaussianBlur in="turbulence" stdDeviation="3" result="softMap" />
-                            <feSpecularLighting
-                                in="softMap"
-                                surfaceScale="5"
-                                specularConstant="1"
-                                specularExponent="100"
-                                lightingColor="white"
-                                result="specLight"
-                            >
-                                <fePointLight x="-200" y="-200" z="300" />
-                            </feSpecularLighting>
-                            <feComposite
-                                in="specLight"
-                                operator="arithmetic"
-                                k1="0"
-                                k2="1"
-                                k3="1"
-                                k4="0"
-                                result="litImage"
-                            />
-                            <feDisplacementMap
-                                in="SourceGraphic"
-                                in2="softMap"
-                                scale="100"
-                                xChannelSelector="R"
-                                yChannelSelector="G"
-                            />
-                        </filter>
-                    </svg>
                 </div>
             )}
 

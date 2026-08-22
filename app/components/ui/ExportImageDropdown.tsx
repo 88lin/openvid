@@ -180,10 +180,24 @@ export function ExportImageDropdown({
                     className="px-3 py-2 text-sm gap-2 min-w-27.5 text-white"
                     size="sm"
                     disabled={isExporting}
-                    aria-label={t("button")}
+                    aria-label={isExporting ? t("exporting") : t("button")}
                 >
-                    <Icon icon="icon-park-outline:export" width="18" aria-hidden="true" />
-                    {t("button")}
+                    {isExporting ? (
+                        <>
+                            <Icon icon="svg-spinners:180-ring-with-bg" width="18" aria-hidden="true" />
+                            <span className="truncate">
+                                {t("exporting")}
+                                {exportProgress.progress > 0 && (
+                                    <span className="tabular-nums opacity-80"> {Math.round(exportProgress.progress)}%</span>
+                                )}
+                            </span>
+                        </>
+                    ) : (
+                        <>
+                            <Icon icon="icon-park-outline:export" width="18" aria-hidden="true" />
+                            {t("button")}
+                        </>
+                    )}
                 </Button>
             </PopoverTrigger>
 
