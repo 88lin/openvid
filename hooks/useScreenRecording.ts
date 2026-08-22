@@ -8,6 +8,7 @@ import { DEFAULT_RECORDING_SETUP, requestCameraStream, requestMicrophoneStream }
 import { clearAllThumbnailCache } from "@/lib/thumbnail-cache";
 import { clearVideoTrack } from "@/lib/video-upload-cache";
 import { clearVideoProjectAndAudios } from "@/lib/video-project-cache";
+import { normalizeRecordingBlob, probeBlobDuration, type NormalizedRecording } from "@/lib/webm-duration.utils";
 
 export type { RecordingState, RecordingResult, VideoData, RecordingContextType };
 
@@ -120,6 +121,53 @@ let cachedLoadedVideo: {
   cameraUrl: string | null;
 } | null = null;
 
+/**
+ * Self-healing migration: legacy recordings stored by MediaRecorder lack
+ * duration metadata. When such a blob is loaded, remux it (packet copy) and
+ * write the fixed version back to IndexedDB so this only ever happens once.
+ */
+async function migrateLegacyRecording(
+  data: { blob: Blob; duration: number; videoId?: string; timestamp?: number; cameraBlob?: Blob | null; cameraConfig?: CameraConfig | null }
+): Promise<{ blob: Blob; duration: number }> {
+  try {
+    const probed = await probeBlobDuration(data.blob);
+    if (Number.isFinite(probed)) {
+      return { blob: data.blob, duration: data.duration };
+    }
+
+    const normalized = await normalizeRecordingBlob(data.blob);
+    if (!normalized.changed) {
+      return { blob: data.blob, duration: data.duration };
+    }
+
+    const duration =
+      normalized.duration > 0 ? normalized.duration : data.duration;
+
+    const db = await getDB();
+    await new Promise<void>((resolve, reject) => {
+      const transaction = db.transaction(["videos"], "readwrite");
+      const store = transaction.objectStore("videos");
+      const putRequest = store.put(
+        { ...data, blob: normalized.blob, duration },
+        "currentVideo"
+      );
+      putRequest.onsuccess = () => {
+        db.close();
+        resolve();
+      };
+      putRequest.onerror = () => {
+        db.close();
+        reject(putRequest.error);
+      };
+    });
+
+    return { blob: normalized.blob, duration };
+  } catch (error) {
+    console.warn("Legacy recording migration failed:", error);
+    return { blob: data.blob, duration: data.duration };
+  }
+}
+
 function releaseCachedLoadedVideo(): void {
   if (cachedLoadedVideo) {
     URL.revokeObjectURL(cachedLoadedVideo.url);
@@ -160,36 +208,44 @@ export async function loadVideoFromIndexedDB(): Promise<{
           const timestamp = data.timestamp || Date.now();
           const cameraBlob: Blob | null = data.cameraBlob ?? null;
 
-          if (cachedLoadedVideo && cachedLoadedVideo.videoId === videoId) {
+          void (async () => {
+            // Heal legacy recordings whose WebM header has no duration.
+            const { blob, duration } =
+              cachedLoadedVideo && cachedLoadedVideo.videoId === videoId
+                ? { blob: data.blob as Blob, duration: data.duration as number }
+                : await migrateLegacyRecording(data);
+
+            if (cachedLoadedVideo && cachedLoadedVideo.videoId === videoId) {
+              resolve({
+                blob,
+                duration,
+                url: cachedLoadedVideo.url,
+                videoId,
+                timestamp,
+                isRecordedVideo: data.isRecordedVideo || false,
+                cameraBlob,
+                cameraUrl: cachedLoadedVideo.cameraUrl,
+                cameraConfig: data.cameraConfig ?? null,
+              });
+              return;
+            }
+
+            releaseCachedLoadedVideo();
+            const url = URL.createObjectURL(blob);
+            const cameraUrl = cameraBlob ? URL.createObjectURL(cameraBlob) : null;
+            cachedLoadedVideo = { videoId, url, cameraUrl };
             resolve({
-              blob: data.blob,
-              duration: data.duration,
-              url: cachedLoadedVideo.url,
+              blob,
+              duration,
+              url,
               videoId,
               timestamp,
               isRecordedVideo: data.isRecordedVideo || false,
               cameraBlob,
-              cameraUrl: cachedLoadedVideo.cameraUrl,
+              cameraUrl,
               cameraConfig: data.cameraConfig ?? null,
             });
-            return;
-          }
-
-          releaseCachedLoadedVideo();
-          const url = URL.createObjectURL(data.blob);
-          const cameraUrl = cameraBlob ? URL.createObjectURL(cameraBlob) : null;
-          cachedLoadedVideo = { videoId, url, cameraUrl };
-          resolve({
-            blob: data.blob,
-            duration: data.duration,
-            url,
-            videoId,
-            timestamp,
-            isRecordedVideo: data.isRecordedVideo || false,
-            cameraBlob,
-            cameraUrl,
-            cameraConfig: data.cameraConfig ?? null,
-          });
+          })();
         } else {
           resolve(null);
         }
@@ -418,13 +474,31 @@ export function useScreenRecording() {
             return;
           }
           setState("processing");
-          const duration = (Date.now() - startTimeRef.current) / 1000;
+          const wallClockDuration = (Date.now() - startTimeRef.current) / 1000;
           cleanupStreams();
           try {
             const rawScreenBlob =
               screenBlob || new Blob([], { type: screenMime || "video/webm" });
-            await saveVideoToIndexedDB(rawScreenBlob, duration, {
-              cameraBlob,
+            // MediaRecorder WebMs lack duration metadata; remux (packet copy,
+            // no re-encode) so the stored file reports a real duration.
+            let normalizedScreen: NormalizedRecording;
+            let normalizedCamera: NormalizedRecording | null = null;
+            try {
+              [normalizedScreen, normalizedCamera] = await Promise.all([
+                normalizeRecordingBlob(rawScreenBlob),
+                cameraBlob
+                  ? normalizeRecordingBlob(cameraBlob)
+                  : Promise.resolve(null as NormalizedRecording | null),
+              ]);
+            } catch (e) {
+              console.warn("Recording normalization failed, storing raw blob:", e);
+              normalizedScreen = { blob: rawScreenBlob, duration: 0, changed: false };
+            }
+            const duration = normalizedScreen.duration > 0
+              ? normalizedScreen.duration
+              : wallClockDuration;
+            await saveVideoToIndexedDB(normalizedScreen.blob, duration, {
+              cameraBlob: normalizedCamera?.blob ?? null,
               cameraConfig: cameraConfigRef.current,
             });
             await clearVideoTrack();
