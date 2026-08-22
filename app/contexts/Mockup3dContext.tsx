@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, useRef, type ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useRef, useMemo, type ReactNode } from "react";
 import { DEVICE_VIEWER_DEFAULTS } from "@/lib/phone3d.utils";
 import type { EnvironmentPreset } from "@/lib/viewer-controls3d";
 
@@ -100,30 +100,39 @@ export function Mockup3dProvider({ children }: { children: ReactNode }) {
     setViewer3DEnvironment(defaults.environment);
   }, [imagePhoneDevice]);
 
+  const value = useMemo(() => ({
+    selectedTemplateId, setSelectedTemplateId,
+    motionImageUrl, setMotionImageUrl,
+    motionIntensity, setMotionIntensity,
+    imagePhoneActive, setImagePhoneActive,
+    imagePhoneX, setImagePhoneX,
+    imagePhoneY, setImagePhoneY,
+    imagePhoneScale, setImagePhoneScale,
+    imagePhoneRotX, setImagePhoneRotX,
+    imagePhoneRotY, setImagePhoneRotY,
+    imagePhoneRotZ, setImagePhoneRotZ,
+    imagePhonePerspective, setImagePhonePerspective,
+    imagePhoneDevice, setImagePhoneDevice,
+    imagePhonePresetId, setImagePhonePresetId,
+    imagePhoneOpening, setImagePhoneOpening,
+    imagePhoneShadow, setImagePhoneShadow,
+    imagePhoneShadowColor, setImagePhoneShadowColor,
+    imagePhoneRefWidth, setImagePhoneRefWidth,
+    viewer3DAutoRotate, setViewer3DAutoRotate,
+    viewer3DRotationSpeed, setViewer3DRotationSpeed,
+    viewer3DGlow, setViewer3DGlow,
+    viewer3DEnvironment, setViewer3DEnvironment,
+  }), [
+    selectedTemplateId, motionImageUrl, motionIntensity,
+    imagePhoneActive, imagePhoneX, imagePhoneY, imagePhoneScale,
+    imagePhoneRotX, imagePhoneRotY, imagePhoneRotZ, imagePhonePerspective,
+    imagePhoneDevice, imagePhonePresetId, imagePhoneOpening,
+    imagePhoneShadow, imagePhoneShadowColor, imagePhoneRefWidth,
+    viewer3DAutoRotate, viewer3DRotationSpeed, viewer3DGlow, viewer3DEnvironment,
+  ]);
+
   return (
-    <Mockup3dContext.Provider value={{
-      selectedTemplateId, setSelectedTemplateId,
-      motionImageUrl, setMotionImageUrl,
-      motionIntensity, setMotionIntensity,
-      imagePhoneActive, setImagePhoneActive,
-      imagePhoneX, setImagePhoneX,
-      imagePhoneY, setImagePhoneY,
-      imagePhoneScale, setImagePhoneScale,
-      imagePhoneRotX, setImagePhoneRotX,
-      imagePhoneRotY, setImagePhoneRotY,
-      imagePhoneRotZ, setImagePhoneRotZ,
-      imagePhonePerspective, setImagePhonePerspective,
-      imagePhoneDevice, setImagePhoneDevice,
-      imagePhonePresetId, setImagePhonePresetId,
-      imagePhoneOpening, setImagePhoneOpening,
-      imagePhoneShadow, setImagePhoneShadow,
-      imagePhoneShadowColor, setImagePhoneShadowColor,
-      imagePhoneRefWidth, setImagePhoneRefWidth,
-      viewer3DAutoRotate, setViewer3DAutoRotate,
-      viewer3DRotationSpeed, setViewer3DRotationSpeed,
-      viewer3DGlow, setViewer3DGlow,
-      viewer3DEnvironment, setViewer3DEnvironment,
-    }}>
+    <Mockup3dContext.Provider value={value}>
       {children}
     </Mockup3dContext.Provider>
   );

@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useState } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
 import type { Tool } from "@/types/editor.types";
 
 const VALID_TOOLS: ReadonlySet<Tool> = new Set<Tool>([
@@ -25,17 +25,22 @@ function parseTool(value: string | null): Tool {
 }
 
 export function useActiveTool(): [Tool, (next: Tool) => void] {
-    const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
 
-    const tool = parseTool(searchParams.get("menu"));
+    const urlTool = parseTool(searchParams.get("menu"));
+    const [override, setOverride] = useState<Tool | null>(null);
+    const [overrideFor, setOverrideFor] = useState<Tool>(urlTool);
+    const effectiveOverride = overrideFor === urlTool ? override : null;
+    const tool = effectiveOverride ?? urlTool;
 
     const setTool = useCallback((next: Tool) => {
-        const params = new URLSearchParams(searchParams.toString());
+        setOverrideFor(urlTool);
+        setOverride(next);
+        const params = new URLSearchParams(window.location.search);
         params.set("menu", next);
-        router.replace(`${pathname}?${params.toString()}`);
-    }, [router, pathname, searchParams]);
+        window.history.replaceState(null, "", `${pathname}?${params.toString()}`);
+    }, [pathname, urlTool]);
 
     return [tool, setTool];
 }

@@ -4,9 +4,10 @@ import { useRef, useState, useCallback } from "react";
 import { saveUploadedVideo, clearVideoTrack } from "@/lib/video-upload-cache";
 import { saveUploadedImage } from "@/lib/image-upload-cache";
 import { clearVideoProjectAndAudios } from "@/lib/video-project-cache";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import GitHubBadge from "@/components/ui/GitHubStars";
+import { useRouter } from "@/navigation";
 
 interface HeroProps {
   onVideoUpload?: (file: File) => void;
@@ -15,7 +16,7 @@ interface HeroProps {
 
 export default function Hero({ onVideoUpload, onPhotoUpload }: HeroProps) {
   const t = useTranslations("hero");
-  const locale = useLocale();
+  const router = useRouter();
 
   const videoInputRef = useRef<HTMLInputElement>(null);
   const [isDraggingVideo, setIsDraggingVideo] = useState(false);
@@ -32,13 +33,13 @@ export default function Hero({ onVideoUpload, onPhotoUpload }: HeroProps) {
         if (onVideoUpload) {
           onVideoUpload(file);
         }
-        window.location.href = `/${locale}/editor?mode=video`;
+        router.push("/editor?mode=video");
       } catch (error) {
         console.error("Error uploading video:", error);
         setIsUploadingVideo(false);
       }
     },
-    [onVideoUpload, locale]
+    [onVideoUpload, router]
   );
 
   const handleVideoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -78,13 +79,13 @@ export default function Hero({ onVideoUpload, onPhotoUpload }: HeroProps) {
         if (onPhotoUpload) {
           onPhotoUpload(file);
         }
-        window.location.href = `/${locale}/editor?mode=photo`;
+        router.push("/editor?mode=photo");
       } catch (error) {
         console.error("Error uploading photo:", error);
         setIsUploadingPhoto(false);
       }
     },
-    [onPhotoUpload, locale]
+    [onPhotoUpload, router]
   );
 
   const handlePhotoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
