@@ -1,3 +1,4 @@
+import { AspectRatio } from "@/types";
 import { normalizeVideoFile } from "./video-conversion";
 import type { VideoTrackClip } from "@/types/video-track.types";
 
@@ -248,4 +249,32 @@ export async function clearVideoTrack(): Promise<void> {
   } catch (error) {
     console.warn("Failed to clear video track:", error);
   }
+}
+
+export const MAX_VIDEO_SIZE = 500 * 1024 * 1024; // 500MB
+export const ALLOWED_VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime", "video/x-matroska"];
+
+export function mapAspectRatio(ratio: string): AspectRatio {
+    const parts = ratio.split(/[:\/]/).map(Number);
+    const w = parts[0];
+    const h = parts[1];
+    if (!w || !h) return "auto";
+    const value = w / h;
+    const targets: Array<[AspectRatio, number]> = [
+        ["16:9", 16 / 9],
+        ["9:16", 9 / 16],
+        ["1:1", 1],
+        ["4:3", 4 / 3],
+        ["3:4", 3 / 4],
+    ];
+    let best: AspectRatio = "auto";
+    let bestDiff = Infinity;
+    for (const [label, target] of targets) {
+        const diff = Math.abs(value - target);
+        if (diff < bestDiff) {
+            bestDiff = diff;
+            best = label;
+        }
+    }
+    return bestDiff / value < 0.02 ? best : "auto";
 }

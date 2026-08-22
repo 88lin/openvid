@@ -6,9 +6,9 @@ import type { RecordingState, RecordingResult, VideoData, RecordingContextType }
 import type { CameraConfig, RecordingSetupConfig } from "@/types/camera.types";
 import { DEFAULT_RECORDING_SETUP, requestCameraStream, requestMicrophoneStream } from "@/types/camera.types";
 import { clearAllThumbnailCache } from "@/lib/thumbnail-cache";
-import { convertToMp4 } from "@/lib/video-conversion";
 import { clearVideoTrack } from "@/lib/video-upload-cache";
 import { clearVideoProjectAndAudios } from "@/lib/video-project-cache";
+import { normalizeRecordingBlob, probeBlobDuration, type NormalizedRecording } from "@/lib/webm-duration.utils";
 
 export type { RecordingState, RecordingResult, VideoData, RecordingContextType };
 
@@ -115,6 +115,69 @@ async function saveVideoToIndexedDB(
   });
 }
 
+let cachedLoadedVideo: {
+  videoId: string;
+  url: string;
+  cameraUrl: string | null;
+} | null = null;
+
+/**
+ * Self-healing migration: legacy recordings stored by MediaRecorder lack
+ * duration metadata. When such a blob is loaded, remux it (packet copy) and
+ * write the fixed version back to IndexedDB so this only ever happens once.
+ */
+async function migrateLegacyRecording(
+  data: { blob: Blob; duration: number; videoId?: string; timestamp?: number; cameraBlob?: Blob | null; cameraConfig?: CameraConfig | null }
+): Promise<{ blob: Blob; duration: number }> {
+  try {
+    const probed = await probeBlobDuration(data.blob);
+    if (Number.isFinite(probed)) {
+      return { blob: data.blob, duration: data.duration };
+    }
+
+    const normalized = await normalizeRecordingBlob(data.blob);
+    if (!normalized.changed) {
+      return { blob: data.blob, duration: data.duration };
+    }
+
+    const duration =
+      normalized.duration > 0 ? normalized.duration : data.duration;
+
+    const db = await getDB();
+    await new Promise<void>((resolve, reject) => {
+      const transaction = db.transaction(["videos"], "readwrite");
+      const store = transaction.objectStore("videos");
+      const putRequest = store.put(
+        { ...data, blob: normalized.blob, duration },
+        "currentVideo"
+      );
+      putRequest.onsuccess = () => {
+        db.close();
+        resolve();
+      };
+      putRequest.onerror = () => {
+        db.close();
+        reject(putRequest.error);
+      };
+    });
+
+    return { blob: normalized.blob, duration };
+  } catch (error) {
+    console.warn("Legacy recording migration failed:", error);
+    return { blob: data.blob, duration: data.duration };
+  }
+}
+
+function releaseCachedLoadedVideo(): void {
+  if (cachedLoadedVideo) {
+    URL.revokeObjectURL(cachedLoadedVideo.url);
+    if (cachedLoadedVideo.cameraUrl) {
+      URL.revokeObjectURL(cachedLoadedVideo.cameraUrl);
+    }
+    cachedLoadedVideo = null;
+  }
+}
+
 export async function loadVideoFromIndexedDB(): Promise<{
   blob: Blob;
   duration: number;
@@ -141,22 +204,48 @@ export async function loadVideoFromIndexedDB(): Promise<{
         db.close();
         const data = getRequest.result;
         if (data) {
-          const url = URL.createObjectURL(data.blob);
           const videoId = data.videoId || `vid_${data.timestamp || Date.now()}`;
           const timestamp = data.timestamp || Date.now();
           const cameraBlob: Blob | null = data.cameraBlob ?? null;
-          const cameraUrl = cameraBlob ? URL.createObjectURL(cameraBlob) : null;
-          resolve({
-            blob: data.blob,
-            duration: data.duration,
-            url,
-            videoId,
-            timestamp,
-            isRecordedVideo: data.isRecordedVideo || false,
-            cameraBlob,
-            cameraUrl,
-            cameraConfig: data.cameraConfig ?? null,
-          });
+
+          void (async () => {
+            // Heal legacy recordings whose WebM header has no duration.
+            const { blob, duration } =
+              cachedLoadedVideo && cachedLoadedVideo.videoId === videoId
+                ? { blob: data.blob as Blob, duration: data.duration as number }
+                : await migrateLegacyRecording(data);
+
+            if (cachedLoadedVideo && cachedLoadedVideo.videoId === videoId) {
+              resolve({
+                blob,
+                duration,
+                url: cachedLoadedVideo.url,
+                videoId,
+                timestamp,
+                isRecordedVideo: data.isRecordedVideo || false,
+                cameraBlob,
+                cameraUrl: cachedLoadedVideo.cameraUrl,
+                cameraConfig: data.cameraConfig ?? null,
+              });
+              return;
+            }
+
+            releaseCachedLoadedVideo();
+            const url = URL.createObjectURL(blob);
+            const cameraUrl = cameraBlob ? URL.createObjectURL(cameraBlob) : null;
+            cachedLoadedVideo = { videoId, url, cameraUrl };
+            resolve({
+              blob,
+              duration,
+              url,
+              videoId,
+              timestamp,
+              isRecordedVideo: data.isRecordedVideo || false,
+              cameraBlob,
+              cameraUrl,
+              cameraConfig: data.cameraConfig ?? null,
+            });
+          })();
         } else {
           resolve(null);
         }
@@ -186,6 +275,7 @@ export async function deleteRecordedVideo(): Promise<void> {
       const deleteRequest = store.delete("currentVideo");
       deleteRequest.onsuccess = () => {
         db.close();
+        releaseCachedLoadedVideo();
         resolve();
       };
       deleteRequest.onerror = () => {
@@ -236,6 +326,7 @@ export function useScreenRecording() {
   const stateRef = useRef<RecordingState>("idle");
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const cameraConfigRef = useRef<CameraConfig | null>(null);
+  const cancelledRef = useRef(false);
 
   useEffect(() => {
     stateRef.current = state;
@@ -321,6 +412,7 @@ export function useScreenRecording() {
   const startRecording = useCallback(
     (screenStream: MediaStream, camStream: MediaStream | null) => {
       try {
+        cancelledRef.current = false;
         screenChunksRef.current = [];
         cameraChunksRef.current = [];
         startTimeRef.current = Date.now();
@@ -378,15 +470,35 @@ export function useScreenRecording() {
         let cameraBlob: Blob | null = null;
 
         const finalize = async () => {
+          if (cancelledRef.current) {
+            return;
+          }
           setState("processing");
-          const duration = (Date.now() - startTimeRef.current) / 1000;
+          const wallClockDuration = (Date.now() - startTimeRef.current) / 1000;
           cleanupStreams();
           try {
             const rawScreenBlob =
               screenBlob || new Blob([], { type: screenMime || "video/webm" });
-            const finalMp4Blob = await convertToMp4(rawScreenBlob);
-            await saveVideoToIndexedDB(finalMp4Blob, duration, {
-              cameraBlob,
+            // MediaRecorder WebMs lack duration metadata; remux (packet copy,
+            // no re-encode) so the stored file reports a real duration.
+            let normalizedScreen: NormalizedRecording;
+            let normalizedCamera: NormalizedRecording | null = null;
+            try {
+              [normalizedScreen, normalizedCamera] = await Promise.all([
+                normalizeRecordingBlob(rawScreenBlob),
+                cameraBlob
+                  ? normalizeRecordingBlob(cameraBlob)
+                  : Promise.resolve(null as NormalizedRecording | null),
+              ]);
+            } catch (e) {
+              console.warn("Recording normalization failed, storing raw blob:", e);
+              normalizedScreen = { blob: rawScreenBlob, duration: 0, changed: false };
+            }
+            const duration = normalizedScreen.duration > 0
+              ? normalizedScreen.duration
+              : wallClockDuration;
+            await saveVideoToIndexedDB(normalizedScreen.blob, duration, {
+              cameraBlob: normalizedCamera?.blob ?? null,
               cameraConfig: cameraConfigRef.current,
             });
             await clearVideoTrack();
@@ -397,7 +509,7 @@ export function useScreenRecording() {
               router.push("/editor");
             }
           } catch (err) {
-            console.error("Error processing video with Mediabunny:", err);
+            console.error("Error saving recording:", err);
             setError("Error processing video");
             setState("idle");
             restoreOriginals();
@@ -562,6 +674,7 @@ export function useScreenRecording() {
   );
 
   const cancelRecording = useCallback(() => {
+    cancelledRef.current = true;
     if (screenRecorderRef.current && screenRecorderRef.current.state !== "inactive") {
       screenRecorderRef.current.stop();
     }

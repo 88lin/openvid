@@ -213,6 +213,7 @@ export interface AddVideoWithMetadataOptions {
     width: number;
     height: number;
     hasAudio?: boolean;
+    skipNormalization?: boolean;
 }
 
 export async function addVideoToLibraryWithMetadata(
@@ -237,7 +238,13 @@ export async function addVideoToLibraryWithMetadata(
         }
     }
 
-    const { blob: normalizedBlob, wasConverted } = await normalizeVideoFile(options.blob);
+    let normalizedBlob = options.blob;
+    let wasConverted = false;
+    if (!options.skipNormalization) {
+        const result = await normalizeVideoFile(options.blob);
+        normalizedBlob = result.blob;
+        wasConverted = result.wasConverted;
+    }
     const fileName = wasConverted
         ? `${options.fileName.replace(/\.[^/.]+$/, "")}.mp4`
         : options.fileName;

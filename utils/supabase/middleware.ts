@@ -117,20 +117,6 @@ export function enforceAuthRoutes(
   const pathname = request.nextUrl.pathname;
   const { searchParams } = request.nextUrl;
 
-  if (!user && isVideoEditorPath(pathname, searchParams)) {
-    const url = request.nextUrl.clone();
-    const redirectedFrom = `${pathname}${request.nextUrl.search}`;
-
-    url.pathname = pathname.replace(/\/editor$/, "/login");
-    url.search = "";
-    url.searchParams.set("redirectedFrom", redirectedFrom);
-
-    if (searchParams.get("autoupload") === "1") {
-      url.searchParams.set("autoupload", "1");
-    }
-
-    return NextResponse.redirect(url);
-  }
 
   if (user && isLoginPath(pathname)) {
     const fallback = pathname.replace(/\/login$/, "/editor");

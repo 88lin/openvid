@@ -88,7 +88,7 @@ function MasonryGrid({
 
     if (!photos.length) {
         return (
-            <div className="flex flex-col items-center justify-center py-20 text-muted-foreground/40 gap-3">
+            <div className="flex flex-col items-center justify-center py-20 text-muted-foreground/70 gap-3">
                 <Icon icon="ph:image-broken-duotone" width="48" className="opacity-50" />
                 <span className="text-xs font-medium tracking-wide">{emptyText}</span>
             </div>
@@ -244,31 +244,31 @@ export function PhotoPickerPopover({ onSelect }: PhotoPickerPopoverProps) {
             </TooltipAction>
             <PopoverContent side="right" align="start" sideOffset={12} className="w-115 p-0 border-0 shadow-2xl">
                 <div className="flex flex-col bg-popover dark:bg-black border border-border squircle-element-camera overflow-hidden shadow-2xl max-h-150">
-                    <div className="px-4 py-3 border-b border-border bg-muted shrink-0">
+                    <div className="px-4 py-3 border-b border-border shrink-0">
                         <div className="flex items-center gap-2">
                             <Icon icon="ph:images-bold" width="13" className="text-muted-foreground" aria-hidden="true" />
                             <span className="text-[11px] font-medium uppercase tracking-[0.15em] text-muted-foreground">
                                 {t("title")}
                             </span>
-                            <span className="ml-auto text-[11px] text-muted-foreground/40">
+                            <span className="ml-auto text-[11px] text-muted-foreground/70">
                                 {isSearchMode ? `"${activeQuery}"` : t("statusDiscovering")}
                             </span>
                         </div>
                     </div>
                     <div className="px-4 pt-3 pb-2 shrink-0">
-                        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted border border-border focus-within:border-border transition-colors">
-                            <Icon icon="ph:magnifying-glass-bold" width="13" className="text-muted-foreground/40 shrink-0" aria-hidden="true" />
+                        <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border focus-within:border-border transition-colors">
+                            <Icon icon="ph:magnifying-glass-bold" width="13" className="text-muted-foreground/70 shrink-0" aria-hidden="true" />
                             <input
                                 type="text"
                                 value={inputValue}
                                 onChange={handleInputChange}
                                 onKeyDown={handleInputKeyDown}
                                 placeholder={t("searchPlaceholder")}
-                                className="flex-1 bg-transparent text-[12px] text-foreground/80 placeholder:text-muted-foreground/40 outline-none"
+                                className="flex-1 bg-transparent text-[12px] text-foreground/80 placeholder:text-muted-foreground/70 outline-none"
                                 aria-label={t("searchPlaceholder")}
                             />
                             {inputValue && (
-                                <button onClick={handleClear} className="text-muted-foreground/40 hover:text-muted-foreground transition-colors" aria-label="Clear search">
+                                <button onClick={handleClear} className="text-muted-foreground/70 hover:text-muted-foreground transition-colors" aria-label="Clear search">
                                     <Icon icon="mdi:close" width="13" aria-hidden="true" />
                                 </button>
                             )}
@@ -300,12 +300,12 @@ export function PhotoPickerPopover({ onSelect }: PhotoPickerPopoverProps) {
                         <MasonryGrid photos={photos} onSelect={handleSelect} loading={loading && photos.length === 0} emptyText={t("noResults")} />
                         {loading && photos.length > 0 && (
                             <div className="flex justify-center py-3">
-                                <Icon icon="mdi:loading" className="text-muted-foreground/40 animate-spin" width="20" aria-hidden="true" />
+                                <Icon icon="mdi:loading" className="text-muted-foreground/70 animate-spin" width="20" aria-hidden="true" />
                             </div>
                         )}
                     </div>
-                    <div className="px-4 py-2.5 border-t border-border bg-muted shrink-0">
-                        <span className="text-[11px] text-muted-foreground/40">
+                    <div className="px-4 py-2.5 border-t border-border shrink-0">
+                        <span className="text-[11px] text-muted-foreground/70">
                             {t("footerPhotosBy")}{" "}
                             <a
                                 href="https://unsplash.com"

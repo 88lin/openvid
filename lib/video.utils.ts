@@ -1,4 +1,5 @@
 import { TIMELINE_ZOOM_SCALE } from './constants';
+import { forceResolveVideoDuration } from './webm-duration.utils';
 
 export function waitForVideoFrame(video: HTMLVideoElement): Promise<void> {
     return new Promise((resolve) => {
@@ -48,6 +49,12 @@ export async function ensureVideoReady(video: HTMLVideoElement): Promise<void> {
         });
     }
     
+    // Headerless WebM (MediaRecorder) reports Infinity; force the browser to
+    // scan the stream and resolve the real duration before exporting.
+    if (!Number.isFinite(video.duration)) {
+        await forceResolveVideoDuration(video);
+    }
+
     // Pausar y mover al inicio
     video.pause();
     video.currentTime = 0;
