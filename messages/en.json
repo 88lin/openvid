@@ -1007,7 +1007,8 @@
           "label": "JPEG Medium",
           "description": "80% Quality — Reduced size"
         }
-      }
+      },
+      "exporting": "Exporting..."
     },
     "effect3d": {
       "title": "3D Effect",
