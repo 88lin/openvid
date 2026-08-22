@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { saveUploadedVideo, getUploadedVideo, deleteUploadedVideo } from "@/lib/video-upload-cache";
+import { saveUploadedVideo, getUploadedVideo, deleteUploadedVideo, ALLOWED_VIDEO_TYPES, MAX_VIDEO_SIZE, mapAspectRatio } from "@/lib/video-upload-cache";
 import type { AspectRatio } from "@/types";
 
 interface UploadedVideoData {
@@ -21,17 +21,12 @@ interface UseVideoUploadReturn {
     uploadError: string | null;
 }
 
-const MAX_VIDEO_SIZE = 500 * 1024 * 1024; // 500MB
-const ALLOWED_VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime", "video/x-matroska"];
+let cachedLoadedUrl: { key: string; url: string } | null = null;
 
-function mapAspectRatio(ratio: string): AspectRatio {
-    switch (ratio) {
-        case "16:9": return "16:9";
-        case "9:16": return "9:16";
-        case "1:1": return "1:1";
-        case "4:3": return "4:3";
-        case "3:4": return "3:4";
-        default: return "auto";
+function releaseCachedUploadedUrl(): void {
+    if (cachedLoadedUrl) {
+        URL.revokeObjectURL(cachedLoadedUrl.url);
+        cachedLoadedUrl = null;
     }
 }
 
@@ -54,7 +49,9 @@ export function useVideoUpload(): UseVideoUploadReturn {
 
             const cachedVideo = await saveUploadedVideo(file);
 
+            releaseCachedUploadedUrl();
             const url = URL.createObjectURL(cachedVideo.blob);
+            cachedLoadedUrl = { key: `${cachedVideo.uploadedAt}`, url };
             const videoId = `uploaded-${cachedVideo.uploadedAt}`;
 
             return {
@@ -85,7 +82,23 @@ export function useVideoUpload(): UseVideoUploadReturn {
                 return null;
             }
 
+            const key = `${cachedVideo.uploadedAt}`;
+            if (cachedLoadedUrl && cachedLoadedUrl.key === key) {
+                return {
+                    url: cachedLoadedUrl.url,
+                    videoId: `uploaded-${cachedVideo.uploadedAt}`,
+                    duration: cachedVideo.duration,
+                    aspectRatio: mapAspectRatio(cachedVideo.aspectRatio),
+                    fileName: cachedVideo.fileName,
+                    width: cachedVideo.width,
+                    height: cachedVideo.height,
+                    timestamp: cachedVideo.uploadedAt,
+                };
+            }
+
+            releaseCachedUploadedUrl();
             const url = URL.createObjectURL(cachedVideo.blob);
+            cachedLoadedUrl = { key, url };
             const videoId = `uploaded-${cachedVideo.uploadedAt}`;
 
             return {
@@ -106,6 +119,7 @@ export function useVideoUpload(): UseVideoUploadReturn {
 
     const clearUploadedVideo = useCallback(async (): Promise<void> => {
         try {
+            releaseCachedUploadedUrl();
             await deleteUploadedVideo();
         } catch (error) {
             console.error("Error clearing uploaded video:", error);

@@ -6,7 +6,6 @@ import type { RecordingState, RecordingResult, VideoData, RecordingContextType }
 import type { CameraConfig, RecordingSetupConfig } from "@/types/camera.types";
 import { DEFAULT_RECORDING_SETUP, requestCameraStream, requestMicrophoneStream } from "@/types/camera.types";
 import { clearAllThumbnailCache } from "@/lib/thumbnail-cache";
-import { convertToMp4 } from "@/lib/video-conversion";
 import { clearVideoTrack } from "@/lib/video-upload-cache";
 import { clearVideoProjectAndAudios } from "@/lib/video-project-cache";
 
@@ -115,6 +114,22 @@ async function saveVideoToIndexedDB(
   });
 }
 
+let cachedLoadedVideo: {
+  videoId: string;
+  url: string;
+  cameraUrl: string | null;
+} | null = null;
+
+function releaseCachedLoadedVideo(): void {
+  if (cachedLoadedVideo) {
+    URL.revokeObjectURL(cachedLoadedVideo.url);
+    if (cachedLoadedVideo.cameraUrl) {
+      URL.revokeObjectURL(cachedLoadedVideo.cameraUrl);
+    }
+    cachedLoadedVideo = null;
+  }
+}
+
 export async function loadVideoFromIndexedDB(): Promise<{
   blob: Blob;
   duration: number;
@@ -141,11 +156,29 @@ export async function loadVideoFromIndexedDB(): Promise<{
         db.close();
         const data = getRequest.result;
         if (data) {
-          const url = URL.createObjectURL(data.blob);
           const videoId = data.videoId || `vid_${data.timestamp || Date.now()}`;
           const timestamp = data.timestamp || Date.now();
           const cameraBlob: Blob | null = data.cameraBlob ?? null;
+
+          if (cachedLoadedVideo && cachedLoadedVideo.videoId === videoId) {
+            resolve({
+              blob: data.blob,
+              duration: data.duration,
+              url: cachedLoadedVideo.url,
+              videoId,
+              timestamp,
+              isRecordedVideo: data.isRecordedVideo || false,
+              cameraBlob,
+              cameraUrl: cachedLoadedVideo.cameraUrl,
+              cameraConfig: data.cameraConfig ?? null,
+            });
+            return;
+          }
+
+          releaseCachedLoadedVideo();
+          const url = URL.createObjectURL(data.blob);
           const cameraUrl = cameraBlob ? URL.createObjectURL(cameraBlob) : null;
+          cachedLoadedVideo = { videoId, url, cameraUrl };
           resolve({
             blob: data.blob,
             duration: data.duration,
@@ -186,6 +219,7 @@ export async function deleteRecordedVideo(): Promise<void> {
       const deleteRequest = store.delete("currentVideo");
       deleteRequest.onsuccess = () => {
         db.close();
+        releaseCachedLoadedVideo();
         resolve();
       };
       deleteRequest.onerror = () => {
@@ -236,6 +270,7 @@ export function useScreenRecording() {
   const stateRef = useRef<RecordingState>("idle");
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const cameraConfigRef = useRef<CameraConfig | null>(null);
+  const cancelledRef = useRef(false);
 
   useEffect(() => {
     stateRef.current = state;
@@ -321,6 +356,7 @@ export function useScreenRecording() {
   const startRecording = useCallback(
     (screenStream: MediaStream, camStream: MediaStream | null) => {
       try {
+        cancelledRef.current = false;
         screenChunksRef.current = [];
         cameraChunksRef.current = [];
         startTimeRef.current = Date.now();
@@ -378,14 +414,16 @@ export function useScreenRecording() {
         let cameraBlob: Blob | null = null;
 
         const finalize = async () => {
+          if (cancelledRef.current) {
+            return;
+          }
           setState("processing");
           const duration = (Date.now() - startTimeRef.current) / 1000;
           cleanupStreams();
           try {
             const rawScreenBlob =
               screenBlob || new Blob([], { type: screenMime || "video/webm" });
-            const finalMp4Blob = await convertToMp4(rawScreenBlob);
-            await saveVideoToIndexedDB(finalMp4Blob, duration, {
+            await saveVideoToIndexedDB(rawScreenBlob, duration, {
               cameraBlob,
               cameraConfig: cameraConfigRef.current,
             });
@@ -397,7 +435,7 @@ export function useScreenRecording() {
               router.push("/editor");
             }
           } catch (err) {
-            console.error("Error processing video with Mediabunny:", err);
+            console.error("Error saving recording:", err);
             setError("Error processing video");
             setState("idle");
             restoreOriginals();
@@ -562,6 +600,7 @@ export function useScreenRecording() {
   );
 
   const cancelRecording = useCallback(() => {
+    cancelledRef.current = true;
     if (screenRecorderRef.current && screenRecorderRef.current.state !== "inactive") {
       screenRecorderRef.current.stop();
     }
