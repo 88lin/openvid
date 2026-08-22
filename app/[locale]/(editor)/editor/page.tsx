@@ -17,7 +17,7 @@ import { useVideoThumbnails, type VideoThumbnail } from "@/hooks/useVideoThumbna
 import { useUndoRedo } from "@/hooks/useUndoRedo";
 import { clearAllThumbnailCache } from "@/lib/thumbnail-cache";
 import { addVideoToLibrary, addVideoToLibraryWithMetadata, getLibraryVideoCount, getLibraryVideo, findExistingVideo } from "@/lib/videos-library";
-import { calculateTotalDuration, clampClipToRealDuration, findNextClipPosition, getClipAtTime, probeMediaDuration, splitClipAtTime, type VideoTrackClip } from "@/types/video-track.types";
+import { calculateTotalDuration, clampClipToRealDuration, findNextClipPosition, getClipAtTime, probeMediaDuration, resequenceClips, splitClipAtTime, type VideoTrackClip } from "@/types/video-track.types";
 import type { ExportQuality, BackgroundTab, VideoCanvasHandle, BackgroundColorConfig, AspectRatio, CropArea } from "@/types";
 import type { TrimRange } from "@/types/timeline.types";
 import type { MockupConfig, MenuPage } from "@/types/mockup.types";
@@ -1352,6 +1352,27 @@ export default function Editor() {
         return videoUrl;
     }, [activeClipAtPlayhead, videoUrl, videoUrlsMap, videoClips, currentTime]);
 
+    // URL of the clip that contains the selected zoom fragment's start time.
+    // Used by ZoomFragmentEditor so its preview shows the correct clip, not
+    // just the one at the playhead.
+    const zoomFragmentClipUrl = useMemo(() => {
+        if (!selectedZoomFragment) return videoUrl;
+        const clip = getClipAtTime(videoClips, selectedZoomFragment.startTime);
+        return clip ? (videoUrlsMap.get(clip.libraryVideoId) ?? videoUrl) : videoUrl;
+    }, [selectedZoomFragment, videoClips, videoUrlsMap, videoUrl]);
+
+    // Dimensions of the clip that contains the selected zoom fragment, so the
+    // preview aspect ratio matches the fragment's source video (not the
+    // playhead clip which may differ in multi-clip projects).
+    const zoomFragmentDimensions = useMemo(() => {
+        if (!selectedZoomFragment) return videoDimensions;
+        const clip = getClipAtTime(videoClips, selectedZoomFragment.startTime);
+        if (clip && clip.width && clip.height) {
+            return { width: clip.width, height: clip.height };
+        }
+        return videoDimensions;
+    }, [selectedZoomFragment, videoClips, videoDimensions]);
+
     const handleUpdateVideoClip = useCallback((clipId: string, updates: Partial<VideoTrackClip>) => {
         setVideoClips(prev => {
             const newClips = prev.map(clip =>
@@ -1367,8 +1388,10 @@ export default function Editor() {
     }, []);
 
     const handleDeleteVideoClip = useCallback((clipId: string) => {
+        const deletedClip = videoClipsRef.current.find(c => c.id === clipId);
         setVideoClips(prev => {
-            const newClips = prev.filter(clip => clip.id !== clipId);
+            // Re-sequence remaining clips to be contiguous (no gaps after deletion).
+                const { clips: newClips } = resequenceClips(prev.filter(clip => clip.id !== clipId));
             if (newClips.length > 0) {
                 const newDuration = calculateTotalDuration(newClips);
                 setVideoDuration(newDuration);
@@ -1402,10 +1425,33 @@ export default function Editor() {
             }
             return newClips;
         });
+
+        // Remap zoom fragments: remove those within the deleted clip's range,
+        // shift those after it by the deleted clip's duration.
+        if (deletedClip) {
+            const deletedStart = deletedClip.startTime;
+            const deletedDuration = deletedClip.trimEnd - deletedClip.trimStart;
+            const deletedEnd = deletedStart + deletedDuration;
+            setZoomFragments(prevFrags =>
+                prevFrags
+                    .filter(f => !(f.startTime >= deletedStart && f.endTime <= deletedEnd))
+                    .map(f => {
+                        if (f.startTime >= deletedEnd) {
+                            return {
+                                ...f,
+                                startTime: f.startTime - deletedDuration,
+                                endTime: f.endTime - deletedDuration,
+                            };
+                        }
+                        return f;
+                    })
+            );
+        }
+
         if (selectedVideoClipId === clipId) {
             setSelectedVideoClipId(null);
         }
-    }, [selectedVideoClipId]);
+    }, [selectedVideoClipId, setZoomFragments]);
 
     const handleSplitVideoClip = useCallback(() => {
         const clips = videoClipsRef.current;
@@ -1440,7 +1486,8 @@ export default function Editor() {
     // Handler to remove video from track when deleted from library (cascade delete)
     const handleDeleteVideoFromLibrary = useCallback((libraryVideoId: string) => {
         setVideoClips(prev => {
-            const newClips = prev.filter(clip => clip.libraryVideoId !== libraryVideoId);
+            const filtered = prev.filter(clip => clip.libraryVideoId !== libraryVideoId);
+            const newClips = filtered.length > 0 ? resequenceClips(filtered).clips : filtered;
             if (newClips.length > 0) {
                 const newDuration = calculateTotalDuration(newClips);
                 setVideoDuration(newDuration);
@@ -2775,11 +2822,11 @@ export default function Editor() {
                                         onAddZoomMovement={handleAddZoomMovement}
                                         onDeleteZoomMovement={handleDeleteZoomMovement}
                                         onUpdateZoomMovementPoint={(id, x, y) => handleUpdateZoomMovement(id, { focusX: x, focusY: y })}
-                                        videoUrl={videoUrl}
+                                        videoUrl={zoomFragmentClipUrl}
                                         videoThumbnail={zoomFragmentThumbnail}
                                         currentTime={currentTime}
                                         getThumbnailForTime={getThumbnailForTime}
-                                        videoDimensions={videoDimensions}
+                                        videoDimensions={zoomFragmentDimensions}
                                         mockupId={mockupId}
                                         mockupConfig={mockupConfig}
                                         onMockupChange={handleMockupChange}
@@ -3090,11 +3137,11 @@ export default function Editor() {
                 onAddZoomFragment={() => handleAddZoomFragment(currentTime)}
                 onUpdateZoomFragment={handleUpdateZoomFragment}
                 onDeleteZoomFragment={handleDeleteZoomFragment}
-                videoUrl={videoUrl}
+                videoUrl={zoomFragmentClipUrl}
                 videoThumbnail={zoomFragmentThumbnail}
                 currentTime={currentTime}
                 getThumbnailForTime={getThumbnailForTime}
-                videoDimensions={videoDimensions}
+                videoDimensions={zoomFragmentDimensions}
                 mockupId={mockupId}
                 mockupConfig={mockupConfig}
                 onMockupChange={handleMockupChange}
@@ -3138,7 +3185,7 @@ export default function Editor() {
                     <VideoCropperModal
                         isOpen={isCropperOpen}
                         onClose={handleCloseCropper}
-                        videoUrl={videoUrl}
+                        videoUrl={activeClipUrl}
                         onCropApply={handleCropApply}
                         initialCrop={cropArea}
                     />

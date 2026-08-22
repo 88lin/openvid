@@ -44,9 +44,12 @@ export function ZoomFragmentEditor({
 
   const dynamicThumbnail = useMemo(() => {
     if (!getThumbnailForTime) return videoThumbnail || null;
-    const thumb = getThumbnailForTime(currentTime);
+    // Use the fragment's start time (not the global playhead) so the preview
+    // always shows the frame this zoom fragment applies to, even when the
+    // playhead is in a different clip.
+    const thumb = getThumbnailForTime(fragment.startTime);
     return thumb?.dataUrl || videoThumbnail || null;
-  }, [getThumbnailForTime, currentTime, videoThumbnail]);
+  }, [getThumbnailForTime, fragment.startTime, videoThumbnail]);
 
   const movementEnabled = fragment.movementEnabled ?? false;
   const sortedMovements = useMemo(
