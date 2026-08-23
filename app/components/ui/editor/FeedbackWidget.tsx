@@ -17,6 +17,7 @@ const TYPE_OPTIONS: { value: FeedbackType; icon: string }[] = [
 ];
 
 const MESSAGE_MAX_LENGTH = 2000;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 const emptySubscribe = () => () => { };
 function useIsClient() {
@@ -36,6 +37,7 @@ export function FeedbackWidget() {
     const [type, setType] = useState<FeedbackType>("bug");
     const [message, setMessage] = useState("");
     const [email, setEmail] = useState("");
+    const [emailError, setEmailError] = useState(false);
     const [honeypot, setHoneypot] = useState("");
     const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
 
@@ -43,6 +45,7 @@ export function FeedbackWidget() {
         setType("bug");
         setMessage("");
         setEmail("");
+        setEmailError(false);
         setHoneypot("");
         setStatus("idle");
     }, []);
@@ -66,6 +69,12 @@ export function FeedbackWidget() {
             e.preventDefault();
             if (honeypot) return;
             if (message.trim().length < 4) return;
+
+            if (!user && email.trim() && !EMAIL_REGEX.test(email.trim())) {
+                setEmailError(true);
+                return;
+            }
+            setEmailError(false);
 
             setStatus("sending");
 
@@ -198,13 +207,28 @@ export function FeedbackWidget() {
                         </div>
 
                         {!user && (
-                            <input
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                placeholder={t("emailPlaceholder")}
-                                className="w-full bg-muted border border-border rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all duration-200"
-                            />
+                            <div className="space-y-1">
+                                <input
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => {
+                                        setEmail(e.target.value);
+                                        setEmailError(false);
+                                    }}
+                                    placeholder={t("emailPlaceholder")}
+                                    aria-invalid={emailError || undefined}
+                                    className={`w-full bg-muted border rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-1 transition-all duration-200 ${
+                                        emailError
+                                            ? "border-red-500/60 focus:border-red-500/70 focus:ring-red-500/50"
+                                            : "border-border focus:border-blue-500/50 focus:ring-blue-500/50"
+                                    }`}
+                                />
+                                {emailError && (
+                                    <p className="px-1 text-[11px] text-red-600 dark:text-red-400">
+                                        {t("emailInvalid")}
+                                    </p>
+                                )}
+                            </div>
                         )}
 
                         {status === "error" && (
