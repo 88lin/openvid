@@ -15,8 +15,12 @@ export type MockupMotionPresetId =
   | "crane-sweep"
   | "z-spin-reveal"
   | "orbit-entrance"
-  | "turntable-drift"
-  | "flick-exit";
+  | "flick-exit"
+  | "hero-reveal"
+  | "macro-pan"
+  | "screen-glide"
+  | "float-hold"
+  | "spiral-drop";
 
 export type MockupMotionMode = "2d" | "3d";
 
@@ -27,22 +31,26 @@ export interface MockupMotionPresetDef {
 }
 
 export const MOCKUP_MOTION_PRESETS: MockupMotionPresetDef[] = [
-    { id: "focus-in", category: "Entrance", mode: "2d" },
-    { id: "depth-emerge", category: "Entrance", mode: "2d" },
-    { id: "z-spin-reveal", category: "Entrance", mode: "2d" },
-    { id: "isometric-lift", category: "Entrance", mode: "2d" },
-    { id: "cinematic-showcase", category: "Continue", mode: "2d" },
-    { id: "macro-track", category: "Continue", mode: "2d" },
-    { id: "whip-showcase", category: "Continue", mode: "2d" },
-    { id: "spatial-roam", category: "Continue", mode: "2d" },
-    { id: "crane-sweep", category: "Continue", mode: "2d" },
-    { id: "rise-crash", category: "Continue", mode: "2d" },
-    { id: "exit-fade-down", category: "Exit", mode: "2d" },
-    { id: "exit-scale-blur", category: "Exit", mode: "2d" },
-    { id: "orbit-entrance", category: "Entrance", mode: "3d" },
-    { id: "turntable-drift", category: "Continue", mode: "3d" },
-    { id: "flick-exit", category: "Exit", mode: "3d" },
-  ];
+  { id: "focus-in", category: "Entrance", mode: "2d" },
+  { id: "depth-emerge", category: "Entrance", mode: "2d" },
+  { id: "z-spin-reveal", category: "Entrance", mode: "2d" },
+  { id: "isometric-lift", category: "Entrance", mode: "2d" },
+  { id: "cinematic-showcase", category: "Continue", mode: "2d" },
+  { id: "macro-track", category: "Continue", mode: "2d" },
+  { id: "whip-showcase", category: "Continue", mode: "2d" },
+  { id: "spatial-roam", category: "Continue", mode: "2d" },
+  { id: "crane-sweep", category: "Continue", mode: "2d" },
+  { id: "rise-crash", category: "Continue", mode: "2d" },
+  { id: "exit-fade-down", category: "Exit", mode: "2d" },
+  { id: "exit-scale-blur", category: "Exit", mode: "2d" },
+  { id: "orbit-entrance", category: "Entrance", mode: "3d" },
+  { id: "flick-exit", category: "Exit", mode: "3d" },
+  { id: "hero-reveal", category: "Entrance", mode: "3d" },
+  { id: "macro-pan", category: "Continue", mode: "3d" },
+  { id: "screen-glide", category: "Continue", mode: "3d" },
+  { id: "float-hold", category: "Continue", mode: "3d" },
+  { id: "spiral-drop", category: "Exit", mode: "3d" },
+];
 
 /** IDs that belong to 3D mode (used for routing to the 3D sampler). */
 export const MOTION_PRESET_3D_IDS: ReadonlySet<MockupMotionPresetId> = new Set(
@@ -391,7 +399,7 @@ export function sampleMockupMotion(
       const speedT = clamp01(speed / 100);
       const i = clamp01(intensity / 100);
       const p = clamp01(currentTime / clipDurationSec);
-      
+
       const act1 = lerp(0.12, 0.10, speedT);
       const act2 = lerp(0.32, 0.28, speedT);
       const act3 = lerp(0.42, 0.36, speedT);
@@ -400,10 +408,10 @@ export function sampleMockupMotion(
       const act6 = lerp(0.85, 0.78, speedT);
       const heroScale = lerp(1.02, 1.05, i);
       const orbitScale = lerp(1.1, 1.2, i);
-      const macroScale = lerp(1.6, 1.85, i); 
+      const macroScale = lerp(1.6, 1.85, i);
       const tiltXMax = lerp(20, 35, i);
       const tiltYMax = lerp(20, 35, i);
-      
+
       const ptBottomRight = { x: -lerp(0.15, 0.22, i), y: -lerp(0.15, 0.22, i) };
       const ptTopRight = { x: -lerp(0.15, 0.22, i), y: lerp(0.15, 0.22, i) };
       const ptTopLeft = { x: lerp(0.15, 0.22, i), y: lerp(0.15, 0.22, i) };
@@ -438,8 +446,8 @@ export function sampleMockupMotion(
         const t = clamp01((p - act1) / (act2 - act1));
 
         scale = macroScale * lensBreath;
-        anchorX = ptBottomRight.x; 
-        anchorY = lerp(ptBottomRight.y, ptTopRight.y, t); 
+        anchorX = ptBottomRight.x;
+        anchorY = lerp(ptBottomRight.y, ptTopRight.y, t);
 
         tiltX = tiltXMax;
         tiltY = lerp(-tiltYMax, -tiltYMax * 0.6, t);
@@ -449,12 +457,12 @@ export function sampleMockupMotion(
         const lp = easeInOutCubic(t);
         const arc = Math.sin(t * Math.PI);
 
-        scale = lerp(macroScale, macroScale * 0.85, lp) - (arc * 0.15); 
+        scale = lerp(macroScale, macroScale * 0.85, lp) - (arc * 0.15);
         anchorX = lerp(ptTopRight.x, ptTopLeft.x, lp);
-        anchorY = lerp(ptTopRight.y, ptTopLeft.y, lp); 
+        anchorY = lerp(ptTopRight.y, ptTopLeft.y, lp);
 
         tiltX = lerp(tiltXMax, tiltXMax * 0.5, lp) + (arc * 15);
-        tiltY = lerp(-tiltYMax * 0.6, tiltYMax, lp); 
+        tiltY = lerp(-tiltYMax * 0.6, tiltYMax, lp);
         tiltZ = arc * lerp(6, 12, i);
         blur = arc * lerp(12, 24, i);
 
@@ -527,23 +535,23 @@ export function sampleMockupMotion(
       const speedT = clamp01(speed / 100);
       const i = clamp01(intensity / 100);
       const p = clamp01(currentTime / clipDurationSec);
-      const a1 = lerp(0.12, 0.09, speedT);   
-      const a2 = lerp(0.30, 0.25, speedT);   
-      const a3 = lerp(0.44, 0.38, speedT);   
-      const a4 = lerp(0.54, 0.47, speedT);   
-      const a5 = lerp(0.68, 0.62, speedT);   
-      const a6 = lerp(0.84, 0.78, speedT);   
-      
-      const cenitalScale = lerp(0.88, 0.98, i);  
+      const a1 = lerp(0.12, 0.09, speedT);
+      const a2 = lerp(0.30, 0.25, speedT);
+      const a3 = lerp(0.44, 0.38, speedT);
+      const a4 = lerp(0.54, 0.47, speedT);
+      const a5 = lerp(0.68, 0.62, speedT);
+      const a6 = lerp(0.84, 0.78, speedT);
+
+      const cenitalScale = lerp(0.88, 0.98, i);
       const heroScale = lerp(1.02, 1.08, i);
       const macroScale = lerp(1.50, 1.80, i);
-      
-      const cenitalTiltX = -lerp(55, 82, i);       
-      const hoverTiltX = -lerp(18, 32, i);       
-      const levelTiltX = lerp(2, 5, i);          
 
-      const tiltYMax = lerp(16, 28, i);        
-      
+      const cenitalTiltX = -lerp(55, 82, i);
+      const hoverTiltX = -lerp(18, 32, i);
+      const levelTiltX = lerp(2, 5, i);
+
+      const tiltYMax = lerp(16, 28, i);
+
       const ptCenter = { x: 0, y: 0 };
       const ptRightFeature = { x: -lerp(0.18, 0.28, i), y: lerp(0.02, 0.06, i) };
       const ptLeftFeature = { x: lerp(0.18, 0.28, i), y: lerp(-0.02, -0.06, i) };
@@ -587,13 +595,13 @@ export function sampleMockupMotion(
         tx: levelTiltX * 0.6, ty: tiltYMax * 0.20, tz: 0, blur: 0
       };
 
-      
+
       const h6 = {
         s: heroScale, x: 0, y: 0,
         tx: lerp(5, 12, i), ty: -lerp(10, 18, i), tz: 0, blur: 0
       };
 
-      
+
       const h7_end = {
         s: heroScale * lerp(1.1, 1.18, i),
         x: 0,
@@ -604,9 +612,9 @@ export function sampleMockupMotion(
         blur: 0
       };
 
-      
-      
-      
+
+
+
       let scale: number;
       let anchorX: number;
       let anchorY: number;
@@ -616,7 +624,7 @@ export function sampleMockupMotion(
       let blur: number;
 
       if (p <= a1) {
-        
+
         const t = clamp01(p / a1);
         const lp = easeOutCubic(t);
         scale = lerp(h0.s, h1.s, lp) * breath;
@@ -628,7 +636,7 @@ export function sampleMockupMotion(
         blur = 0;
 
       } else if (p <= a2) {
-        
+
         const t = clamp01((p - a1) / (a2 - a1));
         const lp = smootherStep(t);
         scale = lerp(h1.s, h2.s, lp) * breath;
@@ -640,7 +648,7 @@ export function sampleMockupMotion(
         blur = 0;
 
       } else if (p <= a3) {
-        
+
         const t = clamp01((p - a2) / (a3 - a2));
         const lp = smoothStep(t);
         scale = lerp(h2.s, h3.s, lp) * breath;
@@ -652,20 +660,20 @@ export function sampleMockupMotion(
         blur = 0;
 
       } else if (p <= a4) {
-        
+
         const t = clamp01((p - a3) / (a4 - a3));
         const lp = easeInOutCubic(t);
         const arc = Math.sin(Math.PI * lp);
         const arcAsym = Math.sin(Math.PI * Math.pow(lp, 0.8));
 
         scale = lerp(h3.s, h4.s, lp) * lerp(1, 0.88, arc);
-        
+
         const midX = (h3.x + h4.x) * 0.5;
         const midY = Math.max(h3.y, h4.y) + lerp(0.04, 0.10, i);
         const u = 1 - lp;
         anchorX = u * u * h3.x + 2 * u * lp * midX + lp * lp * h4.x;
         anchorY = u * u * h3.y + 2 * u * lp * midY + lp * lp * h4.y;
-        
+
         const flare = arcAsym * lerp(0.55, 1.0, i);
         tiltX = lerp(h3.tx, h4.tx, lp) + flare * hoverTiltX * 0.5;
         tiltY = lerp(h3.ty, h4.ty, lp) + flare * tiltYMax * 0.6;
@@ -673,7 +681,7 @@ export function sampleMockupMotion(
         blur = arcAsym * motionBlurMax;
 
       } else if (p <= a5) {
-        
+
         const t = clamp01((p - a4) / (a5 - a4));
         const lp = smoothStep(t);
         scale = lerp(h4.s, h5.s, lp) * breath;
@@ -687,10 +695,10 @@ export function sampleMockupMotion(
         tiltX = lerp(h4.tx, h5.tx, lp) + driftX * lerp(10, 24, i);
         tiltY = lerp(h4.ty, h5.ty, lp) + driftY * lerp(8, 16, i);
         tiltZ = handRot * 0.4;
-        blur = lerp(lerp(2, 5, i), 0, lp); 
+        blur = lerp(lerp(2, 5, i), 0, lp);
 
       } else if (p <= a6) {
-        
+
         const t = clamp01((p - a5) / (a6 - a5));
         const lp = smootherStep(t);
         scale = lerp(h5.s, h6.s, lp) * breath;
@@ -702,16 +710,16 @@ export function sampleMockupMotion(
         blur = 0;
 
       } else {
-        
+
         const t = clamp01((p - a6) / (1 - a6));
-        const lp = easeOutExpo(t); 
+        const lp = easeOutExpo(t);
         scale = lerp(h6.s, h7_end.s, lp) * breath;
         anchorX = lerp(h6.x, h7_end.x, lp);
         anchorY = lerp(h6.y, h7_end.y, lp);
         tiltX = lerp(h6.tx, h7_end.tx, lp);
         tiltY = lerp(h6.ty, h7_end.ty, lp);
 
-        
+
         const finalSettle = 1 - lp;
         tiltZ = handRot * 0.2 * finalSettle;
         blur = 0;
@@ -727,7 +735,7 @@ export function sampleMockupMotion(
 
       const translateXPct = scale * anchorX * 100;
       const translateYPct = scale * anchorY * 100;
-      
+
       const tiltMag = Math.abs(tiltX) + Math.abs(tiltY);
       const tiltNorm = clamp01(tiltMag / (Math.abs(cenitalTiltX) + tiltYMax || 1));
       const perspective = lerp(3500, 900, tiltNorm);
@@ -750,7 +758,7 @@ export function sampleMockupMotion(
       const speedT = clamp01(speed / 100);
       const i = clamp01(intensity / 100);
       const p = clamp01(currentTime / clipDurationSec);
-      
+
       const act1 = lerp(0.12, 0.10, speedT);
       const act2 = lerp(0.30, 0.26, speedT);
       const act3 = lerp(0.44, 0.38, speedT);
@@ -760,15 +768,15 @@ export function sampleMockupMotion(
 
       const heroScale = lerp(1.02, 1.08, i);
       const macroScale = lerp(1.55, 1.85, i);
-      const crashScale = lerp(1.35, 1.65, i); 
-      
-      const tiltXMax = lerp(22, 38, i); 
+      const crashScale = lerp(1.35, 1.65, i);
+
+      const tiltXMax = lerp(22, 38, i);
       const tiltYMax = lerp(14, 26, i);
-      
+
       const ptTop = { x: lerp(0.06, 0.12, i), y: lerp(0.18, 0.32, i) };
       const ptBottom = { x: lerp(-0.08, -0.16, i), y: -lerp(0.18, 0.32, i) };
       const ptCenter = { x: 0, y: 0 };
-      
+
       const easeInOutCubic = (t: number): number =>
         t < 0.5 ? 4 * t ** 3 : 1 - (-2 * t + 2) ** 3 / 2;
       const smootherStep = (t: number): number => t * t * t * (t * (t * 6 - 15) + 10);
@@ -787,7 +795,7 @@ export function sampleMockupMotion(
         scale = lerp(heroScale, macroScale, lp);
         anchorX = lerp(0, ptTop.x, lp);
         anchorY = lerp(0, ptTop.y, lp);
-        tiltX = lerp(tiltXMax, tiltXMax * 0.25, lp); 
+        tiltX = lerp(tiltXMax, tiltXMax * 0.25, lp);
         tiltY = lerp(0, tiltYMax * 0.3, lp);
         blur = 0;
 
@@ -803,12 +811,12 @@ export function sampleMockupMotion(
         const t = clamp01((p - act2) / (act3 - act2));
         const lp = easeInOutCubic(t);
         const arc = Math.sin(t * Math.PI);
-        scale = lerp(macroScale, crashScale, lp) * lerp(1, 0.88, arc); 
+        scale = lerp(macroScale, crashScale, lp) * lerp(1, 0.88, arc);
         anchorX = lerp(ptTop.x, ptBottom.x, lp);
         anchorY = lerp(ptTop.y, ptBottom.y, lp);
         tiltX = lerp(tiltXMax * 0.25, -tiltXMax * 0.6, lp) + arc * lerp(8, 18, i);
         tiltY = lerp(tiltYMax * 0.15, -tiltYMax * 0.4, lp);
-        tiltZ = arc * lerp(-5, -12, i); 
+        tiltZ = arc * lerp(-5, -12, i);
         blur = arc * lerp(14, 28, i);
 
       } else if (p <= act4) {
@@ -819,7 +827,7 @@ export function sampleMockupMotion(
         anchorY = ptBottom.y;
         tiltX = lerp(-tiltXMax * 0.6, -tiltXMax * 0.35, lp);
         tiltY = lerp(-tiltYMax * 0.4, -tiltYMax * 0.2, lp);
-        blur = lerp(lerp(3, 6, i), 0, lp); 
+        blur = lerp(lerp(3, 6, i), 0, lp);
 
       } else if (p <= act5) {
         const t = clamp01((p - act4) / (act5 - act4));
@@ -839,7 +847,7 @@ export function sampleMockupMotion(
         scale = lerp(macroScale * 1.05, heroScale, lp);
         anchorX = lerp(ptCenter.x, 0, lp);
         anchorY = lerp(ptCenter.y, 0, lp);
-        tiltX = lerp(0, tiltXMax, lp); 
+        tiltX = lerp(0, tiltXMax, lp);
         tiltY = 0;
         tiltZ = 0;
         blur = 0;
@@ -850,7 +858,7 @@ export function sampleMockupMotion(
         scale = heroScale;
         anchorX = 0;
         anchorY = 0;
-        tiltX = tiltXMax; 
+        tiltX = tiltXMax;
         tiltY = 0;
         tiltZ = 0;
         blur = 0;
@@ -877,13 +885,13 @@ export function sampleMockupMotion(
     case "whip-showcase": {
       const speedT = clamp01(speed / 100);
       const i = clamp01(intensity / 100);
-      const a1 = lerp(0.12, 0.08, speedT);  
-      const a2 = lerp(0.28, 0.22, speedT);  
-      const a3 = lerp(0.44, 0.36, speedT);  
-      const a4 = lerp(0.52, 0.44, speedT);  
-      const a5 = lerp(0.68, 0.60, speedT);  
-      const a6 = lerp(0.80, 0.72, speedT);  
-      const a7 = lerp(0.90, 0.84, speedT);  
+      const a1 = lerp(0.12, 0.08, speedT);
+      const a2 = lerp(0.28, 0.22, speedT);
+      const a3 = lerp(0.44, 0.36, speedT);
+      const a4 = lerp(0.52, 0.44, speedT);
+      const a5 = lerp(0.68, 0.60, speedT);
+      const a6 = lerp(0.80, 0.72, speedT);
+      const a7 = lerp(0.90, 0.84, speedT);
       const p = clamp01(currentTime / clipDurationSec);
 
       const anchorHero = { x: 0, y: 0 };
@@ -923,10 +931,10 @@ export function sampleMockupMotion(
         tiltX: featBTiltX * 0.4,
         tiltY: featBTiltY * 0.4,
       };
-      
+
       const handoff6End = {
         scale: zoomHero * lerp(1.06, 1.12, i),
-        anchorX: lerp(0.04, 0.10, i),   
+        anchorX: lerp(0.04, 0.10, i),
         anchorY: lerp(0.01, 0.03, i),
         tiltX: heroTiltX * lerp(0.85, 0.95, i),
         tiltY: heroTiltY * lerp(0.85, 0.95, i),
@@ -934,19 +942,19 @@ export function sampleMockupMotion(
 
       const handoff7End = {
         scale: zoomHero * lerp(1.02, 1.06, i),
-        anchorX: -lerp(0.04, 0.10, i),  
+        anchorX: -lerp(0.04, 0.10, i),
         anchorY: lerp(0.005, 0.015, i),
         tiltX: heroTiltX * lerp(0.9, 1.0, i),
         tiltY: heroTiltY * lerp(0.9, 1.0, i),
       };
-      
+
       const smoothStep = (t: number): number => t * t * (3 - 2 * t);
       const smootherStep = (t: number): number => t * t * t * (t * (t * 6 - 15) + 10);
       const easeInOutQuart = (t: number): number =>
         t < 0.5 ? 8 * t * t * t * t : 1 - Math.pow(-2 * t + 2, 4) / 2;
       const easeOutBack = (t: number, o: number = 1.70158): number =>
         1 + (o + 1) * Math.pow(t - 1, 3) + o * Math.pow(t - 1, 2);
-      
+
       const hSeed = currentTime * lerp(0.8, 1.8, i);
       const hAmp = lerp(0.08, 0.20, i);
       const handX = Math.sin(hSeed * 3.1) * Math.cos(hSeed * 1.7) * hAmp;
@@ -1081,14 +1089,14 @@ export function sampleMockupMotion(
         blur = 0;
       }
 
-      
+
       const inWhip = (p > a3 && p < a4);
       if (!inWhip) {
         anchorX += handX * 0.001;
         anchorY += handY * 0.001;
       }
 
-      
+
       const translateXPct = scale * anchorX * 100;
       const translateYPct = scale * anchorY * 100;
 

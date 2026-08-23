@@ -264,7 +264,8 @@ async function exportWithMediabunny(
             codec: "avc",
             bitrate: bitrate,
             bitrateMode: "variable",
-            latencyMode: "quality",
+            latencyMode: "realtime",
+            keyFrameInterval: fps * 2,
             fullCodecString: "avc1.640033",
             hardwareAcceleration: "prefer-hardware",
         });
@@ -283,7 +284,8 @@ async function exportWithMediabunny(
             codec: "avc",
             bitrate: bitrate,
             bitrateMode: "variable",
-            latencyMode: "quality",
+            latencyMode: "realtime",
+            keyFrameInterval: fps * 2,
             fullCodecString: "avc1.640033",
             hardwareAcceleration: "prefer-software",
         });
@@ -313,13 +315,17 @@ async function exportWithMediabunny(
 
         await canvasHandle.drawFrame(true, timelineTime);
 
-        await videoSource.add(outputTime, frameDuration);
-
+        // Seek the next frame BEFORE adding the current one to the encoder,
+        // overlapping the browser's video decode with the encoder's work.
         const nextIndex = frameIndex + 1;
+        let nextFrameReady: Promise<void> | null = null;
         if (nextIndex < totalFrames) {
             const nextContentOffset = Math.min((nextIndex / fps) * speed, duration - 0.001);
             video.currentTime = trimStart + nextContentOffset;
+            nextFrameReady = waitForVideoFrame(video);
         }
+
+        await videoSource.add(outputTime, frameDuration);
 
         if (frameIndex % 10 === 0 || frameIndex === totalFrames - 1) {
             const progress = 10 + Math.round((frameIndex / totalFrames) * 80);
@@ -330,8 +336,8 @@ async function exportWithMediabunny(
             });
         }
 
-        if (nextIndex < totalFrames) {
-            await waitForVideoFrame(video);
+        if (nextFrameReady) {
+            await nextFrameReady;
         }
     }
 
@@ -451,7 +457,8 @@ async function exportWithMediabunnyAndAudio(
             codec: "avc",
             bitrate: bitrate,
             bitrateMode: "variable",
-            latencyMode: "quality",
+            latencyMode: "realtime",
+            keyFrameInterval: fps * 2,
             fullCodecString: "avc1.640033",
             hardwareAcceleration: "prefer-hardware",
         });
@@ -466,7 +473,8 @@ async function exportWithMediabunnyAndAudio(
             codec: "avc",
             bitrate: bitrate,
             bitrateMode: "variable",
-            latencyMode: "quality",
+            latencyMode: "realtime",
+            keyFrameInterval: fps * 2,
             fullCodecString: "avc1.640033",
             hardwareAcceleration: "prefer-software",
         });
@@ -541,15 +549,20 @@ async function exportWithMediabunnyAndAudio(
             }
 
             await canvasHandle.drawFrame(true, timelineTime);
-            await videoSource.add(outputTime, frameDuration);
 
+            // Seek the next frame BEFORE adding the current one to the encoder,
+            // so the browser's decoder works in parallel with the encoder.
+            let nextFrameReady: Promise<void> | null = null;
             if (!hasMultipleClips) {
                 const nextFrame = frameIndex + 1;
                 if (nextFrame < totalFrames) {
                     const nextContentOffset = Math.min((nextFrame / fps) * speed, duration - 0.001);
                     video.currentTime = trimStart + nextContentOffset;
+                    nextFrameReady = waitForVideoFrame(video);
                 }
             }
+
+            await videoSource.add(outputTime, frameDuration);
 
             if (frameIndex % 10 === 0 || frameIndex === totalFrames - 1) {
                 const progress = 5 + Math.round((frameIndex / totalFrames) * 50);
@@ -560,11 +573,8 @@ async function exportWithMediabunnyAndAudio(
                 });
             }
 
-            if (!hasMultipleClips) {
-                const nextFrame = frameIndex + 1;
-                if (nextFrame < totalFrames) {
-                    await waitForVideoFrame(video);
-                }
+            if (nextFrameReady) {
+                await nextFrameReady;
             }
         }
     } finally {
@@ -786,20 +796,24 @@ async function exportWithMediabunnyAndAudio(
         const outputData = (await ffmpeg.readFile("output.mp4")) as Uint8Array;
         const outputBlob = new Blob([new Uint8Array(outputData)], { type: "video/mp4" });
 
-        try {
-            await ffmpeg.deleteFile("video.mp4");
-            await ffmpeg.deleteFile("output.mp4");
-            if (hasSourceAudio && !hasMultipleClips) await ffmpeg.deleteFile("original.mp4");
-            for (const { filename } of clipAudioFiles) {
-                await ffmpeg.deleteFile(filename).catch(() => { });
-            }
-            for (const audioTrackFile of audioTracks) {
-                await ffmpeg.deleteFile(audioTrackFile.filename);
-            }
-        } catch { }
-
+        // Start download immediately; clean up temp files in the background
+        // so the user doesn't wait for file deletion to complete.
         downloadBlob(outputBlob, `openvid-${width}x${height}.mp4`);
         setProgress({ status: "complete", progress: 100, message: "Export with audio complete!" });
+
+        (async () => {
+            try {
+                await ffmpeg.deleteFile("video.mp4");
+                await ffmpeg.deleteFile("output.mp4");
+                if (hasSourceAudio && !hasMultipleClips) await ffmpeg.deleteFile("original.mp4");
+                for (const { filename } of clipAudioFiles) {
+                    await ffmpeg.deleteFile(filename).catch(() => { });
+                }
+                for (const audioTrackFile of audioTracks) {
+                    await ffmpeg.deleteFile(audioTrackFile.filename);
+                }
+            } catch { }
+        })();
 
     } catch (ffmpegError) {
         console.warn("FFmpeg audio processing failed, exporting video only:", ffmpegError);

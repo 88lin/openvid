@@ -9,7 +9,7 @@ import {
     CORNER_RESIZE_CURSOR,
 } from "@/lib";
 import { CanvasElement, SvgElement, ImageElement, TextElement } from "@/types/canvas-elements.types";
-import { useRef, useState, useEffect, useCallback, useMemo } from "react";
+import { useRef, useState, useEffect, useCallback, useMemo, memo } from "react";
 
 export interface ElementResizeStart {
     id: string;
@@ -96,7 +96,7 @@ function InlineTextEditor({
     );
 }
 
-export function CanvasElementsLayer({
+function CanvasElementsLayerImpl({
     canvasContainerRef,
     canvasElements,
     selectedElementId,
@@ -539,3 +539,4 @@ export function CanvasElementsLayer({
         </div>
     );
 }
+export const CanvasElementsLayer = memo(CanvasElementsLayerImpl);

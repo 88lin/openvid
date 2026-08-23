@@ -1379,8 +1379,12 @@
       "rise-crash": "Rise and Crash",
       "crane-sweep": "Crane Sweep",
       "orbit-entrance": "Orbit Entrance",
-      "turntable-drift": "Turntable Drift",
-      "flick-exit": "Flick Exit"
+      "flick-exit": "Flick Exit",
+      "hero-reveal": "Hero Reveal",
+      "macro-pan": "Macro Pan",
+      "screen-glide": "Screen Glide",
+      "float-hold": "Floating Hold",
+      "spiral-drop": "Spiral Drop"
     },
     "controls": {
       "intensity": "Intensity",

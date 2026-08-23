@@ -1,32 +1,26 @@
-/**
- * Motion presets for 3D mockups (Three.js / React Three Fiber).
- *
- * Unlike 2D motion (which produces CSS transforms applied to a DOM element),
- * 3D motion produces values intended to be applied directly to a THREE.Group
- * inside the scene graph: Euler rotation (radians), position offset (scene
- * units), uniform scale, and opacity. The consumers (Mockup3DStage) apply
- * these on top of the model's base transform every frame via useFrame.
- *
- * The preset vocabulary is intentionally separate from 2D motion because the
- * visual language differs: 3D models benefit from real orbital camera moves,
- * physical depth parallax, and tumbling reveals that CSS perspective cannot
- * reproduce faithfully.
- */
-
 export type Mockup3DMotionPresetId =
   | "none"
   | "orbit-entrance"
-  | "turntable-drift"
-  | "flick-exit";
-
+  | "flick-exit"
+  | "hero-reveal"
+  | "macro-pan"
+  | "screen-glide"
+  | "float-hold"
+  | "spiral-drop";
 export const MOCKUP_3D_MOTION_PRESETS: {
   id: Mockup3DMotionPresetId;
   category: "Entrance" | "Continue" | "Exit";
 }[] = [
-  { id: "orbit-entrance", category: "Entrance" },
-  { id: "turntable-drift", category: "Continue" },
-  { id: "flick-exit", category: "Exit" },
-];
+    { id: "orbit-entrance", category: "Entrance" },
+    { id: "hero-reveal", category: "Entrance" },
+
+    { id: "macro-pan", category: "Continue" },
+    { id: "screen-glide", category: "Continue" },
+    { id: "float-hold", category: "Continue" },
+
+    { id: "flick-exit", category: "Exit" },
+    { id: "spiral-drop", category: "Exit" },
+  ];
 
 export interface Mockup3DMotionConfig {
   presetId: Mockup3DMotionPresetId;
@@ -144,45 +138,6 @@ export function sampleMockup3DMotion(
     }
 
     /**
-     * TURNTABLE DRIFT — a continuous, slow orbital drift with subtle vertical
-     * bob and a gentle scale breathing. Designed to run for the whole clip
-     * duration so the model always feels alive without distracting from the
-     * screen content.
-     */
-    case "turntable-drift": {
-      const p = clamp01(currentTime / clipDurationSec);
-      const speedT = clamp01(speed / 100);
-
-      // Full revolution cadence: faster speed completes more turns.
-      const turns = lerp(0.4, 1.1, speedT);
-      const rotY = p * Math.PI * 2 * turns;
-
-      // Vertical bob: 1.5 oscillations across the clip.
-      const bobAmp = lerp(0.015, 0.045, i);
-      const posY = Math.sin(p * Math.PI * 2 * 1.5) * bobAmp;
-
-      // Subtle X-axis tilt sway synced to the bob for a floating feel.
-      const tiltAmp = lerp(3, 8, i) * DEG;
-      const rotX = Math.sin(p * Math.PI * 2 * 1.5 + Math.PI / 2) * tiltAmp;
-
-      // Gentle breathing scale.
-      const breathAmp = lerp(0.008, 0.02, i);
-      const scale = 1 + Math.sin(p * Math.PI * 2 * 1.5) * breathAmp;
-
-      // Soft entry fade-in over the first ~12% so it never pops.
-      const entryFade = easeOutCubic(clamp01(p / 0.12));
-
-      return {
-        ...REST_MOCKUP_3D_MOTION,
-        rotX,
-        rotY,
-        scale,
-        posY,
-        opacity: entryFade,
-      };
-    }
-
-    /**
      * FLICK EXIT — the model quickly tilts, rotates, and accelerates away
      * while fading out. Mirrors the physical "swipe away" gesture.
      */
@@ -211,6 +166,136 @@ export function sampleMockup3DMotion(
       };
     }
 
+    case "hero-reveal": {
+      const dur = Math.min(speedToDurationSec(speed) * 1.5, clipDurationSec);
+      const t = clamp01(currentTime / dur);
+      const eased = easeOutCubic(t);
+      const settleRot = easeOutBack(clamp01(t));
+
+
+      const startRotY = lerp(160, 220, i) * DEG;
+      const startRotX = lerp(-15, -45, i) * DEG;
+      const startScale = lerp(1.2, 1.6, i);
+      const startZ = lerp(-0.1, -0.4, i);
+
+      return {
+        ...REST_MOCKUP_3D_MOTION,
+        rotY: lerp(startRotY, 0, settleRot),
+        rotX: lerp(startRotX, 0, eased),
+        scale: lerp(startScale, 1, eased),
+        posZ: lerp(startZ, 0, eased),
+        opacity: easeOutCubic(clamp01(t * 3)),
+      };
+    }
+
+    case "macro-pan": {
+      const p = clamp01(currentTime / clipDurationSec);
+      const eased = easeInOutCubic(p);
+
+      const zoom = lerp(1.25, 1.6, i);
+
+      const panDistY = lerp(0.15, 0.35, i);
+      const panDistX = lerp(0.08, 0.20, i);
+
+      const startY = -panDistY;
+      const endY = panDistY;
+
+      const startX = -panDistX;
+      const endX = panDistX;
+
+      const baseRotY = lerp(-55, -75, i) * DEG;
+      const tiltY = lerp(baseRotY - (8 * DEG), baseRotY + (8 * DEG), eased);
+
+      const tiltX = lerp(12 * DEG, 0 * DEG, eased);
+
+      return {
+        ...REST_MOCKUP_3D_MOTION,
+        scale: zoom,
+
+        posY: lerp(startY, endY, eased),
+
+        posX: lerp(startX, endX, eased),
+
+        rotY: tiltY,
+        rotX: tiltX,
+
+        rotZ: Math.sin(eased * Math.PI) * (lerp(0.5, 2.5, i) * DEG),
+
+        opacity: 1,
+      };
+    }
+    
+    case "screen-glide": {
+      const p = clamp01(currentTime / clipDurationSec);
+      const eased = easeInOutCubic(p);
+
+      const zoom = lerp(1.15, 1.5, i);
+      const panDistY = lerp(0.08, 0.22, i);
+      const panFromY = panDistY * 0.85;
+      const panToY = -panDistY;
+      const driftX = lerp(0.015, 0.05, i);
+      const tiltY = lerp(3, 9, i) * DEG;
+      const tiltX = lerp(1, 3.5, i) * DEG;
+
+      return {
+        ...REST_MOCKUP_3D_MOTION,
+        scale: zoom,
+        posY: lerp(panFromY, panToY, eased),
+        posX: Math.sin(eased * Math.PI) * driftX,
+        rotY: lerp(tiltY, -tiltY, eased),
+        rotX: lerp(-tiltX, tiltX, eased),
+        opacity: 1,
+      };
+    }
+
+    case "float-hold": {
+      const p = clamp01(currentTime / clipDurationSec);
+      const env = Math.min(1, Math.min(p / 0.15, (1 - p) / 0.15) * 4);
+      const envelope = clamp01(env);
+      const zoomEnd = lerp(1.06, 1.2, i);
+      const zoom = lerp(1, zoomEnd, easeInOutCubic(p));
+
+      const w = Math.PI * lerp(0.35, 0.6, i);
+      const ampX = lerp(0.015, 0.05, i) * envelope;
+      const ampY = lerp(0.012, 0.04, i) * envelope;
+      const ampRotY = lerp(2.5, 8, i) * DEG * envelope;
+      const ampRotX = lerp(1.5, 5, i) * DEG * envelope;
+
+      return {
+        ...REST_MOCKUP_3D_MOTION,
+        scale: zoom,
+        posX: Math.sin(currentTime * w) * ampX,
+        posY: Math.cos(currentTime * w * 0.75) * ampY,
+        rotY: Math.sin(currentTime * w * 0.8) * ampRotY,
+        rotX: Math.cos(currentTime * w * 0.6) * ampRotX,
+        rotZ: Math.sin(currentTime * w * 0.5) * ampRotX * 0.3,
+        opacity: 1,
+      };
+    }
+
+    case "spiral-drop": {
+      const dur = Math.min(speedToDurationSec(speed) * 1.1, clipDurationSec);
+      const startAt = Math.max(0, clipDurationSec - dur);
+      const t = clamp01((currentTime - startAt) / dur);
+      const eased = easeOutQuint(t);
+
+      const dropY = lerp(-0.15, -0.5, i);
+      const spinZ = lerp(45, 120, i) * DEG;
+      const spinY = lerp(20, 60, i) * DEG;
+      const spinX = lerp(10, 40, i) * DEG;
+      const scaleDown = lerp(0.85, 0.5, i);
+
+      return {
+        ...REST_MOCKUP_3D_MOTION,
+        posY: lerp(0, dropY, eased),
+        rotZ: lerp(0, spinZ, eased),
+        rotY: lerp(0, spinY, eased),
+        rotX: lerp(0, spinX, eased),
+        scale: lerp(1, scaleDown, eased),
+        opacity: lerp(1, 0, eased),
+      };
+    }
+
     default:
       return REST_MOCKUP_3D_MOTION;
   }
@@ -221,7 +306,11 @@ const DEFAULT_CONTINUOUS_DURATION = 3;
 
 const SMALL_DURATION_PRESETS_3D = new Set<Mockup3DMotionPresetId>(["orbit-entrance"]);
 
-const LONG_DURATION_PRESETS_3D = new Set<Mockup3DMotionPresetId>(["turntable-drift"]);
+const LONG_DURATION_PRESETS_3D = new Set<Mockup3DMotionPresetId>([
+  "macro-pan",
+  "screen-glide",
+  "float-hold",
+]);
 
 export function getDefault3DFragmentDuration(
   presetId: Mockup3DMotionPresetId,
