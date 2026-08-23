@@ -1377,7 +1377,10 @@
       "whip-showcase": "Whip Pan Showcase",
       "spatial-roam": "Spatial Roam",
       "rise-crash": "Rise and Crash",
-      "crane-sweep": "Crane Sweep"
+      "crane-sweep": "Crane Sweep",
+      "orbit-entrance": "Orbit Entrance",
+      "turntable-drift": "Turntable Drift",
+      "flick-exit": "Flick Exit"
     },
     "controls": {
       "intensity": "Intensity",
@@ -1397,7 +1400,22 @@
       "zoomLabel": "Zoom",
       "rotateZLabel": "Z rotation",
       "reverseLabel": "Reverse direction",
-      "resetButton": "Reset customization"
+      "resetButton": "Reset customization",
+      "blurLabel": "Motion blur"
+    },
+    "customize3D": {
+      "rotationTitle": "Rotation offsets",
+      "rotationSubtitle": "Added to the preset's base rotation (degrees)",
+      "rotateXLabel": "Rotate X (pitch)",
+      "rotateYLabel": "Rotate Y (yaw)",
+      "rotateZLabel": "Rotate Z (roll)",
+      "positionTitle": "Position offsets",
+      "positionSubtitle": "Added to the preset's base position (scene units)",
+      "positionLabel": "Position",
+      "positionHint": "Drag to set X / Y position",
+      "scaleTitle": "Scale",
+      "scaleSubtitle": "Uniform multiplier applied to the model",
+      "scaleLabel": "Scale"
     }
   },
   "MobileTools": {
@@ -1425,6 +1443,7 @@
     },
     "messagePlaceholder": "Tell us what happened or what you'd like to see...",
     "emailPlaceholder": "Your email (optional, so we can reply)",
+    "emailInvalid": "Please enter a valid email address.",
     "submit": "Send",
     "successMessage": "Thanks! We got your feedback.",
     "errorMessage": "Couldn't send it. Please try again."

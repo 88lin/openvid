@@ -28,6 +28,8 @@ const VideosMenu = lazy(() => import("./VideosMenu").then(mod => ({ default: mod
 const HistoryMenu = lazy(() => import("./HistoryMenu").then(mod => ({ default: mod.HistoryMenu })));
 const MotionGlobalConfig = lazy(() => import("./MotionGlobalConfig").then(mod => ({ default: mod.MotionGlobalConfig })));
 const MotionFragmentEditor = lazy(() => import("./MotionFragmentEditor").then(mod => ({ default: mod.MotionFragmentEditor })));
+const MotionFragmentEditor3D = lazy(() => import("./MotionFragmentEditor3D").then(mod => ({ default: mod.MotionFragmentEditor3D })));
+import { MOTION_PRESET_3D_IDS } from "@/lib/mockup-motion";
 
 interface ExtendedControlPanelProps extends ControlPanelProps {
     onTogglePanel?: () => void;
@@ -139,6 +141,7 @@ export function ControlPanel({
     const { imagePhoneActive } = useMockup3dContext();
     const [isGlobalMotionEnabled, setIsGlobalMotionEnabled] = useState(true);
     const hasMockup2D = mediaType === "video" && !imagePhoneActive;
+    const hasMockup3D = imagePhoneActive;
 
     const [isDark, setIsDark] = useState(
         () => typeof window !== "undefined" && document.documentElement.classList.contains("dark")
@@ -324,30 +327,37 @@ export function ControlPanel({
                 )}
                 {activeTool === "motion" && (
                     <>
-                        {selectedMockupMotionFragment && hasMockup2D ? (
-                            <Suspense fallback={<MotionFragmentEditorSkeleton />}>
-                                <MotionFragmentEditor
-                                    fragment={selectedMockupMotionFragment}
-                                    isGlobalMotionEnabled={isGlobalMotionEnabled}
-                                    onUpdate={(updates) =>
-                                        selectedMockupMotionFragmentId &&
-                                        onUpdateMockupMotionFragment?.(selectedMockupMotionFragmentId, updates)
-                                    }
-                                    onDelete={() => {
-                                        if (selectedMockupMotionFragmentId) {
-                                            onDeleteMockupMotionFragment?.(selectedMockupMotionFragmentId);
-                                        }
-                                        onSelectMockupMotionFragment?.(null);
-                                    }}
-                                    onClose={() => onSelectMockupMotionFragment?.(null)}
-                                />
-                            </Suspense>
+                        {selectedMockupMotionFragment && (hasMockup2D || hasMockup3D) ? (
+                            (() => {
+                                const is3DFragment = MOTION_PRESET_3D_IDS.has(selectedMockupMotionFragment.presetId);
+                                const EditorComponent = is3DFragment ? MotionFragmentEditor3D : MotionFragmentEditor;
+                                return (
+                                    <Suspense key={is3DFragment ? "3d" : "2d"} fallback={<MotionFragmentEditorSkeleton />}>
+                                        <EditorComponent
+                                            fragment={selectedMockupMotionFragment}
+                                            isGlobalMotionEnabled={isGlobalMotionEnabled}
+                                            onUpdate={(updates) =>
+                                                selectedMockupMotionFragmentId &&
+                                                onUpdateMockupMotionFragment?.(selectedMockupMotionFragmentId, updates)
+                                            }
+                                            onDelete={() => {
+                                                if (selectedMockupMotionFragmentId) {
+                                                    onDeleteMockupMotionFragment?.(selectedMockupMotionFragmentId);
+                                                }
+                                                onSelectMockupMotionFragment?.(null);
+                                            }}
+                                            onClose={() => onSelectMockupMotionFragment?.(null)}
+                                        />
+                                    </Suspense>
+                                );
+                            })()
                         ) : (
                             <Suspense fallback={<MotionGlobalConfigSkeleton />}>
                                 <MotionGlobalConfig
                                     fragments={mockupMotionFragments}
                                     onAddOrReplacePreset={(presetId) => onAddOrReplaceMotionPreset?.(presetId)}
                                     hasMockup2D={hasMockup2D}
+                                    hasMockup3D={hasMockup3D}
                                     isGlobalMotionEnabled={isGlobalMotionEnabled}
                                     onToggleGlobalMotion={setIsGlobalMotionEnabled}
                                 />

@@ -1377,7 +1377,10 @@
       "whip-showcase": "훽팬 쇼케이스",
       "spatial-roam": "공간 자유 이동",
       "rise-crash": "상승 및 추락",
-      "crane-sweep": "크레인 스윕"
+      "crane-sweep": "크레인 스윕",
+      "orbit-entrance": "오빗 입장",
+      "turntable-drift": "턴테이블 드리프트",
+      "flick-exit": "플릭 퇴장"
     },
     "controls": {
       "intensity": "강도",
@@ -1397,7 +1400,22 @@
       "zoomLabel": "줌",
       "rotateZLabel": "Z축 회전",
       "reverseLabel": "방향 반전",
-      "resetButton": "커스터마이즈 초기화"
+      "resetButton": "커스터마이즈 초기화",
+      "blurLabel": "모션 블러"
+    },
+    "customize3D": {
+      "rotationTitle": "회전 오프셋",
+      "rotationSubtitle": "프리셋 기본 회전에 추가됨 (도)",
+      "rotateXLabel": "X 회전 (피치)",
+      "rotateYLabel": "Y 회전 (요)",
+      "rotateZLabel": "Z 회전 (롤)",
+      "positionTitle": "위치 오프셋",
+      "positionSubtitle": "프리셋 기본 위치에 추가됨 (씬 단위)",
+      "positionLabel": "위치",
+      "positionHint": "드래그하여 X / Y 위치 설정",
+      "scaleTitle": "크기",
+      "scaleSubtitle": "모델에 적용되는 균일 승수",
+      "scaleLabel": "크기"
     }
   },
   "MobileTools": {
@@ -1425,6 +1443,7 @@
     },
     "messagePlaceholder": "발생한 문제나 보고 싶으신 기능을 알려주세요...",
     "emailPlaceholder": "이메일 주소 (선택 사항, 답변용)",
+    "emailInvalid": "올바른 이메일 주소를 입력해 주세요.",
     "submit": "보내기",
     "successMessage": "감사합니다! 피드백이 정상적으로 접수되었습니다.",
     "errorMessage": "전송에 실패했습니다. 다시 시도해 주세요."

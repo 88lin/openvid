@@ -190,17 +190,18 @@ export interface ZoomStateCanvasExport extends ZoomStateCanvas {
 /**
  * Calculate smooth zoom for canvas export.
  *
- * IMPORTANT: scale now uses the SAME "entry inside fragment, exit AFTER
- * fragment ends" behavior for BOTH simple and advanced (3D/movement) zoom,
- * mirroring exactly what the preview does via CSS transitions:
- *   - entry ramp:  [start, start+T]      (T = speedToTransitionMs)
- *   - hold:        [start+T, end]        (flat at targetScale)
- *   - exit ramp:   [end, end+T]          (AFTER the fragment, not before)
+ * Both entry AND exit ramps occur WITHIN the fragment bounds [startTime, endTime]:
+ *   - entry ramp: [start, start+T]       (T = speedToTransitionMs, clamped to dur/2)
+ *   - hold:       [start+T, end-T]       (flat at targetScale)
+ *   - exit ramp:  [end-T, end]           (back to scale=1 by endTime)
  *
- * rotateX/rotateY/focus for advanced zoom keep using the existing
- * within-fragment 3-phase system (calculateZoomPhaseState), since those
- * already match preview and already settle to their end-state (0 rotation,
- * movement-end focus) by the time frameTime reaches endTime.
+ * This means the zoom is fully complete at endTime: no invisible exit tail
+ * after the fragment, so adjacent fragments/content never collide with an
+ * unseen zoom-out.
+ *
+ * For advanced zoom (3D/movement), focus/rotation come from
+ * calculateZoomPhaseState(forExport=true), which now uses the same within-
+ * fragment exit window, so scale and 3D effects stay in sync.
  */
 export function calculateSmoothZoom(
     frameTime: number,
@@ -215,50 +216,42 @@ export function calculateSmoothZoom(
 
     const sortedFragments = [...zoomFragments].sort((a, b) => a.startTime - b.startTime);
     const activeFragment = sortedFragments.find(f => frameTime >= f.startTime && frameTime <= f.endTime);
-    const previousFragment = sortedFragments.filter(f => f.endTime < frameTime).sort((a, b) => b.endTime - a.endTime)[0];
 
     const isAdvancedZoom = (f: ZoomFragment) => f.enable3D || f.movementEnabled;
     const movementsFor = (fragmentId: string) => zoomMovements.filter(m => m.zoomFragmentId === fragmentId);
-    const computeHeldScale = (fragment: ZoomFragment, time: number): number => {
-        const transitionSec = speedToTransitionMs(fragment.speed) / 1000;
+
+    // Compute scale for a fragment at a given time, covering all 3 phases
+    // (entry, hold, exit) entirely WITHIN [startTime, endTime].
+    const computeFragmentScale = (fragment: ZoomFragment, time: number): number => {
+        const totalDuration = fragment.endTime - fragment.startTime;
+        const transitionSec = Math.min(speedToTransitionMs(fragment.speed) / 1000, totalDuration / 2);
         const targetScale = zoomLevelToFactor(fragment.zoomLevel);
         const timeIntoFragment = time - fragment.startTime;
+
+        // Entry ramp [start, start+T]
         if (transitionSec > 0 && timeIntoFragment < transitionSec) {
             const progress = Math.min(1, Math.max(0, timeIntoFragment / transitionSec));
             return 1 + (targetScale - 1) * easeOutQuart(progress);
         }
+
+        // Exit ramp [end-T, end]
+        const timeBeforeEnd = fragment.endTime - time;
+        if (transitionSec > 0 && timeBeforeEnd < transitionSec) {
+            const progress = Math.min(1, Math.max(0, timeBeforeEnd / transitionSec));
+            return 1 + (targetScale - 1) * easeOutQuart(progress);
+        }
+
+        // Hold
         return targetScale;
     };
 
-    const computeExitScale = (fragment: ZoomFragment, time: number): number | null => {
-        const transitionSec = speedToTransitionMs(fragment.speed) / 1000;
-        if (transitionSec <= 0) return null;
-        const timeSinceEnd = time - fragment.endTime;
-        if (timeSinceEnd >= transitionSec) return null;
-        const targetScale = zoomLevelToFactor(fragment.zoomLevel);
-        const progress = Math.min(1, Math.max(0, timeSinceEnd / transitionSec));
-        const easedProgress = easeOutQuart(progress);
-        return targetScale - (targetScale - 1) * easedProgress;
-    };
-
     if (activeFragment) {
-        const scale = computeHeldScale(activeFragment, frameTime);
+        const scale = computeFragmentScale(activeFragment, frameTime);
         if (isAdvancedZoom(activeFragment)) {
             const phaseState = calculateZoomPhaseState(activeFragment, frameTime, movementsFor(activeFragment.id), true);
             return { scale, focusX: phaseState.focusX, focusY: phaseState.focusY, rotateX: phaseState.rotateX, rotateY: phaseState.rotateY, perspective: phaseState.perspective };
         }
         return { scale, focusX: activeFragment.focusX, focusY: activeFragment.focusY, rotateX: 0, rotateY: 0, perspective: 0 };
-    }
-
-    if (previousFragment) {
-        const exitScale = computeExitScale(previousFragment, frameTime);
-        if (exitScale !== null) {
-            if (isAdvancedZoom(previousFragment)) {
-                const phaseState = calculateZoomPhaseState(previousFragment, frameTime, movementsFor(previousFragment.id), true);
-                return { scale: exitScale, focusX: phaseState.focusX, focusY: phaseState.focusY, rotateX: phaseState.rotateX, rotateY: phaseState.rotateY, perspective: phaseState.perspective };
-            }
-            return { scale: exitScale, focusX: previousFragment.focusX, focusY: previousFragment.focusY, rotateX: 0, rotateY: 0, perspective: 0 };
-        }
     }
 
     return DEFAULT_STATE;

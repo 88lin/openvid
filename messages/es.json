@@ -1355,7 +1355,10 @@
       "whip-showcase": "MVTO de Paneo Rápido",
       "spatial-roam": "MVTO Espacial Libre",
       "rise-crash": "Elevación y Caída Rápida",
-      "crane-sweep": "Barrido de Grúa"
+      "crane-sweep": "Barrido de Grúa",
+      "orbit-entrance": "Entrada en órbita",
+      "turntable-drift": "Giro de plataforma",
+      "flick-exit": "Salida rápida"
     },
     "controls": {
       "intensity": "Intensidad",
@@ -1375,7 +1378,22 @@
       "zoomLabel": "Zoom",
       "rotateZLabel": "Rotación Z",
       "reverseLabel": "Invertir dirección",
-      "resetButton": "Restablecer personalización"
+      "resetButton": "Restablecer personalización",
+      "blurLabel": "Desenfoque de movimiento"
+    },
+    "customize3D": {
+      "rotationTitle": "Offsets de rotación",
+      "rotationSubtitle": "Sumados a la rotación base del preset (grados)",
+      "rotateXLabel": "Rotar X (pitch)",
+      "rotateYLabel": "Rotar Y (yaw)",
+      "rotateZLabel": "Rotar Z (roll)",
+      "positionTitle": "Offsets de posición",
+      "positionSubtitle": "Sumados a la posición base del preset (unidades de escena)",
+      "positionLabel": "Posición",
+      "positionHint": "Arrastra para ajustar la posición X / Y",
+      "scaleTitle": "Escala",
+      "scaleSubtitle": "Multiplicador uniforme aplicado al modelo",
+      "scaleLabel": "Escala"
     }
   },
   "MobileTools": {
@@ -1403,6 +1421,7 @@
     },
     "messagePlaceholder": "Cuéntanos qué pasó o qué te gustaría ver...",
     "emailPlaceholder": "Tu email (opcional, para responderte)",
+    "emailInvalid": "Ingresa un correo electrónico válido.",
     "submit": "Enviar",
     "successMessage": "¡Gracias! Recibimos tu feedback.",
     "errorMessage": "No se pudo enviar. Intenta de nuevo."

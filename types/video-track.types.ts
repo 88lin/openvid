@@ -90,3 +90,21 @@ export function clampClipToRealDuration(clip: VideoTrackClip, realDuration: numb
     }
     return clip;
 }
+
+export function resequenceClips(clips: VideoTrackClip[]): {
+    clips: VideoTrackClip[];
+    offsetMap: Map<string, number>;
+} {
+    const sorted = [...clips].sort((a, b) => a.startTime - b.startTime);
+    const offsetMap = new Map<string, number>();
+    let cursor = 0;
+    const resequenced = sorted.map(clip => {
+        const duration = clip.trimEnd - clip.trimStart;
+        const offset = cursor - clip.startTime;
+        if (offset !== 0) offsetMap.set(clip.id, offset);
+        const newClip = { ...clip, startTime: cursor };
+        cursor += duration;
+        return newClip;
+    });
+    return { clips: resequenced, offsetMap };
+}

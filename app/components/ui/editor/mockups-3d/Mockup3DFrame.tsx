@@ -72,9 +72,9 @@ interface FrameProps extends Mockup3DStageProps {
   device: ImageDeviceId;
 }
 
-export function Mockup3DFrame({ device, ...stageProps }: FrameProps) {
+export function Mockup3DFrame({ device, rootRef: externalRootRef, ...stageProps }: FrameProps) {
   const layout = DEVICE_LAYOUT[device];
-  const rootRef = useRef<THREE.Group | null>(null);
+  const rootRef = externalRootRef ?? useRef<THREE.Group | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const canvasElRef = useRef<HTMLCanvasElement | null>(null);
   const raycasterRef = useRef(new THREE.Raycaster());

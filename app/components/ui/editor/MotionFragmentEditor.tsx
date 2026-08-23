@@ -8,6 +8,9 @@ import {
   MockupMotionFragment,
   DEFAULT_MOTION_CUSTOM_OFFSETS,
   type MotionCustomOffsets,
+  MOTION_PRESET_3D_IDS,
+  DEFAULT_3D_MOTION_CUSTOM_OFFSETS,
+  type Mockup3DMotionCustomOffsets,
 } from "@/lib/mockup-motion";
 import {
   MotionPresetIconStyles,
@@ -32,10 +35,28 @@ export function MotionFragmentEditor({
   onClose,
 }: MotionFragmentEditorProps) {
   const t = useTranslations("motionMenu");
-  const custom = fragment.custom ?? DEFAULT_MOTION_CUSTOM_OFFSETS;
+
+  // Detect whether this fragment belongs to a 3D preset. 3D presets use a
+  // separate custom-offsets object (custom3D) that lacks the `blur` field
+  // since motion blur is not applicable to real 3D geometry.
+  const is3D = MOTION_PRESET_3D_IDS.has(fragment.presetId);
+
+  const custom2D = fragment.custom ?? DEFAULT_MOTION_CUSTOM_OFFSETS;
+  const custom3D = fragment.custom3D ?? DEFAULT_3D_MOTION_CUSTOM_OFFSETS;
+
+  // Unified accessor so the JSX below doesn't need to branch at every
+  // control. `blur` is always 0 in 3D mode.
+  const custom = is3D
+    ? { ...custom3D, blur: 0 }
+    : custom2D;
 
   const updateCustom = (partial: Partial<MotionCustomOffsets>) => {
-    onUpdate({ custom: { ...custom, ...partial } });
+    if (is3D) {
+      const { blur: _blur, ...rest } = partial;
+      onUpdate({ custom3D: { ...custom3D, ...(rest as Partial<Mockup3DMotionCustomOffsets>) } });
+    } else {
+      onUpdate({ custom: { ...custom2D, ...partial } });
+    }
   };
 
   const hasCustomChanges =
@@ -45,8 +66,16 @@ export function MotionFragmentEditor({
     custom.rotateX !== 0 ||
     custom.rotateY !== 0 ||
     custom.rotateZ !== 0 ||
-    custom.blur !== 0 ||
+    (!is3D && custom.blur !== 0) ||
     custom.reverse;
+
+  const resetCustom = () => {
+    if (is3D) {
+      onUpdate({ custom3D: { ...DEFAULT_3D_MOTION_CUSTOM_OFFSETS } });
+    } else {
+      onUpdate({ custom: { ...DEFAULT_MOTION_CUSTOM_OFFSETS } });
+    }
+  };
 
   return (
     <div className="flex flex-col h-full text-foreground">
@@ -54,6 +83,11 @@ export function MotionFragmentEditor({
 
       <div className="flex items-center gap-2 p-3 border-b border-border shrink-0">
         <DetailPageHeader label={t("title")} icon="ph:arrow-left-bold" onBack={onClose} />
+        {is3D && (
+          <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70 bg-muted/60 px-1.5 py-0.5 rounded shrink-0">
+            3D
+          </span>
+        )}
         <TooltipAction label={t("deleteTooltip")}>
           <button
             onClick={onDelete}
@@ -131,6 +165,16 @@ export function MotionFragmentEditor({
             max={45}
             onChange={(v: number) => updateCustom({ rotateZ: v })}
           />
+          {!is3D && (
+            <SliderControl
+              icon="mdi:blur"
+              label={t("customize.blurLabel")}
+              value={custom.blur}
+              min={0}
+              max={20}
+              onChange={(v: number) => updateCustom({ blur: v })}
+            />
+          )}
           <label className="flex items-center justify-between px-3 py-2.5 rounded-lg bg-muted/40 border border-border">
             <span className="text-xs text-muted-foreground">{t("customize.reverseLabel")}</span>
             <Toggle
@@ -141,7 +185,7 @@ export function MotionFragmentEditor({
           </label>
           {hasCustomChanges && (
             <button
-              onClick={() => onUpdate({ custom: { ...DEFAULT_MOTION_CUSTOM_OFFSETS } })}
+              onClick={resetCustom}
               className="self-start text-xs text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
             >
               {t("customize.resetButton")}

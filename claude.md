@@ -40,16 +40,16 @@ Unidad atómica de zoom aplicada a un rango temporal del video:
 Particiona la vida del fragmento en **entry → hold → exit** usando `transitionSeconds = speedToTransitionMs(speed)/1000`:
 
 ```
-|<── entry (transitionSec) ──>|<──── hold ────>|<── exit (transitionSec, post-endTime) ──>|
-startTime                                                                   endTime
+|<── entry (T) ──>|<──── hold ────>|<── exit (T) ──>|
+startTime                    endTime
 ```
 
 - **Entry** (`time < startTime + transitionSec`): zoom-in con `easeOutQuart`. Solo `forExport=true` interpola `scale`; en preview el scale lo gestiona `calculateSmoothZoom` (ver §4).
-- **Exit** (`time >= endTime` y dentro de `transitionSec` post-fin): zoom-out con `easeOutQuart`; el foco salta a `movementEndX/Y` si hay movement.
+- **Exit** (`time >= endTime - transitionSec`): zoom-out con `easeOutQuart` que termina en `scale=1` exactamente en `endTime`; el foco salta a `movementEndX/Y` si hay movement.
 - **Hold** (entre entry y exit): scale = `targetScale`; si `movementEnabled` se interpola foco A→B con `easeInOutQuart`, respetando `movementStartOffset/EndOffset` como ventanas dentro del hold.
 
 > El cálculo del **scale lo hace el caller** según el modo:
-> - Preview (CSS): `calculateSmoothZoom` redefine el scale para coincidir con exportación (entry dentro del fragmento + exit *después* del endTime).
+> - Preview (CSS): `calculateSmoothZoom` redefine el scale para coincidir con exportación (entry y exit *dentro* del fragmento).
 > - Export (canvas): `forExport=true` interpola el scale en entry/exit *dentro* de `calculateZoomPhaseState` porque se llama por frame.
 
 ### Capa 3D (independiente del zoom)
@@ -126,7 +126,7 @@ Aquí viven **dos cálculos** según el modo:
 `useMemo` que determina el transform CSS del "zoom + translate layer":
 
 1. **Fragmento activo** (`activeZoomFragment`): el que contiene `currentTime` en `[startTime, endTime]`.
-2. Si no hay activo: busca el **último fragmento anterior** (`endTime < currentTime`); usa su `speed` para una "salida suave" a `scale=1` con su `perspective` si era 3D.
+2. Si no hay activo: retorna directamente `scale=1` sin transición (el zoom ya completó su exit *dentro* del fragmento anterior, en `endTime`).
 3. Si hay activo: llama `calculateZoomPhaseState(fragment, currentTime)` (sin `forExport`) y traducefocus → translate:
    ```
    translateX = 50 - focusX
@@ -136,15 +136,12 @@ Aquí viven **dos cálculos** según el modo:
 
 ### 4.2 Exportación (Canvas 2D) — `calculateSmoothZoom` (líneas 1434+ en `VideoCanvas.tsx`, impl en `lib/canvas.utils.ts`)
 
-> Divergencia intencional con `calculateZoomPhaseState` para que **la escala coincida visualmente entre preview y export**: el exit ocurre *después* de `endTime`, no dentro.
-
 `calculateSmoothZoom(frameTime, fragments)`:
 - `activeFragment`: `frameTime` en `[start,end]`.
-  - `scale = computeHeldScale`: rampa de 1→target con `easeOutQuart` durante `transitionSec` desde `startTime`; luego `target` constante.
+  - `scale = computeFragmentScale`: cubre las 3 fases (entry, hold, exit) *dentro* de `[start,end]`. Entry: rampa 1→target con `easeOutQuart` durante `transitionSec` desde `startTime`. Exit: rampa target→1 durante `transitionSec` antes de `endTime`. Hold: `target` constante.
   - Si `isAdvancedZoom` (`enable3D || movementEnabled`) → delega focus/rotateX/rotateY/perspective a `calculateZoomPhaseState(fragment, frameTime, forExport=true)`; **sobreescribe solo `scale`**.
   - Si no → focusX/Y del fragmento, rotación 0.
-- `previousFragment`: si no hay activo, calcula `computeExitScale` (decay post-endTime). Devuelve `null` cuando pasó `transitionSec` desde `endTime` → cae a `DEFAULT_STATE` {scale:1, focus 50/50}.
-- Default: scale 1, sin rotación.
+- Default: scale 1, sin rotación. (Ya no hay `previousFragment`/`computeExitScale` porque el exit completa dentro del fragmento.)
 
 ### 4.3 Transform CSS aplicado al DOM (líneas 2242–2320)
 Estructura anidada:

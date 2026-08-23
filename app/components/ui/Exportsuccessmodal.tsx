@@ -83,7 +83,7 @@ export function ExportSuccessModal({
   mediaType = "video",
   fileName,
   donateUrl = "/donate",
-  githubUrl = "https://cristianolivera1.github.io",
+  githubUrl = "https://github.com/CristianOlivera1/openvid",
 }: ExportSuccessModalProps) {
   const t = useTranslations("exportSuccess");
   const isClient = useIsClient();

@@ -3,8 +3,10 @@ import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import {
     DEFAULT_MOCKUP_MOTION_CONFIG,
     findValidMotionPlacement,
+    MOTION_PRESET_3D_IDS,
     type MockupMotionFragment,
     type MockupMotionPresetId,
+    type MockupMotionMode,
 } from "@/lib/mockup-motion";
 import { Tool } from "@/types";
 
@@ -15,15 +17,45 @@ interface UseMockupMotionFragmentsParams {
     lastCopyActionRef: React.MutableRefObject<'element' | 'zoom' | 'motion' | null>;
     selectedMockupMotionFragmentId: string | null;
     setSelectedMockupMotionFragmentId: React.Dispatch<React.SetStateAction<string | null>>;
+    /** Current active motion mode — when this changes, orphan fragments from
+     * the previous mode are pruned so the timeline stays clean. */
+    motionMode?: MockupMotionMode | null;
 }
 
 export function useMockupMotionFragments({
     currentTime, videoDuration, setActiveTool, lastCopyActionRef,
     selectedMockupMotionFragmentId, setSelectedMockupMotionFragmentId,
+    motionMode,
 }: UseMockupMotionFragmentsParams) {
     const [mockupMotionFragments, setMockupMotionFragments] = useState<MockupMotionFragment[]>([]);
     const mockupMotionFragmentsRef = useRef<MockupMotionFragment[]>([]);
     useEffect(() => { mockupMotionFragmentsRef.current = mockupMotionFragments; }, [mockupMotionFragments]);
+
+    // Prune orphan fragments when the motion mode changes (e.g. switching from
+    // a 3D mockup to a 2D mockup). Fragments whose preset belongs to the other
+    // mode are removed, and the selection is cleared if it pointed to one of them.
+    const prevMotionModeRef = useRef<MockupMotionMode | null | undefined>(motionMode);
+    useEffect(() => {
+        if (prevMotionModeRef.current === motionMode) return;
+        const prevMode = prevMotionModeRef.current;
+        prevMotionModeRef.current = motionMode;
+        if (!prevMode || !motionMode || prevMode === motionMode) return;
+
+        setMockupMotionFragments((prev) => {
+            const kept = prev.filter((f) => {
+                const is3D = MOTION_PRESET_3D_IDS.has(f.presetId);
+                return motionMode === "3d" ? is3D : !is3D;
+            });
+            if (kept.length !== prev.length) {
+                const removed = prev.filter((f) => !kept.includes(f));
+                const removedIds = new Set(removed.map((f) => f.id));
+                if (removedIds.has(selectedMockupMotionFragmentId ?? "")) {
+                    setSelectedMockupMotionFragmentId(null);
+                }
+            }
+            return kept;
+        });
+    }, [motionMode, selectedMockupMotionFragmentId, setSelectedMockupMotionFragmentId]);
 
     const [copiedMockupMotionFragment, setCopiedMockupMotionFragment] = useState<Omit<MockupMotionFragment, 'id' | 'startTime' | 'endTime'> | null>(null);
 

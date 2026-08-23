@@ -1,3 +1,5 @@
+import { getDefault3DFragmentDuration, type Mockup3DMotionPresetId } from "./mockup-motion-3d";
+
 export type MockupMotionPresetId =
   | "none"
   | "focus-in"
@@ -11,25 +13,45 @@ export type MockupMotionPresetId =
   | "spatial-roam"
   | "rise-crash"
   | "crane-sweep"
-  | "z-spin-reveal";
+  | "z-spin-reveal"
+  | "orbit-entrance"
+  | "turntable-drift"
+  | "flick-exit";
 
-export const MOCKUP_MOTION_PRESETS: {
+export type MockupMotionMode = "2d" | "3d";
+
+export interface MockupMotionPresetDef {
   id: MockupMotionPresetId;
   category: "Entrance" | "Continue" | "Exit";
-}[] = [
-    { id: "focus-in", category: "Entrance" },
-    { id: "depth-emerge", category: "Entrance" },
-    { id: "z-spin-reveal", category: "Entrance" },
-    { id: "isometric-lift", category: "Entrance" },
-    { id: "cinematic-showcase", category: "Continue" },
-    { id: "macro-track", category: "Continue" },
-    { id: "whip-showcase", category: "Continue" },
-    { id: "spatial-roam", category: "Continue" },
-    { id: "crane-sweep", category: "Continue" },
-    { id: "rise-crash", category: "Continue" },
-    { id: "exit-fade-down", category: "Exit" },
-    { id: "exit-scale-blur", category: "Exit" },
+  mode: MockupMotionMode;
+}
+
+export const MOCKUP_MOTION_PRESETS: MockupMotionPresetDef[] = [
+    { id: "focus-in", category: "Entrance", mode: "2d" },
+    { id: "depth-emerge", category: "Entrance", mode: "2d" },
+    { id: "z-spin-reveal", category: "Entrance", mode: "2d" },
+    { id: "isometric-lift", category: "Entrance", mode: "2d" },
+    { id: "cinematic-showcase", category: "Continue", mode: "2d" },
+    { id: "macro-track", category: "Continue", mode: "2d" },
+    { id: "whip-showcase", category: "Continue", mode: "2d" },
+    { id: "spatial-roam", category: "Continue", mode: "2d" },
+    { id: "crane-sweep", category: "Continue", mode: "2d" },
+    { id: "rise-crash", category: "Continue", mode: "2d" },
+    { id: "exit-fade-down", category: "Exit", mode: "2d" },
+    { id: "exit-scale-blur", category: "Exit", mode: "2d" },
+    { id: "orbit-entrance", category: "Entrance", mode: "3d" },
+    { id: "turntable-drift", category: "Continue", mode: "3d" },
+    { id: "flick-exit", category: "Exit", mode: "3d" },
   ];
+
+/** IDs that belong to 3D mode (used for routing to the 3D sampler). */
+export const MOTION_PRESET_3D_IDS: ReadonlySet<MockupMotionPresetId> = new Set(
+  MOCKUP_MOTION_PRESETS.filter((p) => p.mode === "3d").map((p) => p.id)
+);
+
+export function getMotionPresetMode(id: MockupMotionPresetId): MockupMotionMode {
+  return MOCKUP_MOTION_PRESETS.find((p) => p.id === id)?.mode ?? "2d";
+}
 
 export interface MockupMotionConfig {
   presetId: MockupMotionPresetId;
@@ -1206,6 +1228,8 @@ export interface MockupMotionFragment extends MockupMotionConfig {
   startTime: number;
   endTime: number;
   custom?: MotionCustomOffsets;
+  /** Custom offsets for 3D presets. Only used when presetId is a 3D preset. */
+  custom3D?: import("./mockup-motion-3d").Mockup3DMotionCustomOffsets;
 }
 
 export function getMotionPresetCategory(
@@ -1244,6 +1268,14 @@ export function sampleFragmentMotion(
 
   const localTime = currentTime - fragment.startTime;
   const localDuration = fragment.endTime - fragment.startTime;
+
+  // 3D presets produce CSS-compatible values by mapping the 3D transform
+  // back into the 2D transform space so the existing CSS pipeline keeps
+  // working. The real 3D application happens in Mockup3DStage via
+  // sampleCombined3DMotion.
+  if (MOTION_PRESET_3D_IDS.has(fragment.presetId)) {
+    return REST_MOCKUP_MOTION;
+  }
 
   const base = sampleMockupMotion(
     { presetId: fragment.presetId, intensity: fragment.intensity, speed: fragment.speed },
@@ -1290,7 +1322,11 @@ export function findValidMotionPlacement(
   existingFragments: MockupMotionFragment[],
   clipDurationSec: number
 ): { startTime: number; endTime: number } | null {
-  const duration = Math.min(getDefaultFragmentDuration(presetId, speed), clipDurationSec);
+  const is3D = MOTION_PRESET_3D_IDS.has(presetId);
+  const defaultDur = is3D
+    ? getDefault3DFragmentDuration(presetId as Mockup3DMotionPresetId, speed)
+    : getDefaultFragmentDuration(presetId, speed);
+  const duration = Math.min(defaultDur, clipDurationSec);
   if (duration <= 0 || clipDurationSec <= 0) return null;
 
   const category = getMotionPresetCategory(presetId);
@@ -1345,3 +1381,13 @@ export function findValidMotionPlacement(
 
   return { startTime: start, endTime: start + duration };
 }
+
+// Re-export 3D helpers so consumers can import everything from one module.
+export {
+  getDefault3DFragmentDuration,
+  sampleCombined3DMotion,
+  type Mockup3DMotionTransform,
+  type Mockup3DMotionCustomOffsets,
+  DEFAULT_3D_MOTION_CUSTOM_OFFSETS,
+  REST_MOCKUP_3D_MOTION,
+} from "./mockup-motion-3d";

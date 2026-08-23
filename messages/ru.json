@@ -1377,7 +1377,10 @@
       "whip-showcase": "Движ Быстрой Панорамы",
       "spatial-roam": "Пространственный Движ",
       "rise-crash": "Взлет и Падение",
-      "crane-sweep": "Панорама Кран-Стрелы"
+      "crane-sweep": "Панорама Кран-Стрелы",
+      "orbit-entrance": "Орбитальный вход",
+      "turntable-drift": "Вращение подиума",
+      "flick-exit": "Быстрый выход"
     },
     "controls": {
       "intensity": "Интенсивность",
@@ -1397,7 +1400,22 @@
       "zoomLabel": "Масштаб",
       "rotateZLabel": "Поворот по Z",
       "reverseLabel": "Обратное направление",
-      "resetButton": "Сбросить настройки"
+      "resetButton": "Сбросить настройки",
+      "blurLabel": "Размытие движения"
+    },
+    "customize3D": {
+      "rotationTitle": "Смещения вращения",
+      "rotationSubtitle": "Добавляются к базовому вращению пресета (градусы)",
+      "rotateXLabel": "Вращение X (тангаж)",
+      "rotateYLabel": "Вращение Y (рысканье)",
+      "rotateZLabel": "Вращение Z (крен)",
+      "positionTitle": "Смещения позиции",
+      "positionSubtitle": "Добавляются к базовой позиции пресета (единицы сцены)",
+      "positionLabel": "Позиция",
+      "positionHint": "Перетащите для настройки позиции X / Y",
+      "scaleTitle": "Масштаб",
+      "scaleSubtitle": "Единый множитель, применяемый к модели",
+      "scaleLabel": "Масштаб"
     }
   },
   "MobileTools": {
@@ -1425,6 +1443,7 @@
     },
     "messagePlaceholder": "Расскажите, что произошло или что бы вы хотели увидеть...",
     "emailPlaceholder": "Ваш email (необязательно, для ответа)",
+    "emailInvalid": "Пожалуйста, введите корректный адрес электронной почты.",
     "submit": "Отправить",
     "successMessage": "Спасибо! Мы получили ваш отзыв.",
     "errorMessage": "Не удалось отправить. Пожалуйста, попробуйте еще раз."

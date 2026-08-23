@@ -138,6 +138,18 @@ export function MotionPresetIconStyles() {
         .force-animate .mp-card--crane-sweep {
           animation: mp-crane-sweep 3.2s cubic-bezier(0.65, 0, 0.35, 1) infinite alternate;
         }
+        .group:hover .mp-card--orbit-entrance,
+        .force-animate .mp-card--orbit-entrance {
+          animation: mp-orbit-entrance 1.6s cubic-bezier(0.65, 0, 0.35, 1) infinite alternate;
+        }
+        .group:hover .mp-card--turntable-drift,
+        .force-animate .mp-card--turntable-drift {
+          animation: mp-turntable-drift 3s ease-in-out infinite alternate;
+        }
+        .group:hover .mp-card--flick-exit,
+        .force-animate .mp-card--flick-exit {
+          animation: mp-flick-exit 1s cubic-bezier(0.65, 0, 0.35, 1) infinite alternate;
+        }
       }
       @keyframes mp-focus-in {
         0% { transform: scale(1.22); filter: blur(3.5px); opacity: 0.45; }
@@ -198,6 +210,23 @@ export function MotionPresetIconStyles() {
         60% { transform: scale(1.34) rotateX(4deg) rotateY(-18deg) translate(6%, -3%); }
         82% { transform: scale(1.14) rotateX(12deg) rotateY(16deg) translate(-3%, 2%); }
         100% { transform: scale(1) rotateX(-58deg); }
+      }
+      @keyframes mp-orbit-entrance {
+        0% { transform: scale(0.55) rotateY(180deg) rotateX(30deg) translateY(20%); opacity: 0; }
+        60% { transform: scale(0.9) rotateY(40deg) rotateX(10deg) translateY(5%); opacity: 0.8; }
+        100% { transform: scale(1) rotateY(0) rotateX(0) translateY(0); opacity: 1; }
+      }
+      @keyframes mp-turntable-drift {
+        0% { transform: rotateY(0deg) translateY(0) scale(1); opacity: 0.6; }
+        25% { transform: rotateY(90deg) translateY(-3%) scale(1.01); opacity: 1; }
+        50% { transform: rotateY(180deg) translateY(0) scale(0.99); opacity: 1; }
+        75% { transform: rotateY(270deg) translateY(3%) scale(1.01); opacity: 1; }
+        100% { transform: rotateY(360deg) translateY(0) scale(1); opacity: 0.6; }
+      }
+      @keyframes mp-flick-exit {
+        0% { transform: rotateY(0) translateX(0) scale(1); opacity: 1; }
+        50% { transform: rotateY(40deg) translateX(10%) scale(0.95); opacity: 0.7; }
+        100% { transform: rotateY(100deg) translateX(35%) scale(0.8); opacity: 0; }
       }
     `}</style>
   );
