@@ -14,7 +14,7 @@ interface UseZoomFragmentsParams {
     currentTime: number;
     videoDuration: number;
     setActiveTool: (tool: Tool) => void;
-    lastCopyActionRef: React.MutableRefObject<'element' | 'zoom' | 'motion' | null>;
+    lastCopyActionRef: React.MutableRefObject<'element' | 'zoom' | 'motion' | 'audio' | null>;
     selectedZoomFragmentId: string | null;
     setSelectedZoomFragmentId: React.Dispatch<React.SetStateAction<string | null>>;
     selectedZoomMovementId: string | null;

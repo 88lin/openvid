@@ -2,6 +2,7 @@
 import { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import { motion, useMotionValue } from "framer-motion";
 import { AudioFragmentTrackItemProps, MIN_FRAGMENT_DURATION, MIN_VISUAL_WIDTH_PX } from "@/types/audio.types";
+import { collectSnapPoints, findSnap } from "@/lib/timeline-snapping";
 
 export function AudioFragmentTrackItem({
   track, audio, isSelected, contentWidth, videoDuration, contentDuration,
@@ -10,7 +11,9 @@ export function AudioFragmentTrackItem({
   lane = 0,
   laneHeight = 55,
   laneCount = 1,
-}: AudioFragmentTrackItemProps) {
+  currentTime = 0,
+  clipEdges = [],
+}: AudioFragmentTrackItemProps & { currentTime?: number; clipEdges?: Array<{ start: number; end: number }> }) {
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState<'start' | 'end' | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -65,12 +68,29 @@ export function AudioFragmentTrackItem({
     const minX = timeToPixels(boundaries.minStart);
     const maxX = timeToPixels(boundaries.maxEnd - track.duration);
     newX = Math.max(minX, Math.min(maxX, newX));
+
+    // Magnetic snapping: snap track start/end to clip edges, other tracks, playhead, zero.
+    const snapThresholdPx = 8;
+    const newStartTime = pixelsToTime(newX);
+    const newEndTime = newStartTime + track.duration;
+    const audioEdges = otherTracks.map(t => ({ start: t.startTime, end: t.startTime + t.duration }));
+    const snapPoints = collectSnapPoints({ clipEdges, audioEdges, playhead: currentTime });
+    const snapStart = findSnap(newStartTime, snapPoints, timeToPixels, snapThresholdPx);
+    if (snapStart.offsetPx !== 0) {
+      newX = timeToPixels(snapStart.time);
+    } else {
+      const snapEnd = findSnap(newEndTime, snapPoints, timeToPixels, snapThresholdPx);
+      if (snapEnd.offsetPx !== 0) {
+        newX = timeToPixels(snapEnd.time - track.duration);
+      }
+    }
+    newX = Math.max(minX, Math.min(maxX, newX));
     fragmentX.set(newX);
 
     const currentY = fragmentY.get();
     const newY = Math.max(laneHeight * 0.05, Math.min(maxLaneY, currentY + info.delta.y));
     fragmentY.set(newY);
-  }, [contentWidth, videoDuration, fragmentX, fragmentY, track.duration, boundaries, timeToPixels, maxLaneY, laneHeight]);
+  }, [contentWidth, videoDuration, fragmentX, fragmentY, track.duration, boundaries, timeToPixels, pixelsToTime, otherTracks, clipEdges, currentTime, maxLaneY, laneHeight]);
 
   const handleDragStart = useCallback(() => {
     setIsDragging(true);

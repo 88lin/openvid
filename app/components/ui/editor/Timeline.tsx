@@ -17,6 +17,7 @@ import { assignElementLanes } from "@/lib/canvas-elements-timeline.utils";
 import { ElementFragmentTrackItem } from "./ElementFragmentTrackItem";
 import { findValidFragmentPosition, findValidMovementPosition, getFragmentHoldBounds } from "@/types/zoom.types";
 import { ZoomMovementTrackItem, MIN_MOVEMENT_TRACK_DURATION } from "./ZoomMovementTrackItem";
+import { collectSnapPoints, findSnap } from "@/lib/timeline-snapping";
 
 export function Timeline({
     videoDuration,
@@ -34,6 +35,7 @@ export function Timeline({
     onSelectVideoClip,
     onUpdateVideoClip,
     onDeleteVideoClip,
+    onReorderVideoClip,
     zoomFragments = [],
     selectedZoomFragmentId,
     onSelectZoomFragment,
@@ -268,7 +270,34 @@ export function Timeline({
         if (contentWidth === 0 || scaledDuration === 0) return;
         const maxX = videoClips.length > 0 ? timelineWidth : trimEndPosition;
         const minX = videoClips.length > 0 ? 0 : trimStartPosition;
-        const newX = Math.max(minX, Math.min(maxX, playheadX.get() + info.delta.x));
+        let newX = Math.max(minX, Math.min(maxX, playheadX.get() + info.delta.x));
+
+        // Magnetic snapping: snap playhead to clip edges, fragment edges, and zero.
+        const timeToPx = (t: number) => (t / scaledDuration) * contentWidth;
+        const pxToTime = (px: number) => (px / contentWidth) * scaledDuration;
+        const clipEdges = videoClips.map(c => ({
+            start: c.startTime,
+            end: c.startTime + (c.trimEnd - c.trimStart),
+        }));
+        const fragmentEdges = zoomFragments.map(f => ({
+            start: f.startTime,
+            end: f.endTime,
+        }));
+        const audioEdges = audioTracks.map(t => ({
+            start: t.startTime,
+            end: t.startTime + t.duration,
+        }));
+        const snapPoints = collectSnapPoints({
+            clipEdges,
+            fragmentEdges,
+            audioEdges,
+        });
+        const rawTime = pxToTime(newX);
+        const snap = findSnap(rawTime, snapPoints, timeToPx, 8);
+        if (snap.offsetPx !== 0) {
+            newX = timeToPx(snap.time);
+        }
+
         playheadX.set(newX);
         const newTime = (newX / contentWidth) * scaledDuration;
         pendingSeekRef.current = newTime;
@@ -281,7 +310,7 @@ export function Timeline({
                 isSeekingRef.current = false;
             });
         }
-    }, [contentWidth, scaledDuration, timelineWidth, onSeek, playheadX, trimStartPosition, trimEndPosition, videoClips]);
+    }, [contentWidth, scaledDuration, timelineWidth, onSeek, playheadX, trimStartPosition, trimEndPosition, videoClips, zoomFragments, audioTracks]);
 
     const handleDragStart = useCallback(() => {
         setIsDragging(true);
@@ -601,6 +630,7 @@ export function Timeline({
                                                             onSelect={() => onSelectVideoClip?.(clip.id)}
                                                             onUpdate={(updates) => onUpdateVideoClip?.(clip.id, updates)}
                                                             onDelete={() => onDeleteVideoClip?.(clip.id)}
+                                                            onReorder={(draggedId, targetId, placeAfter) => onReorderVideoClip?.(draggedId, targetId, placeAfter)}
                                                             onDragStateChange={setIsDraggingVideoClip}
                                                             zoomLevel={zoomLevel}
                                                         />
@@ -724,6 +754,8 @@ export function Timeline({
                                                     videoDuration={scaledDuration}
                                                     contentDuration={validDuration}
                                                     speed={speed}
+                                                    currentTime={currentTime}
+                                                    clipEdges={videoClips.map(c => ({ start: c.startTime, end: c.startTime + (c.trimEnd - c.trimStart) }))}
                                                     otherFragments={zoomFragments.filter(f => f.id !== fragment.id)}
                                                     onSelect={() => {
                                                         onSelectZoomFragment?.(fragment.id);
@@ -923,6 +955,8 @@ export function Timeline({
                                                             lane={trackLane}
                                                             laneHeight={ELEMENT_ROW_HEIGHT}
                                                             laneCount={audioLaneCount}
+                                                            currentTime={currentTime}
+                                                            clipEdges={videoClips.map(c => ({ start: c.startTime, end: c.startTime + (c.trimEnd - c.trimStart) }))}
                                                             otherTracks={sameLaneOtherTracks}
                                                             onSelect={() => onSelectAudioTrack?.(track.id)}
                                                             onUpdate={(updates) => onUpdateAudioTrack?.(track.id, updates)}

@@ -14,7 +14,7 @@ interface UseMockupMotionFragmentsParams {
     currentTime: number;
     videoDuration: number;
     setActiveTool: (tool: Tool) => void;
-    lastCopyActionRef: React.MutableRefObject<'element' | 'zoom' | 'motion' | null>;
+    lastCopyActionRef: React.MutableRefObject<'element' | 'zoom' | 'motion' | 'audio' | null>;
     selectedMockupMotionFragmentId: string | null;
     setSelectedMockupMotionFragmentId: React.Dispatch<React.SetStateAction<string | null>>;
     /** Current active motion mode — when this changes, orphan fragments from

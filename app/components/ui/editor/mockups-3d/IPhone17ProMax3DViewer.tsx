@@ -111,7 +111,11 @@ export function IPhone17ProMaxScene({
     const composerRef = useRef<EffectComposer | null>(null);
     const outlinePassRef = useRef<OutlinePass | null>(null);
 
-    useLayoutEffect(() => {
+    const invalidateRef = useRef(invalidate);
+  useEffect(() => {
+    invalidateRef.current = invalidate;
+  }, []);
+  useLayoutEffect(() => {
         onApiRef.current = onApi;
     });
 
@@ -140,8 +144,8 @@ export function IPhone17ProMaxScene({
                 }
             }
         });
-        invalidate();
-    }, [clonedScene, invalidate]);
+        invalidateRef.current();
+    }, [clonedScene]);
 
     useEffect(() => {
         const capturedOnApi = onApiRef.current;
@@ -191,7 +195,7 @@ export function IPhone17ProMaxScene({
                 composerRef.current?.setSize(freshW, freshH);
                 composerRef.current?.setPixelRatio(gl.getPixelRatio());
                 outlinePassRef.current?.resolution.set(freshW, freshH);
-                invalidate();
+                invalidateRef.current();
             },
             hasBuiltInShadow: true,
 
@@ -202,7 +206,7 @@ export function IPhone17ProMaxScene({
 
         capturedOnApi?.(api);
         return () => capturedOnApi?.(null);
-    }, [gl, scene, camera, cameraRef, invalidate]);
+    }, [gl, scene, camera, cameraRef]);
     useEffect(() => {
         onLoaded?.();
     }, [onLoaded]);
@@ -233,7 +237,7 @@ export function IPhone17ProMaxScene({
                 TEX_H,
                 cropArea
             );
-            invalidate();
+            invalidateRef.current();
         };
 
         if (videoElement.readyState >= 1) {
@@ -257,7 +261,7 @@ export function IPhone17ProMaxScene({
             mat.color.set(0xffffff);
             mat.needsUpdate = true;
             if (mat.map) mat.map.needsUpdate = true;
-            invalidate();
+            invalidateRef.current();
         };
         applyVideoTex();
 
@@ -268,7 +272,7 @@ export function IPhone17ProMaxScene({
             }
             tex.dispose();
         };
-    }, [videoElement, cropArea, invalidate]);
+    }, [videoElement, cropArea]);
 
     useEffect(() => {
         const mat = wallpaperMatRef.current;
@@ -303,7 +307,7 @@ export function IPhone17ProMaxScene({
                 lastLoadedImageUrlRef.current = placeholderKey;
                 lastLoadedMaskKeyRef.current = null;
                 lastLoadedCropKeyRef.current = null;
-                invalidate();
+                invalidateRef.current();
             };
             img.onerror = () => {
                 if (mat.map) {
@@ -313,7 +317,7 @@ export function IPhone17ProMaxScene({
                 mat.color.set(0x1a1a1a);
                 mat.needsUpdate = true;
                 lastLoadedImageUrlRef.current = placeholderKey;
-                invalidate();
+                invalidateRef.current();
             };
             img.src = PLACEHOLDER_PHONE_URL;
             return;
@@ -344,13 +348,13 @@ export function IPhone17ProMaxScene({
             mat.map = tex;
             mat.color.set(0xffffff);
             mat.needsUpdate = true;
-            invalidate();
+            invalidateRef.current();
             lastLoadedImageUrlRef.current = imageUrl;
             lastLoadedMaskKeyRef.current = maskKey;
             lastLoadedCropKeyRef.current = cropKey;
         };
         img.src = imageUrl;
-    }, [imageUrl, imageMaskConfig, cropArea, gl, videoElement, invalidate]);
+    }, [imageUrl, imageMaskConfig, cropArea, gl, videoElement]);
 
     useEffect(() => {
         return () => {
@@ -372,19 +376,19 @@ export function IPhone17ProMaxScene({
             const theta = initialRotationY * DEG;
             orbit.object.position.setFromSphericalCoords(radius, phi, theta);
             orbit.update();
-            invalidate();
+            invalidateRef.current();
             prevRotationRef.current = { x: initialRotationX, y: initialRotationY };
         }, 0);
         return () => clearTimeout(id);
-    }, [initialRotationX, initialRotationY, zoom, invalidate]);
+    }, [initialRotationX, initialRotationY, zoom]);
 
     useEffect(() => {
         const root = rootRef.current;
         if (root) {
             root.rotation.z = initialRotationZ * (Math.PI / 180);
-            invalidate();
+            invalidateRef.current();
         }
-    }, [initialRotationZ, invalidate]);
+    }, [initialRotationZ]);
 
     useEffect(() => {
         const composer = new EffectComposer(gl);
@@ -407,7 +411,7 @@ export function IPhone17ProMaxScene({
 
         composerRef.current = composer;
         outlinePassRef.current = outlinePass;
-        invalidate();
+        invalidateRef.current();
 
         return () => {
             outlinePass.dispose();
@@ -415,14 +419,14 @@ export function IPhone17ProMaxScene({
             composerRef.current = null;
             outlinePassRef.current = null;
         };
-    }, [gl, scene, camera, size.width, size.height, invalidate]);
+    }, [gl, scene, camera, size.width, size.height]);
 
     useEffect(() => {
         composerRef.current?.setSize(size.width, size.height);
         composerRef.current?.setPixelRatio(gl.getPixelRatio());
         outlinePassRef.current?.resolution.set(size.width, size.height);
-        invalidate();
-    }, [size, gl, invalidate]);
+        invalidateRef.current();
+    }, [size, gl]);
 
     useEffect(() => {
         const outlinePass = outlinePassRef.current;
@@ -432,8 +436,8 @@ export function IPhone17ProMaxScene({
         const color = isSelected ? 0x3b82f6 : 0xffffff;
         outlinePass.visibleEdgeColor.set(color);
         outlinePass.hiddenEdgeColor.set(color);
-        invalidate();
-    }, [isSelected, isHovered, invalidate]);
+        invalidateRef.current();
+    }, [isSelected, isHovered]);
 
     useFrame(() => {
         composerRef.current?.render();

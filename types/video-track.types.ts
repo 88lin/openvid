@@ -95,10 +95,13 @@ export function resequenceClips(clips: VideoTrackClip[]): {
     clips: VideoTrackClip[];
     offsetMap: Map<string, number>;
 } {
-    const sorted = [...clips].sort((a, b) => a.startTime - b.startTime);
+    // Preserve the array order instead of sorting by startTime. Callers that
+    // need a specific order (e.g. reorderVideoClipAt) build the array in the
+    // desired order; sorting here would undo the reorder because clips still
+    // carry their old startTime values.
     const offsetMap = new Map<string, number>();
     let cursor = 0;
-    const resequenced = sorted.map(clip => {
+    const resequenced = clips.map(clip => {
         const duration = clip.trimEnd - clip.trimStart;
         const offset = cursor - clip.startTime;
         if (offset !== 0) offsetMap.set(clip.id, offset);
@@ -107,4 +110,41 @@ export function resequenceClips(clips: VideoTrackClip[]): {
         return newClip;
     });
     return { clips: resequenced, offsetMap };
+}
+
+/**
+ * Moves `draggedId` to the position of `targetId` (before or after it) and
+ * re-sequences every clip so the track stays contiguous — the magnetic
+ * reorder used by editors like CapCut. Returns the offset each clip moved
+ * by (used to remap timeline overlays).
+ */
+export function reorderVideoClipAt(
+    clips: VideoTrackClip[],
+    draggedId: string,
+    targetId: string,
+    placeAfter: boolean
+): {
+    clips: VideoTrackClip[];
+    offsetMap: Map<string, number>;
+} {
+    const dragged = clips.find(c => c.id === draggedId);
+    const target = clips.find(c => c.id === targetId);
+    if (!dragged || !target || draggedId === targetId) {
+        return { clips, offsetMap: new Map() };
+    }
+
+    const withoutDragged = clips.filter(c => c.id !== draggedId);
+    const targetIndex = withoutDragged.findIndex(c => c.id === targetId);
+    if (targetIndex === -1) {
+        return { clips, offsetMap: new Map() };
+    }
+
+    const insertAt = placeAfter ? targetIndex + 1 : targetIndex;
+    const reordered = [
+        ...withoutDragged.slice(0, insertAt),
+        dragged,
+        ...withoutDragged.slice(insertAt),
+    ];
+
+    return resequenceClips(reordered);
 }

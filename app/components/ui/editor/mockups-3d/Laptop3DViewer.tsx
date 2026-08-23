@@ -103,6 +103,10 @@ export function LaptopScene({
   const outlinePassRef = useRef<OutlinePass | null>(null);
   const isUserInteractingRef = useRef(false);
 
+  const invalidateRef = useRef(invalidate);
+  useEffect(() => {
+    invalidateRef.current = invalidate;
+  }, []);
   useLayoutEffect(() => {
     onApiRef.current = onApi;
   });
@@ -149,7 +153,7 @@ export function LaptopScene({
         composerRef.current?.setPixelRatio(gl.getPixelRatio());
         outlinePassRef.current?.resolution.set(freshW, freshH);
 
-        invalidate();
+        invalidateRef.current();
       },
       hasBuiltInShadow: false,
       getVisualSize: () => {
@@ -206,7 +210,7 @@ export function LaptopScene({
         currentMat.needsUpdate = true;
         lastLoadedUrlRef.current = placeholderKey;
         lastLoadedCropKeyRef.current = null;
-        invalidate();
+        invalidateRef.current();
       };
       img.onerror = () => {
         lastLoadedUrlRef.current = placeholderKey;
@@ -255,14 +259,14 @@ export function LaptopScene({
       currentMat.needsUpdate = true;
       lastLoadedUrlRef.current = imageUrl;
       lastLoadedCropKeyRef.current = cropKey;
-      invalidate();
+      invalidateRef.current();
     };
     img.onerror = () => {
       lastLoadedUrlRef.current = imageUrl;
       lastLoadedCropKeyRef.current = cropKey;
     };
     img.src = imageUrl;
-  }, [imageUrl, cropArea, gl, videoElement, invalidate]);
+  }, [imageUrl, cropArea, gl, videoElement]);
 
   const applyVideoTextureIfReady = useCallback(() => {
     const mat = screenMatRef.current;
@@ -274,9 +278,9 @@ export function LaptopScene({
       mat.map = tex;
       mat.color.set(0xffffff);
       mat.needsUpdate = true;
-      invalidate();
+      invalidateRef.current();
     }
-  }, [invalidate]);
+  }, []);
 
   useEffect(() => {
     if (!videoElement) {
@@ -373,7 +377,7 @@ export function LaptopScene({
       tex.anisotropy = gl.capabilities.getMaxAnisotropy();
       keyboardMaterial.alphaMap = tex;
       keyboardMaterial.needsUpdate = true;
-      invalidate();
+      invalidateRef.current();
     });
 
     const finalizeSetup = (group: THREE.Group) => {
@@ -383,7 +387,7 @@ export function LaptopScene({
         if (!isMounted) return;
         applyTextureRef.current();
         onLoadedRef.current?.();
-        invalidate();
+        invalidateRef.current();
       }, 50);
     };
 
@@ -464,7 +468,7 @@ export function LaptopScene({
         screenMatRef.current.dispose();
       }
     };
-  }, [gl, invalidate]);
+  }, [gl]);
 
   const prevRotationRef = useRef<{ x: number; y: number } | null>(null);
 
@@ -486,18 +490,18 @@ export function LaptopScene({
       const theta = initialRotationY * DEG;
       orbit.object.position.setFromSphericalCoords(radius, phi, theta);
       orbit.update();
-      invalidate();
+      invalidateRef.current();
       prevRotationRef.current = { x: initialRotationX, y: initialRotationY };
     }, 0);
     return () => clearTimeout(id);
-  }, [initialRotationX, initialRotationY, zoom, invalidate]);
+  }, [initialRotationX, initialRotationY, zoom]);
 
   useEffect(() => {
     if (rootRef.current) {
       rootRef.current.rotation.z = initialRotationZ * DEG;
-      invalidate();
+      invalidateRef.current();
     }
-  }, [initialRotationZ, modelGroup, invalidate]);
+  }, [initialRotationZ, modelGroup]);
 
   useEffect(() => {
     const lid = lidGroupRef.current;
@@ -506,8 +510,8 @@ export function LaptopScene({
     const t = Math.max(0, Math.min(1, openingProgress));
     lid.rotation.x = lerp(LID_CLOSED_X, LID_OPEN_X, t);
     mat.opacity = 0.96 * t;
-    invalidate();
-  }, [openingProgress, modelGroup, invalidate]);
+    invalidateRef.current();
+  }, [openingProgress, modelGroup]);
 
   useEffect(() => {
     const composer = new EffectComposer(gl);
@@ -531,7 +535,7 @@ export function LaptopScene({
 
     composerRef.current = composer;
     outlinePassRef.current = outlinePass;
-    invalidate();
+    invalidateRef.current();
 
     return () => {
       outlinePass.dispose();
@@ -539,14 +543,14 @@ export function LaptopScene({
       composerRef.current = null;
       outlinePassRef.current = null;
     };
-  }, [gl, scene, camera, size.width, size.height, invalidate]);
+  }, [gl, scene, camera, size.width, size.height]);
 
   useEffect(() => {
     composerRef.current?.setSize(size.width, size.height);
     composerRef.current?.setPixelRatio(gl.getPixelRatio());
     outlinePassRef.current?.resolution.set(size.width, size.height);
-    invalidate();
-  }, [size, gl, invalidate]);
+    invalidateRef.current();
+  }, [size, gl]);
 
   useEffect(() => {
     const outlinePass = outlinePassRef.current;
@@ -558,7 +562,7 @@ export function LaptopScene({
     outlinePass.visibleEdgeColor.set(color);
     outlinePass.hiddenEdgeColor.set(color);
 
-    invalidate();
+    invalidateRef.current();
   }, [isSelected, isHovered, invalidate, rootRef]);
 
   useFrame(() => {

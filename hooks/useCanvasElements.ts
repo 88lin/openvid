@@ -10,7 +10,7 @@ interface UseCanvasElementsParams {
   setSelectedElementId: (id: string | null) => void;
   setMultiSelectedElementIds: (ids: string[]) => void;
   setActiveTool: (tool: Tool) => void;
-  lastCopyActionRef: React.MutableRefObject<'element' | 'zoom' | 'motion' | null>;
+  lastCopyActionRef: React.MutableRefObject<'element' | 'zoom' | 'motion' | 'audio' | null>;
 }
 
 export function useCanvasElements({

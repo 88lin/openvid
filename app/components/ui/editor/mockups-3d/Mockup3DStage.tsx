@@ -67,11 +67,19 @@ interface StageProps extends Mockup3DStageProps {
 function Motion3DApplicator({
   rootRef,
   motionTransform,
+  device,
 }: {
   rootRef: React.MutableRefObject<THREE.Group | null>;
   motionTransform: Mockup3DMotionTransform;
+  device: ImageDeviceId;
 }) {
   const baseRef = useRef<{ rx: number; ry: number; rz: number; sx: number; sy: number; sz: number; px: number; py: number; pz: number } | null>(null);
+
+  // Reset the captured base transform whenever the device changes so the
+  // new model's own scale/rotation/position is re-captured fresh.
+  useEffect(() => {
+    baseRef.current = null;
+  }, [device]);
 
   useEffect(() => {
     const root = rootRef.current;
@@ -87,7 +95,7 @@ function Motion3DApplicator({
       py: root.position.y,
       pz: root.position.z,
     };
-  }, [rootRef]);
+  }, [rootRef, device]);
 
   useFrame(() => {
     const root = rootRef.current;
@@ -175,7 +183,7 @@ export function Mockup3DStage({ device, rootRef: externalRootRef, cameraRef: ext
           handleMount(gl.domElement);
         }}
       >
-        <Motion3DApplicator rootRef={rootRef} motionTransform={props.motionTransform ?? REST_MOCKUP_3D_MOTION} />
+        <Motion3DApplicator rootRef={rootRef} motionTransform={props.motionTransform ?? REST_MOCKUP_3D_MOTION} device={device} />
         <Suspense fallback={null}>
           {device === "iphone-13-pro-max" && (
             <IPhone13ProMaxScene {...props} rootRef={rootRef} cameraRef={cameraRef} onLoaded={markLoaded} />

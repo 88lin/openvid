@@ -26,6 +26,7 @@ export interface TimelineProps {
     onSelectVideoClip?: (clipId: string | null) => void;
     onUpdateVideoClip?: (clipId: string, updates: Partial<VideoTrackClip>) => void;
     onDeleteVideoClip?: (clipId: string) => void;
+    onReorderVideoClip?: (draggedId: string, targetId: string, placeAfter: boolean) => void;
     // Zoom props
     zoomFragments?: ZoomFragment[];
     selectedZoomFragmentId?: string | null;

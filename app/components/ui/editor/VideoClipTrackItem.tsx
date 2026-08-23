@@ -5,6 +5,7 @@ import { motion, useMotionValue, useTransform } from "framer-motion";
 import type { VideoTrackClip } from "@/types/video-track.types";
 import { Icon } from "@iconify/react";
 import type { MotionValue } from "framer-motion";
+import { collectSnapPoints, findSnap } from "@/lib/timeline-snapping";
 
 const MIN_CLIP_DURATION = 0.1;
 
@@ -19,6 +20,7 @@ interface VideoClipTrackItemProps {
     onUpdate: (updates: Partial<VideoTrackClip>) => void;
     onDelete?: () => void;
     onDragStateChange?: (isDragging: boolean) => void;
+    onReorder?: (draggedId: string, targetId: string, placeAfter: boolean) => void;
     zoomLevel: number;
     playheadX: MotionValue<number>;
     speed?: number;
@@ -35,6 +37,7 @@ export function VideoClipTrackItem({
     onUpdate,
     onDelete,
     onDragStateChange,
+    onReorder,
     zoomLevel,
     playheadX,
     speed = 1,
@@ -107,15 +110,16 @@ export function VideoClipTrackItem({
     const handleDrag = useCallback((_e: MouseEvent | TouchEvent | PointerEvent, info: { delta: { x: number } }) => {
         if (contentWidth === 0 || totalDuration === 0) return;
 
-        const currentX = clipX.get();
-        let newX = currentX + info.delta.x;
+        // Free drag with per-frame delta (same pattern as other track items).
+        // Snapping is applied only on drop, not during drag, for smooth control.
+        let newX = clipX.get() + info.delta.x;
 
-        const minX = timeToPixels(boundaries.minStart);
-        const maxX = timeToPixels(boundaries.maxEnd - clipDuration);
+        // Clamp to timeline bounds [0, totalDuration].
+        const minX = 0;
+        const maxX = timeToPixels(totalDuration - clipDuration);
         newX = Math.max(minX, Math.min(maxX, newX));
-
         clipX.set(newX);
-    }, [contentWidth, totalDuration, clipX, clipDuration, boundaries, timeToPixels]);
+    }, [contentWidth, totalDuration, clipX, clipDuration, timeToPixels]);
 
     const handleDragStart = useCallback(() => {
         setIsDragging(true);
@@ -126,11 +130,51 @@ export function VideoClipTrackItem({
         setIsDragging(false);
         onDragStateChange?.(false);
 
-        const newStartTime = pixelsToTime(clipX.get());
-        onUpdate({
-            startTime: Math.max(0, newStartTime),
+        // Detect if the clip was dropped onto another clip (>=50% overlap).
+        // If so, trigger a reorder instead of a free-drag position update.
+        const draggedCenterPx = clipX.get() + clipWidth.get() / 2;
+        const target = otherClips.find(other => {
+            const otherStartPx = timeToPixels(other.startTime);
+            const otherDur = other.trimEnd - other.trimStart;
+            const otherEndPx = timeToPixels(other.startTime + otherDur);
+            return draggedCenterPx >= otherStartPx && draggedCenterPx <= otherEndPx;
         });
-    }, [clipX, pixelsToTime, onUpdate, onDragStateChange]);
+
+        if (target && onReorder) {
+            // Determine whether to place before or after the target based on
+            // the dragged clip's center relative to the target's center.
+            const targetCenterPx = timeToPixels(target.startTime) + timeToPixels(target.trimEnd - target.trimStart) / 2;
+            const placeAfter = draggedCenterPx > targetCenterPx;
+            onReorder(clip.id, target.id, placeAfter);
+        } else {
+            // Apply magnetic snapping on drop (not during drag) for smooth control.
+            let finalX = clipX.get();
+            const snapThresholdPx = 8;
+            const finalStartTime = pixelsToTime(finalX);
+            const finalEndTime = finalStartTime + clipDuration;
+            const clipEdges = otherClips.map(c => ({
+                start: c.startTime,
+                end: c.startTime + (c.trimEnd - c.trimStart),
+            }));
+            const snapPoints = collectSnapPoints({
+                clipEdges,
+                playhead: currentTime,
+            });
+            const snapStart = findSnap(finalStartTime, snapPoints, timeToPixels, snapThresholdPx);
+            if (snapStart.offsetPx !== 0) {
+                finalX = timeToPixels(snapStart.time);
+            } else {
+                const snapEnd = findSnap(finalEndTime, snapPoints, timeToPixels, snapThresholdPx);
+                if (snapEnd.offsetPx !== 0) {
+                    finalX = timeToPixels(snapEnd.time - clipDuration);
+                }
+            }
+            const newStartTime = pixelsToTime(finalX);
+            onUpdate({
+                startTime: Math.max(0, newStartTime),
+            });
+        }
+    }, [clipX, clipWidth, pixelsToTime, onUpdate, onDragStateChange, otherClips, timeToPixels, onReorder, clip.id, clipDuration, currentTime]);
 
     const handleResizeStartDrag = useCallback((_e: MouseEvent | TouchEvent | PointerEvent, info: { delta: { x: number } }) => {
         if (contentWidth === 0 || totalDuration === 0) return;
@@ -229,7 +273,7 @@ export function VideoClipTrackItem({
                         : '1px solid rgba(52, 168, 83, 0.4)',
             }}
             drag="x"
-            dragConstraints={{ left: 0, right: contentWidth / speed }}
+            dragConstraints={false}
             dragElastic={0}
             dragMomentum={false}
             onDrag={handleDrag}
