@@ -1380,6 +1380,20 @@
       "reverseLabel": "Invertir dirección",
       "resetButton": "Restablecer personalización",
       "blurLabel": "Desenfoque de movimiento"
+    },
+    "customize3D": {
+      "rotationTitle": "Offsets de rotación",
+      "rotationSubtitle": "Sumados a la rotación base del preset (grados)",
+      "rotateXLabel": "Rotar X (pitch)",
+      "rotateYLabel": "Rotar Y (yaw)",
+      "rotateZLabel": "Rotar Z (roll)",
+      "positionTitle": "Offsets de posición",
+      "positionSubtitle": "Sumados a la posición base del preset (unidades de escena)",
+      "positionLabel": "Posición",
+      "positionHint": "Arrastra para ajustar la posición X / Y",
+      "scaleTitle": "Escala",
+      "scaleSubtitle": "Multiplicador uniforme aplicado al modelo",
+      "scaleLabel": "Escala"
     }
   },
   "MobileTools": {

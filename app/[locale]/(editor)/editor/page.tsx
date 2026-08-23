@@ -309,6 +309,7 @@ export default function Editor() {
     } = useMockupMotionFragments({
         currentTime, videoDuration, setActiveTool, lastCopyActionRef,
         selectedMockupMotionFragmentId, setSelectedMockupMotionFragmentId,
+        motionMode: imagePhoneActive ? "3d" : (isVideoMode ? "2d" : null),
     });
 
     const {

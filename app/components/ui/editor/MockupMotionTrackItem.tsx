@@ -37,6 +37,8 @@ export function MockupMotionTrackItem({
 
   const label = t(`presets.${fragment.presetId}`);
 
+  const is3D = fragment.presetId === "orbit-entrance" || fragment.presetId === "turntable-drift" || fragment.presetId === "flick-exit";
+
   const timeToPixels = useCallback(
     (time: number) => (time / videoDuration) * contentWidth,
     [videoDuration, contentWidth]
@@ -199,7 +201,7 @@ export function MockupMotionTrackItem({
 
       <div className="flex-1 flex flex-col items-center justify-center pointer-events-none overflow-hidden px-2">
         <span className={`text-[10px] truncate ${isSelected || isInteracting ? "text-orange-700 dark:text-orange-200" : "text-orange-700/70 dark:text-orange-300/70"}`}>
-          {label}
+          {is3D && <span className="mr-0.5 text-[8px] font-bold align-middle">3D</span>}{label}
         </span>
         <span className={`text-[8px] truncate ${isSelected || isInteracting ? "text-orange-700/70 dark:text-orange-300/70" : "text-orange-700/50 dark:text-orange-400/45"}`}>
           {duration.toFixed(1)}s

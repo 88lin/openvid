@@ -1402,6 +1402,20 @@
       "reverseLabel": "방향 반전",
       "resetButton": "커스터마이즈 초기화",
       "blurLabel": "모션 블러"
+    },
+    "customize3D": {
+      "rotationTitle": "회전 오프셋",
+      "rotationSubtitle": "프리셋 기본 회전에 추가됨 (도)",
+      "rotateXLabel": "X 회전 (피치)",
+      "rotateYLabel": "Y 회전 (요)",
+      "rotateZLabel": "Z 회전 (롤)",
+      "positionTitle": "위치 오프셋",
+      "positionSubtitle": "프리셋 기본 위치에 추가됨 (씬 단위)",
+      "positionLabel": "위치",
+      "positionHint": "드래그하여 X / Y 위치 설정",
+      "scaleTitle": "크기",
+      "scaleSubtitle": "모델에 적용되는 균일 승수",
+      "scaleLabel": "크기"
     }
   },
   "MobileTools": {

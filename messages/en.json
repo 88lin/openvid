@@ -1402,6 +1402,20 @@
       "reverseLabel": "Reverse direction",
       "resetButton": "Reset customization",
       "blurLabel": "Motion blur"
+    },
+    "customize3D": {
+      "rotationTitle": "Rotation offsets",
+      "rotationSubtitle": "Added to the preset's base rotation (degrees)",
+      "rotateXLabel": "Rotate X (pitch)",
+      "rotateYLabel": "Rotate Y (yaw)",
+      "rotateZLabel": "Rotate Z (roll)",
+      "positionTitle": "Position offsets",
+      "positionSubtitle": "Added to the preset's base position (scene units)",
+      "positionLabel": "Position",
+      "positionHint": "Drag to set X / Y position",
+      "scaleTitle": "Scale",
+      "scaleSubtitle": "Uniform multiplier applied to the model",
+      "scaleLabel": "Scale"
     }
   },
   "MobileTools": {

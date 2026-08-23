@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useImperativeHandle, useMemo, useState, useCallback, memo } from "react";
+import type * as THREE from "three";
 import type { VideoCanvasHandle, VideoCanvasProps, VideoThumbnail } from "@/types";
 import type { ImageElement } from "@/types/canvas-elements.types";
 import { ASPECT_RATIO_DIMENSIONS } from "@/types";
@@ -31,7 +32,7 @@ import { renderCanvasElements } from "@/lib/canvas-elements-render.utils";
 import { drawMaskedImage } from "@/lib/masked-image-draw.utils";
 import { drawMockupAndMedia, type MockupDrawContext } from "@/lib/mockup-media-draw.utils";
 import { drawPhone3DCompositeWithZoom, type Phone3DCompositeContext } from "@/lib/phone3d-composite-draw.utils";
-import { buildMockupMotionCss, MockupMotionTransform, REST_MOCKUP_MOTION, sampleCombinedMockupMotion } from "@/lib/mockup-motion";
+import { buildMockupMotionCss, MockupMotionTransform, REST_MOCKUP_MOTION, sampleCombinedMockupMotion, sampleCombined3DMotion, REST_MOCKUP_3D_MOTION, Mockup3DMotionTransform, MOTION_PRESET_3D_IDS } from "@/lib/mockup-motion";
 import { Mockup3DFrame } from "./mockups-3d/Mockup3DFrame";
 import { filterVisibleElements } from "@/lib/canvas-elements-timeline.utils";
 import { ZoomPointOverlay, ZOOM_POINT_VISUAL_SCALE } from "@/components/ui/ZoomPointOverlay";
@@ -239,6 +240,8 @@ function VideoCanvasInner({
     useEffect(() => { paddingRef.current = padding; }, [padding]);
     // WebGL canvas from image phone Phone3DViewer, captured via onMount prop for export
     const imagePhoneCanvasRef = useRef<HTMLCanvasElement | null>(null);
+    // Root THREE.Group ref for applying 3D motion during export rendering.
+    const imagePhoneRootRef = useRef<THREE.Group | null>(null);
     const imagePhoneApiRef = useRef<{
         renderAt: (w: number, h: number) => void;
         restorePreview: () => void;
@@ -742,6 +745,19 @@ function VideoCanvasInner({
     const mockupMotionPreview = useMemo<MockupMotionTransform>(
         () => hasMockup2DMotion ? sampleCombinedMockupMotion(mockupMotionFragments, currentTime) : REST_MOCKUP_MOTION,
         [hasMockup2DMotion, mockupMotionFragments, currentTime]
+    );
+
+    // 3D motion: sample fragments that belong to 3D presets only.
+    const hasMockup3DMotion = imagePhoneActive && mockupMotionFragments.some((f) => MOTION_PRESET_3D_IDS.has(f.presetId));
+
+    const mockup3DMotionPreview = useMemo<Mockup3DMotionTransform>(
+        () => {
+            if (!hasMockup3DMotion) return REST_MOCKUP_3D_MOTION;
+            const fragments3D = mockupMotionFragments.filter((f) => MOTION_PRESET_3D_IDS.has(f.presetId));
+            if (fragments3D.length === 0) return REST_MOCKUP_3D_MOTION;
+            return sampleCombined3DMotion(fragments3D as unknown as Parameters<typeof sampleCombined3DMotion>[0], currentTime);
+        },
+        [hasMockup3DMotion, mockupMotionFragments, currentTime]
     );
 
     // Effective aspect ratio for the "none" mockup contain-box, adjusted for
@@ -1330,6 +1346,16 @@ function VideoCanvasInner({
             ? sampleCombinedMockupMotion(mockupMotionFragments, frameTime)
             : undefined;
 
+        // 3D motion sampled at this export frame's time.
+        const motion3DForFrame: Mockup3DMotionTransform = hasMockup3DMotion
+            ? (() => {
+                const fragments3D = mockupMotionFragments.filter((f) => MOTION_PRESET_3D_IDS.has(f.presetId));
+                return fragments3D.length > 0
+                    ? sampleCombined3DMotion(fragments3D as unknown as Parameters<typeof sampleCombined3DMotion>[0], frameTime)
+                    : REST_MOCKUP_3D_MOTION;
+            })()
+            : REST_MOCKUP_3D_MOTION;
+
         const mockupDrawCtx: MockupDrawContext = {
             videoTransform, imageTransform, apply3DToBackground, imageZoomScale, shadows,
             mockupId, mockupConfig, mediaType, cropArea, sourceWidth, sourceHeight,
@@ -1341,6 +1367,8 @@ function VideoCanvasInner({
             imagePhoneCanvasRef, imagePhoneApiRef, canvasDimensions, imagePhoneDevice,
             imagePhoneScale, imagePhoneX, imagePhoneY, imagePhoneShadow, imagePhoneShadowColor,
             effectivePhoneMaskConfig, maskCompositeCanvasRef,
+            imagePhoneRootRef,
+            motion3DForFrame,
         };
 
         ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -1460,12 +1488,65 @@ function VideoCanvasInner({
                     ctx.fill();
                     ctx.restore();
                 }
+                // Apply 3D motion before rendering so the export frame reflects it.
+                //
+                // The preview's Motion3DApplicator runs useFrame every tick and
+                // applies mockup3DMotionPreview (sampled at `currentTime`) to the
+                // root group. By the time we reach here, motionRoot already holds
+                // base + previewMotion. To produce a frame that matches the export
+                // timeline (frameTime), we must subtract the preview motion first,
+                // then apply the export motion (motion3DForFrame) on the real base.
+                const motionRoot = imagePhoneRootRef.current;
+                const m3d = motion3DForFrame;
+                const previewMotion = mockup3DMotionPreview;
+                const has3DMotion = motionRoot && m3d !== REST_MOCKUP_3D_MOTION;
+                let savedBase: { rx: number; ry: number; rz: number; sx: number; sy: number; sz: number; px: number; py: number; pz: number } | null = null;
+                if (has3DMotion && motionRoot) {
+                    // Save the current (base + previewMotion) state...
+                    savedBase = {
+                        rx: motionRoot.rotation.x, ry: motionRoot.rotation.y, rz: motionRoot.rotation.z,
+                        sx: motionRoot.scale.x, sy: motionRoot.scale.y, sz: motionRoot.scale.z,
+                        px: motionRoot.position.x, py: motionRoot.position.y, pz: motionRoot.position.z,
+                    };
+                    // ...compute the true base by subtracting the preview motion...
+                    const baseRx = savedBase.rx - previewMotion.rotX;
+                    const baseRy = savedBase.ry - previewMotion.rotY;
+                    const baseRz = savedBase.rz - previewMotion.rotZ;
+                    const baseSx = previewMotion.scale !== 0 ? savedBase.sx / previewMotion.scale : savedBase.sx;
+                    const baseSy = previewMotion.scale !== 0 ? savedBase.sy / previewMotion.scale : savedBase.sy;
+                    const baseSz = previewMotion.scale !== 0 ? savedBase.sz / previewMotion.scale : savedBase.sz;
+                    const basePx = savedBase.px - previewMotion.posX;
+                    const basePy = savedBase.py - previewMotion.posY;
+                    const basePz = savedBase.pz - previewMotion.posZ;
+                    // ...and apply the export-frame motion on the true base.
+                    motionRoot.rotation.x = baseRx + m3d.rotX;
+                    motionRoot.rotation.y = baseRy + m3d.rotY;
+                    motionRoot.rotation.z = baseRz + m3d.rotZ;
+                    motionRoot.scale.x = baseSx * m3d.scale;
+                    motionRoot.scale.y = baseSy * m3d.scale;
+                    motionRoot.scale.z = baseSz * m3d.scale;
+                    motionRoot.position.x = basePx + m3d.posX;
+                    motionRoot.position.y = basePy + m3d.posY;
+                    motionRoot.position.z = basePz + m3d.posZ;
+                }
                 if (highQuality) {
                     imagePhoneApiRef.current?.renderAt(drawW, drawH);
                     drawMaskedImage(ctx, phoneGL, phoneCx - drawW / 2, phoneCy - drawH / 2, drawW, drawH, effectivePhoneMaskConfig, maskCompositeCanvasRef);
                     imagePhoneApiRef.current?.restorePreview();
                 } else {
                     drawMaskedImage(ctx, phoneGL, phoneCx - drawW / 2, phoneCy - drawH / 2, drawW, drawH, effectivePhoneMaskConfig, maskCompositeCanvasRef);
+                }
+                // Restore the root group's base transform after rendering.
+                if (has3DMotion && motionRoot && savedBase) {
+                    motionRoot.rotation.x = savedBase.rx;
+                    motionRoot.rotation.y = savedBase.ry;
+                    motionRoot.rotation.z = savedBase.rz;
+                    motionRoot.scale.x = savedBase.sx;
+                    motionRoot.scale.y = savedBase.sy;
+                    motionRoot.scale.z = savedBase.sz;
+                    motionRoot.position.x = savedBase.px;
+                    motionRoot.position.y = savedBase.py;
+                    motionRoot.position.z = savedBase.pz;
                 }
 
             }
@@ -2431,6 +2512,7 @@ function VideoCanvasInner({
                                                 ) : (
                                                     <Mockup3DFrame
                                                         device={imagePhoneDevice}
+                                                        rootRef={imagePhoneRootRef}
                                                         imageUrl={imageUrl}
                                                         videoElement={activeVideoElement ?? undefined}
                                                         openingProgress={imagePhoneDevice === "laptop" ? imagePhoneOpening : undefined}
@@ -2453,6 +2535,7 @@ function VideoCanvasInner({
                                                         isSelected={isVideoSelected}
                                                         isHovered={isVideoHovered}
                                                         onSelectChange={(value) => setIsVideoSelected(value)}
+                                                        motionTransform={mockup3DMotionPreview}
                                                     />
                                                 )}
                                             </div>

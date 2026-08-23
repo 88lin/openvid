@@ -1,6 +1,6 @@
 "use client";
 import { Canvas } from "@react-three/fiber";
-import { Suspense, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { IPhone13ProMax3DApi, IPhone13ProMaxScene } from "./IPhone13ProMax3DViewer";
 import { DoubleIPhone3DApi, DoubleIPhoneScene } from "./DoubleIPhone3DViewer";
@@ -11,6 +11,8 @@ import { IPadMini63DApi, IPadMiniScene } from "./IPadMini63DViewer";
 import { ImageMaskConfigLike } from "@/lib/phone3d.utils";
 import type { ImageDeviceId } from "@/types/mockup.types";
 import { EnvironmentPreset } from "@/lib/viewer-controls3d";
+import { REST_MOCKUP_3D_MOTION, type Mockup3DMotionTransform } from "@/lib/mockup-motion-3d";
+import { useFrame } from "@react-three/fiber";
 
 export type Mockup3DApi =
   | IPhone13ProMax3DApi
@@ -45,13 +47,80 @@ export interface Mockup3DStageProps {
   isHovered?: boolean;
   onHoverChange?: (isHovered: boolean) => void;
   onSelectChange?: (isSelected: boolean) => void;
+  /** 3D motion transform applied additively to the root group every frame. */
+  motionTransform?: Mockup3DMotionTransform;
+  /** External root group ref, used for export-time motion application. */
+  rootRef?: React.MutableRefObject<THREE.Group | null>;
 }
 
 interface StageProps extends Mockup3DStageProps {
   device: ImageDeviceId;
-  rootRef?: React.MutableRefObject<THREE.Group | null>;
   cameraRef?: React.MutableRefObject<THREE.PerspectiveCamera | null>;
   onLoadedChange?: (loaded: boolean) => void;
+}
+
+/**
+ * Applies a 3D motion transform to the root group every frame.
+ * Records the base rotation/scale/position on first mount, then adds
+ * the motion transform additively so the model's base pose is preserved.
+ */
+function Motion3DApplicator({
+  rootRef,
+  motionTransform,
+}: {
+  rootRef: React.MutableRefObject<THREE.Group | null>;
+  motionTransform: Mockup3DMotionTransform;
+}) {
+  const baseRef = useRef<{ rx: number; ry: number; rz: number; sx: number; sy: number; sz: number; px: number; py: number; pz: number } | null>(null);
+
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root || baseRef.current) return;
+    baseRef.current = {
+      rx: root.rotation.x,
+      ry: root.rotation.y,
+      rz: root.rotation.z,
+      sx: root.scale.x,
+      sy: root.scale.y,
+      sz: root.scale.z,
+      px: root.position.x,
+      py: root.position.y,
+      pz: root.position.z,
+    };
+  }, [rootRef]);
+
+  useFrame(() => {
+    const root = rootRef.current;
+    if (!root) return;
+    // Capture the base transform lazily inside useFrame in case the group
+    // mounts after the initial useEffect (R3F suspends scene children).
+    if (!baseRef.current) {
+      baseRef.current = {
+        rx: root.rotation.x,
+        ry: root.rotation.y,
+        rz: root.rotation.z,
+        sx: root.scale.x,
+        sy: root.scale.y,
+        sz: root.scale.z,
+        px: root.position.x,
+        py: root.position.y,
+        pz: root.position.z,
+      };
+    }
+    const base = baseRef.current;
+    const m = motionTransform;
+    root.rotation.x = base.rx + m.rotX;
+    root.rotation.y = base.ry + m.rotY;
+    root.rotation.z = base.rz + m.rotZ;
+    root.scale.x = base.sx * m.scale;
+    root.scale.y = base.sy * m.scale;
+    root.scale.z = base.sz * m.scale;
+    root.position.x = base.px + m.posX;
+    root.position.y = base.py + m.posY;
+    root.position.z = base.pz + m.posZ;
+  });
+
+  return null;
 }
 
 export function Mockup3DStage({ device, rootRef: externalRootRef, cameraRef: externalCameraRef, onLoadedChange, ...props }: StageProps) {
@@ -60,6 +129,11 @@ export function Mockup3DStage({ device, rootRef: externalRootRef, cameraRef: ext
   const rootRef = externalRootRef ?? internalRootRef;
   const cameraRef = externalCameraRef ?? internalCameraRef;
   const canvasElRef = useRef<HTMLCanvasElement | null>(null);
+
+  // When 3D motion is active we need a continuous render loop so the
+  // Motion3DApplicator's useFrame fires every tick. Without this, the
+  // "demand" frameloop would only re-render on user interaction.
+  const hasMotion = props.motionTransform && props.motionTransform !== REST_MOCKUP_3D_MOTION;
 
   const [loaded, setLoaded] = useState(false);
   const [prevDevice, setPrevDevice] = useState(device);
@@ -91,7 +165,7 @@ export function Mockup3DStage({ device, rootRef: externalRootRef, cameraRef: ext
           failIfMajorPerformanceCaveat: false,
         }}
         dpr={3}
-        frameloop={props.videoElement ? "always" : "demand"}
+        frameloop={props.videoElement || hasMotion ? "always" : "demand"}
         resize={{ scroll: false, debounce: { scroll: 0, resize: 0 } }}
         onCreated={({ gl, scene }) => {
           gl.outputColorSpace = THREE.SRGBColorSpace;
@@ -101,6 +175,7 @@ export function Mockup3DStage({ device, rootRef: externalRootRef, cameraRef: ext
           handleMount(gl.domElement);
         }}
       >
+        <Motion3DApplicator rootRef={rootRef} motionTransform={props.motionTransform ?? REST_MOCKUP_3D_MOTION} />
         <Suspense fallback={null}>
           {device === "iphone-13-pro-max" && (
             <IPhone13ProMaxScene {...props} rootRef={rootRef} cameraRef={cameraRef} onLoaded={markLoaded} />

@@ -1402,6 +1402,20 @@
       "reverseLabel": "Обратное направление",
       "resetButton": "Сбросить настройки",
       "blurLabel": "Размытие движения"
+    },
+    "customize3D": {
+      "rotationTitle": "Смещения вращения",
+      "rotationSubtitle": "Добавляются к базовому вращению пресета (градусы)",
+      "rotateXLabel": "Вращение X (тангаж)",
+      "rotateYLabel": "Вращение Y (рысканье)",
+      "rotateZLabel": "Вращение Z (крен)",
+      "positionTitle": "Смещения позиции",
+      "positionSubtitle": "Добавляются к базовой позиции пресета (единицы сцены)",
+      "positionLabel": "Позиция",
+      "positionHint": "Перетащите для настройки позиции X / Y",
+      "scaleTitle": "Масштаб",
+      "scaleSubtitle": "Единый множитель, применяемый к модели",
+      "scaleLabel": "Масштаб"
     }
   },
   "MobileTools": {
