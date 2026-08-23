@@ -62,7 +62,7 @@ export interface TimelineProps {
     onAddZoomMovementAtRange?: (startTime: number, endTime: number) => void;
 }
 
-export const DEFAULT_ZOOM_FRAGMENT_DURATION = 2;
+export const DEFAULT_ZOOM_FRAGMENT_DURATION = 3;
 export const ELEMENT_ROW_HEIGHT = 55;
 export const DEFAULT_MOVEMENT_DURATION = 1;
 export const VIDEO_ROW_MIN_HEIGHT = 64;

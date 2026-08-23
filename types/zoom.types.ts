@@ -236,7 +236,7 @@ export function generateDefaultZoomFragments(
 ): ZoomFragment[] {
     if (videoDuration <= 0) return [];
 
-    const fragmentDuration = 2;
+    const fragmentDuration = 3;
     const spacing = videoDuration / 3;
 
     const fragments: ZoomFragment[] = [];
