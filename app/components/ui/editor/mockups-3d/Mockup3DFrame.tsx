@@ -74,7 +74,8 @@ interface FrameProps extends Mockup3DStageProps {
 
 export function Mockup3DFrame({ device, rootRef: externalRootRef, ...stageProps }: FrameProps) {
   const layout = DEVICE_LAYOUT[device];
-  const rootRef = externalRootRef ?? useRef<THREE.Group | null>(null);
+  const internalRootRef = useRef<THREE.Group | null>(null);
+  const rootRef = externalRootRef ?? internalRootRef;
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const canvasElRef = useRef<HTMLCanvasElement | null>(null);
   const raycasterRef = useRef(new THREE.Raycaster());
@@ -133,10 +134,10 @@ export function Mockup3DFrame({ device, rootRef: externalRootRef, ...stageProps 
       : layout.overlay.kind === "fixed"
         ? { position: "absolute", left: 0, top: 0, width: layout.width, height: layout.height, zIndex: 2, overflow: "visible" }
         : {
-            position: "absolute", top: "50%", left: "50%",
-            width: layout.overlay.size, height: layout.overlay.size,
-            transform: "translate(-50%, -50%)", zIndex: 2, overflow: "visible",
-          };
+          position: "absolute", top: "50%", left: "50%",
+          width: layout.overlay.size, height: layout.overlay.size,
+          transform: "translate(-50%, -50%)", zIndex: 2, overflow: "visible",
+        };
 
   return (
     <div

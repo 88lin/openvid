@@ -5,6 +5,7 @@ import { motion, useMotionValue } from "framer-motion";
 import type { ZoomFragment } from "@/types/zoom.types";
 import { zoomLevelToFactor, speedToTransitionMs } from "@/types/zoom.types";
 import { MIN_MOVEMENT_TRACK_DURATION } from "./ZoomMovementTrackItem";
+import { collectSnapPoints, findSnap } from "@/lib/timeline-snapping";
 
 const MIN_FRAGMENT_DURATION = 0.5;
 
@@ -21,6 +22,8 @@ interface ZoomFragmentTrackItemProps {
     onMouseEnter?: () => void;
     onMouseLeave?: () => void;
     speed?: number;
+    currentTime?: number;
+    clipEdges?: Array<{ start: number; end: number }>;
 }
 
 export function ZoomFragmentTrackItem({
@@ -36,6 +39,8 @@ export function ZoomFragmentTrackItem({
     onMouseEnter,
     onMouseLeave,
     speed = 1,
+    currentTime = 0,
+    clipEdges = [],
 }: ZoomFragmentTrackItemProps) {
     const [isDragging, setIsDragging] = useState(false);
     const [isResizing, setIsResizing] = useState<'start' | 'end' | null>(null);
@@ -104,8 +109,25 @@ export function ZoomFragmentTrackItem({
         const maxX = timeToPixels(boundaries.maxEnd - duration);
         newX = Math.max(minX, Math.min(maxX, newX));
 
+        // Magnetic snapping: snap fragment start/end to clip edges, other fragments, playhead, zero.
+        const snapThresholdPx = 8;
+        const newStartTime = pixelsToTime(newX);
+        const newEndTime = newStartTime + duration;
+        const fragmentEdges = otherFragments.map(f => ({ start: f.startTime, end: f.endTime }));
+        const snapPoints = collectSnapPoints({ clipEdges, fragmentEdges, playhead: currentTime });
+        const snapStart = findSnap(newStartTime, snapPoints, timeToPixels, snapThresholdPx);
+        if (snapStart.offsetPx !== 0) {
+            newX = timeToPixels(snapStart.time);
+        } else {
+            const snapEnd = findSnap(newEndTime, snapPoints, timeToPixels, snapThresholdPx);
+            if (snapEnd.offsetPx !== 0) {
+                newX = timeToPixels(snapEnd.time - duration);
+            }
+        }
+        newX = Math.max(minX, Math.min(maxX, newX));
+
         fragmentX.set(newX);
-    }, [contentWidth, videoDuration, fragmentX, fragment, boundaries, timeToPixels]);
+    }, [contentWidth, videoDuration, fragmentX, fragment, boundaries, timeToPixels, pixelsToTime, otherFragments, clipEdges, currentTime]);
 
     const handleDragStart = useCallback(() => {
         setIsDragging(true);

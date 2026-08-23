@@ -8,9 +8,12 @@ const MAX_AUDIO_TRACKS = 8;
 interface UseAudioTracksParams {
   videoDuration: number;
   isExportingRef: React.MutableRefObject<boolean>;
+  selectedAudioTrackId?: string | null;
+  setSelectedAudioTrackId?: (id: string | null) => void;
+  lastCopyActionRef?: React.MutableRefObject<'element' | 'zoom' | 'motion' | 'audio' | null>;
 }
 
-export function useAudioTracks({ videoDuration, isExportingRef }: UseAudioTracksParams) {
+export function useAudioTracks({ videoDuration, isExportingRef, selectedAudioTrackId, setSelectedAudioTrackId, lastCopyActionRef }: UseAudioTracksParams) {
   const [uploadedAudios, setUploadedAudios] = useState<UploadedAudio[]>([]);
   const [audioTracks, setAudioTracks] = useState<AudioTrack[]>([]);
   const [muteOriginalAudio, setMuteOriginalAudio] = useState<boolean>(false);
@@ -151,6 +154,36 @@ export function useAudioTracks({ videoDuration, isExportingRef }: UseAudioTracks
     });
   }, []);
 
+  // Copy / Paste audio tracks
+  const [copiedAudioTrack, setCopiedAudioTrack] = useState<Omit<AudioTrack, 'id' | 'startTime'> | null>(null);
+
+  const copySelectedAudioTrack = useCallback(() => {
+    const track = audioTracks.find(t => t.id === selectedAudioTrackId);
+    if (!track) return;
+    const { id: _id, startTime: _st, ...config } = track;
+    setCopiedAudioTrack(config);
+    if (lastCopyActionRef) lastCopyActionRef.current = 'audio';
+  }, [audioTracks, selectedAudioTrackId, lastCopyActionRef]);
+
+  const pasteAudioTrack = useCallback(() => {
+    if (!copiedAudioTrack) return;
+    const audio = uploadedAudios.find(a => a.id === copiedAudioTrack.audioId);
+    if (!audio) return;
+    if (audioTracks.length >= MAX_AUDIO_TRACKS) {
+      alert(`Maximum of ${MAX_AUDIO_TRACKS} audio tracks allowed.`);
+      return;
+    }
+    const lastTrackEnd = audioTracks.reduce((max, t) => Math.max(max, t.startTime + t.duration), 0);
+    const startTime = Math.min(lastTrackEnd, videoDuration);
+    const newTrack: AudioTrack = {
+      ...copiedAudioTrack,
+      id: `track-${crypto.randomUUID()}`,
+      startTime,
+    };
+    setAudioTracks(prev => [...prev, newTrack]);
+    setSelectedAudioTrackId?.(newTrack.id);
+  }, [copiedAudioTrack, uploadedAudios, audioTracks, videoDuration, setSelectedAudioTrackId]);
+
   const handleToggleMuteOriginalAudio = useCallback(() => setMuteOriginalAudio(prev => !prev), []);
   const handleMasterVolumeChange = useCallback((volume: number) => setMasterVolume(volume), []);
 
@@ -214,6 +247,7 @@ export function useAudioTracks({ videoDuration, isExportingRef }: UseAudioTracks
     audioElementsRef, syncAudioPlayback,
     handleAudioUpload, handleAudioDelete, handleAddAudioTrack,
     handleUpdateAudioTrack, handleDeleteAudioTrack,
+    copySelectedAudioTrack, pasteAudioTrack, copiedAudioTrack,
     handleToggleMuteOriginalAudio, handleMasterVolumeChange,
     autoTrimModalOpen, pendingAudioUpload, confirmAudioTrim, cancelAudioTrim,
     restoreAudios,

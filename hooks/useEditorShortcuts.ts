@@ -30,6 +30,9 @@ interface UseEditorShortcutsParams {
     selectedAudioTrackId: string | null;
     setSelectedAudioTrackId: (id: string | null) => void;
     handleDeleteAudioTrack: (id: string) => void;
+    copySelectedAudioTrack: () => void;
+    copiedAudioTrack: unknown;
+    pasteAudioTrack: () => void;
 
     selectedZoomFragmentId: string | null;
     setSelectedZoomFragmentId: (id: string | null) => void;
@@ -49,7 +52,7 @@ interface UseEditorShortcutsParams {
     copiedMockupMotionFragment: unknown;
     pasteMockupMotionFragment: () => void;
 
-    lastCopyActionRef: React.MutableRefObject<'element' | 'zoom' | 'motion' | null>;
+    lastCopyActionRef: React.MutableRefObject<'element' | 'zoom' | 'motion' | 'audio' | null>;
 
     handleImageUploadToCanvas: (file: File) => void | Promise<void>;
     handleVideoUpload: (file: File, options?: { forceReplace?: boolean }) => Promise<void>;
@@ -77,6 +80,9 @@ export function useEditorShortcuts({
     selectedAudioTrackId,
     setSelectedAudioTrackId,
     handleDeleteAudioTrack,
+    copySelectedAudioTrack,
+    copiedAudioTrack,
+    pasteAudioTrack,
     selectedZoomFragmentId,
     setSelectedZoomFragmentId,
     handleDeleteZoomFragment,
@@ -165,6 +171,11 @@ export function useEditorShortcuts({
                 pasteMockupMotionFragment();
                 return;
             }
+            if (copiedAudioTrack) {
+                e.preventDefault();
+                pasteAudioTrack();
+                return;
+            }
             if (copiedElements.length > 0) {
                 e.preventDefault();
                 pasteElement();
@@ -176,6 +187,7 @@ export function useEditorShortcuts({
         isPhotoMode, handleImageUploadToCanvas, handleVideoUpload, activeTool,
         copiedZoomFragment, pasteZoomFragment, copiedElements, pasteElement,
         copiedMockupMotionFragment, pasteMockupMotionFragment, lastCopyActionRef,
+        copiedAudioTrack, pasteAudioTrack,
     ]);
 
     useEffect(() => {
@@ -205,6 +217,11 @@ export function useEditorShortcuts({
                 if (selectedMockupMotionFragmentId) {
                     e.preventDefault();
                     copySelectedMockupMotionFragment();
+                    return;
+                }
+                if (selectedAudioTrackId) {
+                    e.preventDefault();
+                    copySelectedAudioTrack();
                     return;
                 }
             }
@@ -271,6 +288,7 @@ export function useEditorShortcuts({
         deleteCanvasElement, handleDeleteZoomFragment, handleDeleteZoomMovement,
         handleDeleteAudioTrack, handleDeleteVideoClip, handleDeleteMockupMotionFragment,
         copySelectedElement, textToolActive, copySelectedZoomFragment, copySelectedMockupMotionFragment,
+        copySelectedAudioTrack,
         setTextToolActive, setSelectedElementId, setSelectedVideoClipId, setSelectedAudioTrackId,
         setSelectedZoomMovementId, setSelectedZoomFragmentId, setSelectedMockupMotionFragmentId,
     ]);
