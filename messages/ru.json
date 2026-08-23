@@ -1379,8 +1379,12 @@
       "rise-crash": "Взлет и Падение",
       "crane-sweep": "Панорама Кран-Стрелы",
       "orbit-entrance": "Орбитальный вход",
-      "turntable-drift": "Вращение подиума",
-      "flick-exit": "Быстрый выход"
+      "flick-exit": "Быстрый выход",
+      "hero-reveal": "Эффектный показ",
+      "macro-pan": "Макро-панорама",
+      "screen-glide": "Плавный обзор экрана",
+      "float-hold": "Мягкое парение",
+      "spiral-drop": "Спиральное падение"
     },
     "controls": {
       "intensity": "Интенсивность",

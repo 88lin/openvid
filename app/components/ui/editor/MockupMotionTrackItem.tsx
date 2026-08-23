@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useMemo } from "react";
 import { motion, useMotionValue } from "framer-motion";
-import type { MockupMotionFragment } from "@/lib/mockup-motion";
+import { MOTION_PRESET_3D_IDS, type MockupMotionFragment } from "@/lib/mockup-motion";
 import { useTranslations } from "next-intl";
 
 const MIN_FRAGMENT_DURATION = 0.3;
@@ -37,7 +37,7 @@ export function MockupMotionTrackItem({
 
   const label = t(`presets.${fragment.presetId}`);
 
-  const is3D = fragment.presetId === "orbit-entrance" || fragment.presetId === "turntable-drift" || fragment.presetId === "flick-exit";
+  const is3D = MOTION_PRESET_3D_IDS.has(fragment.presetId);
 
   const timeToPixels = useCallback(
     (time: number) => (time / videoDuration) * contentWidth,

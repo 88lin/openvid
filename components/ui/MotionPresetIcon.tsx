@@ -102,10 +102,6 @@ export function MotionPresetIconStyles() {
         .force-animate .mp-card--z-spin-reveal {
           animation: mp-z-spin-reveal 1.3s cubic-bezier(0.65, 0, 0.35, 1) infinite alternate;
         }
-        .group:hover .mp-card--isometric-lift,
-        .force-animate .mp-card--isometric-lift {
-          animation: mp-isometric-lift 1.3s cubic-bezier(0.65, 0, 0.35, 1) infinite alternate;
-        }
         .group:hover .mp-card--cinematic-showcase,
         .force-animate .mp-card--cinematic-showcase {
           animation: mp-cinematic-showcase 2.6s ease-in-out infinite alternate;
@@ -142,13 +138,29 @@ export function MotionPresetIconStyles() {
         .force-animate .mp-card--orbit-entrance {
           animation: mp-orbit-entrance 1.6s cubic-bezier(0.65, 0, 0.35, 1) infinite alternate;
         }
-        .group:hover .mp-card--turntable-drift,
-        .force-animate .mp-card--turntable-drift {
-          animation: mp-turntable-drift 3s ease-in-out infinite alternate;
-        }
         .group:hover .mp-card--flick-exit,
         .force-animate .mp-card--flick-exit {
           animation: mp-flick-exit 1s cubic-bezier(0.65, 0, 0.35, 1) infinite alternate;
+        }
+        .group:hover .mp-card--hero-reveal,
+        .force-animate .mp-card--hero-reveal {
+          animation: mp-hero-reveal 1.8s cubic-bezier(0.65, 0, 0.35, 1) infinite alternate;
+        }
+        .group:hover .mp-card--macro-pan,
+        .force-animate .mp-card--macro-pan {
+          animation: mp-macro-pan 2.6s ease-in-out infinite alternate;
+        }
+        .group:hover .mp-card--screen-glide,
+        .force-animate .mp-card--screen-glide {
+          animation: mp-screen-glide 2.8s ease-in-out infinite alternate;
+        }
+        .group:hover .mp-card--float-hold,
+        .force-animate .mp-card--float-hold {
+          animation: mp-float-hold 3.2s ease-in-out infinite;
+        }
+        .group:hover .mp-card--spiral-drop,
+        .force-animate .mp-card--spiral-drop {
+          animation: mp-spiral-drop 1.2s cubic-bezier(0.65, 0, 0.35, 1) infinite alternate;
         }
       }
       @keyframes mp-focus-in {
@@ -162,10 +174,6 @@ export function MotionPresetIconStyles() {
       @keyframes mp-z-spin-reveal {
         0% { transform: scale(0.62) rotateZ(-78deg) rotateX(38deg); opacity: 0.5; }
         100% { transform: scale(1) rotateZ(0) rotateX(0); opacity: 1; }
-      }
-      @keyframes mp-isometric-lift {
-        0% { transform: scale(1.28) rotateX(42deg) rotateZ(-18deg); }
-        100% { transform: scale(1) rotateX(8deg) rotateZ(0deg); }
       }
       @keyframes mp-cinematic-showcase {
         0% { transform: scale(1.4) translate(8%, 6%) rotateX(5deg) rotateY(8deg); filter: blur(1.5px); }
@@ -216,17 +224,34 @@ export function MotionPresetIconStyles() {
         60% { transform: scale(0.9) rotateY(40deg) rotateX(10deg) translateY(5%); opacity: 0.8; }
         100% { transform: scale(1) rotateY(0) rotateX(0) translateY(0); opacity: 1; }
       }
-      @keyframes mp-turntable-drift {
-        0% { transform: rotateY(0deg) translateY(0) scale(1); opacity: 0.6; }
-        25% { transform: rotateY(90deg) translateY(-3%) scale(1.01); opacity: 1; }
-        50% { transform: rotateY(180deg) translateY(0) scale(0.99); opacity: 1; }
-        75% { transform: rotateY(270deg) translateY(3%) scale(1.01); opacity: 1; }
-        100% { transform: rotateY(360deg) translateY(0) scale(1); opacity: 0.6; }
-      }
       @keyframes mp-flick-exit {
         0% { transform: rotateY(0) translateX(0) scale(1); opacity: 1; }
         50% { transform: rotateY(40deg) translateX(10%) scale(0.95); opacity: 0.7; }
         100% { transform: rotateY(100deg) translateX(35%) scale(0.8); opacity: 0; }
+      }
+      @keyframes mp-hero-reveal {
+        0% { transform: rotateY(190deg) rotateX(-22deg) scale(1.35); opacity: 0.4; }
+        70% { transform: rotateY(12deg) rotateX(0deg) scale(1.02); opacity: 1; }
+        100% { transform: rotateY(0) rotateX(0) scale(1); opacity: 1; }
+      }
+      @keyframes mp-macro-pan {
+        0% { transform: scale(1.55) translate(-9%, 7%) rotateY(14deg) rotateX(4deg); }
+        100% { transform: scale(1.55) translate(9%, -7%) rotateY(-14deg) rotateX(-4deg); }
+      }
+      @keyframes mp-screen-glide {
+        0% { transform: scale(1.28) translate(2%, -11%) rotateY(6deg) rotateX(-2deg); }
+        100% { transform: scale(1.28) translate(-2%, 11%) rotateY(-6deg) rotateX(2deg); }
+      }
+      @keyframes mp-float-hold {
+        0% { transform: translate(0, 0) rotateY(0deg) rotateX(0deg) scale(1); }
+        25% { transform: translate(2.5%, -2%) rotateY(6deg) rotateX(-2.5deg) scale(1.03); }
+        50% { transform: translate(0, -3.5%) rotateY(0deg) rotateX(-4deg) scale(1.06); }
+        75% { transform: translate(-2.5%, -2%) rotateY(-6deg) rotateX(-2.5deg) scale(1.11); }
+        100% { transform: translate(0, 0) rotateY(0deg) rotateX(0deg) scale(1.15); }
+      }
+      @keyframes mp-spiral-drop {
+        0% { transform: translateY(0) rotateZ(0) rotateY(0) scale(1); opacity: 1; }
+        100% { transform: translateY(38%) rotateZ(85deg) rotateY(38deg) scale(0.55); opacity: 0; }
       }
     `}</style>
   );
