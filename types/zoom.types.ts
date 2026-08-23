@@ -133,12 +133,17 @@ export function calculateZoomPhaseState(
         const easedProgress = easeOutQuart(progress);
 
         if (forExport) {
+        
             scale = targetScale - (targetScale - 1) * easedProgress;
-        }
-
-        if (fragment.movementEnabled) {
-            focusX = finalMovementPoint.x;
-            focusY = finalMovementPoint.y;
+            if (fragment.movementEnabled) {
+                focusX = finalMovementPoint.x;
+                focusY = finalMovementPoint.y;
+            }
+        } else {
+     
+            scale = 1;
+            focusX = 50;
+            focusY = 50;
         }
 
     } else {

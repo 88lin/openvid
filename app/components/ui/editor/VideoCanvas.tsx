@@ -296,12 +296,15 @@ function VideoCanvasInner({
         const translateX = 50 - phaseState.focusX;
         const translateY = 50 - phaseState.focusY;
 
-        // During hold phase with movement, reduce transition to avoid jarring
+        const rawTransitionMs = speedToTransitionMs(activeZoomFragment.speed);
+        const maxRampMs = ((activeZoomFragment.endTime - activeZoomFragment.startTime) / 2) * 1000;
+        const clampedTransitionMs = Math.min(rawTransitionMs, maxRampMs);
+
         const isMoving = activeZoomFragment.movementEnabled && phaseState.phase === 'hold';
-        const transitionMs = isMoving ? 50 : speedToTransitionMs(activeZoomFragment.speed);
+        const transitionMs = isMoving ? 50 : clampedTransitionMs;
 
         return {
-            scale: phaseState.scale,
+            scale: phaseState.phase === 'exit' ? 1 : phaseState.scale,
             translateX,
             translateY,
             transitionMs,
