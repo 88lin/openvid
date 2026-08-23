@@ -203,6 +203,11 @@ export function Phone3DScene({
     return () => capturedOnApi?.(null);
   }, [gl, scene, camera, cameraRef, invalidate, zoom]);
 
+  const invalidateRef = useRef(invalidate);
+  useEffect(() => {
+    invalidateRef.current = invalidate;
+  }, [invalidate]);
+
   const applyTexture = useCallback(() => {
     if (videoElement) return;
     const mat = screenMatRef.current;
@@ -255,7 +260,7 @@ export function Phone3DScene({
         currentMat.needsUpdate = true;
         lastLoadedUrlRef.current = placeholderKey;
         lastLoadedCropKeyRef.current = null;
-        invalidate();
+        invalidateRef.current();
       };
       img.onerror = () => {
         const currentMat = screenMatRef.current;
@@ -267,7 +272,7 @@ export function Phone3DScene({
         currentMat.color.set(0x1a1a1a);
         currentMat.needsUpdate = true;
         lastLoadedUrlRef.current = placeholderKey;
-        invalidate();
+        invalidateRef.current();
       };
       img.src = PLACEHOLDER_PHONE_URL;
       return;
@@ -331,7 +336,7 @@ export function Phone3DScene({
       currentMat.needsUpdate = true;
       lastLoadedUrlRef.current = imageUrl;
       lastLoadedCropKeyRef.current = cropKey;
-      invalidate();
+      invalidateRef.current();
     };
     img.onerror = () => {
       const currentMat = screenMatRef.current;
@@ -344,10 +349,10 @@ export function Phone3DScene({
       currentMat.needsUpdate = true;
       lastLoadedUrlRef.current = imageUrl;
       lastLoadedCropKeyRef.current = cropKey;
-      invalidate();
+      invalidateRef.current();
     };
     img.src = imageUrl;
-  }, [imageUrl, imageMaskConfig, cropArea, modelUrl, gl, videoElement, invalidate]);
+  }, [imageUrl, imageMaskConfig, cropArea, modelUrl, gl, videoElement]);
 
   const applyVideoTextureIfReady = useCallback(() => {
     const mat = screenMatRef.current;
@@ -363,9 +368,9 @@ export function Phone3DScene({
       mat.map = tex;
       mat.color.set(0xffffff);
       mat.needsUpdate = true;
-      invalidate();
+      invalidateRef.current();
     }
-  }, [modelUrl, invalidate]);
+  }, [modelUrl]);
 
   useEffect(() => {
     if (!videoElement) {
@@ -433,6 +438,11 @@ export function Phone3DScene({
     applyTextureRef.current = applyTexture;
   }, [applyTexture]);
 
+  const applyVideoTextureIfReadyRef = useRef(applyVideoTextureIfReady);
+  useEffect(() => {
+    applyVideoTextureIfReadyRef.current = applyVideoTextureIfReady;
+  }, [applyVideoTextureIfReady]);
+
   useEffect(() => {
     applyTexture();
   }, [applyTexture]);
@@ -441,6 +451,7 @@ export function Phone3DScene({
     let isMounted = true;
     const device = getDeviceFromModelUrl(modelUrl);
     const isDefaultPhone = device === "phone";
+    const invalidateNow = invalidateRef.current;
 
     const finalizeSetup = (group: THREE.Group) => {
       if (!isMounted) return;
@@ -449,7 +460,7 @@ export function Phone3DScene({
         if (!isMounted) return;
         applyTextureRef.current();
         onLoaded?.();
-        invalidate();
+        invalidateNow();
       }, 50);
     };
 
@@ -487,7 +498,7 @@ export function Phone3DScene({
             child.material = basicMat;
             child.renderOrder = 10;
             screenMatRef.current = basicMat;
-            applyVideoTextureIfReady();
+            applyVideoTextureIfReadyRef.current();
           } else if (mat.isMeshStandardMaterial) {
             applyMetalMaterial(mat, matName);
           }
@@ -520,7 +531,7 @@ export function Phone3DScene({
           depthWrite: false,
         });
         screenMatRef.current = basicMat;
-        applyVideoTextureIfReady();
+        applyVideoTextureIfReadyRef.current();
 
         const hw = planeW / 2;
         const hh = planeH / 2;
@@ -560,7 +571,7 @@ export function Phone3DScene({
     return () => {
       isMounted = false;
     };
-  }, [modelUrl, applyVideoTextureIfReady, onLoaded, invalidate]);
+  }, [modelUrl, onLoaded]);
 
   const prevRotationRef = useRef<{ x: number; y: number } | null>(null);
 
@@ -582,18 +593,18 @@ export function Phone3DScene({
       const theta = initialRotationY * DEG;
       orbit.object.position.setFromSphericalCoords(radius, phi, theta);
       orbit.update();
-      invalidate();
+      invalidateRef.current();
       prevRotationRef.current = { x: initialRotationX, y: initialRotationY };
     }, 0);
     return () => clearTimeout(id);
-  }, [initialRotationX, initialRotationY, invalidate]);
+  }, [initialRotationX, initialRotationY]);
 
   useEffect(() => {
     if (rootRef.current) {
       rootRef.current.rotation.z = initialRotationZ * DEG;
-      invalidate();
+      invalidateRef.current();
     }
-  }, [initialRotationZ, invalidate]);
+  }, [initialRotationZ]);
 
   useEffect(() => {
     const composer = new EffectComposer(gl);
@@ -617,7 +628,7 @@ export function Phone3DScene({
 
     composerRef.current = composer;
     outlinePassRef.current = outlinePass;
-    invalidate();
+    invalidateRef.current();
 
     return () => {
       outlinePass.dispose();
@@ -625,14 +636,14 @@ export function Phone3DScene({
       composerRef.current = null;
       outlinePassRef.current = null;
     };
-  }, [gl, scene, camera, size.width, size.height, invalidate]);
+  }, [gl, scene, camera, size.width, size.height]);
 
   useEffect(() => {
     composerRef.current?.setSize(size.width, size.height);
     composerRef.current?.setPixelRatio(gl.getPixelRatio());
     outlinePassRef.current?.resolution.set(size.width, size.height);
-    invalidate();
-  }, [size, gl, invalidate]);
+    invalidateRef.current();
+  }, [size, gl]);
 
   useEffect(() => {
     const outlinePass = outlinePassRef.current;
@@ -644,8 +655,8 @@ export function Phone3DScene({
     outlinePass.visibleEdgeColor.set(color);
     outlinePass.hiddenEdgeColor.set(color);
 
-    invalidate();
-  }, [isSelected, isHovered, invalidate, rootRef]);
+    invalidateRef.current();
+  }, [isSelected, isHovered, rootRef]);
 
   useFrame(() => {
     composerRef.current?.render();

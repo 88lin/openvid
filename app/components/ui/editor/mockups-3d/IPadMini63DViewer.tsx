@@ -78,6 +78,11 @@ export function IPadMiniScene({
   const outlinePassRef = useRef<OutlinePass | null>(null);
   const isUserInteractingRef = useRef(false);
 
+  const invalidateRef = useRef(invalidate);
+  useEffect(() => {
+    invalidateRef.current = invalidate;
+  }, [invalidate]);
+
   useLayoutEffect(() => {
     onApiRef.current = onApi;
   });
@@ -122,13 +127,13 @@ export function IPadMiniScene({
         composerRef.current?.setPixelRatio(gl.getPixelRatio());
         outlinePassRef.current?.resolution.set(freshW, freshH);
 
-        invalidate();
+        invalidateRef.current();
       },
       hasBuiltInShadow: true,
     };
     capturedOnApi?.(api);
     return () => capturedOnApi?.(null);
-  }, [gl, scene, camera, cameraRef, invalidate]);
+  }, [gl, scene, camera, cameraRef]);
 
   const applyTexture = useCallback(() => {
     if (videoElement) return;
@@ -176,16 +181,16 @@ export function IPadMiniScene({
       currentMat.needsUpdate = true;
       lastLoadedUrlRef.current = targetImgUrl;
       lastLoadedCropKeyRef.current = cropKey;
-      invalidate();
+      invalidateRef.current();
     };
     img.onerror = () => {
       if (mat.map) mat.map.dispose();
       mat.color.set(0x111111);
       mat.needsUpdate = true;
-      invalidate();
+      invalidateRef.current();
     };
     img.src = targetImgUrl;
-  }, [imageUrl, cropArea, gl, videoElement, invalidate]);
+  }, [imageUrl, cropArea, gl, videoElement]);
 
   const applyVideoTextureIfReady = useCallback(() => {
     const mat = screenMatRef.current;
@@ -201,9 +206,9 @@ export function IPadMiniScene({
       mat.map = tex;
       mat.color.set(0xffffff);
       mat.needsUpdate = true;
-      invalidate();
+      invalidateRef.current();
     }
-  }, [invalidate]);
+  }, []);
 
   useEffect(() => {
     if (!videoElement) {
@@ -313,7 +318,7 @@ export function IPadMiniScene({
       if (!isMounted) return;
       applyTextureRef.current();
       onLoaded?.();
-      invalidate();
+      invalidateRef.current();
     }, 50);
 
     return () => {
@@ -325,7 +330,7 @@ export function IPadMiniScene({
         screenMatRef.current.dispose();
       }
     };
-  }, [gltf.scene, applyVideoTextureIfReady, onLoaded, invalidate]);
+  }, [gltf.scene, onLoaded]);
 
   const prevRotationRef = useRef<{ x: number; y: number } | null>(null);
   
@@ -347,18 +352,18 @@ export function IPadMiniScene({
       const theta = initialRotationY * DEG;
       orbit.object.position.setFromSphericalCoords(radius, phi, theta);
       orbit.update();
-      invalidate();
+      invalidateRef.current();
       prevRotationRef.current = { x: initialRotationX, y: initialRotationY };
     }, 0);
     return () => clearTimeout(id);
-  }, [initialRotationX, initialRotationY, zoom, invalidate]);
+  }, [initialRotationX, initialRotationY, zoom]);
 
   useEffect(() => {
     if (rootRef.current) {
       rootRef.current.rotation.z = initialRotationZ * DEG;
-      invalidate();
+      invalidateRef.current();
     }
-  }, [initialRotationZ, rootRef, invalidate]);
+  }, [initialRotationZ, rootRef]);
 
   useEffect(() => {
     const composer = new EffectComposer(gl);
@@ -382,7 +387,7 @@ export function IPadMiniScene({
 
     composerRef.current = composer;
     outlinePassRef.current = outlinePass;
-    invalidate();
+    invalidateRef.current();
 
     return () => {
       outlinePass.dispose();
@@ -390,14 +395,14 @@ export function IPadMiniScene({
       composerRef.current = null;
       outlinePassRef.current = null;
     };
-  }, [gl, scene, camera, size.width, size.height, invalidate]);
+  }, [gl, scene, camera, size.width, size.height]);
 
   useEffect(() => {
     composerRef.current?.setSize(size.width, size.height);
     composerRef.current?.setPixelRatio(gl.getPixelRatio());
     outlinePassRef.current?.resolution.set(size.width, size.height);
-    invalidate();
-  }, [size, gl, invalidate]);
+    invalidateRef.current();
+  }, [size, gl]);
 
   useEffect(() => {
     const outlinePass = outlinePassRef.current;
@@ -409,8 +414,8 @@ export function IPadMiniScene({
     outlinePass.visibleEdgeColor.set(color);
     outlinePass.hiddenEdgeColor.set(color);
 
-    invalidate();
-  }, [isSelected, isHovered, invalidate, rootRef]);
+    invalidateRef.current();
+  }, [isSelected, isHovered, rootRef]);
 
   useFrame(() => {
     composerRef.current?.render();

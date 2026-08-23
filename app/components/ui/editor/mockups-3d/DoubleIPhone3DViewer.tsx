@@ -101,6 +101,11 @@ export function DoubleIPhoneScene({
   const outlinePassRef = useRef<OutlinePass | null>(null);
   const isUserInteractingRef = useRef(false);
 
+  const invalidateRef = useRef(invalidate);
+  useEffect(() => {
+    invalidateRef.current = invalidate;
+  }, [invalidate]);
+
   const areAnglesEqual = useCallback((angles1: { x: number; y: number } | null, angles2: { x: number; y: number }) => {
     if (!angles1) return false;
     return Math.abs(angles1.x - angles2.x) < EPSILON && Math.abs(angles1.y - angles2.y) < EPSILON;
@@ -172,7 +177,7 @@ export function DoubleIPhoneScene({
         composerRef.current?.setSize(freshW, freshH);
         composerRef.current?.setPixelRatio(gl.getPixelRatio());
         outlinePassRef.current?.resolution.set(freshW, freshH);
-        invalidate();
+        invalidateRef.current();
       },
       hasBuiltInShadow: false,
       getVisualSize: () => {
@@ -182,7 +187,7 @@ export function DoubleIPhoneScene({
 
     capturedOnApi?.(api);
     return () => capturedOnApi?.(null);
-  }, [gl, scene, camera, cameraRef, invalidate, zoom]);
+  }, [gl, scene, camera, cameraRef, zoom]);
 
   const applyTexture = useCallback(() => {
     if (videoElement) return;
@@ -230,16 +235,16 @@ export function DoubleIPhoneScene({
       currentMat.needsUpdate = true;
       lastLoadedUrlRef.current = targetImgUrl;
       lastLoadedCropKeyRef.current = cropKey;
-      invalidate();
+      invalidateRef.current();
     };
     img.onerror = () => {
       if (mat.map) mat.map.dispose();
       mat.color.set(0x111111);
       mat.needsUpdate = true;
-      invalidate();
+      invalidateRef.current();
     };
     img.src = targetImgUrl;
-  }, [imageUrl, imageMaskConfig, cropArea, gl, videoElement, invalidate]);
+  }, [imageUrl, imageMaskConfig, cropArea, gl, videoElement]);
 
   const applyVideoTextureIfReady = useCallback(() => {
     const mat = screenMatRef.current;
@@ -251,9 +256,9 @@ export function DoubleIPhoneScene({
       mat.map = tex;
       mat.color.set(0xffffff);
       mat.needsUpdate = true;
-      invalidate();
+      invalidateRef.current();
     }
-  }, [invalidate]);
+  }, []);
 
   useEffect(() => {
     if (!videoElement) {
@@ -347,7 +352,7 @@ export function DoubleIPhoneScene({
       if (!isMounted) return;
       applyTextureRef.current();
       onLoaded?.();
-      invalidate();
+      invalidateRef.current();
     }, 50);
 
     return () => {
@@ -359,7 +364,7 @@ export function DoubleIPhoneScene({
         screenMatRef.current.dispose();
       }
     };
-  }, [gltf.scene, applyVideoTextureIfReady, onLoaded, invalidate]);
+  }, [gltf.scene, onLoaded]);
 
   const prevRotationRef = useRef<{ x: number; y: number } | null>(null);
 
@@ -383,19 +388,19 @@ export function DoubleIPhoneScene({
 
       orbit.object.position.setFromSphericalCoords(radius, phi, theta);
       orbit.update();
-      invalidate();
+      invalidateRef.current();
       prevRotationRef.current = currentAngles;
     }, 0);
 
     return () => clearTimeout(id);
-  }, [initialRotationX, initialRotationY, zoom, invalidate, areAnglesEqual]);
+  }, [initialRotationX, initialRotationY, zoom, areAnglesEqual]);
 
   useEffect(() => {
     if (rootRef.current) {
       rootRef.current.rotation.z = initialRotationZ * DEG;
-      invalidate();
+      invalidateRef.current();
     }
-  }, [initialRotationZ, invalidate]);
+  }, [initialRotationZ]);
 
   useEffect(() => {
     const composer = new EffectComposer(gl);
@@ -419,7 +424,7 @@ export function DoubleIPhoneScene({
 
     composerRef.current = composer;
     outlinePassRef.current = outlinePass;
-    invalidate();
+    invalidateRef.current();
 
     return () => {
       outlinePass.dispose();
@@ -427,14 +432,14 @@ export function DoubleIPhoneScene({
       composerRef.current = null;
       outlinePassRef.current = null;
     };
-  }, [gl, scene, camera, size.width, size.height, invalidate]);
+  }, [gl, scene, camera, size.width, size.height]);
 
   useEffect(() => {
     composerRef.current?.setSize(size.width, size.height);
     composerRef.current?.setPixelRatio(gl.getPixelRatio());
     outlinePassRef.current?.resolution.set(size.width, size.height);
-    invalidate();
-  }, [size, gl, invalidate]);
+    invalidateRef.current();
+  }, [size, gl]);
 
   useEffect(() => {
     const outlinePass = outlinePassRef.current;
@@ -446,8 +451,8 @@ export function DoubleIPhoneScene({
     outlinePass.visibleEdgeColor.set(color);
     outlinePass.hiddenEdgeColor.set(color);
 
-    invalidate();
-  }, [isSelected, isHovered, invalidate, rootRef]);
+    invalidateRef.current();
+  }, [isSelected, isHovered, rootRef]);
 
   useFrame(() => {
     composerRef.current?.render();

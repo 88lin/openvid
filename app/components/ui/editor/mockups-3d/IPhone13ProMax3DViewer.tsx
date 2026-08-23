@@ -169,6 +169,10 @@ export function IPhone13ProMaxScene({
   const onApiRef = useRef(onApi);
   const composerRef = useRef<EffectComposer | null>(null);
   const outlinePassRef = useRef<OutlinePass | null>(null);
+  const invalidateRef = useRef(invalidate);
+  useEffect(() => {
+    invalidateRef.current = invalidate;
+  }, []);
   useLayoutEffect(() => {
     onApiRef.current = onApi;
   });
@@ -209,7 +213,7 @@ export function IPhone13ProMaxScene({
         composerRef.current?.setSize(freshW, freshH);
         composerRef.current?.setPixelRatio(gl.getPixelRatio());
         outlinePassRef.current?.resolution.set(freshW, freshH);
-        invalidate();
+        invalidateRef.current();
       },
       getVisualSize: () => {
         const canvas = gl.domElement;
@@ -370,7 +374,7 @@ export function IPhone13ProMaxScene({
       tex.anisotropy = gl.capabilities.getMaxAnisotropy();
       mat.map = tex;
       mat.needsUpdate = true;
-      invalidate();
+      invalidateRef.current();
       lastLoadedImageUrlRef.current = imageUrl;
       lastLoadedMaskKeyRef.current = maskKey;
       lastLoadedCropKeyRef.current = cropKey;
@@ -402,7 +406,7 @@ export function IPhone13ProMaxScene({
       const theta = initialRotationY * DEG;
       orbit.object.position.setFromSphericalCoords(radius, phi, theta);
       orbit.update();
-      invalidate();
+      invalidateRef.current();
       prevRotationRef.current = { x: initialRotationX, y: initialRotationY };
     }, 0);
     return () => clearTimeout(id);
@@ -412,9 +416,9 @@ export function IPhone13ProMaxScene({
     const root = rootRef.current;
     if (root) {
       root.rotation.z = initialRotationZ * (Math.PI / 180);
-      invalidate();
+      invalidateRef.current();
     }
-  }, [initialRotationZ, invalidate]);
+  }, [initialRotationZ]);
 
   const shadowT = Math.max(0, Math.min(1, shadowIntensity));
   const showContactShadow = shadowT > 0.01;
@@ -516,7 +520,7 @@ export function IPhone13ProMaxScene({
 
     composerRef.current = composer;
     outlinePassRef.current = outlinePass;
-    invalidate();
+    invalidateRef.current();
 
     return () => {
       outlinePass.dispose();
@@ -530,8 +534,8 @@ export function IPhone13ProMaxScene({
     composerRef.current?.setSize(size.width, size.height);
     composerRef.current?.setPixelRatio(gl.getPixelRatio());
     outlinePassRef.current?.resolution.set(size.width, size.height);
-    invalidate();
-  }, [size, gl, invalidate]);
+    invalidateRef.current();
+  }, [size, gl]);
 
   useEffect(() => {
     const outlinePass = outlinePassRef.current;
@@ -541,8 +545,8 @@ export function IPhone13ProMaxScene({
     const color = isSelected ? 0x3b82f6 : 0xffffff;
     outlinePass.visibleEdgeColor.set(color);
     outlinePass.hiddenEdgeColor.set(color);
-    invalidate();
-  }, [isSelected, isHovered, invalidate]);
+    invalidateRef.current();
+  }, [isSelected, isHovered]);
 
   useFrame(() => {
     composerRef.current?.render();
