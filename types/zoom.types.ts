@@ -74,9 +74,13 @@ export function calculateZoomPhaseState(
     const targetScale = zoomLevelToFactor(fragment.zoomLevel);
     const enable3D = fragment.enable3D ?? false;
 
-    const transitionSeconds = speedToTransitionMs(fragment.speed) / 1000;
+    // Exit now occurs WITHIN the fragment (ending at endTime), not after it.
+    // Clamp transition so entry + exit always fit: if the fragment is too
+    // short, each ramp gets at most half the duration (no hold phase).
+    const rawTransitionSeconds = speedToTransitionMs(fragment.speed) / 1000;
+    const transitionSeconds = Math.min(rawTransitionSeconds, totalDuration / 2);
     const entryEndTime = fragment.startTime + transitionSeconds;
-    const exitStartTime = fragment.endTime;
+    const exitStartTime = fragment.endTime - transitionSeconds;
 
     let rotateX = 0;
     let rotateY = 0;
@@ -282,9 +286,10 @@ export interface ZoomMovement {
 }
 
 export function getFragmentHoldBounds(fragment: ZoomFragment): { start: number; end: number } {
-    const transitionSec = speedToTransitionMs(fragment.speed) / 1000;
+    const totalDuration = fragment.endTime - fragment.startTime;
+    const transitionSec = Math.min(speedToTransitionMs(fragment.speed) / 1000, totalDuration / 2);
     const start = fragment.startTime + transitionSec;
-    const end = fragment.endTime; 
+    const end = fragment.endTime - transitionSec;
     return start <= end ? { start, end } : { start: fragment.startTime, end: fragment.startTime };
 }
 

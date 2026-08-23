@@ -82,9 +82,13 @@ export function ZoomFragmentTrackItem({
     }, [otherFragments, fragment.startTime, fragment.endTime, videoDuration, contentDuration]);
 
     const minDurationSeconds = useMemo(() => {
-        if (!fragment.movementEnabled) return MIN_FRAGMENT_DURATION;
         const transitionSec = speedToTransitionMs(fragment.speed) / 1000;
-        return Math.max(MIN_FRAGMENT_DURATION, MIN_MOVEMENT_TRACK_DURATION + transitionSec);
+        // Entry + exit ramps must both fit within the fragment, so the minimum
+        // duration is 2 * transitionSec (or MIN_FRAGMENT_DURATION, whichever
+        // is larger). When movement is enabled, add the movement track minimum.
+        const baseMin = Math.max(MIN_FRAGMENT_DURATION, transitionSec * 2);
+        if (!fragment.movementEnabled) return baseMin;
+        return Math.max(baseMin, MIN_MOVEMENT_TRACK_DURATION + transitionSec);
     }, [fragment.movementEnabled, fragment.speed]);
 
 

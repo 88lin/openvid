@@ -274,20 +274,18 @@ function VideoCanvasInner({
 
     // Calculate zoom transform for visual preview using 3-phase system
     const zoomTransform = useMemo(() => {
-        // No active fragment - smooth exit to base scale
+        // No active fragment - zoom has already settled to scale=1 at the end
+        // of the previous fragment (exit now completes WITHIN the fragment), so
+        // there is no invisible exit tail to animate after endTime.
         if (!activeZoomFragment) {
-            const lastFragment = zoomFragments
-                .filter(f => f.endTime < currentTime)
-                .sort((a, b) => b.endTime - a.endTime)[0];
-            const exitMs = lastFragment ? speedToTransitionMs(lastFragment.speed) : speedToTransitionMs(3);
             return {
                 scale: 1,
                 translateX: 0,
                 translateY: 0,
-                transitionMs: exitMs,
+                transitionMs: 0,
                 rotateX: 0,
                 rotateY: 0,
-                perspective: lastFragment?.enable3D ? 600 : 0,
+                perspective: 0,
                 isMoving: false,
             };
         }
@@ -312,7 +310,7 @@ function VideoCanvasInner({
             perspective: phaseState.perspective,
             isMoving,
         };
-    }, [activeZoomFragment, zoomFragments, currentTime, zoomMovements]);
+    }, [activeZoomFragment, currentTime, zoomMovements]);
 
     const shouldShowUnsplashOverride = backgroundTab === "wallpaper" && unsplashOverrideUrl !== "";
     const shouldShowWallpaper = backgroundTab === "wallpaper" && selectedWallpaper >= 0 && !shouldShowUnsplashOverride;
