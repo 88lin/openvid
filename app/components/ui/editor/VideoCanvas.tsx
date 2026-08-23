@@ -261,10 +261,21 @@ function VideoCanvasInner({
         return getThumbnailForTime(scrubTime);
     }, [isScrubbing, scrubTime, getThumbnailForTime]);
 
+ 
     const visibleCanvasElements = useMemo(() => {
         if (mediaType !== "video") return canvasElements;
         return filterVisibleElements(canvasElements, currentTime, videoDuration);
     }, [mediaType, canvasElements, currentTime, videoDuration]);
+    const visibleElementsKey = visibleCanvasElements.map(e => e.id).join(',');
+    const [stableVisibleElements, setStableVisibleElements] = useState(visibleCanvasElements);
+    const [stableVisibleKey, setStableVisibleKey] = useState(visibleElementsKey);
+    const [stableElementsSrc, setStableElementsSrc] = useState(canvasElements);
+  
+    if (canvasElements !== stableElementsSrc || visibleElementsKey !== stableVisibleKey) {
+        setStableElementsSrc(canvasElements);
+        setStableVisibleKey(visibleElementsKey);
+        setStableVisibleElements(visibleCanvasElements);
+    }
 
     // Find active zoom fragment based on current time
     const activeZoomFragment = useMemo<ZoomFragment | null>(() => {
@@ -2118,7 +2129,7 @@ function VideoCanvasInner({
                                     {/* Capa 2A: Canvas elements BEHIND video — sin rotación 3D */}
                                     <CanvasElementsLayer
                                         canvasContainerRef={canvasContainerRef}
-                                        canvasElements={visibleCanvasElements}
+                                        canvasElements={stableVisibleElements}
                                         selectedElementId={selectedElementId}
                                         selectedElementIds={canvasSelectedIds}
                                         hoveredElementId={hoveredElementId}
@@ -2385,7 +2396,7 @@ function VideoCanvasInner({
                                     {/* Capa 3: Canvas elements ABOVE video (zIndex >= VIDEO_Z_INDEX) */}
                                     <CanvasElementsLayer
                                         canvasContainerRef={undefined}
-                                        canvasElements={visibleCanvasElements}
+                                        canvasElements={stableVisibleElements}
                                         selectedElementId={selectedElementId}
                                         selectedElementIds={canvasSelectedIds}
                                         hoveredElementId={hoveredElementId}
@@ -2411,7 +2422,7 @@ function VideoCanvasInner({
                                     {/* Capa HIT: invisible, todos los elementos, para recibir eventos */}
                                     <CanvasElementsLayer
                                         canvasContainerRef={undefined}
-                                        canvasElements={visibleCanvasElements}
+                                        canvasElements={stableVisibleElements}
                                         selectedElementId={selectedElementId}
                                         selectedElementIds={canvasSelectedIds}
                                         hoveredElementId={hoveredElementId}
