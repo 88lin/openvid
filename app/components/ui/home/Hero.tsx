@@ -21,6 +21,12 @@ export default function Hero({ onVideoUpload, onPhotoUpload }: HeroProps) {
   const videoInputRef = useRef<HTMLInputElement>(null);
   const [isDraggingVideo, setIsDraggingVideo] = useState(false);
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+  const prefetchVideoEditor = useCallback(() => {
+    router.prefetch("/editor?mode=video");
+  }, [router]);
+  const prefetchPhotoEditor = useCallback(() => {
+    router.prefetch("/editor?mode=photo");
+  }, [router]);
 
   const handleVideoFile = useCallback(
     async (file: File) => {
@@ -180,7 +186,7 @@ export default function Hero({ onVideoUpload, onPhotoUpload }: HeroProps) {
               <div className="absolute inset-0 rounded-2xl bg-blue-500/5 blur-sm pointer-events-none" />
             )}
           </div>
-          <Link href="/editor?mode=video" className="text-[15px] text-white/70 hover:text-white/80 transition-colors underline decoration-white/30 underline-offset-4">
+          <Link href="/editor?mode=video" onMouseEnter={prefetchVideoEditor} className="text-[15px] text-white/70 hover:text-white/80 transition-colors underline decoration-white/30 underline-offset-4">
             {t("goToVideoEditor")}
           </Link>
           <input
@@ -232,7 +238,7 @@ export default function Hero({ onVideoUpload, onPhotoUpload }: HeroProps) {
               <div className="absolute inset-0 rounded-2xl bg-red-500/5 blur-sm pointer-events-none" />
             )}
           </div>
-          <Link href="/editor?mode=photo" className="text-[15px] text-white/70 hover:text-white/80 transition-colors underline decoration-white/30 underline-offset-4">
+          <Link href="/editor?mode=photo" onMouseEnter={prefetchPhotoEditor} className="text-[15px] text-white/70 hover:text-white/80 transition-colors underline decoration-white/30 underline-offset-4">
             {t("goToPhotoEditor")}
           </Link>
           <input

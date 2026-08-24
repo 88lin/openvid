@@ -213,7 +213,7 @@ export default function Editor() {
     const muteOriginalAudioRef = useRef<boolean>(false);
 
     const lastTimeUpdateRef = useRef(0);
-    const REACT_TIME_UPDATE_INTERVAL_MS = 33;
+    const REACT_TIME_UPDATE_INTERVAL_MS = 50;
 
     // Computed: which dimensions to use for the canvas
     const customAspectRatio = useMemo(() => {

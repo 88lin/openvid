@@ -17,6 +17,23 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   compress: true,
+  experimental: {
+    optimizePackageImports: [
+      "lucide-react",
+      "@iconify/react",
+      "framer-motion",
+      "gsap",
+      "three",
+      "@react-three/fiber",
+      "@react-three/drei",
+      "radix-ui",
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-dropdown-menu",
+      "mediabunny",
+      "html-to-image",
+      "lenis",
+    ],
+  },
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [

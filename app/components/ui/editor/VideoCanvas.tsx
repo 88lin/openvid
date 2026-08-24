@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useImperativeHandle, useMemo, useState, useCallback, memo } from "react";
+import { useRef, useEffect, useImperativeHandle, useMemo, useState, useCallback, memo, lazy, Suspense } from "react";
 import type * as THREE from "three";
 import type { VideoCanvasHandle, VideoCanvasProps, VideoThumbnail } from "@/types";
 import type { ImageElement } from "@/types/canvas-elements.types";
@@ -33,11 +33,14 @@ import { drawMaskedImage } from "@/lib/masked-image-draw.utils";
 import { drawMockupAndMedia, type MockupDrawContext } from "@/lib/mockup-media-draw.utils";
 import { drawPhone3DCompositeWithZoom, type Phone3DCompositeContext } from "@/lib/phone3d-composite-draw.utils";
 import { buildMockupMotionCss, MockupMotionTransform, REST_MOCKUP_MOTION, sampleCombinedMockupMotion, sampleCombined3DMotion, REST_MOCKUP_3D_MOTION, Mockup3DMotionTransform, MOTION_PRESET_3D_IDS } from "@/lib/mockup-motion";
-import { Mockup3DFrame } from "./mockups-3d/Mockup3DFrame";
 import { filterVisibleElements } from "@/lib/canvas-elements-timeline.utils";
 import { ZoomPointOverlay, ZOOM_POINT_VISUAL_SCALE } from "@/components/ui/ZoomPointOverlay";
 
 export type { VideoCanvasHandle, VideoCanvasProps };
+
+const Mockup3DFrame = lazy(() =>
+    import("./mockups-3d/Mockup3DFrame").then(mod => ({ default: mod.Mockup3DFrame }))
+);
 
 function VideoCanvasInner({
     activeTool,
@@ -2521,6 +2524,16 @@ function VideoCanvasInner({
                                                         <div className="w-6 h-6 border-2 border-border border-t-foreground/60 rounded-full animate-spin" />
                                                     </div>
                                                 ) : (
+                                                    <Suspense
+                                                        fallback={
+                                                            <div
+                                                                style={{ width: PHONE_W, height: PHONE_H }}
+                                                                className="flex items-center justify-center"
+                                                            >
+                                                                <div className="w-6 h-6 border-2 border-border border-t-foreground/60 rounded-full animate-spin" />
+                                                            </div>
+                                                        }
+                                                    >
                                                     <Mockup3DFrame
                                                         device={imagePhoneDevice}
                                                         rootRef={imagePhoneRootRef}
@@ -2548,6 +2561,7 @@ function VideoCanvasInner({
                                                         onSelectChange={(value) => setIsVideoSelected(value)}
                                                         motionTransform={mockup3DMotionPreview}
                                                     />
+                                                    </Suspense>
                                                 )}
                                             </div>
                                         </div>
