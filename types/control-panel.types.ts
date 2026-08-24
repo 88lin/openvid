@@ -42,7 +42,6 @@ export interface ControlPanelProps {
     onUpdateZoomMovementPoint?: (id: string, x: number, y: number) => void;
     videoUrl?: string | null;
     videoThumbnail?: string | null;
-    currentTime?: number;
     getThumbnailForTime?: (time: number) => VideoThumbnail | null;
     videoDimensions?: { width: number; height: number } | null;
     mockupId?: string;

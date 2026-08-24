@@ -25,7 +25,6 @@ export function ZoomFragmentEditor({
   onUpdateMovementPoint,
   videoUrl,
   videoThumbnail,
-  currentTime = 0,
   getThumbnailForTime,
   videoDimensions,
   onBack,
