@@ -131,6 +131,9 @@ export function Timeline({
     const contentWidthMotion = useMotionValue(0);
     const timelineWidthMotion = useMotionValue(0);
     const validDurationMotion = useMotionValue(0);
+    const activeClipLeftX = useMotionValue(0);
+    const activeClipRightX = useMotionValue(0);
+    const autoScrollDeltaX = useMotionValue(0);
 
     useEffect(() => {
         contentWidthMotion.set(contentWidth);
@@ -392,27 +395,39 @@ export function Timeline({
 
     useEffect(() => {
         const scrollEl = trackRef.current;
-        const isEdgeDragActive = isDragging || isDraggingTrim !== null;
+        const isEdgeDragActive = isDragging || isDraggingTrim !== null || isDraggingVideoClip;
         if (!scrollEl || !isEdgeDragActive) return;
         const EDGE_ZONE = 60;
         const MAX_PAN_SPEED = 16;
         let rafId: number;
         const tick = () => {
-            const activeX = isDraggingTrim === 'start' ? trimStartX.get() : isDraggingTrim === 'end' ? trimEndX.get() : playheadX.get();
+            const activeXs = isDraggingVideoClip
+                ? [activeClipLeftX.get(), activeClipRightX.get()]
+                : [isDraggingTrim === 'start' ? trimStartX.get() : isDraggingTrim === 'end' ? trimEndX.get() : playheadX.get()];
             const visibleWidth = scrollEl.clientWidth;
-            const scrollLeft = scrollEl.scrollLeft;
-            if (activeX < scrollLeft + EDGE_ZONE) {
-                const intensity = Math.min(1, (scrollLeft + EDGE_ZONE - activeX) / EDGE_ZONE);
-                scrollEl.scrollLeft = Math.max(0, scrollLeft - MAX_PAN_SPEED * intensity);
-            } else if (activeX > scrollLeft + visibleWidth - EDGE_ZONE) {
-                const intensity = Math.min(1, (activeX - (scrollLeft + visibleWidth - EDGE_ZONE)) / EDGE_ZONE);
-                scrollEl.scrollLeft = scrollLeft + MAX_PAN_SPEED * intensity;
+            for (const activeX of activeXs) {
+                const scrollLeft = scrollEl.scrollLeft;
+                let newScrollLeft = scrollLeft;
+                if (activeX < scrollLeft + EDGE_ZONE) {
+                    const intensity = Math.min(1, (scrollLeft + EDGE_ZONE - activeX) / EDGE_ZONE);
+                    newScrollLeft = Math.max(0, scrollLeft - MAX_PAN_SPEED * intensity);
+                } else if (activeX > scrollLeft + visibleWidth - EDGE_ZONE) {
+                    const intensity = Math.min(1, (activeX - (scrollLeft + visibleWidth - EDGE_ZONE)) / EDGE_ZONE);
+                    newScrollLeft = scrollLeft + MAX_PAN_SPEED * intensity;
+                }
+                if (newScrollLeft !== scrollLeft) {
+                    const applied = newScrollLeft - scrollLeft;
+                    scrollEl.scrollLeft = newScrollLeft;
+                    if (isDraggingVideoClip) {
+                        autoScrollDeltaX.set(autoScrollDeltaX.get() + applied);
+                    }
+                }
             }
             rafId = requestAnimationFrame(tick);
         };
         rafId = requestAnimationFrame(tick);
         return () => cancelAnimationFrame(rafId);
-    }, [isDragging, isDraggingTrim, playheadX, trimStartX, trimEndX]);
+    }, [isDragging, isDraggingTrim, isDraggingVideoClip, playheadX, trimStartX, trimEndX, activeClipLeftX, activeClipRightX, autoScrollDeltaX]);
 
     const calculateProgressWidth = useCallback(([px, start, end]: number[]) => {
         const width = end - start;
@@ -633,6 +648,9 @@ export function Timeline({
                                                             onReorder={(draggedId, targetId, placeAfter) => onReorderVideoClip?.(draggedId, targetId, placeAfter)}
                                                             onDragStateChange={setIsDraggingVideoClip}
                                                             zoomLevel={zoomLevel}
+                                                            activeClipLeftX={activeClipLeftX}
+                                                            activeClipRightX={activeClipRightX}
+                                                            autoScrollDeltaX={autoScrollDeltaX}
                                                         />
                                                     ))}
                                                 </>

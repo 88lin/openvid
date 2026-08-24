@@ -24,6 +24,9 @@ interface VideoClipTrackItemProps {
     zoomLevel: number;
     playheadX: MotionValue<number>;
     speed?: number;
+    activeClipLeftX?: MotionValue<number>;
+    activeClipRightX?: MotionValue<number>;
+    autoScrollDeltaX?: MotionValue<number>;
 }
 
 export function VideoClipTrackItem({
@@ -41,6 +44,9 @@ export function VideoClipTrackItem({
     zoomLevel,
     playheadX,
     speed = 1,
+    activeClipLeftX,
+    activeClipRightX,
+    autoScrollDeltaX
 }: VideoClipTrackItemProps) {
     const [isDragging, setIsDragging] = useState(false);
     const [isResizing, setIsResizing] = useState<'start' | 'end' | null>(null);
@@ -107,24 +113,50 @@ export function VideoClipTrackItem({
         return { minStart, maxEnd };
     }, [otherClips, clip.id, clip.startTime, clipDuration]);
 
-    const handleDrag = useCallback((_e: MouseEvent | TouchEvent | PointerEvent, info: { delta: { x: number } }) => {
+    const applyDragDelta = useCallback((deltaX: number) => {
         if (contentWidth === 0 || totalDuration === 0) return;
-
-        // Free drag with per-frame delta (same pattern as other track items).
-        // Snapping is applied only on drop, not during drag, for smooth control.
-        let newX = clipX.get() + info.delta.x;
-
-        // Clamp to timeline bounds [0, totalDuration].
+        let newX = clipX.get() + deltaX;
         const minX = 0;
         const maxX = timeToPixels(totalDuration - clipDuration);
         newX = Math.max(minX, Math.min(maxX, newX));
         clipX.set(newX);
-    }, [contentWidth, totalDuration, clipX, clipDuration, timeToPixels]);
+        activeClipLeftX?.set(newX);
+        activeClipRightX?.set(newX + clipWidth.get());
+    }, [contentWidth, totalDuration, clipX, clipWidth, clipDuration, timeToPixels, activeClipLeftX, activeClipRightX]);
+
+    const handleDrag = useCallback((_e: MouseEvent | TouchEvent | PointerEvent, info: { delta: { x: number } }) => {
+        applyDragDelta(info.delta.x);
+    }, [applyDragDelta]);
+
+    const applyResizeStartDelta = useCallback((deltaX: number) => {
+        if (contentWidth === 0 || totalDuration === 0) return;
+        const currentX = clipX.get();
+        const currentWidth = clipWidth.get();
+        let newX = currentX + deltaX;
+        let newWidth = currentWidth - deltaX;
+        const minWidth = timeToPixels(MIN_CLIP_DURATION);
+        if (newWidth < minWidth) {
+            newWidth = minWidth;
+            newX = currentX + currentWidth - minWidth;
+        }
+        const minStartTimeBySource = clip.startTime - clip.trimStart;
+        const minXBySource = timeToPixels(Math.max(0, minStartTimeBySource));
+        const minX = Math.max(timeToPixels(boundaries.minStart), minXBySource);
+        if (newX < minX) {
+            newWidth = newWidth - (minX - newX);
+            newX = minX;
+        }
+        clipX.set(newX);
+        clipWidth.set(newWidth);
+        activeClipLeftX?.set(newX);
+        activeClipRightX?.set(newX + newWidth);
+    }, [contentWidth, totalDuration, clipX, clipWidth, boundaries, timeToPixels, clip.startTime, clip.trimStart, activeClipLeftX, activeClipRightX]);
 
     const handleDragStart = useCallback(() => {
         setIsDragging(true);
         onDragStateChange?.(true);
-    }, [onDragStateChange]);
+        onSelect();
+    }, [onDragStateChange, onSelect]);
 
     const handleDragEnd = useCallback(() => {
         setIsDragging(false);
@@ -177,78 +209,83 @@ export function VideoClipTrackItem({
     }, [clipX, clipWidth, pixelsToTime, onUpdate, onDragStateChange, otherClips, timeToPixels, onReorder, clip.id, clipDuration, currentTime]);
 
     const handleResizeStartDrag = useCallback((_e: MouseEvent | TouchEvent | PointerEvent, info: { delta: { x: number } }) => {
-        if (contentWidth === 0 || totalDuration === 0) return;
+        applyResizeStartDelta(info.delta.x);
+    }, [applyResizeStartDelta]);
 
+    const applyResizeEndDelta = useCallback((deltaX: number) => {
+        if (contentWidth === 0 || totalDuration === 0) return;
         const currentX = clipX.get();
         const currentWidth = clipWidth.get();
-
-        let newX = currentX + info.delta.x;
-        let newWidth = currentWidth - info.delta.x;
-
-        const minWidth = timeToPixels(MIN_CLIP_DURATION);
-        if (newWidth < minWidth) {
-            newWidth = minWidth;
-            newX = currentX + currentWidth - minWidth;
-        }
-
-        const minStartTimeBySource = clip.startTime - clip.trimStart;
-        const minXBySource = timeToPixels(Math.max(0, minStartTimeBySource));
-        const minX = Math.max(timeToPixels(boundaries.minStart), minXBySource);
-
-        if (newX < minX) {
-            newWidth = newWidth - (minX - newX);
-            newX = minX;
-        }
-
-        clipX.set(newX);
-        clipWidth.set(newWidth);
-    }, [contentWidth, totalDuration, clipX, clipWidth, boundaries, timeToPixels, clip.startTime, clip.trimStart]);
-
-    const handleResizeEndDrag = useCallback((_e: MouseEvent | TouchEvent | PointerEvent, info: { delta: { x: number } }) => {
-        if (contentWidth === 0 || totalDuration === 0) return;
-
-        const currentX = clipX.get();
-        const currentWidth = clipWidth.get();
-        let newWidth = currentWidth + info.delta.x;
-
+        let newWidth = currentWidth + deltaX;
         const minWidth = timeToPixels(MIN_CLIP_DURATION);
         newWidth = Math.max(minWidth, newWidth);
-
         if (Number.isFinite(boundaries.maxEnd)) {
             const maxWidthByBoundary = timeToPixels(boundaries.maxEnd) - currentX;
             newWidth = Math.min(newWidth, maxWidthByBoundary);
         }
-
         const maxAvailableDuration = clip.duration - clip.trimStart;
         const maxWidthBySource = timeToPixels(maxAvailableDuration);
         newWidth = Math.min(newWidth, maxWidthBySource);
-
         clipWidth.set(newWidth);
-    }, [contentWidth, totalDuration, clipWidth, clipX, boundaries, timeToPixels, clip.duration, clip.trimStart]);
+        activeClipLeftX?.set(currentX);
+        activeClipRightX?.set(currentX + newWidth);
+    }, [contentWidth, totalDuration, clipWidth, clipX, boundaries, timeToPixels, clip.duration, clip.trimStart, activeClipLeftX, activeClipRightX]);
+
+    const handleResizeEndDrag = useCallback((_e: MouseEvent | TouchEvent | PointerEvent, info: { delta: { x: number } }) => {
+        applyResizeEndDelta(info.delta.x);
+    }, [applyResizeEndDelta]);
 
     const handleResizeStart = useCallback((handle: 'start' | 'end') => {
         setIsResizing(handle);
         onDragStateChange?.(true);
-    }, [onDragStateChange]);
+        onSelect();
+    }, [onDragStateChange, onSelect]);
+
+    const lastAutoScrollRef = useRef(0);
+    useEffect(() => {
+        if (!autoScrollDeltaX) return;
+        lastAutoScrollRef.current = autoScrollDeltaX.get();
+        return autoScrollDeltaX.on('change', (latest) => {
+            const delta = latest - lastAutoScrollRef.current;
+            lastAutoScrollRef.current = latest;
+            if (delta === 0) return;
+            if (isDragging) applyDragDelta(delta);
+            else if (isResizing === 'start') applyResizeStartDelta(delta);
+            else if (isResizing === 'end') applyResizeEndDelta(delta);
+        });
+    }, [autoScrollDeltaX, isDragging, isResizing, applyDragDelta, applyResizeStartDelta, applyResizeEndDelta]);
 
     const handleResizeEnd = useCallback(() => {
+        const handle = isResizing;
         setIsResizing(null);
         onDragStateChange?.(false);
 
-        const newStartTime = Math.max(0, pixelsToTime(clipX.get()));
-        const newDuration = pixelsToTime(clipWidth.get());
+        let finalX = clipX.get();
+        let finalWidth = clipWidth.get();
+        const otherEdges = otherClips.map(c => ({ start: c.startTime, end: c.startTime + (c.trimEnd - c.trimStart) }));
+        const snapPoints = collectSnapPoints({ clipEdges: otherEdges, playhead: currentTime });
 
+        if (handle === 'end') {
+            const snap = findSnap(pixelsToTime(finalX + finalWidth), snapPoints, timeToPixels, 8);
+            if (snap.offsetPx !== 0) finalWidth = timeToPixels(snap.time) - finalX;
+        } else if (handle === 'start') {
+            const snap = findSnap(pixelsToTime(finalX), snapPoints, timeToPixels, 8);
+            if (snap.offsetPx !== 0) {
+                const delta = timeToPixels(snap.time) - finalX;
+                finalX += delta;
+                finalWidth -= delta;
+            }
+        }
+
+        const newStartTime = Math.max(0, pixelsToTime(finalX));
+        const newDuration = pixelsToTime(finalWidth);
         const trimDelta = newStartTime - clip.startTime;
         const newTrimStart = Math.max(0, clip.trimStart + trimDelta);
         const newTrimEnd = Math.min(clip.duration, newTrimStart + newDuration);
         const correctedStartTime = clip.startTime + (newTrimStart - clip.trimStart);
 
-        onUpdate({
-            startTime: correctedStartTime,
-            trimStart: newTrimStart,
-            trimEnd: newTrimEnd,
-        });
-    }, [clipX, clipWidth, pixelsToTime, clip, onUpdate, onDragStateChange]);
+        onUpdate({ startTime: correctedStartTime, trimStart: newTrimStart, trimEnd: newTrimEnd });
+    }, [isResizing, clipX, clipWidth, pixelsToTime, timeToPixels, otherClips, currentTime, clip, onUpdate, onDragStateChange]);
 
     const isInteracting = isDragging || isResizing !== null;
 
@@ -261,8 +298,9 @@ export function VideoClipTrackItem({
     return (
         <motion.div
             ref={containerRef}
-            className={`absolute top-0 bottom-0 rounded-md cursor-grab active:cursor-grabbing overflow-hidden group transition-colors duration-200 ${isSelected ? 'ring-[1px] ring-[#4ade80] shadow-[0_0_12px_rgba(74,222,128,0.3)] z-10' : ''
-                } ${isInteracting ? 'z-10' : 'z-0'} ${isHovered ? 'bg-emerald-200 dark:bg-[#1c3525]' : 'bg-emerald-100 dark:bg-[#182e20]'}`}
+            className={`absolute top-0 bottom-0 rounded-md cursor-grab active:cursor-grabbing overflow-hidden group transition-colors duration-200 ${isInteracting ? 'z-50' : isSelected ? 'z-10' : 'z-0'
+                } ${isSelected ? 'ring-[1px] ring-[#4ade80] shadow-[0_0_12px_rgba(74,222,128,0.3)]' : ''
+                } ${isHovered ? 'bg-emerald-200 dark:bg-[#1c3525]' : 'bg-emerald-100 dark:bg-[#182e20]'}`}
             style={{
                 x: clipX,
                 width: clipWidth,

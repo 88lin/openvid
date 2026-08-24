@@ -26,6 +26,20 @@ export const ENVIRONMENT_OPTIONS = [
   "apartment", "studio", "city", "park", "lobby",
 ] as const;
 
+export function sphericalCameraPos(
+  rotX: number,
+  rotY: number,
+  radius = 1.5
+): [number, number, number] {
+  const DEG = Math.PI / 180;
+  const phi = Math.PI / 2 - rotX * DEG;
+  const theta = rotY * DEG;
+  const x = radius * Math.sin(phi) * Math.sin(theta);
+  const y = radius * Math.cos(phi);
+  const z = radius * Math.sin(phi) * Math.cos(theta);
+  return [x, y, z];
+}
+
 export interface Viewer3DControls {
     autoRotate: boolean;
     rotationSpeed: number;
