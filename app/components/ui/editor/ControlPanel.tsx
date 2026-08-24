@@ -77,7 +77,6 @@ export function ControlPanel({
     onUpdateZoomMovementPoint,
     videoUrl,
     videoThumbnail,
-    currentTime = 0,
     getThumbnailForTime,
     videoDimensions,
     // Mockup props
@@ -428,7 +427,6 @@ export function ControlPanel({
                                     onUpdateMovementPoint={(id, x, y) => onUpdateZoomMovementPoint?.(id, x, y)}
                                     videoUrl={videoUrl ?? null}
                                     videoThumbnail={videoThumbnail}
-                                    currentTime={currentTime}
                                     getThumbnailForTime={getThumbnailForTime}
                                     videoDimensions={videoDimensions}
                                     onBack={() => onSelectZoomFragment?.(null)}

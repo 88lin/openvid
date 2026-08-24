@@ -213,7 +213,7 @@ export default function Editor() {
     const muteOriginalAudioRef = useRef<boolean>(false);
 
     const lastTimeUpdateRef = useRef(0);
-    const REACT_TIME_UPDATE_INTERVAL_MS = 33;
+    const REACT_TIME_UPDATE_INTERVAL_MS = 50;
 
     // Computed: which dimensions to use for the canvas
     const customAspectRatio = useMemo(() => {
@@ -392,11 +392,21 @@ export default function Editor() {
         }, 3000);
     }, [isPhotoMode, imageUrl, currentProject, saveCurrentProject, buildPhotoProjectSnapshot, imageZoomScale, imagePhoneActive]);
 
+    const currentProjectId = currentProject?.id ?? null;
+    const autoSaveRef = useRef(autoSaveCurrentProject);
     useEffect(() => {
-        if (currentProject && isPhotoMode && !isRestoringProjectRef.current) {
-            autoSaveCurrentProject();
-        }
-    }, [autoSaveCurrentProject, currentProject, isPhotoMode]);
+        autoSaveRef.current = autoSaveCurrentProject;
+    });
+
+    useEffect(() => {
+        if (!currentProjectId || !isPhotoMode || isRestoringProjectRef.current) return;
+        const timeoutId = setTimeout(() => {
+            autoSaveRef.current();
+        }, 300);
+        return () => {
+            clearTimeout(timeoutId);
+        };
+    }, [autoSaveCurrentProject, currentProjectId, isPhotoMode]);
 
     // Restore current project when project ID changes (not on every currentProject update)
     useEffect(() => {
@@ -2880,7 +2890,6 @@ export default function Editor() {
                                         onUpdateZoomMovementPoint={(id, x, y) => handleUpdateZoomMovement(id, { focusX: x, focusY: y })}
                                         videoUrl={zoomFragmentClipUrl}
                                         videoThumbnail={zoomFragmentThumbnail}
-                                        currentTime={currentTime}
                                         getThumbnailForTime={getThumbnailForTime}
                                         videoDimensions={zoomFragmentDimensions}
                                         mockupId={mockupId}
@@ -3196,7 +3205,6 @@ export default function Editor() {
                 onDeleteZoomFragment={handleDeleteZoomFragment}
                 videoUrl={zoomFragmentClipUrl}
                 videoThumbnail={zoomFragmentThumbnail}
-                currentTime={currentTime}
                 getThumbnailForTime={getThumbnailForTime}
                 videoDimensions={zoomFragmentDimensions}
                 mockupId={mockupId}

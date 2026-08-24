@@ -19,7 +19,7 @@ import {
   applyTextureCover
 } from "@/lib/phone3d.utils";
 import type { OrbitControls as OrbitControlsType } from 'three-stdlib';
-import { EnvironmentPreset, HDRI_FILES } from "@/lib/viewer-controls3d";
+import { EnvironmentPreset, HDRI_FILES, sphericalCameraPos } from "@/lib/viewer-controls3d";
 import { GetMediaMaskStyles } from "@/lib/media-mask.utils";
 
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
@@ -63,6 +63,7 @@ interface Props {
 }
 
 const DEG = Math.PI / 180;
+
 const specificGltfCache = new Map<string, Promise<THREE.Group>>();
 const PLACEHOLDER_PHONE_URL = "/images/mockups-3d/placeholder-phone.avif";
 
@@ -573,7 +574,7 @@ export function Phone3DScene({
     };
   }, [modelUrl, onLoaded]);
 
-  const prevRotationRef = useRef<{ x: number; y: number } | null>(null);
+  const prevRotationRef = useRef<{ x: number; y: number } | null>({ x: initialRotationX, y: initialRotationY });
 
   useEffect(() => {
     if (isUserInteractingRef.current) return;
@@ -664,7 +665,7 @@ export function Phone3DScene({
 
   return (
     <>
-      <PerspectiveCamera ref={cameraRef} makeDefault fov={40} near={0.01} far={100} position={[0, 0, 1.5]} zoom={zoom} />
+      <PerspectiveCamera ref={cameraRef} makeDefault fov={40} near={0.01} far={100} position={sphericalCameraPos(initialRotationX, initialRotationY)} zoom={zoom} />
       <OrbitControls
         ref={orbitRef}
         enableZoom={false}
