@@ -261,7 +261,6 @@ function VideoCanvasInner({
         return getThumbnailForTime(scrubTime);
     }, [isScrubbing, scrubTime, getThumbnailForTime]);
 
- 
     const visibleCanvasElements = useMemo(() => {
         if (mediaType !== "video") return canvasElements;
         return filterVisibleElements(canvasElements, currentTime, videoDuration);

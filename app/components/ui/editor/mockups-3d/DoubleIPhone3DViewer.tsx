@@ -364,7 +364,11 @@ export function DoubleIPhoneScene({
         screenMatRef.current.dispose();
       }
     };
-  }, [gltf.scene, onLoaded]);
+  }, [gltf.scene]);
+
+  useEffect(() => {
+    onLoaded?.();
+  }, [onLoaded]);
 
   const prevRotationRef = useRef<{ x: number; y: number } | null>(null);
 
