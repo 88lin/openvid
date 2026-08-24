@@ -14,7 +14,7 @@ import {
   applyTextureCover
 } from "@/lib/phone3d.utils";
 import type { OrbitControls as OrbitControlsType } from 'three-stdlib';
-import { EnvironmentPreset, HDRI_FILES } from "@/lib/viewer-controls3d";
+import { EnvironmentPreset, HDRI_FILES, sphericalCameraPos } from "@/lib/viewer-controls3d";
 import { GetMediaMaskStyles } from "@/lib/media-mask.utils";
 
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
@@ -59,7 +59,6 @@ const DEG = Math.PI / 180;
 const PLACEHOLDER_PHONE_URL = "/images/mockups-3d/placeholder-phone.avif";
 const MODEL_URL = "/models/double_iphone_13_pro.glb";
 const DRACO_URL = "/draco/";
-const DEFAULT_CAMERA_POS: [number, number, number] = [0, 0, 1.5];
 
 useGLTF.preload(MODEL_URL, DRACO_URL);
 
@@ -370,7 +369,7 @@ export function DoubleIPhoneScene({
     onLoaded?.();
   }, [onLoaded]);
 
-  const prevRotationRef = useRef<{ x: number; y: number } | null>(null);
+  const prevRotationRef = useRef<{ x: number; y: number } | null>({ x: initialRotationX, y: initialRotationY });
 
   useEffect(() => {
     if (isUserInteractingRef.current) return;
@@ -464,7 +463,7 @@ export function DoubleIPhoneScene({
 
   return (
     <>
-      <PerspectiveCamera ref={cameraRef} makeDefault fov={40} near={0.01} far={100} position={DEFAULT_CAMERA_POS} zoom={zoom} />
+      <PerspectiveCamera ref={cameraRef} makeDefault fov={40} near={0.01} far={100} position={sphericalCameraPos(initialRotationX, initialRotationY)} zoom={zoom} />
       <OrbitControls
         ref={orbitRef}
         enableZoom={false}

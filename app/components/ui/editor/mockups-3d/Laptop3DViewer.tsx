@@ -13,7 +13,7 @@ import {
   applyTextureCover
 } from "@/lib/phone3d.utils";
 import type { OrbitControls as OrbitControlsType } from 'three-stdlib';
-import { EnvironmentPreset, HDRI_FILES } from "@/lib/viewer-controls3d";
+import { EnvironmentPreset, HDRI_FILES, sphericalCameraPos } from "@/lib/viewer-controls3d";
 import { GetMediaMaskStyles } from "@/lib/media-mask.utils";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
@@ -470,7 +470,7 @@ export function LaptopScene({
     };
   }, [gl]);
 
-  const prevRotationRef = useRef<{ x: number; y: number } | null>(null);
+  const prevRotationRef = useRef<{ x: number; y: number } | null>({ x: initialRotationX, y: initialRotationY });
 
   useEffect(() => {
     if (isUserInteractingRef.current) return;
@@ -571,7 +571,7 @@ export function LaptopScene({
 
   return (
     <>
-      <PerspectiveCamera ref={cameraRef} makeDefault fov={CAM_FOV} near={10} far={1000} position={[0, 0, CAM_RADIUS / zoom]} />
+      <PerspectiveCamera ref={cameraRef} makeDefault fov={CAM_FOV} near={10} far={1000} position={sphericalCameraPos(initialRotationX, initialRotationY, CAM_RADIUS / zoom)} />
       <OrbitControls
         ref={orbitRef}
         enableZoom={false}

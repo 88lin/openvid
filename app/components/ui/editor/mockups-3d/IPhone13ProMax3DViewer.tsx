@@ -6,7 +6,7 @@ import { useEffect, useRef, useState, Suspense, useLayoutEffect, useMemo } from 
 import * as THREE from "three";
 import { createCoverScreenCanvas, applyCropToImage, type ImageMaskConfigLike, applyTextureCover } from "@/lib/phone3d.utils";
 import type { OrbitControls as OrbitControlsType } from 'three-stdlib';
-import { EnvironmentPreset, HDRI_FILES } from "@/lib/viewer-controls3d";
+import { EnvironmentPreset, HDRI_FILES, sphericalCameraPos } from "@/lib/viewer-controls3d";
 import { GetMediaMaskStyles } from "@/lib/media-mask.utils";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
@@ -48,7 +48,6 @@ interface Props {
 const TEX_W = 1284;
 const TEX_H = 2778;
 const PLACEHOLDER_PHONE_URL = "/images/mockups-3d/placeholder-phone.avif";
-const DEFAULT_CAMERA_POS: [number, number, number] = [0, 0, 1.5];
 const DRACO_URL = "/draco/";
 
 useGLTF.preload("/models/apple_iphone_13_pro_max.glb", DRACO_URL);
@@ -553,7 +552,7 @@ export function IPhone13ProMaxScene({
   }, 1);
   return (
     <>
-      <PerspectiveCamera ref={cameraRef} makeDefault fov={40} near={0.01} far={100} position={DEFAULT_CAMERA_POS} zoom={zoom} />
+      <PerspectiveCamera ref={cameraRef} makeDefault fov={40} near={0.01} far={100} position={sphericalCameraPos(initialRotationX, initialRotationY)} zoom={zoom} />
       <Environment files={HDRI_FILES[environment as EnvironmentPreset]} environmentIntensity={glow} background={false} />
       <OrbitControls
         ref={orbitRef}
