@@ -1,6 +1,6 @@
 "use client";
 import { Canvas } from "@react-three/fiber";
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { IPhone13ProMax3DApi, IPhone13ProMaxScene } from "./IPhone13ProMax3DViewer";
 import { DoubleIPhone3DApi, DoubleIPhoneScene } from "./DoubleIPhone3DViewer";
@@ -138,9 +138,6 @@ export function Mockup3DStage({ device, rootRef: externalRootRef, cameraRef: ext
   const cameraRef = externalCameraRef ?? internalCameraRef;
   const canvasElRef = useRef<HTMLCanvasElement | null>(null);
 
-  // When 3D motion is active we need a continuous render loop so the
-  // Motion3DApplicator's useFrame fires every tick. Without this, the
-  // "demand" frameloop would only re-render on user interaction.
   const hasMotion = props.motionTransform && props.motionTransform !== REST_MOCKUP_3D_MOTION;
 
   const [loaded, setLoaded] = useState(false);
@@ -151,10 +148,10 @@ export function Mockup3DStage({ device, rootRef: externalRootRef, cameraRef: ext
     onLoadedChange?.(false);
   }
 
-  const markLoaded = () => {
+  const markLoaded = useCallback(() => {
     setLoaded(true);
     onLoadedChange?.(true);
-  };
+  }, [onLoadedChange]);
 
   const handleMount = (canvas: HTMLCanvasElement) => {
     canvasElRef.current = canvas;

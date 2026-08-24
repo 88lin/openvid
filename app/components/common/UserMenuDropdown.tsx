@@ -41,10 +41,6 @@ function applyThemeClass(theme: Theme, isEditorPage: boolean) {
   document.getElementById(EDITOR_ROOT_ID)?.classList.toggle("dark", dark);
 }
 
-// Persiste el tema *efectivo* resuelto (nunca "system") para que el script inline
-// del root layout pueda aplicarlo en SSR antes del primer paint (sin flash de tema).
-// Además guarda la preferencia cruda para que el script pueda resolver "system"
-// contra prefers-color-scheme cuando la cookie efectiva quedó desactualizada.
 function writeThemeCookie(theme: Theme) {
   const dark = isDarkResolved(theme);
   document.cookie = `${THEME_COOKIE}=${dark ? "dark" : "light"}; path=/; max-age=${THEME_COOKIE_MAX_AGE}; samesite=lax`;

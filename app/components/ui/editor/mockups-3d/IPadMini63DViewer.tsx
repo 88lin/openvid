@@ -4,12 +4,12 @@ import { Canvas, useThree, useFrame } from "@react-three/fiber";
 import { PerspectiveCamera, Environment, OrbitControls, ContactShadows, useGLTF } from "@react-three/drei";
 import { useEffect, useRef, useState, Suspense, useCallback, useLayoutEffect } from "react";
 import * as THREE from "three";
-import { 
-  createCoverScreenCanvas, 
-  applyCropToImage, 
-  type ImageMaskConfigLike, 
-  parseShadowColor, 
-  applyTextureCover 
+import {
+  createCoverScreenCanvas,
+  applyCropToImage,
+  type ImageMaskConfigLike,
+  parseShadowColor,
+  applyTextureCover
 } from "@/lib/phone3d.utils";
 import type { OrbitControls as OrbitControlsType } from 'three-stdlib';
 import { EnvironmentPreset, HDRI_FILES } from "@/lib/viewer-controls3d";
@@ -65,7 +65,7 @@ export function IPadMiniScene({
 }: Props & { rootRef: React.MutableRefObject<THREE.Group | null>; cameraRef: React.MutableRefObject<THREE.PerspectiveCamera | null>; onLoaded?: () => void; }) {
   const { gl, scene, camera, invalidate, size } = useThree();
   const gltf = useGLTF(MODEL_URL, DRACO_URL);
-  
+
   const orbitRef = useRef<OrbitControlsType | null>(null);
   const screenMatRef = useRef<THREE.MeshPhysicalMaterial | null>(null);
   const videoTextureRef = useRef<THREE.VideoTexture | null>(null);
@@ -106,11 +106,11 @@ export function IPadMiniScene({
         const safeH = Math.max(1, Math.min(Math.round(h), maxDim));
         (cam as THREE.PerspectiveCamera).aspect = safeW / safeH;
         (cam as THREE.PerspectiveCamera).updateProjectionMatrix();
-        
+
         gl.setPixelRatio(RENDER_PIXEL_RATIO);
         gl.setSize(safeW, safeH, false);
         if (videoTextureRef.current) videoTextureRef.current.needsUpdate = true;
-        
+
         gl.render(scene, cam);
       },
       restorePreview: () => {
@@ -330,10 +330,14 @@ export function IPadMiniScene({
         screenMatRef.current.dispose();
       }
     };
-  }, [gltf.scene, onLoaded]);
+  }, [gltf.scene]);
+  
+  useEffect(() => {
+    onLoaded?.();
+  }, [onLoaded]);
 
   const prevRotationRef = useRef<{ x: number; y: number } | null>(null);
-  
+
   useEffect(() => {
     if (isUserInteractingRef.current) return;
 
@@ -517,13 +521,13 @@ function CanvasWithLoader(
 }
 
 export function IPadMini63DViewer(props: Props) {
-  const { 
-    shadowIntensity = 0, 
-    shadowColor = "#000000", 
-    imageMaskConfig = null, 
+  const {
+    shadowIntensity = 0,
+    shadowColor = "#000000",
+    imageMaskConfig = null,
     isSelected = false,
     onHoverChange,
-    onSelectChange 
+    onSelectChange
   } = props;
 
   const rootRef = useRef<THREE.Group | null>(null);
@@ -646,12 +650,12 @@ export function IPadMini63DViewer(props: Props) {
               }
             }}
           >
-            <CanvasWithLoader 
-              {...props} 
+            <CanvasWithLoader
+              {...props}
               isSelected={isSelected}
               isHovered={modelHovered}
-              rootRef={rootRef} 
-              cameraRef={cameraRef} 
+              rootRef={rootRef}
+              cameraRef={cameraRef}
               onMount={handleCanvasMount}
             />
           </div>
