@@ -645,7 +645,7 @@ async function exportWithMediabunnyAndAudio(
                     const clipData = new Uint8Array(await blob.arrayBuffer());
                     await ffmpeg.writeFile(filename, clipData);
                     try {
-                        await ffmpeg.exec(["-i", filename, "-vn", "-t", "0.1", "-f", "null", "-"]);
+                        await ffmpeg.exec(["-i", filename, "-vn", "-t", "0.1", "-f", "null", "-"], 30000);
                         clipAudioFiles.push({ clip, filename });
                     } catch {
                         await ffmpeg.deleteFile(filename).catch(() => { });
@@ -660,7 +660,7 @@ async function exportWithMediabunnyAndAudio(
                 const originalVideoData = new Uint8Array(await sourceBlob!.arrayBuffer());
                 await ffmpeg.writeFile("original.mp4", originalVideoData);
                 try {
-                    await ffmpeg.exec(["-i", "original.mp4", "-vn", "-t", "0.1", "-f", "null", "-"]);
+                    await ffmpeg.exec(["-i", "original.mp4", "-vn", "-t", "0.1", "-f", "null", "-"], 30000);
                     hasSourceAudio = true;
                 } catch {
                     hasSourceAudio = false;
@@ -772,24 +772,34 @@ async function exportWithMediabunnyAndAudio(
             ffmpegArgs.push("-c:v", "copy", "-an", "output.mp4");
         }
 
-        ffmpeg.on("progress", ({ progress }) => {
-            if (progress > 0) {
-                const mixProgress = 70 + Math.round(progress * 25);
-                setProgress({
-                    status: "finalizing",
-                    progress: Math.min(mixProgress, 95),
-                    message: `Processing audio... ${Math.round(progress * 100)}%`,
-                });
-            }
-        });
+        let progressListener: ((e: { progress: number }) => void) | null = null;
+        progressListener = ({ progress }) => {
+            const p = (typeof progress === "number" && !isNaN(progress)) ? progress : 0;
+            const mixProgress = 70 + Math.round(p * 25);
+            setProgress({
+                status: "finalizing",
+                progress: Math.min(mixProgress, 95),
+                message: p > 0 ? `Processing audio... ${Math.round(p * 100)}%` : "Mixing audio...",
+            });
+        };
+        ffmpeg.on("progress", progressListener);
+
+        const audioAbortController = new AbortController();
+        const cancellationCheck = setInterval(() => {
+            if (cancellation.cancelled) audioAbortController.abort();
+        }, 500);
 
         try {
-            await ffmpeg.exec(ffmpegArgs);
+            await ffmpeg.exec(ffmpegArgs, 600000, { signal: audioAbortController.signal });
         } catch (e) {
+            if (cancellation.cancelled) throw new Error("Export cancelled");
             console.error("FFmpeg audio mixing failed:", e);
             downloadBlob(videoBlob, `openvid-${width}x${height}.mp4`);
             setProgress({ status: "complete", progress: 100, message: "Export complete (without audio mixing)!" });
             return;
+        } finally {
+            clearInterval(cancellationCheck);
+            if (progressListener) ffmpeg.off("progress", progressListener);
         }
 
         setProgress({ status: "finalizing", progress: 96, message: "Preparing download..." });
@@ -816,6 +826,7 @@ async function exportWithMediabunnyAndAudio(
         })();
 
     } catch (ffmpegError) {
+        if (cancellation.cancelled) throw new Error("Export cancelled");
         console.warn("FFmpeg audio processing failed, exporting video only:", ffmpegError);
         downloadBlob(videoBlob, `openvid-${width}x${height}.mp4`);
         setProgress({ status: "complete", progress: 100, message: "Export complete (without audio)!" });
