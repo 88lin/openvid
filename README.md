@@ -55,12 +55,6 @@
 - **Images** - PNG, JPG, WebP overlays
 - **Layers** - Depth control above or below the video
 
-### Device Mockups
-Add context to your demo with professional frames:
-- Safari (macOS)
-- Chrome
-- Arc
-
 ### Zoom
 - Zoom in/out at specific timeline moments
 - Speed and easing control
