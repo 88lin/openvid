@@ -38,7 +38,6 @@
 ### Mockup Creation
 - **Mockups applied to images**
 - **3D transformations**
-- **Image masking (Mask Image)** for advanced cutouts
 
 ### Visual Customization
 
@@ -46,20 +45,17 @@
 - 100+ pre-designed backgrounds
 - Custom images or Unsplash
 - Solid colors and gradients
-- Blur effect (0–100%)
 
 ### Canvas & Elements
 - **Shapes** - Rectangles, circles, triangles
 - **Text** - Custom fonts, colors, and sizes
 - **SVG** - Import vector graphics
 - **Images** - PNG, JPG, WebP overlays
-- **Layers** - Depth control above or below the video
 
 ### Zoom
 - Zoom in/out at specific timeline moments
 - Speed and easing control
 - **3D Camera Movement** - Tilt and dynamic rotation based on points of interest
-- **Adjustable Perspective** - Full control over X and Y axes for depth simulation
 
 ### Audio
 - Multi-track support
@@ -138,12 +134,6 @@
 - IndexedDB - locally recorded videos
 - LocalStorage - user settings
 - Supabase Storage - cloud backups (coming soon)
-
-**UI/UX**
-- Radix UI - accessible components
-- Framer Motion - animations
-- Tailwind CSS 4 - styling
-
 ---
 
 ## Quick Start
