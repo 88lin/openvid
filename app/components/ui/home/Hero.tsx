@@ -192,7 +192,7 @@ export default function Hero({ onVideoUpload, onPhotoUpload }: HeroProps) {
           <input
             ref={videoInputRef}
             type="file"
-            accept="video/mp4,video/webm,video/quicktime,video/x-matroska"
+            accept="video/mp4,video/webm,video/quicktime,video/x-matroska,.mp4,.webm,.mov,.mkv"
             className="hidden"
             onChange={handleVideoFileChange}
             aria-label={t("uploadButton")}
