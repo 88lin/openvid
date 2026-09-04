@@ -264,7 +264,7 @@ export function FeedbackWidget() {
             <TooltipAction label={t("tooltip")}>
                 <button
                     onClick={() => setIsOpen(true)}
-                    className="flex items-center justify-center size-13 rounded-full bg-muted hover:bg-muted border border-border text-foreground hover:text-foreground transition-all duration-200 shrink-0 shadow-foreground/20 shadow-lg hover:scale-105 active:scale-95"
+                    className="flex items-center justify-center size-14 rounded-full bg-muted hover:bg-muted border border-border text-foreground hover:text-foreground transition-all duration-200 shrink-0 shadow-foreground/20 shadow-lg hover:scale-105 active:scale-95"
                     aria-label={t("tooltip")}
                 >
                     <Icon icon="solar:chat-round-dots-bold" className="size-8" aria-hidden="true" />
