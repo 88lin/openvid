@@ -148,3 +148,34 @@ export function reorderVideoClipAt(
 
     return resequenceClips(reordered);
 }
+
+export async function probeMediaDimensions(url: string): Promise<{ width: number; height: number } | null> {
+    return new Promise((resolve) => {
+        let settled = false;
+        const probe = document.createElement("video");
+        probe.preload = "metadata";
+        probe.muted = true;
+        const finish = () => {
+            if (settled) return;
+            if (probe.videoWidth > 0 && probe.videoHeight > 0) {
+                settled = true;
+                resolve({ width: probe.videoWidth, height: probe.videoHeight });
+            }
+        };
+        probe.addEventListener("loadedmetadata", finish);
+        probe.addEventListener("resize", finish);
+        probe.onerror = () => {
+            if (settled) return;
+            settled = true;
+            resolve(null);
+        };
+        probe.src = url;
+        setTimeout(() => {
+            if (settled) return;
+            settled = true;
+            resolve(probe.videoWidth > 0 && probe.videoHeight > 0
+                ? { width: probe.videoWidth, height: probe.videoHeight }
+                : null);
+        }, 2000);
+    });
+}
