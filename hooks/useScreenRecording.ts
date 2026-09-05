@@ -81,7 +81,12 @@ async function getDB(): Promise<IDBDatabase> {
 async function saveVideoToIndexedDB(
   blob: Blob,
   duration: number,
-  extras: { cameraBlob?: Blob | null; cameraConfig?: CameraConfig | null } = {}
+  extras: {
+    cameraBlob?: Blob | null;
+    cameraConfig?: CameraConfig | null;
+    width?: number;
+    height?: number;
+  } = {}
 ): Promise<string> {
   try {
     await clearAllThumbnailCache();
@@ -102,6 +107,8 @@ async function saveVideoToIndexedDB(
       isRecordedVideo: true,
       cameraBlob: extras.cameraBlob ?? null,
       cameraConfig: extras.cameraConfig ?? null,
+      width: extras.width ?? null,
+      height: extras.height ?? null,
     };
     const putRequest = store.put(videoData, "currentVideo");
     putRequest.onsuccess = () => {
@@ -127,45 +134,73 @@ let cachedLoadedVideo: {
  * write the fixed version back to IndexedDB so this only ever happens once.
  */
 async function migrateLegacyRecording(
-  data: { blob: Blob; duration: number; videoId?: string; timestamp?: number; cameraBlob?: Blob | null; cameraConfig?: CameraConfig | null }
-): Promise<{ blob: Blob; duration: number }> {
+  data: {
+    blob: Blob;
+    duration: number;
+    videoId?: string;
+    timestamp?: number;
+    cameraBlob?: Blob | null;
+    cameraConfig?: CameraConfig | null;
+    width?: number | null;
+    height?: number | null;
+  }
+): Promise<{ blob: Blob; duration: number; width?: number | null; height?: number | null }> {
+  let blob = data.blob;
+  let duration = data.duration;
+  let width = data.width;
+  let height = data.height;
+  let changed = false;
+
   try {
-    const probed = await probeBlobDuration(data.blob);
-    if (Number.isFinite(probed)) {
-      return { blob: data.blob, duration: data.duration };
+    const probedDuration = await probeBlobDuration(blob);
+    if (!Number.isFinite(probedDuration)) {
+      const normalized = await normalizeRecordingBlob(blob);
+      if (normalized.changed) {
+        blob = normalized.blob;
+        duration = normalized.duration > 0 ? normalized.duration : duration;
+        changed = true;
+      }
     }
+  } catch (error) {
+    console.warn("Legacy recording duration migration failed:", error);
+  }
 
-    const normalized = await normalizeRecordingBlob(data.blob);
-    if (!normalized.changed) {
-      return { blob: data.blob, duration: data.duration };
+  // Grabaciones guardadas antes de este fix no tienen width/height en
+  // absoluto — se prueban una única vez acá.
+  if (!width || !height) {
+    try {
+      const dims = await probeBlobDimensions(blob);
+      if (dims) {
+        width = dims.width;
+        height = dims.height;
+        changed = true;
+      }
+    } catch (error) {
+      console.warn("Legacy recording dimension migration failed:", error);
     }
+  }
 
-    const duration =
-      normalized.duration > 0 ? normalized.duration : data.duration;
+  if (!changed) {
+    return { blob: data.blob, duration: data.duration, width, height };
+  }
 
+  try {
     const db = await getDB();
     await new Promise<void>((resolve, reject) => {
       const transaction = db.transaction(["videos"], "readwrite");
       const store = transaction.objectStore("videos");
       const putRequest = store.put(
-        { ...data, blob: normalized.blob, duration },
+        { ...data, blob, duration, width: width ?? null, height: height ?? null },
         "currentVideo"
       );
-      putRequest.onsuccess = () => {
-        db.close();
-        resolve();
-      };
-      putRequest.onerror = () => {
-        db.close();
-        reject(putRequest.error);
-      };
+      putRequest.onsuccess = () => { db.close(); resolve(); };
+      putRequest.onerror = () => { db.close(); reject(putRequest.error); };
     });
-
-    return { blob: normalized.blob, duration };
   } catch (error) {
-    console.warn("Legacy recording migration failed:", error);
-    return { blob: data.blob, duration: data.duration };
+    console.warn("Failed to persist legacy recording migration:", error);
   }
+
+  return { blob, duration, width, height };
 }
 
 function releaseCachedLoadedVideo(): void {
@@ -188,6 +223,8 @@ export async function loadVideoFromIndexedDB(): Promise<{
   cameraBlob?: Blob | null;
   cameraUrl?: string | null;
   cameraConfig?: CameraConfig | null;
+  width?: number | null;
+  height?: number | null;
 } | null> {
   try {
     const db = await getDB();
@@ -210,22 +247,19 @@ export async function loadVideoFromIndexedDB(): Promise<{
 
           void (async () => {
             // Heal legacy recordings whose WebM header has no duration.
-            const { blob, duration } =
-              cachedLoadedVideo && cachedLoadedVideo.videoId === videoId
-                ? { blob: data.blob as Blob, duration: data.duration as number }
-                : await migrateLegacyRecording(data);
+            const { blob, duration, width, height } = cachedLoadedVideo && cachedLoadedVideo.videoId === videoId
+              ? { blob: data.blob as Blob, duration: data.duration as number, width: data.width ?? null, height: data.height ?? null }
+              : await migrateLegacyRecording(data);
 
             if (cachedLoadedVideo && cachedLoadedVideo.videoId === videoId) {
               resolve({
-                blob,
-                duration,
-                url: cachedLoadedVideo.url,
-                videoId,
-                timestamp,
+                blob, duration, url: cachedLoadedVideo.url, videoId, timestamp,
                 isRecordedVideo: data.isRecordedVideo || false,
                 cameraBlob,
                 cameraUrl: cachedLoadedVideo.cameraUrl,
                 cameraConfig: data.cameraConfig ?? null,
+                width: width ?? null,
+                height: height ?? null,
               });
               return;
             }
@@ -235,15 +269,13 @@ export async function loadVideoFromIndexedDB(): Promise<{
             const cameraUrl = cameraBlob ? URL.createObjectURL(cameraBlob) : null;
             cachedLoadedVideo = { videoId, url, cameraUrl };
             resolve({
-              blob,
-              duration,
-              url,
-              videoId,
-              timestamp,
+              blob, duration, url, videoId, timestamp,
               isRecordedVideo: data.isRecordedVideo || false,
               cameraBlob,
               cameraUrl,
               cameraConfig: data.cameraConfig ?? null,
+              width: width ?? null,
+              height: height ?? null,
             });
           })();
         } else {
@@ -302,6 +334,41 @@ function pickSupportedMimeType(preferred: string[]): string | undefined {
     } catch { }
   }
   return undefined;
+}
+
+async function probeBlobDimensions(blob: Blob): Promise<{ width: number; height: number } | null> {
+  return new Promise((resolve) => {
+    let settled = false;
+    const url = URL.createObjectURL(blob);
+    const probe = document.createElement("video");
+    probe.preload = "metadata";
+    probe.muted = true;
+    const finish = () => {
+      if (settled) return;
+      if (probe.videoWidth > 0 && probe.videoHeight > 0) {
+        settled = true;
+        URL.revokeObjectURL(url);
+        resolve({ width: probe.videoWidth, height: probe.videoHeight });
+      }
+    };
+    probe.addEventListener("loadedmetadata", finish);
+    probe.addEventListener("resize", finish);
+    probe.onerror = () => {
+      if (settled) return;
+      settled = true;
+      URL.revokeObjectURL(url);
+      resolve(null);
+    };
+    probe.src = url;
+    setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      URL.revokeObjectURL(url);
+      resolve(probe.videoWidth > 0 && probe.videoHeight > 0
+        ? { width: probe.videoWidth, height: probe.videoHeight }
+        : null);
+    }, 2000);
+  });
 }
 
 export function useScreenRecording() {
@@ -494,20 +561,26 @@ export function useScreenRecording() {
               console.warn("Recording normalization failed, storing raw blob:", e);
               normalizedScreen = { blob: rawScreenBlob, duration: 0, changed: false };
             }
-            const duration = normalizedScreen.duration > 0
-              ? normalizedScreen.duration
-              : wallClockDuration;
+
+            const duration = normalizedScreen.duration > 0 ? normalizedScreen.duration : wallClockDuration;
+            const dimensions = await probeBlobDimensions(normalizedScreen.blob);
+
             await saveVideoToIndexedDB(normalizedScreen.blob, duration, {
               cameraBlob: normalizedCamera?.blob ?? null,
               cameraConfig: cameraConfigRef.current,
+              width: dimensions?.width,
+              height: dimensions?.height,
             });
+
             await clearVideoTrack();
             await clearVideoProjectAndAudios();
+
             if (pathname === "/editor") {
               window.location.reload();
             } else {
               router.push("/editor");
             }
+
           } catch (err) {
             console.error("Error saving recording:", err);
             setError("Error processing video");

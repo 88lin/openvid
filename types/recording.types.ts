@@ -6,6 +6,8 @@ export interface RecordingResult {
     blob: Blob;
     url: string;
     duration: number;
+    width?: number;
+    height?: number;
 }
 
 export interface RecordingContextType {

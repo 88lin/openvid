@@ -40,7 +40,6 @@ interface SocialPost {
   metadata?: PostMetadata;
   stats?: PostStats;
 }
-
 const getSocialData = (t: (key: string) => string): SocialPost[] => [
   {
     id: "post-1",
@@ -57,20 +56,20 @@ const getSocialData = (t: (key: string) => string): SocialPost[] => [
       text: t("posts.post1.text"),
       link: {
         display: "opensourceprojects.dev/post/7596eb42-...",
-        url: "https://opensourceprojects.dev/post/7596eb42-...",
+        url: "https://www.opensourceprojects.dev/post/7596eb42-5427-467a-8ed9-1ae080173623",
       },
       mediaUrl:
         "https://raw.githubusercontent.com/CristianOlivera1/Resources-dev/refs/heads/main/openvid/social-reactions/github-post.avif",
     },
     metadata: {
       timestamp: t("posts.post1.timestamp"),
-      views: "27.3K",
+      views: "27.8K",
     },
     stats: {
       replies: "8",
-      reposts: "70",
-      likes: "632",
-      bookmarks: "605",
+      reposts: "69",
+      likes: "627",
+      bookmarks: "593",
       isLiked: false,
     },
   },
@@ -92,10 +91,10 @@ const getSocialData = (t: (key: string) => string): SocialPost[] => [
       text: t("posts.post2.text"),
     },
     stats: {
-      likes: "6.921",
-      replies: "0",
-      reposts: "0",
-      bookmarks: "0",
+      likes: "8.432",
+      replies: "37",
+      reposts: "214",
+      bookmarks: "1.128",
     },
   },
   {
@@ -116,12 +115,12 @@ const getSocialData = (t: (key: string) => string): SocialPost[] => [
     },
     metadata: {
       timestamp: t("posts.post3.timestamp"),
-      views: "9,045",
+      views: "9,810",
     },
     stats: {
-      replies: "4",
-      reposts: "42",
-      likes: "213",
+      replies: "5",
+      reposts: "40",
+      likes: "208",
       bookmarks: "217",
       isLiked: true,
     },
@@ -144,10 +143,10 @@ const getSocialData = (t: (key: string) => string): SocialPost[] => [
       text: t("posts.post4.text"),
     },
     stats: {
-      likes: "6.921",
-      replies: "0",
-      reposts: "0",
-      bookmarks: "0",
+      likes: "9.847",
+      replies: "42",
+      reposts: "318",
+      bookmarks: "1.406",
     },
   },
   {
@@ -167,10 +166,10 @@ const getSocialData = (t: (key: string) => string): SocialPost[] => [
         "https://raw.githubusercontent.com/CristianOlivera1/Resources-dev/refs/heads/main/openvid/social-reactions/elboussaidi-post.avif",
     },
     stats: {
-      replies: "31",
-      reposts: "172",
-      likes: "120",
-      bookmarks: "0",
+      replies: "46",
+      reposts: "231",
+      likes: "487",
+      bookmarks: "18",
     },
   },
 ];

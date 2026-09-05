@@ -17,7 +17,7 @@ import { useVideoThumbnails, type VideoThumbnail } from "@/hooks/useVideoThumbna
 import { useUndoRedo } from "@/hooks/useUndoRedo";
 import { clearAllThumbnailCache } from "@/lib/thumbnail-cache";
 import { addVideoToLibrary, addVideoToLibraryWithMetadata, getLibraryVideoCount, getLibraryVideo, findExistingVideo } from "@/lib/videos-library";
-import { calculateTotalDuration, clampClipToRealDuration, findNextClipPosition, getClipAtTime, probeMediaDuration, resequenceClips, reorderVideoClipAt, splitClipAtTime, type VideoTrackClip } from "@/types/video-track.types";
+import { calculateTotalDuration, clampClipToRealDuration, findNextClipPosition, getClipAtTime, probeMediaDuration, resequenceClips, reorderVideoClipAt, splitClipAtTime, type VideoTrackClip, probeMediaDimensions } from "@/types/video-track.types";
 import { remapOverlaysAfterClipChange } from "@/lib/timeline-overlay-remap";
 import type { ExportQuality, BackgroundTab, VideoCanvasHandle, BackgroundColorConfig, AspectRatio, CropArea } from "@/types";
 import type { TrimRange } from "@/types/timeline.types";
@@ -1048,7 +1048,7 @@ export default function Editor() {
         for (const audioEl of audioElementsRef.current.values()) {
             audioEl.pause();
         }
-  
+
         justEndedRef.current = false;
         clipSwitchTimeRef.current = null;
         isSwitchingClipRef.current = false;
@@ -1268,7 +1268,7 @@ export default function Editor() {
             Number.isFinite(realDuration) && realDuration > 0
                 ? Math.min(duration, realDuration)
                 : duration;
- 
+
         const persistedCamera = await getCameraBlob(videoId).catch((err) => {
             console.error("Failed to restore camera blob from library:", err);
             return null;
@@ -1326,7 +1326,7 @@ export default function Editor() {
                     setCameraUrl(restoredCameraUrl);
                     setCameraConfig(
                         persistedCamera.cameraConfig
-                            ?? { ...DEFAULT_CAMERA_CONFIG, enabled: true }
+                        ?? { ...DEFAULT_CAMERA_CONFIG, enabled: true }
                     );
                 }
 
@@ -1354,7 +1354,7 @@ export default function Editor() {
                 return videoUrlsMap.get(activeClipAtPlayhead.libraryVideoId) ?? videoUrl;
             }
             if (currentTime > 0) {
-             
+
                 const sorted = [...videoClips].sort((a, b) => a.startTime - b.startTime);
                 const previous = sorted.reverse().find(c => c.startTime <= currentTime);
                 if (previous) {
@@ -1432,7 +1432,7 @@ export default function Editor() {
         const deletedClip = videoClipsRef.current.find(c => c.id === clipId);
         setVideoClips(prev => {
             // Re-sequence remaining clips to be contiguous (no gaps after deletion).
-                const { clips: newClips } = resequenceClips(prev.filter(clip => clip.id !== clipId));
+            const { clips: newClips } = resequenceClips(prev.filter(clip => clip.id !== clipId));
             if (newClips.length > 0) {
                 const newDuration = calculateTotalDuration(newClips);
                 setVideoDuration(newDuration);
@@ -1674,7 +1674,7 @@ export default function Editor() {
         if (isPhotoMode) return;
         const loadVideo = async () => {
             try {
-          
+
                 const savedProject = await getVideoProject();
                 if (savedProject && savedProject.videoClips?.length > 0 && videoClipsRef.current.length === 0) {
                     isRestoringProjectRef.current = true;
@@ -1896,21 +1896,38 @@ export default function Editor() {
                         const defaultFragments = generateDefaultZoomFragments(safeLoadDuration);
                         setZoomFragments(defaultFragments);
 
+                        if ('cameraUrl' in videoToLoad && videoToLoad.cameraUrl) {
+                            setCameraUrl(videoToLoad.cameraUrl);
+                        } else {
+                            setCameraUrl(null);
+                        }
+                        if ('cameraConfig' in videoToLoad && videoToLoad.cameraConfig) {
+                            setCameraConfig(videoToLoad.cameraConfig);
+                        } else {
+                            setCameraConfig(null);
+                        }
+
                         if ('aspectRatio' in videoToLoad) {
                             setAspectRatio(videoToLoad.aspectRatio || "auto");
-                            if (videoToLoad.width && videoToLoad.height) {
-                                setVideoDimensions({ width: videoToLoad.width, height: videoToLoad.height });
-                            }
+                        }
+
+                        let resolvedWidth: number | undefined = 'width' in videoToLoad && videoToLoad.width ? (videoToLoad.width as number) : undefined;
+                        let resolvedHeight: number | undefined = 'height' in videoToLoad && videoToLoad.height ? (videoToLoad.height as number) : undefined;
+                        if (!resolvedWidth || !resolvedHeight) {
+                            const probed = await probeMediaDimensions(videoToLoad.url);
+                            resolvedWidth = probed?.width ?? resolvedWidth;
+                            resolvedHeight = probed?.height ?? resolvedHeight;
+                        }
+                        if (resolvedWidth && resolvedHeight) {
+                            setVideoDimensions({ width: resolvedWidth, height: resolvedHeight });
                         }
 
                         if (resolvedBlob && resolvedBlob.size > 0) {
                             setVideoBlob(resolvedBlob);
 
-                            const fileName = 'fileName' in videoToLoad
-                                ? (videoToLoad.fileName as string)
-                                : `Recording-${videoToLoad.videoId}.webm`;
-                            const width = 'width' in videoToLoad ? (videoToLoad.width as number) : 1920;
-                            const height = 'height' in videoToLoad ? (videoToLoad.height as number) : 1080;
+                            const fileName = 'fileName' in videoToLoad ? (videoToLoad.fileName as string) : `Recording-${videoToLoad.videoId}.webm`;
+                            const width = resolvedWidth || 1920;
+                            const height = resolvedHeight || 1080;
 
                             try {
                                 let libraryVideo = await findExistingVideo(fileName, resolvedBlob.size);
@@ -2738,7 +2755,7 @@ export default function Editor() {
     }, [trimRange.end, videoDuration, syncAudioPlayback]);
 
     const autoSaveVideoProjectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-   
+
     const pendingLegacyMigrationRef = useRef<boolean>(false);
     const autoSaveVideoProject = useCallback(async () => {
         if (isPhotoMode) return;
@@ -2813,7 +2830,9 @@ export default function Editor() {
     ]);
 
     // Only show camera if the active clip has camera support
-    const shouldShowCamera = activeClipAtPlayhead?.hasCamera === true;
+    const shouldShowCamera = activeClipAtPlayhead
+        ? activeClipAtPlayhead.hasCamera === true
+        : !!cameraUrl;
     const effectiveCameraUrl = shouldShowCamera ? cameraUrl : null;
 
     return (
@@ -3052,37 +3071,37 @@ export default function Editor() {
                         onUpdateZoomFragment={handleUpdateZoomFragment}
                         zoomMovements={zoomMovements}
                         selectedZoomMovementId={selectedZoomMovementId}
-                         onSelectZoomMovement={handleSelectZoomMovement}
-                         onUpdateZoomMovement={handleUpdateZoomMovement}
-                         videoClips={videoClips}
-                     />
+                        onSelectZoomMovement={handleSelectZoomMovement}
+                        onUpdateZoomMovement={handleUpdateZoomMovement}
+                        videoClips={videoClips}
+                    />
 
                     {/* Video mode: Show player controls and timeline */}
                     {isVideoMode && (
                         <>
                             <Suspense fallback={<div className="h-13 border-b border-border" />}>
-                            <PlayerControls
-                                isPlaying={isPlaying}
-                                currentTime={currentTime}
-                                videoDuration={videoDuration}
-                                aspectRatio={aspectRatio}
-                                customAspectRatio={aspectRatio === "custom" ? customDimensions : videoDimensions}
-                                isFullscreen={isFullscreen}
-                                zoomLevel={timelineZoom}
-                                onTogglePlayPause={togglePlayPause}
-                                onSkipBackward={skipBackward}
-                                onSkipForward={skipForward}
-                                onToggleFullscreen={toggleFullscreen}
-                                onAspectRatioChange={handleAspectRatioChange}
-                                onCustomAspectRatioChange={handleCustomDimensionsChange}
-                                onOpenCropper={handleOpenCropper}
-                                onZoomChange={handleZoomChange}
-                                videoMaskConfig={videoMaskConfig}
-                                onVideoMaskConfigChange={setVideoMaskConfig}
-                                videoPreviewImageUrl={currentPreviewThumbnail}
-                                onSplitClip={handleSplitVideoClip}
-                                canSplitClip={canSplitClip}
-                            />
+                                <PlayerControls
+                                    isPlaying={isPlaying}
+                                    currentTime={currentTime}
+                                    videoDuration={videoDuration}
+                                    aspectRatio={aspectRatio}
+                                    customAspectRatio={aspectRatio === "custom" ? customDimensions : videoDimensions}
+                                    isFullscreen={isFullscreen}
+                                    zoomLevel={timelineZoom}
+                                    onTogglePlayPause={togglePlayPause}
+                                    onSkipBackward={skipBackward}
+                                    onSkipForward={skipForward}
+                                    onToggleFullscreen={toggleFullscreen}
+                                    onAspectRatioChange={handleAspectRatioChange}
+                                    onCustomAspectRatioChange={handleCustomDimensionsChange}
+                                    onOpenCropper={handleOpenCropper}
+                                    onZoomChange={handleZoomChange}
+                                    videoMaskConfig={videoMaskConfig}
+                                    onVideoMaskConfigChange={setVideoMaskConfig}
+                                    videoPreviewImageUrl={currentPreviewThumbnail}
+                                    onSplitClip={handleSplitVideoClip}
+                                    canSplitClip={canSplitClip}
+                                />
 
                             </Suspense>
 
