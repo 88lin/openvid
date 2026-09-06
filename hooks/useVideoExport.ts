@@ -85,6 +85,11 @@ export function useVideoExport(
         const qualitySettings = QUALITY_SETTINGS[settings.quality];
         const fps = settings.fps || qualitySettings.fps || DEFAULT_EXPORT_FPS;
 
+        const originalTime = video.currentTime;
+        const wasPlaying = !video.paused;
+        const originalMuted = video.muted;
+        const originalSrc = video.src;
+
         try {
             setExportProgress({
                 status: "preparing",
@@ -129,10 +134,6 @@ export function useVideoExport(
             exportCanvas.width = targetWidth;
             exportCanvas.height = targetHeight;
 
-            const originalTime = video.currentTime;
-            const wasPlaying = !video.paused;
-            const originalMuted = video.muted;
-
             video.muted = true;
 
             const trimStart = settings.trim?.start ?? 0;
@@ -140,33 +141,74 @@ export function useVideoExport(
             const exportDuration = trimEnd - trimStart;
             const speed = settings.speed && settings.speed > 0 ? settings.speed : 1;
 
-            if (settings.quality === "gif") {
-                await exportWithFFmpegGif(
-                    video, canvasHandle, exportCanvas, exportDuration, trimStart, fps,
-                    targetWidth, targetHeight, setExportProgress, cancellationRef.current,
-                    speed
-                );
-            } else if (settings.quality === "webm-alpha" || settings.transparentBackground) {
-                await exportWithFFmpegWebM(
-                    video, canvasHandle, exportCanvas, exportDuration, trimStart, fps,
-                    targetWidth, targetHeight, setExportProgress, cancellationRef.current,
-                    speed,
-                    settings
-                );
-            } else {
-                await exportWithMediabunnyAndAudio(
-                    video, canvasHandle, exportCanvas, exportDuration, trimStart, fps,
-                    qualitySettings.bitrate, qualitySettings.width, qualitySettings.height,
-                    setExportProgress, cancellationRef.current, settings
-                );
-            }
-            exportCanvas.width = originalWidth;
-            exportCanvas.height = originalHeight;
-            video.currentTime = originalTime;
-            video.muted = originalMuted;
+            try {
+                if (settings.quality === "gif") {
+                    await exportWithFFmpegGif(
+                        video,
+                        canvasHandle,
+                        exportCanvas,
+                        exportDuration,
+                        trimStart,
+                        fps,
+                        targetWidth,
+                        targetHeight,
+                        setExportProgress,
+                        cancellationRef.current,
+                        speed
+                    );
+                } else if (settings.quality === "webm-alpha" || settings.transparentBackground) {
+                    await exportWithFFmpegWebM(
+                        video,
+                        canvasHandle,
+                        exportCanvas,
+                        exportDuration,
+                        trimStart,
+                        fps,
+                        targetWidth,
+                        targetHeight,
+                        setExportProgress,
+                        cancellationRef.current,
+                        speed,
+                        settings
+                    );
+                } else {
+                    await exportWithMediabunnyAndAudio(
+                        video,
+                        canvasHandle,
+                        exportCanvas,
+                        exportDuration,
+                        trimStart,
+                        fps,
+                        qualitySettings.bitrate,
+                        qualitySettings.width,
+                        qualitySettings.height,
+                        setExportProgress,
+                        cancellationRef.current,
+                        settings
+                    );
+                }
+            } finally {
+                exportCanvas.width = originalWidth;
+                exportCanvas.height = originalHeight;
 
-            if (wasPlaying) {
-                await video.play().catch(() => { });
+                if (video.src !== originalSrc) {
+                    await new Promise<void>((resolve) => {
+                        const onLoaded = () => {
+                            video.removeEventListener("loadedmetadata", onLoaded);
+                            resolve();
+                        };
+                        video.addEventListener("loadedmetadata", onLoaded, { once: true });
+                        video.src = originalSrc;
+                        setTimeout(resolve, 2000);
+                    });
+                }
+
+                video.currentTime = originalTime;
+                video.muted = originalMuted;
+
+                if (wasPlaying) {
+                    await video.play().catch(() => { });
+                }
             }
 
         } catch (error) {

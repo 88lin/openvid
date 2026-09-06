@@ -272,7 +272,7 @@ function VideoCanvasInner({
     const [stableVisibleElements, setStableVisibleElements] = useState(visibleCanvasElements);
     const [stableVisibleKey, setStableVisibleKey] = useState(visibleElementsKey);
     const [stableElementsSrc, setStableElementsSrc] = useState(canvasElements);
-  
+
     if (canvasElements !== stableElementsSrc || visibleElementsKey !== stableVisibleKey) {
         setStableElementsSrc(canvasElements);
         setStableVisibleKey(visibleElementsKey);
@@ -882,6 +882,15 @@ function VideoCanvasInner({
             }
         }
     }, [canvasElements]);
+
+    const [prevSelectedElementIdProp, setPrevSelectedElementIdProp] = useState(selectedElementId);
+    if (selectedElementId !== prevSelectedElementIdProp) {
+        setPrevSelectedElementIdProp(selectedElementId);
+        if (selectedElementId !== null && !canvasSelectedIds.includes(selectedElementId)) {
+            setIsVideoSelected(false);
+            setCanvasSelectedIds([selectedElementId]);
+        }
+    }
 
     useEffect(() => {
         if (!isDraggingVideo && !isDraggingRotation) return;
@@ -2534,33 +2543,33 @@ function VideoCanvasInner({
                                                             </div>
                                                         }
                                                     >
-                                                    <Mockup3DFrame
-                                                        device={imagePhoneDevice}
-                                                        rootRef={imagePhoneRootRef}
-                                                        imageUrl={imageUrl}
-                                                        videoElement={activeVideoElement ?? undefined}
-                                                        openingProgress={imagePhoneDevice === "laptop" ? imagePhoneOpening : undefined}
-                                                        modelUrl={imagePhoneDevice === "phone" || imagePhoneDevice === "iphone" ? imagePhoneModelUrl : undefined}
-                                                        imageMaskConfig={effectivePhoneMaskConfig}
-                                                        cropArea={cropArea}
-                                                        initialRotationX={imagePhoneRotX}
-                                                        initialRotationY={imagePhoneRotY}
-                                                        initialRotationZ={imagePhoneRotZ}
-                                                        onRotationChange={handlePhoneRotationChange}
-                                                        onMount={handlePhoneMount}
-                                                        onApi={handlePhoneApi}
-                                                        zoom={1}
-                                                        shadowIntensity={imagePhoneShadow}
-                                                        shadowColor={imagePhoneShadowColor}
-                                                        autoRotate={viewer3DAutoRotate}
-                                                        rotationSpeed={viewer3DRotationSpeed}
-                                                        glow={viewer3DGlow}
-                                                        environment={viewer3DEnvironment}
-                                                        isSelected={isVideoSelected}
-                                                        isHovered={isVideoHovered}
-                                                        onSelectChange={(value) => setIsVideoSelected(value)}
-                                                        motionTransform={mockup3DMotionPreview}
-                                                    />
+                                                        <Mockup3DFrame
+                                                            device={imagePhoneDevice}
+                                                            rootRef={imagePhoneRootRef}
+                                                            imageUrl={imageUrl}
+                                                            videoElement={activeVideoElement ?? undefined}
+                                                            openingProgress={imagePhoneDevice === "laptop" ? imagePhoneOpening : undefined}
+                                                            modelUrl={imagePhoneDevice === "phone" || imagePhoneDevice === "iphone" ? imagePhoneModelUrl : undefined}
+                                                            imageMaskConfig={effectivePhoneMaskConfig}
+                                                            cropArea={cropArea}
+                                                            initialRotationX={imagePhoneRotX}
+                                                            initialRotationY={imagePhoneRotY}
+                                                            initialRotationZ={imagePhoneRotZ}
+                                                            onRotationChange={handlePhoneRotationChange}
+                                                            onMount={handlePhoneMount}
+                                                            onApi={handlePhoneApi}
+                                                            zoom={1}
+                                                            shadowIntensity={imagePhoneShadow}
+                                                            shadowColor={imagePhoneShadowColor}
+                                                            autoRotate={viewer3DAutoRotate}
+                                                            rotationSpeed={viewer3DRotationSpeed}
+                                                            glow={viewer3DGlow}
+                                                            environment={viewer3DEnvironment}
+                                                            isSelected={isVideoSelected}
+                                                            isHovered={isVideoHovered}
+                                                            onSelectChange={(value) => setIsVideoSelected(value)}
+                                                            motionTransform={mockup3DMotionPreview}
+                                                        />
                                                     </Suspense>
                                                 )}
                                             </div>
