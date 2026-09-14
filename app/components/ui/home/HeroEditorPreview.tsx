@@ -32,6 +32,7 @@ import {
   organicDrift,
 } from "@/lib/editor-preview-hero.utils";
 import { BackgroundPanel, DraggableRange, MiniSidebar, TimelineClipContent, ZoomFragmentRangeItem } from "@/components/ui/HeroEditorPreviewComponents";
+import { HeroSquircleVideo } from "../../../../components/ui/HeroSquircleVideo";
 
 const RENDER_HEADROOM = 3;
 
@@ -235,19 +236,12 @@ function EditorCanvas({
             </div>
           </div>
         </div>
-        <AnimatePresence>
-          {isZoomActive && (
-            <motion.div
-              initial={{ opacity: 0, y: -4 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
-              className="absolute top-2.5 right-2.5 z-50 flex items-center gap-1 px-2 py-1 rounded-full bg-black/60 backdrop-blur-sm shadow-sm"
-            >
-              <Icon icon="iconamoon:zoom-in-bold" width={11} className="text-white" />
-              <span className="text-[10px] font-mono text-white">{zoomScale.toFixed(2)}×</span>
-            </motion.div>
-          )}
-        </AnimatePresence>
+
+        <HeroSquircleVideo
+          src="/videos/hero/camera-hero.mp4"
+          poster="/images/pages/preview-editor-poster.webp"
+          className="size-30 left-[100%] top-[130%] sm:left-[100%] sm:top-[140%] lg:size-46 lg:left-[107%] lg:top-[102%]"
+        />
       </div>
     </div>
   );
