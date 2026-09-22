@@ -8,12 +8,6 @@ type Props = {
   className?: string;
 };
 
-/**
- * HeroSquircleVideo — versión class-only
- * Todo el sizing/posición/radius/visibilidad se controla vía className Tailwind
- * Ej: className="size-[92px] left-[84%] top-[22%] sm:size-[64px] sm:left-[50%] lg:size-[104px] rounded-[20px] hidden sm:block"
- * Drag usa transform (no left/top) para no pelear con clases responsive
- */
 export const HeroSquircleVideo = memo(function HeroSquircleVideo({
   src = "/videos/hero/demo-hero-desktop.mp4",
   poster = "/images/pages/preview-editor-poster.webp",
