@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useMemo, useCallback, useEffect, useState } from "react";
+import { useRef, useMemo, useCallback, useEffect, useLayoutEffect, useState } from "react";
 import { motion, useMotionValue, useTransform, animate, PanInfo } from "framer-motion";
 import { formatTime, getZoomMultiplier } from "@/lib/video.utils";
 import { TIMELINE_LABEL_WIDTH, MIN_TRIM_DURATION } from "@/lib/constants";
@@ -20,6 +20,7 @@ import { ZoomMovementTrackItem, MIN_MOVEMENT_TRACK_DURATION } from "./ZoomMoveme
 import { collectSnapPoints, findSnap } from "@/lib/timeline-snapping";
 import { MAX_ZOOM, MIN_ZOOM, ZOOM_STEP } from "@/types/player-control.types";
 
+/** Renders editable media tracks with pointer-anchored wheel and keyboard zoom. */
 export function Timeline({
     videoDuration,
     currentTime,
@@ -72,6 +73,12 @@ export function Timeline({
     const trackRef = useRef<HTMLDivElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const isPointerOverTimelineRef = useRef(false);
+    const pointerClientXRef = useRef<number | undefined>(undefined);
+    const pendingZoomAnchorRef = useRef<{
+        zoomLevel: number;
+        timelineProgress: number;
+        pointerOffset: number;
+    } | null>(null);
     const [trackWidth, setTrackWidth] = useState(0);
     const [isDragging, setIsDragging] = useState(false);
     const [isDraggingTrim, setIsDraggingTrim] = useState<'start' | 'end' | null>(null);
@@ -522,6 +529,21 @@ export function Timeline({
         lastValidMovementPositionRef.current = movementGhostState?.validPosition ?? null;
     }, [movementGhostState]);
 
+    // Restore after React commits the requested zoom and its rendered track width.
+    useLayoutEffect(() => {
+        const anchor = pendingZoomAnchorRef.current;
+        if (!anchor || zoomLevel !== anchor.zoomLevel) return;
+        pendingZoomAnchorRef.current = null;
+
+        const scrollEl = trackRef.current;
+        if (!scrollEl) return;
+        const nextScrollLeft =
+            anchor.timelineProgress * timelineWidth + TIMELINE_LABEL_WIDTH - anchor.pointerOffset;
+        const maxScrollLeft = Math.max(0, scrollEl.scrollWidth - scrollEl.clientWidth);
+        scrollEl.scrollLeft = Math.max(0, Math.min(maxScrollLeft, nextScrollLeft));
+    }, [zoomLevel, timelineWidth]);
+
+    /** Requests a bounded zoom and saves the pointer position for the committed layout. */
     const changeTimelineZoom = useCallback((direction: 1 | -1, clientX?: number) => {
         if (!onZoomChange) return;
 
@@ -537,28 +559,21 @@ export function Timeline({
         const timelineX = pointerOffset !== null && scrollEl
             ? scrollEl.scrollLeft + pointerOffset - TIMELINE_LABEL_WIDTH
             : null;
-        const timelineProgress = timelineX !== null && contentWidth > 0
-            ? Math.max(0, Math.min(1, timelineX / contentWidth))
+        const timelineProgress = timelineX !== null && timelineWidth > 0
+            ? Math.max(0, Math.min(1, timelineX / timelineWidth))
             : null;
 
+        pendingZoomAnchorRef.current = pointerOffset !== null && timelineProgress !== null
+            ? { zoomLevel: nextZoom, timelineProgress, pointerOffset }
+            : null;
         onZoomChange(nextZoom);
-
-        // Keep the moment beneath the pointer fixed after resizing the timeline.
-        if (scrollEl && pointerOffset !== null && timelineProgress !== null) {
-            const nextContentWidth = (trackWidth - TRACK_PADDING) * getZoomMultiplier(nextZoom);
-            requestAnimationFrame(() => {
-                const nextScrollLeft =
-                    timelineProgress * nextContentWidth + TIMELINE_LABEL_WIDTH - pointerOffset;
-                const maxScrollLeft = Math.max(0, scrollEl.scrollWidth - scrollEl.clientWidth);
-                scrollEl.scrollLeft = Math.max(0, Math.min(maxScrollLeft, nextScrollLeft));
-            });
-        }
-    }, [onZoomChange, zoomLevel, contentWidth, trackWidth]);
+    }, [onZoomChange, zoomLevel, timelineWidth]);
 
     useEffect(() => {
         const container = containerRef.current;
-        if (!container) return;
+        if (!container || !onZoomChange) return;
 
+        /** Anchors modified wheel zoom at the event pointer coordinate. */
         const handleWheel = (event: WheelEvent) => {
             if (!event.ctrlKey && !event.metaKey) return;
             if (event.deltaY === 0) return;
@@ -570,9 +585,12 @@ export function Timeline({
 
         container.addEventListener("wheel", handleWheel, { passive: false });
         return () => container.removeEventListener("wheel", handleWheel);
-    }, [changeTimelineZoom]);
+    }, [changeTimelineZoom, onZoomChange]);
 
     useEffect(() => {
+        if (!onZoomChange) return;
+
+        /** Applies zoom shortcuts at the last pointer position outside editable fields. */
         const handleKeyDown = (event: KeyboardEvent) => {
             if (!isPointerOverTimelineRef.current || (!event.ctrlKey && !event.metaKey)) return;
 
@@ -587,19 +605,26 @@ export function Timeline({
 
             event.preventDefault();
             event.stopPropagation();
-            changeTimelineZoom(zoomIn ? 1 : -1);
+            changeTimelineZoom(zoomIn ? 1 : -1, pointerClientXRef.current);
         };
 
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [changeTimelineZoom]);
+    }, [changeTimelineZoom, onZoomChange]);
 
     return (
         <div
             ref={containerRef}
             className="flex flex-col w-full pr-2"
-            onMouseEnter={() => { isPointerOverTimelineRef.current = true; }}
-            onMouseLeave={() => { isPointerOverTimelineRef.current = false; }}
+            onMouseEnter={(event) => {
+                isPointerOverTimelineRef.current = true;
+                pointerClientXRef.current = event.clientX;
+            }}
+            onMouseMove={(event) => { pointerClientXRef.current = event.clientX; }}
+            onMouseLeave={() => {
+                isPointerOverTimelineRef.current = false;
+                pointerClientXRef.current = undefined;
+            }}
         >
             <div
                 className={`${totalLanesCount >= 4
