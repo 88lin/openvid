@@ -75,14 +75,6 @@ export function PlayerControls({
                     e.preventDefault();
                     onSkipForward();
                     break;
-                case "ArrowUp":
-                    e.preventDefault();
-                    handleZoomIn();
-                    break;
-                case "ArrowDown":
-                    e.preventDefault();
-                    handleZoomOut();
-                    break;
                 case "f":
                 case "F":
                     e.preventDefault();
