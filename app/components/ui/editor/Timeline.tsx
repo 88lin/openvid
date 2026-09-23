@@ -18,6 +18,7 @@ import { ElementFragmentTrackItem } from "./ElementFragmentTrackItem";
 import { findValidFragmentPosition, findValidMovementPosition, getFragmentHoldBounds } from "@/types/zoom.types";
 import { ZoomMovementTrackItem, MIN_MOVEMENT_TRACK_DURATION } from "./ZoomMovementTrackItem";
 import { collectSnapPoints, findSnap } from "@/lib/timeline-snapping";
+import { MAX_ZOOM, MIN_ZOOM, ZOOM_STEP } from "@/types/player-control.types";
 
 export function Timeline({
     videoDuration,
@@ -70,6 +71,7 @@ export function Timeline({
     const t = useTranslations("timeline");
     const trackRef = useRef<HTMLDivElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
+    const isPointerOverTimelineRef = useRef(false);
     const [trackWidth, setTrackWidth] = useState(0);
     const [isDragging, setIsDragging] = useState(false);
     const [isDraggingTrim, setIsDraggingTrim] = useState<'start' | 'end' | null>(null);
@@ -520,8 +522,85 @@ export function Timeline({
         lastValidMovementPositionRef.current = movementGhostState?.validPosition ?? null;
     }, [movementGhostState]);
 
+    const changeTimelineZoom = useCallback((direction: 1 | -1, clientX?: number) => {
+        if (!onZoomChange) return;
+
+        const nextZoom = Math.max(
+            MIN_ZOOM,
+            Math.min(MAX_ZOOM, Math.round(zoomLevel) + direction * ZOOM_STEP),
+        );
+        if (nextZoom === Math.round(zoomLevel)) return;
+
+        const scrollEl = trackRef.current;
+        const rect = scrollEl?.getBoundingClientRect();
+        const pointerOffset = rect && clientX !== undefined ? clientX - rect.left : null;
+        const timelineX = pointerOffset !== null && scrollEl
+            ? scrollEl.scrollLeft + pointerOffset - TIMELINE_LABEL_WIDTH
+            : null;
+        const timelineProgress = timelineX !== null && contentWidth > 0
+            ? Math.max(0, Math.min(1, timelineX / contentWidth))
+            : null;
+
+        onZoomChange(nextZoom);
+
+        // Keep the moment beneath the pointer fixed after resizing the timeline.
+        if (scrollEl && pointerOffset !== null && timelineProgress !== null) {
+            const nextContentWidth = (trackWidth - TRACK_PADDING) * getZoomMultiplier(nextZoom);
+            requestAnimationFrame(() => {
+                const nextScrollLeft =
+                    timelineProgress * nextContentWidth + TIMELINE_LABEL_WIDTH - pointerOffset;
+                const maxScrollLeft = Math.max(0, scrollEl.scrollWidth - scrollEl.clientWidth);
+                scrollEl.scrollLeft = Math.max(0, Math.min(maxScrollLeft, nextScrollLeft));
+            });
+        }
+    }, [onZoomChange, zoomLevel, contentWidth, trackWidth]);
+
+    useEffect(() => {
+        const container = containerRef.current;
+        if (!container) return;
+
+        const handleWheel = (event: WheelEvent) => {
+            if (!event.ctrlKey && !event.metaKey) return;
+            if (event.deltaY === 0) return;
+
+            event.preventDefault();
+            event.stopPropagation();
+            changeTimelineZoom(event.deltaY < 0 ? 1 : -1, event.clientX);
+        };
+
+        container.addEventListener("wheel", handleWheel, { passive: false });
+        return () => container.removeEventListener("wheel", handleWheel);
+    }, [changeTimelineZoom]);
+
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (!isPointerOverTimelineRef.current || (!event.ctrlKey && !event.metaKey)) return;
+
+            const target = event.target as HTMLElement | null;
+            if (target?.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target?.tagName ?? "")) {
+                return;
+            }
+
+            const zoomIn = event.key === "+" || event.key === "=" || event.key === "ArrowUp";
+            const zoomOut = event.key === "-" || event.key === "_" || event.key === "ArrowDown";
+            if (!zoomIn && !zoomOut) return;
+
+            event.preventDefault();
+            event.stopPropagation();
+            changeTimelineZoom(zoomIn ? 1 : -1);
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [changeTimelineZoom]);
+
     return (
-        <div ref={containerRef} className="flex flex-col w-full pr-2">
+        <div
+            ref={containerRef}
+            className="flex flex-col w-full pr-2"
+            onMouseEnter={() => { isPointerOverTimelineRef.current = true; }}
+            onMouseLeave={() => { isPointerOverTimelineRef.current = false; }}
+        >
             <div
                 className={`${totalLanesCount >= 4
                     ? 'h-96'
