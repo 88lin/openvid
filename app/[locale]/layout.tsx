@@ -5,7 +5,6 @@ import { defaultLocale, locales, type Locale } from "@/i18n";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Inter, Roboto } from "next/font/google";
 import type { Metadata, Viewport } from "next";
-import Script from "next/script";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { SuppressScriptWarning } from "@/app/components/common/SuppressScriptWarning";
 import {
@@ -22,15 +21,15 @@ const THEME_INLINE_SCRIPT = `
 (function () {
   try {
     var get = function (name) {
-      var m = document.cookie.match(new RegExp("(?:^|;\\s*)" + name + "=([^;]*)"));
-      return m ? decodeURIComponent(m[1]) : null;
+      var match = document.cookie.match(new RegExp("(?:^|;\\s*)" + name + "=([^;]*)"));
+      return match ? decodeURIComponent(match[1]) : null;
     };
-    var pref = get("openvid_theme_pref") || get("openvid_theme") || "system";
-    var dark = pref === "system"
+    var preference = get("openvid_theme_pref") || get("openvid_theme") || "system";
+    var isDark = preference === "system"
       ? window.matchMedia("(prefers-color-scheme: dark)").matches
-      : pref === "dark";
-    document.documentElement.classList.toggle("dark", dark);
-  } catch (e) {}
+      : preference === "dark";
+    document.documentElement.classList.toggle("dark", isDark);
+  } catch {}
 })();
 `;
 
@@ -186,9 +185,8 @@ export default async function LocaleLayout({
   return (
     <html lang={locale || defaultLocale} suppressHydrationWarning>
       <head>
-        <Script
+        <script
           id="openvid-theme"
-          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{ __html: THEME_INLINE_SCRIPT }}
         />
       </head>
