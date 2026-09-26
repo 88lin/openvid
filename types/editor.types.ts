@@ -97,10 +97,9 @@ export interface VideoCanvasProps {
   onElementSelect?: (id: string | null) => void;
   onElementDelete?: (id: string | string[]) => void;
   cameraUrl?: string | null;
-
+  cameraSourceUrl?: string | null;
   cameraConfig?: CameraConfig | null;
   onCameraConfigChange?: (partial: Partial<CameraConfig>) => void;
-
   onCameraClick?: () => void;
   layersPanelToolbar?: React.ReactNode;
   textToolActive?: boolean;
