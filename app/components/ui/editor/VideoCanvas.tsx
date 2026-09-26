@@ -89,6 +89,7 @@ function VideoCanvasInner({
     onElementSelect,
     onElementDelete,
     cameraUrl = null,
+    cameraSourceUrl = null,
     cameraConfig = null,
     onCameraConfigChange,
     onCameraClick,
@@ -980,7 +981,7 @@ function VideoCanvasInner({
     useEffect(() => {
         const el = cameraVideoRef.current;
         if (!el) return;
-        if (!cameraUrl) {
+        if (!cameraSourceUrl) {
             if (el.src) {
                 el.pause();
                 el.removeAttribute("src");
@@ -988,11 +989,11 @@ function VideoCanvasInner({
             }
             return;
         }
-        if (el.src !== cameraUrl) {
-            el.src = cameraUrl;
+        if (el.src !== cameraSourceUrl) {
+            el.src = cameraSourceUrl;
             el.load();
         }
-    }, [cameraUrl]);
+    }, [cameraSourceUrl]);
 
     // Camera overlay: sync playback with main video (time, play/pause, seek)
     useEffect(() => {
@@ -1360,7 +1361,7 @@ function VideoCanvasInner({
         const scaledRadius = roundedCorners * (canvasLongSide / 896);
         const scaledShadowBlur = shadows * (canvasLongSide / 896) * 0.8;
 
-        const frameTime = mediaType === "video" ? (explicitTimelineTime ?? (video ? video.currentTime : 0)) : 0;
+        const frameTime = mediaType === "video" ? (explicitTimelineTime ?? currentTime) : 0;
 
         const visibleElementsAtFrame = mediaType === "video"
             ? filterVisibleElements(canvasElements, frameTime, videoDuration)
@@ -1654,15 +1655,8 @@ function VideoCanvasInner({
         await renderCanvasElements(ctx, visibleElementsAtFrame, canvasWidth, canvasHeight, true, svgImageCacheRef.current, elementImagesRef.current);
         ctx.restore();
 
-        // Mirror the preview's per-clip gating: only paint the camera overlay on
-        // frames belonging to a clip that was recorded with a camera. Without this,
-        // multi-clip exports paint the camera over every clip.
         const activeExportClip = videoClips.length > 0 ? getActiveClipAtTime(videoClips, frameTime) : null;
         const showCameraOverlay = videoClips.length === 0 || activeExportClip?.clip.hasCamera === true;
-
-        if (showCameraOverlay) {
-            await drawCameraOverlayToCtx(ctx, canvasWidth, canvasHeight, cameraVideoRef.current, videoRef.current, cameraConfig);
-        }
 
         const { containerX, containerY, containerWidth, containerHeight } = computeContainer();
 
@@ -2623,8 +2617,12 @@ function VideoCanvasInner({
                                 )}
 
                                 {/* Capa 4: Camera overlay for preview — only in video mode */}
-                                {mediaType !== "image" && cameraUrl && cameraConfig?.enabled && (
-                                    <div data-camera-overlay className="absolute inset-0 pointer-events-none" style={{ zIndex: 4 }}>
+                                {mediaType !== "image" && cameraSourceUrl && cameraConfig?.enabled && (
+                                    <div
+                                        data-camera-overlay
+                                        className="absolute inset-0 pointer-events-none"
+                                        style={{ zIndex: 4, display: cameraUrl ? undefined : "none" }}
+                                    >
                                         <div
                                             tabIndex={0}
                                             onClick={() => { if (onCameraClick) onCameraClick(); }}
@@ -2683,7 +2681,7 @@ function VideoCanvasInner({
                                                 muted
                                                 playsInline
                                                 preload="auto"
-                                                className={`size-full object-cover shadow-[0_8px_30px_rgba(0,0,0,0.45)] transition-shadow duration-200 ring-1 ring-white/15 group-hover:ring-1 group-hover:ring-white group-focus:ring-1 group-focus:ring-white ${cameraConfig.shape === "squircle" ? "squircle-element-camera" : ""}`}
+                                                className={`size-full object-cover shadow-[0_8px_30px_rgba(0,0,0,0.45)] transition-shadow duration-200 ring-1 ring-white/15 group-hover:ring-1 group-hover:ring-white group-focus:ring-1 group-focus:ring-white ${cameraConfig.shape === "squircle" ? "squircle-element-2xl " : ""}`}
                                                 style={{
                                                     borderRadius: cameraConfig.shape === "circle" ? "50%" : cameraConfig.shape === "squircle" ? `${Math.round(20 * (0.5 + (cameraConfig.size * 100 - 20) / 40))}px` : `${Math.round(6 * (0.5 + (cameraConfig.size * 100 - 20) / 40))}px`,
                                                     transform: cameraConfig.mirror ? "scaleX(-1)" : undefined,

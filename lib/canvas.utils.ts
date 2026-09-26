@@ -145,7 +145,6 @@ export function applyCanvasBackground(
     }
 
     if (cssBackground.includes('conic-gradient')) {
-        // Parsear: conic-gradient(from {angle}deg at {x}% {y}%, {stops})
         const angleMatch = cssBackground.match(/from\s+(\d+)deg/);
         const positionMatch = cssBackground.match(/at\s+(\d+)%\s+(\d+)%/);
 
@@ -220,28 +219,24 @@ export function calculateSmoothZoom(
     const isAdvancedZoom = (f: ZoomFragment) => f.enable3D || f.movementEnabled;
     const movementsFor = (fragmentId: string) => zoomMovements.filter(m => m.zoomFragmentId === fragmentId);
 
-    // Compute scale for a fragment at a given time, covering all 3 phases
-    // (entry, hold, exit) entirely WITHIN [startTime, endTime].
     const computeFragmentScale = (fragment: ZoomFragment, time: number): number => {
         const totalDuration = fragment.endTime - fragment.startTime;
         const transitionSec = Math.min(speedToTransitionMs(fragment.speed) / 1000, totalDuration / 2);
         const targetScale = zoomLevelToFactor(fragment.zoomLevel);
         const timeIntoFragment = time - fragment.startTime;
 
-        // Entry ramp [start, start+T]
         if (transitionSec > 0 && timeIntoFragment < transitionSec) {
             const progress = Math.min(1, Math.max(0, timeIntoFragment / transitionSec));
             return 1 + (targetScale - 1) * easeOutQuart(progress);
         }
 
-        // Exit ramp [end-T, end]
         const timeBeforeEnd = fragment.endTime - time;
         if (transitionSec > 0 && timeBeforeEnd < transitionSec) {
-            const progress = Math.min(1, Math.max(0, timeBeforeEnd / transitionSec));
-            return 1 + (targetScale - 1) * easeOutQuart(progress);
+            const timeIntoExit = transitionSec - timeBeforeEnd;
+            const progress = Math.min(1, Math.max(0, timeIntoExit / transitionSec));
+            return targetScale - (targetScale - 1) * easeOutQuart(progress);
         }
 
-        // Hold
         return targetScale;
     };
 

@@ -17,6 +17,7 @@ export interface ControlPanelProps {
     roundedCorners: number;
     shadows: number;
     selectedImageUrl: string;
+    unsplashBgUrl?: string;
     backgroundColorConfig: BackgroundColorConfig | null;
     backgroundColorCss?: string;
     onBackgroundTabChange: (tab: BackgroundTab) => void;

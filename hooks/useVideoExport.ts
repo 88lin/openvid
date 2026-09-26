@@ -8,7 +8,8 @@ import { QUALITY_SETTINGS, DEFAULT_EXPORT_FPS } from "@/lib/constants";
 import { ensureVideoReady, waitForVideoFrame, downloadBlob } from "@/lib/video.utils";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { toBlobURL } from "@ffmpeg/util";
-import { blobToUint8Array, buildAtempoChain, canvasToBlobFast, getActiveClipAtTime } from "@/lib/ffmpeg.utils";
+import { blobToUint8Array, buildAtempoChain, canvasToBlobFast, getActiveClipAtTime, resolveClipTrimStart } from "@/lib/ffmpeg.utils";
+import type { VideoTrackClip } from "@/types/video-track.types";
 
 export type { ExportQuality, ExportSettings, ExportProgress };
 
@@ -143,33 +144,21 @@ export function useVideoExport(
 
             try {
                 if (settings.quality === "gif") {
+                    if (settings.videoClips && settings.videoClips.length > 1) {
+                        throw new Error("La exportación a GIF con varios clips en el timeline aún no está soportada. Exporta como MP4 o une los clips primero.");
+                    }
                     await exportWithFFmpegGif(
-                        video,
-                        canvasHandle,
-                        exportCanvas,
-                        exportDuration,
-                        trimStart,
-                        fps,
-                        targetWidth,
-                        targetHeight,
-                        setExportProgress,
-                        cancellationRef.current,
-                        speed
+                        video, canvasHandle, exportCanvas, exportDuration, trimStart, fps,
+                        targetWidth, targetHeight, setExportProgress, cancellationRef.current, speed,
+                        settings.videoClips
                     );
                 } else if (settings.quality === "webm-alpha" || settings.transparentBackground) {
+                    if (settings.videoClips && settings.videoClips.length > 1) {
+                        throw new Error("La exportación a WebM transparente con varios clips en el timeline aún no está soportada. Exporta como MP4 o une los clips primero.");
+                    }
                     await exportWithFFmpegWebM(
-                        video,
-                        canvasHandle,
-                        exportCanvas,
-                        exportDuration,
-                        trimStart,
-                        fps,
-                        targetWidth,
-                        targetHeight,
-                        setExportProgress,
-                        cancellationRef.current,
-                        speed,
-                        settings
+                        video, canvasHandle, exportCanvas, exportDuration, trimStart, fps,
+                        targetWidth, targetHeight, setExportProgress, cancellationRef.current, speed, settings
                     );
                 } else {
                     await exportWithMediabunnyAndAudio(
@@ -262,6 +251,7 @@ async function exportWithMediabunny(
     setProgress: (p: ExportProgress) => void,
     cancellation: CancellationToken,
     speed: number = 1,
+    sourceTrimStart: number = trimStart,
 ): Promise<void> {
     if (cancellation.cancelled) {
         throw new Error("Export cancelled");
@@ -313,30 +303,21 @@ async function exportWithMediabunny(
         await passOutput.start();
 
         video.pause();
-        video.currentTime = trimStart;
+        video.currentTime = sourceTrimStart;
         await waitForVideoFrame(video);
-
-        setProgress({
-            status: "encoding",
-            progress: 10,
-            message: `Starting encoding ${fps} fps...`,
-        });
+        setProgress({ status: "encoding", progress: 10, message: `Starting encoding ${fps} fps...` });
 
         for (let frameIndex = 0; frameIndex < totalFrames; frameIndex++) {
-            if (cancellation.cancelled) {
-                await passOutput.cancel();
-                throw new Error("Export cancelled");
-            }
+            if (cancellation.cancelled) { await passOutput.cancel(); throw new Error("Export cancelled"); }
             const outputTime = frameIndex / fps;
             const contentOffset = Math.min(outputTime * speed, duration - 0.001);
             const timelineTime = trimStart + contentOffset;
             await canvasHandle.drawFrame(true, timelineTime);
-
             const nextIndex = frameIndex + 1;
             let nextFrameReady: Promise<void> | null = null;
             if (nextIndex < totalFrames) {
                 const nextContentOffset = Math.min((nextIndex / fps) * speed, duration - 0.001);
-                video.currentTime = trimStart + nextContentOffset;
+                video.currentTime = sourceTrimStart + nextContentOffset;
                 nextFrameReady = waitForVideoFrame(video);
             }
 
@@ -430,6 +411,7 @@ async function exportWithMediabunnyAndAudio(
     const clips = settings.videoClips || [];
     const clipBlobs = settings.videoClipBlobs;
     const clipAudioStates = settings.clipAudioStates;
+    const sourceTrimStart = resolveClipTrimStart(clips, trimStart);
 
     let hasPerClipAudio = true;
     if (clipAudioStates) {
@@ -446,7 +428,7 @@ async function exportWithMediabunnyAndAudio(
     if (!needsAudioMixing && !hasMultipleClips) {
         return exportWithMediabunny(
             video, canvasHandle, canvas, duration, trimStart, fps, bitrate, width, height,
-            setProgress, cancellation, speed
+            setProgress, cancellation, speed, sourceTrimStart
         );
     }
 
@@ -527,7 +509,7 @@ async function exportWithMediabunnyAndAudio(
                 }
                 video.currentTime = clips[0]?.trimStart || 0;
             } else {
-                video.currentTime = trimStart;
+                video.currentTime = sourceTrimStart;
             }
             await waitForVideoFrame(video);
 
@@ -568,7 +550,7 @@ async function exportWithMediabunnyAndAudio(
                     const nextFrame = frameIndex + 1;
                     if (nextFrame < totalFrames) {
                         const nextContentOffset = Math.min((nextFrame / fps) * speed, duration - 0.001);
-                        video.currentTime = trimStart + nextContentOffset;
+                        video.currentTime = sourceTrimStart + nextContentOffset;
                         nextFrameReady = waitForVideoFrame(video);
                     }
                 }
@@ -735,7 +717,7 @@ async function exportWithMediabunnyAndAudio(
                     ffmpegArgs.push("-ss", String(clip.trimStart), "-t", String(clipTrimmedDuration), "-i", filename);
                 }
             } else {
-                ffmpegArgs.push("-ss", String(trimStart), "-t", String(duration), "-i", "original.mp4");
+                ffmpegArgs.push("-ss", String(sourceTrimStart), "-t", String(duration), "-i", "original.mp4");
             }
         }
 
@@ -868,11 +850,12 @@ async function exportWithFFmpegGif(
     setProgress: (p: ExportProgress) => void,
     cancellation: CancellationToken,
     speed: number = 1,
+    videoClips?: VideoTrackClip[],
 ): Promise<void> {
     const ffmpeg = new FFmpeg();
     const outputDuration = duration / speed;
     const totalFrames = Math.ceil(outputDuration * fps);
-
+    const sourceTrimStart = resolveClipTrimStart(videoClips, trimStart);
     try {
         if (cancellation.cancelled) throw new Error("Export cancelled");
 
@@ -888,21 +871,18 @@ async function exportWithFFmpegGif(
         setProgress({ status: "encoding", progress: 8, message: `Capturing ${totalFrames} frames...` });
 
         video.pause();
-        video.currentTime = trimStart;
+        video.currentTime = sourceTrimStart;
         await waitForVideoFrame(video);
-
         for (let i = 0; i < totalFrames; i++) {
             if (cancellation.cancelled) throw new Error("Export cancelled");
-
             const outputTime = i / fps;
             const contentOffset = Math.min(outputTime * speed, duration - 0.001);
             const timelineTime = trimStart + contentOffset;
             await canvasHandle.drawFrame(true, timelineTime);
-
             const nextI = i + 1;
             if (nextI < totalFrames) {
                 const nextContentOffset = Math.min((nextI / fps) * speed, duration - 0.001);
-                video.currentTime = trimStart + nextContentOffset;
+                video.currentTime = sourceTrimStart + nextContentOffset;
             }
 
             const blob = await canvasToBlobFast(canvas);
@@ -981,35 +961,31 @@ async function exportWithFFmpegWebM(
     setProgress: (p: ExportProgress) => void,
     cancellation: CancellationToken,
     speed: number = 1,
-    _settings?: ExportSettings,
+    settings?: ExportSettings,
 ): Promise<void> {
     const ffmpeg = new FFmpeg();
     const outputDuration = duration / speed;
     const totalFrames = Math.ceil(outputDuration * fps);
-
+    const sourceTrimStart = resolveClipTrimStart(settings?.videoClips, trimStart);
     setProgress({ status: "preparing", progress: 3, message: "Loading WebM engine..." });
-
     const ffmpegBase = `${window.location.origin}/ffmpeg`;
     await ffmpeg.load({
         coreURL: await toBlobURL(`${ffmpegBase}/ffmpeg-core.js`, "text/javascript"),
         wasmURL: await toBlobURL(`${ffmpegBase}/ffmpeg-core.wasm`, "application/wasm"),
     });
-
     video.pause();
-    video.currentTime = trimStart;
+    video.currentTime = sourceTrimStart;
     await waitForVideoFrame(video);
     for (let i = 0; i < totalFrames; i++) {
         if (cancellation.cancelled) throw new Error("Export cancelled");
-
         const outputTime = i / fps;
         const contentOffset = Math.min(outputTime * speed, duration - 0.001);
         const timelineTime = trimStart + contentOffset;
         await canvasHandle.drawFrame(true, timelineTime);
-
         const nextI = i + 1;
         if (nextI < totalFrames) {
             const nextContentOffset = Math.min((nextI / fps) * speed, duration - 0.001);
-            video.currentTime = trimStart + nextContentOffset;
+            video.currentTime = sourceTrimStart + nextContentOffset;
         }
 
         const blob = await new Promise<Blob>((resolve, reject) =>

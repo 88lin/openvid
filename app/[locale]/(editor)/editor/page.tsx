@@ -2889,6 +2889,7 @@ export default function Editor() {
                                         shadows={shadows}
                                         onShadowsChange={setShadows}
                                         selectedImageUrl={selectedImageUrl}
+                                        unsplashBgUrl={unsplashBgUrl}
                                         onImageSelect={handleImageSelect}
                                         backgroundColorConfig={backgroundColorConfig}
                                         backgroundColorCss={backgroundColorCss}
@@ -3055,6 +3056,7 @@ export default function Editor() {
                         textToolActive={textToolActive}
                         onTextToolDeactivate={() => setTextToolActive(false)}
                         cameraUrl={effectiveCameraUrl}
+                        cameraSourceUrl={cameraUrl}
                         cameraConfig={cameraConfig}
                         onCameraConfigChange={handleCameraConfigChange}
                         onCameraClick={handleCameraClick}
@@ -3214,6 +3216,7 @@ export default function Editor() {
                 shadows={shadows}
                 onShadowsChange={setShadows}
                 selectedImageUrl={selectedImageUrl}
+                unsplashBgUrl={unsplashBgUrl}
                 onImageSelect={handleImageSelect}
                 backgroundColorConfig={backgroundColorConfig}
                 onBackgroundColorChange={handleBackgroundColorChange}
