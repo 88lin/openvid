@@ -18,7 +18,7 @@ import { useVideoThumbnails, type VideoThumbnail } from "@/hooks/useVideoThumbna
 import { useUndoRedo } from "@/hooks/useUndoRedo";
 import { clearAllThumbnailCache } from "@/lib/thumbnail-cache";
 import { addVideoToLibrary, addVideoToLibraryWithMetadata, getLibraryVideoCount, getLibraryVideo, findExistingVideo } from "@/lib/videos-library";
-import { calculateTotalDuration, clampClipToRealDuration, findNextClipPosition, getClipAtTime, probeMediaDuration, resequenceClips, reorderVideoClipAt, splitClipAtTime, type VideoTrackClip, probeMediaDimensions } from "@/types/video-track.types";
+import { calculateTotalDuration, clampClipToRealDuration, findNextClipPosition, getClipAtTime, probeMediaDuration, resequenceClips, reorderVideoClipAt, splitClipAtTime, type VideoTrackClip, probeMediaDimensions, restoreClipTrim, rippleTrimClip, TrimEdge } from "@/types/video-track.types";
 import { remapOverlaysAfterClipChange } from "@/lib/timeline-overlay-remap";
 import type { ExportQuality, BackgroundTab, VideoCanvasHandle, BackgroundColorConfig, AspectRatio, CropArea } from "@/types";
 import type { TrimRange } from "@/types/timeline.types";
@@ -143,7 +143,7 @@ export default function Editor() {
 
     const [elementsTextTabTrigger] = useState(0);
     const [backgroundTab, setBackgroundTab] = useState<BackgroundTab>("wallpaper");
-    const [selectedWallpaper, setSelectedWallpaper] = useState(8);
+    const [selectedWallpaper, setSelectedWallpaper] = useState(1);
     const [backgroundBlur, setBackgroundBlur] = useState(0);
     const [padding, setPadding] = useState(10);
     const [roundedCorners, setRoundedCorners] = useState(15);
@@ -610,6 +610,11 @@ export default function Editor() {
     const videoClipsRef = useRef<VideoTrackClip[]>([]);
     useEffect(() => {
         videoClipsRef.current = videoClips;
+        const activeId = activeClipIdRef.current;
+        if (activeId) {
+            const fresh = videoClips.find(c => c.id === activeId);
+            if (fresh) activeClipDataRef.current = fresh;
+        }
     }, [videoClips]);
 
     const setCurrentTimeThrottled = useCallback((time: number) => {
@@ -1090,7 +1095,6 @@ export default function Editor() {
         handleExportRef.current = handleExport;
     }, [handleExport]);
 
-    // Reanuda una exportación pendiente tras iniciar sesión (redirect login → editor)
     useEffect(() => {
         if (!isVideoMode || authLoading || !authUser) return;
 
@@ -1103,13 +1107,11 @@ export default function Editor() {
                 if (timer) clearInterval(timer);
                 return;
             }
-            // Esperar a que el proyecto termine de restaurarse desde IndexedDB
             if (isRestoringProjectRef.current) return;
 
             const hasContent = videoClipsRef.current.length > 0 || !!videoBlob;
             if (!hasContent) {
                 attempts++;
-                // ~30s sin contenido: no hay nada que exportar, se descarta
                 if (attempts > 120) {
                     clearPendingExport();
                     if (timer) clearInterval(timer);
@@ -1387,47 +1389,60 @@ export default function Editor() {
         return videoDimensions;
     }, [selectedZoomFragment, videoClips, videoDimensions]);
 
+    const commitClipLayout = useCallback((oldClips: VideoTrackClip[], newClips: VideoTrackClip[]) => {
+        videoClipsRef.current = newClips;
+        setVideoClips(newClips);
+
+        const newDuration = calculateTotalDuration(newClips);
+        setVideoDuration(newDuration);
+        setTrimRange({ start: 0, end: newDuration });
+        if (currentTimeRef.current > newDuration) setCurrentTime(newDuration);
+
+        const remapped = remapOverlaysAfterClipChange({
+            oldClips,
+            newClips,
+            zoomFragments: zoomFragmentsRef.current,
+            zoomMovements,
+            audioTracks,
+            canvasElements,
+            motionFragments: mockupMotionFragments,
+        });
+        setZoomFragments(remapped.zoomFragments);
+        setZoomMovements(remapped.zoomMovements);
+        setAudioTracks(remapped.audioTracks);
+        setCanvasElements(remapped.canvasElements);
+        setMockupMotionFragments(remapped.motionFragments);
+    }, [zoomMovements, audioTracks, canvasElements, mockupMotionFragments, setZoomFragments, setZoomMovements, setAudioTracks, setCanvasElements, setMockupMotionFragments]);
+
     const handleUpdateVideoClip = useCallback((clipId: string, updates: Partial<VideoTrackClip>) => {
         const oldClips = videoClipsRef.current;
-        setVideoClips(prev => {
-            let newClips = prev.map(clip =>
-                clip.id === clipId ? { ...clip, ...updates } : clip
-            );
-            if (updates.startTime !== undefined || updates.trimEnd !== undefined || updates.trimStart !== undefined) {
-                // Magnetic behavior: when a clip is dragged (only startTime changed, no trim),
-                // re-sequence all clips to close gaps. Trim operations don't resequence.
-                const isDragOnly = updates.startTime !== undefined
-                    && updates.trimStart === undefined
-                    && updates.trimEnd === undefined;
-                if (isDragOnly) {
-                    // Sort by startTime before resequencing so the dragged clip
-                    // lands in its new temporal position. resequenceClips itself
-                    // no longer sorts (it must preserve array order for reorders).
-                    newClips = resequenceClips(
-                        [...newClips].sort((a, b) => a.startTime - b.startTime)
-                    ).clips;
-                }
-                const newDuration = calculateTotalDuration(newClips);
-                setVideoDuration(newDuration);
-                setTrimRange({ start: 0, end: newDuration });
-                // Remap all overlays (zoom, audio, elements, motion) to the new clip layout.
-                const remapped = remapOverlaysAfterClipChange({
-                    oldClips, newClips,
-                    zoomFragments: zoomFragmentsRef.current,
-                    zoomMovements,
-                    audioTracks,
-                    canvasElements,
-                    motionFragments: mockupMotionFragments,
-                });
-                setZoomFragments(remapped.zoomFragments);
-                setZoomMovements(remapped.zoomMovements);
-                setAudioTracks(remapped.audioTracks);
-                setCanvasElements(remapped.canvasElements);
-                setMockupMotionFragments(remapped.motionFragments);
-            }
-            return newClips;
-        });
-    }, [zoomMovements, audioTracks, canvasElements, mockupMotionFragments, setZoomFragments, setZoomMovements, setAudioTracks, setCanvasElements, setMockupMotionFragments]);
+        const isTrim = updates.trimStart !== undefined || updates.trimEnd !== undefined;
+
+        if (isTrim) {
+            const newClips = rippleTrimClip(oldClips, clipId, {
+                trimStart: updates.trimStart,
+                trimEnd: updates.trimEnd,
+            });
+            commitClipLayout(oldClips, newClips);
+            return;
+        }
+
+        let newClips = oldClips.map(c => (c.id === clipId ? { ...c, ...updates } : c));
+        if (updates.startTime !== undefined) {
+            newClips = resequenceClips([...newClips].sort((a, b) => a.startTime - b.startTime)).clips;
+            commitClipLayout(oldClips, newClips);
+        } else {
+            videoClipsRef.current = newClips;
+            setVideoClips(newClips);
+        }
+    }, [commitClipLayout]);
+
+    const handleRestoreVideoClipTrim = useCallback((clipId: string | null, edge: TrimEdge = "both") => {
+        const oldClips = videoClipsRef.current;
+        const newClips = restoreClipTrim(oldClips, clipId, edge);
+        if (newClips === oldClips) return;
+        commitClipLayout(oldClips, newClips);
+    }, [commitClipLayout]);
 
     const handleDeleteVideoClip = useCallback((clipId: string) => {
         const deletedClip = videoClipsRef.current.find(c => c.id === clipId);
@@ -3126,6 +3141,7 @@ export default function Editor() {
                                     onUpdateVideoClip={handleUpdateVideoClip}
                                     onDeleteVideoClip={handleDeleteVideoClip}
                                     onReorderVideoClip={handleReorderVideoClip}
+                                    onRestoreVideoClipTrim={handleRestoreVideoClipTrim}
                                     zoomFragments={zoomFragments}
                                     selectedZoomFragmentId={selectedZoomFragmentId}
                                     onSelectZoomFragment={handleSelectZoomFragment}

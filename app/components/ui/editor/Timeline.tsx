@@ -19,8 +19,9 @@ import { findValidFragmentPosition, findValidMovementPosition, getFragmentHoldBo
 import { ZoomMovementTrackItem, MIN_MOVEMENT_TRACK_DURATION } from "./ZoomMovementTrackItem";
 import { collectSnapPoints, findSnap } from "@/lib/timeline-snapping";
 import { MAX_ZOOM, MIN_ZOOM, ZOOM_STEP } from "@/types/player-control.types";
+import { getClipTrimInfo } from "@/types/video-track.types";
+const TAIL_PAD = 96;
 
-/** Renders editable media tracks with pointer-anchored wheel and keyboard zoom. */
 export function Timeline({
     videoDuration,
     currentTime,
@@ -38,6 +39,7 @@ export function Timeline({
     onUpdateVideoClip,
     onDeleteVideoClip,
     onReorderVideoClip,
+    onRestoreVideoClipTrim,
     zoomFragments = [],
     selectedZoomFragmentId,
     onSelectZoomFragment,
@@ -229,16 +231,21 @@ export function Timeline({
         return (currentTime / scaledDuration) * contentWidth;
     }, [currentTime, scaledDuration, contentWidth]);
 
+    const tailPad = useMemo(
+        () => (videoClips.some(c => getClipTrimInfo(c).isTrimmed) ? TAIL_PAD : 0),
+        [videoClips]
+    );
+
     useEffect(() => {
         const updateTrackWidth = () => {
             if (containerRef.current) {
-                setTrackWidth(containerRef.current.clientWidth - 12 - TIMELINE_LABEL_WIDTH - 5);
+                setTrackWidth(containerRef.current.clientWidth - 12 - TIMELINE_LABEL_WIDTH - 5 - tailPad);
             }
         };
         updateTrackWidth();
         window.addEventListener("resize", updateTrackWidth);
         return () => window.removeEventListener("resize", updateTrackWidth);
-    }, []);
+    }, [tailPad]);
 
     useEffect(() => {
         if (!isDragging && !isDraggingPlayhead) {
@@ -649,8 +656,8 @@ export function Timeline({
                         <div
                             className="relative grid min-h-full"
                             style={{
-                                gridTemplateColumns: `${TIMELINE_LABEL_WIDTH}px ${timelineWidth > 0 ? `${timelineWidth}px` : '100%'}`,
-                                width: timelineWidth > 0 ? timelineWidth + TIMELINE_LABEL_WIDTH : '100%',
+                                gridTemplateColumns: `${TIMELINE_LABEL_WIDTH}px ${timelineWidth > 0 ? `${timelineWidth + tailPad}px` : '100%'}`,
+                                width: timelineWidth > 0 ? timelineWidth + TIMELINE_LABEL_WIDTH + tailPad : '100%',
                                 minWidth: '100%',
                             }}
                         >
@@ -750,6 +757,7 @@ export function Timeline({
                                                             onUpdate={(updates) => onUpdateVideoClip?.(clip.id, updates)}
                                                             onDelete={() => onDeleteVideoClip?.(clip.id)}
                                                             onReorder={(draggedId, targetId, placeAfter) => onReorderVideoClip?.(draggedId, targetId, placeAfter)}
+                                                            onRestoreTrim={(edge) => onRestoreVideoClipTrim?.(clip.id, edge)}
                                                             onDragStateChange={setIsDraggingVideoClip}
                                                             zoomLevel={zoomLevel}
                                                             activeClipLeftX={activeClipLeftX}

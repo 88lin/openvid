@@ -1191,7 +1191,13 @@
     "freeRatio": "자유"
   },
   "timeline": {
-    "noSpace": "공간 없음"
+    "noSpace": "공간 없음",
+    "trimStartHint": "드래그하여 시작 부분 자르기",
+    "trimEndHint": "드래그하여 끝 부분 자르기",
+    "trimmedStart": "시작 부분 {seconds}초 잘림 · 더블 클릭하여 복원",
+    "trimmedEnd": "끝 부분 {seconds}초 잘림 · 더블 클릭하여 복원",
+    "restore": "복원",
+    "restoreTitle": "클립의 원래 길이로 복원"
   },
   "audioMenu": {
     "title": "오디오",

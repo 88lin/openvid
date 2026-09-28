@@ -1169,7 +1169,13 @@
     "freeRatio": "Libre"
   },
   "timeline": {
-    "noSpace": "Sin espacio"
+    "noSpace": "Sin espacio",
+    "trimStartHint": "Arrastra para recortar el inicio",
+    "trimEndHint": "Arrastra para recortar el final",
+    "trimmedStart": "Recortado {seconds}s al inicio · doble clic para restaurar",
+    "trimmedEnd": "Recortado {seconds}s al final · doble clic para restaurar",
+    "restore": "Restaurar",
+    "restoreTitle": "Restaurar la duración original del clip"
   },
   "audioMenu": {
     "title": "Audio",

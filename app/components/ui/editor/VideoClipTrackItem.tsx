@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useRef, useCallback, useMemo, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { motion, useMotionValue, useTransform } from "framer-motion";
-import type { VideoTrackClip } from "@/types/video-track.types";
+import type { VideoTrackClip, TrimEdge } from "@/types/video-track.types";
+import { MIN_CLIP_DURATION, getClipTrimInfo } from "@/types/video-track.types";
 import { Icon } from "@iconify/react";
 import type { MotionValue } from "framer-motion";
 import { collectSnapPoints, findSnap } from "@/lib/timeline-snapping";
-
-const MIN_CLIP_DURATION = 0.1;
+import { useTranslations } from "next-intl";
 
 interface VideoClipTrackItemProps {
     clip: VideoTrackClip;
@@ -21,12 +21,26 @@ interface VideoClipTrackItemProps {
     onDelete?: () => void;
     onDragStateChange?: (isDragging: boolean) => void;
     onReorder?: (draggedId: string, targetId: string, placeAfter: boolean) => void;
+    onRestoreTrim?: (edge: TrimEdge) => void;
     zoomLevel: number;
     playheadX: MotionValue<number>;
     speed?: number;
     activeClipLeftX?: MotionValue<number>;
     activeClipRightX?: MotionValue<number>;
     autoScrollDeltaX?: MotionValue<number>;
+}
+
+interface ResizeSession {
+    x: number;
+    width: number;
+    trimStart: number;
+    trimEnd: number;
+    duration: number;
+    startTime: number;
+    pps: number;
+    scrollComp: number;
+    lastOffset: number;
+    pending: { trimStart: number; trimEnd: number } | null;
 }
 
 export function VideoClipTrackItem({
@@ -38,9 +52,9 @@ export function VideoClipTrackItem({
     currentTime = 0,
     onSelect,
     onUpdate,
-    onDelete,
     onDragStateChange,
     onReorder,
+    onRestoreTrim,
     zoomLevel,
     playheadX,
     speed = 1,
@@ -48,10 +62,12 @@ export function VideoClipTrackItem({
     activeClipRightX,
     autoScrollDeltaX
 }: VideoClipTrackItemProps) {
+    const t = useTranslations("timeline");
     const [isDragging, setIsDragging] = useState(false);
     const [isResizing, setIsResizing] = useState<'start' | 'end' | null>(null);
     const [isHovered, setIsHovered] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
+    const resizeRef = useRef<ResizeSession | null>(null);
 
     const clipX = useMotionValue(0);
     const clipWidth = useMotionValue(0);
@@ -89,30 +105,6 @@ export function VideoClipTrackItem({
         }
     }, [initialLeft, initialWidth, isDragging, isResizing, clipX, clipWidth]);
 
-    const boundaries = useMemo(() => {
-        const sorted = [...otherClips]
-            .filter(c => c.id !== clip.id)
-            .sort((a, b) => a.startTime - b.startTime);
-
-        let minStart = 0;
-        let maxEnd = Infinity;
-
-        for (const other of sorted) {
-            const otherEnd = other.startTime + (other.trimEnd - other.trimStart);
-            const clipEnd = clip.startTime + clipDuration;
-
-            if (otherEnd <= clip.startTime) {
-                minStart = Math.max(minStart, otherEnd);
-            }
-            if (other.startTime >= clipEnd) {
-                maxEnd = Math.min(maxEnd, other.startTime);
-                break;
-            }
-        }
-
-        return { minStart, maxEnd };
-    }, [otherClips, clip.id, clip.startTime, clipDuration]);
-
     const applyDragDelta = useCallback((deltaX: number) => {
         if (contentWidth === 0 || totalDuration === 0) return;
         let newX = clipX.get() + deltaX;
@@ -128,30 +120,6 @@ export function VideoClipTrackItem({
         applyDragDelta(info.delta.x);
     }, [applyDragDelta]);
 
-    const applyResizeStartDelta = useCallback((deltaX: number) => {
-        if (contentWidth === 0 || totalDuration === 0) return;
-        const currentX = clipX.get();
-        const currentWidth = clipWidth.get();
-        let newX = currentX + deltaX;
-        let newWidth = currentWidth - deltaX;
-        const minWidth = timeToPixels(MIN_CLIP_DURATION);
-        if (newWidth < minWidth) {
-            newWidth = minWidth;
-            newX = currentX + currentWidth - minWidth;
-        }
-        const minStartTimeBySource = clip.startTime - clip.trimStart;
-        const minXBySource = timeToPixels(Math.max(0, minStartTimeBySource));
-        const minX = Math.max(timeToPixels(boundaries.minStart), minXBySource);
-        if (newX < minX) {
-            newWidth = newWidth - (minX - newX);
-            newX = minX;
-        }
-        clipX.set(newX);
-        clipWidth.set(newWidth);
-        activeClipLeftX?.set(newX);
-        activeClipRightX?.set(newX + newWidth);
-    }, [contentWidth, totalDuration, clipX, clipWidth, boundaries, timeToPixels, clip.startTime, clip.trimStart, activeClipLeftX, activeClipRightX]);
-
     const handleDragStart = useCallback(() => {
         setIsDragging(true);
         onDragStateChange?.(true);
@@ -162,8 +130,6 @@ export function VideoClipTrackItem({
         setIsDragging(false);
         onDragStateChange?.(false);
 
-        // Detect if the clip was dropped onto another clip (>=50% overlap).
-        // If so, trigger a reorder instead of a free-drag position update.
         const draggedCenterPx = clipX.get() + clipWidth.get() / 2;
         const target = otherClips.find(other => {
             const otherStartPx = timeToPixels(other.startTime);
@@ -173,13 +139,10 @@ export function VideoClipTrackItem({
         });
 
         if (target && onReorder) {
-            // Determine whether to place before or after the target based on
-            // the dragged clip's center relative to the target's center.
             const targetCenterPx = timeToPixels(target.startTime) + timeToPixels(target.trimEnd - target.trimStart) / 2;
             const placeAfter = draggedCenterPx > targetCenterPx;
             onReorder(clip.id, target.id, placeAfter);
         } else {
-            // Apply magnetic snapping on drop (not during drag) for smooth control.
             let finalX = clipX.get();
             const snapThresholdPx = 8;
             const finalStartTime = pixelsToTime(finalX);
@@ -188,10 +151,7 @@ export function VideoClipTrackItem({
                 start: c.startTime,
                 end: c.startTime + (c.trimEnd - c.trimStart),
             }));
-            const snapPoints = collectSnapPoints({
-                clipEdges,
-                playhead: currentTime,
-            });
+            const snapPoints = collectSnapPoints({ clipEdges, playhead: currentTime });
             const snapStart = findSnap(finalStartTime, snapPoints, timeToPixels, snapThresholdPx);
             if (snapStart.offsetPx !== 0) {
                 finalX = timeToPixels(snapStart.time);
@@ -201,45 +161,75 @@ export function VideoClipTrackItem({
                     finalX = timeToPixels(snapEnd.time - clipDuration);
                 }
             }
-            const newStartTime = pixelsToTime(finalX);
-            onUpdate({
-                startTime: Math.max(0, newStartTime),
-            });
+            onUpdate({ startTime: Math.max(0, pixelsToTime(finalX)) });
         }
     }, [clipX, clipWidth, pixelsToTime, onUpdate, onDragStateChange, otherClips, timeToPixels, onReorder, clip.id, clipDuration, currentTime]);
 
-    const handleResizeStartDrag = useCallback((_e: MouseEvent | TouchEvent | PointerEvent, info: { delta: { x: number } }) => {
-        applyResizeStartDelta(info.delta.x);
-    }, [applyResizeStartDelta]);
+    const applyResize = useCallback((handle: 'start' | 'end') => {
+        const s = resizeRef.current;
+        if (!s || s.pps <= 0) return;
 
-    const applyResizeEndDelta = useCallback((deltaX: number) => {
-        if (contentWidth === 0 || totalDuration === 0) return;
-        const currentX = clipX.get();
-        const currentWidth = clipWidth.get();
-        let newWidth = currentWidth + deltaX;
-        const minWidth = timeToPixels(MIN_CLIP_DURATION);
-        newWidth = Math.max(minWidth, newWidth);
-        if (Number.isFinite(boundaries.maxEnd)) {
-            const maxWidthByBoundary = timeToPixels(boundaries.maxEnd) - currentX;
-            newWidth = Math.min(newWidth, maxWidthByBoundary);
+        const dtRaw = (s.lastOffset + s.scrollComp) / s.pps;
+        const len = s.trimEnd - s.trimStart;
+
+        if (handle === 'start') {
+            const dt = Math.max(-s.trimStart, Math.min(len - MIN_CLIP_DURATION, dtRaw));
+            clipX.set(Math.max(0, s.x + dt * s.pps));
+            clipWidth.set(s.width - dt * s.pps);
+            s.pending = { trimStart: s.trimStart + dt, trimEnd: s.trimEnd };
+        } else {
+            const minDt = MIN_CLIP_DURATION - len;
+            const maxDt = s.duration - s.trimEnd; // hasta el final del archivo fuente
+            let dt = Math.max(minDt, Math.min(maxDt, dtRaw));
+
+            const edgeTime = s.startTime + len + dt;
+            const snap = findSnap(edgeTime, collectSnapPoints({ playhead: currentTime, zero: false }), timeToPixels, 8);
+            if (snap.offsetPx !== 0) {
+                dt = Math.max(minDt, Math.min(maxDt, snap.time - s.startTime - len));
+            }
+
+            clipWidth.set(s.width + dt * s.pps);
+            s.pending = { trimStart: s.trimStart, trimEnd: s.trimEnd + dt };
         }
-        const maxAvailableDuration = clip.duration - clip.trimStart;
-        const maxWidthBySource = timeToPixels(maxAvailableDuration);
-        newWidth = Math.min(newWidth, maxWidthBySource);
-        clipWidth.set(newWidth);
-        activeClipLeftX?.set(currentX);
-        activeClipRightX?.set(currentX + newWidth);
-    }, [contentWidth, totalDuration, clipWidth, clipX, boundaries, timeToPixels, clip.duration, clip.trimStart, activeClipLeftX, activeClipRightX]);
 
-    const handleResizeEndDrag = useCallback((_e: MouseEvent | TouchEvent | PointerEvent, info: { delta: { x: number } }) => {
-        applyResizeEndDelta(info.delta.x);
-    }, [applyResizeEndDelta]);
+        activeClipLeftX?.set(clipX.get());
+        activeClipRightX?.set(clipX.get() + clipWidth.get());
+    }, [clipX, clipWidth, currentTime, timeToPixels, activeClipLeftX, activeClipRightX]);
 
-    const handleResizeStart = useCallback((handle: 'start' | 'end') => {
+    const beginResize = useCallback((handle: 'start' | 'end') => {
+        resizeRef.current = {
+            x: clipX.get(),
+            width: clipWidth.get(),
+            trimStart: clip.trimStart,
+            trimEnd: clip.trimEnd,
+            duration: clip.duration,
+            startTime: clip.startTime,
+            pps: totalDuration > 0 ? contentWidth / totalDuration : 0,
+            scrollComp: 0,
+            lastOffset: 0,
+            pending: null,
+        };
         setIsResizing(handle);
         onDragStateChange?.(true);
         onSelect();
-    }, [onDragStateChange, onSelect]);
+    }, [clip.trimStart, clip.trimEnd, clip.duration, clip.startTime, clipX, clipWidth, contentWidth, totalDuration, onDragStateChange, onSelect]);
+
+    const dragResize = useCallback((handle: 'start' | 'end', info: { offset: { x: number } }) => {
+        const s = resizeRef.current;
+        if (!s) return;
+        s.lastOffset = info.offset.x;
+        applyResize(handle);
+    }, [applyResize]);
+
+    const endResize = useCallback(() => {
+        const s = resizeRef.current;
+        resizeRef.current = null;
+        setIsResizing(null);
+        onDragStateChange?.(false);
+        const p = s?.pending;
+        if (!p) return;
+        onUpdate({ trimStart: p.trimStart, trimEnd: p.trimEnd });
+    }, [onDragStateChange, onUpdate]);
 
     const lastAutoScrollRef = useRef(0);
     useEffect(() => {
@@ -249,45 +239,26 @@ export function VideoClipTrackItem({
             const delta = latest - lastAutoScrollRef.current;
             lastAutoScrollRef.current = latest;
             if (delta === 0) return;
-            if (isDragging) applyDragDelta(delta);
-            else if (isResizing === 'start') applyResizeStartDelta(delta);
-            else if (isResizing === 'end') applyResizeEndDelta(delta);
-        });
-    }, [autoScrollDeltaX, isDragging, isResizing, applyDragDelta, applyResizeStartDelta, applyResizeEndDelta]);
-
-    const handleResizeEnd = useCallback(() => {
-        const handle = isResizing;
-        setIsResizing(null);
-        onDragStateChange?.(false);
-
-        let finalX = clipX.get();
-        let finalWidth = clipWidth.get();
-        const otherEdges = otherClips.map(c => ({ start: c.startTime, end: c.startTime + (c.trimEnd - c.trimStart) }));
-        const snapPoints = collectSnapPoints({ clipEdges: otherEdges, playhead: currentTime });
-
-        if (handle === 'end') {
-            const snap = findSnap(pixelsToTime(finalX + finalWidth), snapPoints, timeToPixels, 8);
-            if (snap.offsetPx !== 0) finalWidth = timeToPixels(snap.time) - finalX;
-        } else if (handle === 'start') {
-            const snap = findSnap(pixelsToTime(finalX), snapPoints, timeToPixels, 8);
-            if (snap.offsetPx !== 0) {
-                const delta = timeToPixels(snap.time) - finalX;
-                finalX += delta;
-                finalWidth -= delta;
+            if (isDragging) {
+                applyDragDelta(delta);
+            } else if (isResizing && resizeRef.current) {
+                resizeRef.current.scrollComp += delta;
+                applyResize(isResizing);
             }
-        }
-
-        const newStartTime = Math.max(0, pixelsToTime(finalX));
-        const newDuration = pixelsToTime(finalWidth);
-        const trimDelta = newStartTime - clip.startTime;
-        const newTrimStart = Math.max(0, clip.trimStart + trimDelta);
-        const newTrimEnd = Math.min(clip.duration, newTrimStart + newDuration);
-        const correctedStartTime = clip.startTime + (newTrimStart - clip.trimStart);
-
-        onUpdate({ startTime: correctedStartTime, trimStart: newTrimStart, trimEnd: newTrimEnd });
-    }, [isResizing, clipX, clipWidth, pixelsToTime, timeToPixels, otherClips, currentTime, clip, onUpdate, onDragStateChange]);
+        });
+    }, [autoScrollDeltaX, isDragging, isResizing, applyDragDelta, applyResize]);
 
     const isInteracting = isDragging || isResizing !== null;
+    const { head, tail, isTrimmed } = getClipTrimInfo(clip);
+    const showRestore = isTrimmed && (isSelected || isHovered) && !isInteracting && initialWidth > 120;
+
+    const HATCH = 'repeating-linear-gradient(135deg, rgba(74,222,128,0.6) 0 2px, transparent 2px 5px)';
+    const startTitle = head > 0.01
+        ? t("trimmedStart", { seconds: head.toFixed(1) })
+        : t("trimStartHint");
+    const endTitle = tail > 0.01
+        ? t("trimmedEnd", { seconds: tail.toFixed(1) })
+        : t("trimEndHint");
 
     const formatDuration = (seconds: number): string => {
         const mins = Math.floor(seconds / 60);
@@ -348,6 +319,13 @@ export function VideoClipTrackItem({
                 }}
             />
 
+            {head > 0.01 && (
+                <div className="absolute left-0 top-0 bottom-0 w-2 pointer-events-none z-10" style={{ backgroundImage: HATCH }} />
+            )}
+            {tail > 0.01 && (
+                <div className="absolute right-0 top-0 bottom-0 w-2 pointer-events-none z-10" style={{ backgroundImage: HATCH }} />
+            )}
+
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
                 <span className={`flex items-center gap-2 text-[11px] font-medium drop-shadow-sm transition-colors duration-200 ${isHovered ? 'text-emerald-700 dark:text-emerald-300' : 'text-emerald-700 dark:text-emerald-400'
                     }`}>
@@ -360,29 +338,54 @@ export function VideoClipTrackItem({
                 </span>
             </div>
 
+            {showRestore && (
+                <button
+                    type="button"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 z-30 flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] bg-black/50 text-emerald-100 hover:bg-black/70 transition-colors"
+                    title={t("restoreTitle")}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onRestoreTrim?.('both');
+                    }}
+                >
+                    <Icon icon="solar:restart-bold" width="11" />
+                    {t("restore")}
+                </button>
+            )}
+
             <motion.div
+                title={startTitle}
                 className="absolute left-0 top-0 bottom-0 w-3 cursor-ew-resize z-20 group/trim flex items-center justify-center"
                 drag="x"
                 dragConstraints={{ left: 0, right: 0 }}
                 dragElastic={0}
                 dragMomentum={false}
-                onDrag={handleResizeStartDrag}
-                onDragStart={() => handleResizeStart('start')}
-                onDragEnd={handleResizeEnd}
+                onDrag={(_e, info) => dragResize('start', info)}
+                onDragStart={() => beginResize('start')}
+                onDragEnd={endResize}
+                onDoubleClick={(e) => {
+                    e.stopPropagation();
+                    if (head > 0.01) onRestoreTrim?.('start');
+                }}
             >
                 <div className={`w-1.5 h-8 rounded-full transition-all ${isResizing === 'start' ? 'bg-[#4ade80] scale-110' : 'bg-[#34A853] group-hover/trim:bg-[#4ade80]'
                     }`} />
             </motion.div>
 
             <motion.div
+                title={endTitle}
                 className="absolute right-0 top-0 bottom-0 w-3 cursor-ew-resize z-20 group/trim flex items-center justify-end"
                 drag="x"
                 dragConstraints={{ left: 0, right: 0 }}
                 dragElastic={0}
                 dragMomentum={false}
-                onDrag={handleResizeEndDrag}
-                onDragStart={() => handleResizeStart('end')}
-                onDragEnd={handleResizeEnd}
+                onDrag={(_e, info) => dragResize('end', info)}
+                onDragStart={() => beginResize('end')}
+                onDragEnd={endResize}
+                onDoubleClick={(e) => {
+                    e.stopPropagation();
+                    if (tail > 0.01) onRestoreTrim?.('end');
+                }}
             >
                 <div className={`w-1.5 h-8 rounded-full transition-all ${isResizing === 'end' ? 'bg-[#4ade80] scale-110' : 'bg-[#34A853] group-hover/trim:bg-[#4ade80]'
                     }`} />
