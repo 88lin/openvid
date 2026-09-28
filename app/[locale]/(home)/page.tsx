@@ -22,6 +22,21 @@ type Props = {
 };
 
 const HOME_COPY = {
+  zh: {
+    title: "几秒钟创建专业演示，轻松编辑视频",
+    description:
+      "免费的 AI 在线视频编辑器。屏幕录制、电影级缩放、3D 设备模型，支持无水印高清导出。",
+    keywords: [
+      "视频编辑器",
+      "屏幕录制",
+      "专业演示",
+      "视频缩放",
+      "3D 设备模型",
+      "在线视频编辑器",
+      "免费视频编辑器",
+      "openvid",
+    ],
+  },
   es: {
     title: "Crea demos profesionales y edita videos en segundos",
     description:

@@ -124,7 +124,7 @@ const nextConfig: NextConfig = {
       ],
     },
     {
-      source: "/:locale(en|es|ru|ko)",
+      source: "/:locale(en|es|ru|ko|zh)",
       headers: [
         ...securityHeaders,
         {
@@ -135,7 +135,7 @@ const nextConfig: NextConfig = {
       ],
     },
     {
-      source: "/:locale(en|es|ru|ko)/:path*",
+      source: "/:locale(en|es|ru|ko|zh)/:path*",
       headers: [
         ...securityHeaders,
         {

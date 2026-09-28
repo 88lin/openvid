@@ -60,7 +60,7 @@ export default async function VideoEditorPage({ params }: Props) {
           "@context": "https://schema.org",
           "@type": "BreadcrumbList",
           itemListElement: [
-            { "@type": "ListItem", position: 1, name: locale === "es" ? "Inicio" : locale === "ru" ? "Главная" : locale === "ko" ? "홈" : "Home", item: `${SEO_BASE_URL}/${locale}` },
+            { "@type": "ListItem", position: 1, name: locale === "zh" ? "首页" : locale === "es" ? "Inicio" : locale === "ru" ? "Главная" : locale === "ko" ? "홈" : "Home", item: `${SEO_BASE_URL}/${locale}` },
             { "@type": "ListItem", position: 2, name: t("heroTitle1"), item: `${SEO_BASE_URL}/${locale}/video-editor` },
           ],
         }}
