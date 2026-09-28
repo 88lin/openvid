@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { Link } from "@/navigation";
-import { UserMenu } from "./UserMenu";
 import { MobileMenu } from "./MobileMenu";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useTranslations } from "next-intl";
@@ -202,16 +201,6 @@ export default function Header() {
               ) : (
                 <LanguageSwitcher />
               )}
-              <div className="block">
-                {!isMounted ? (
-                  <div className="flex items-center gap-2 px-2 py-1">
-                    <div className="w-8 h-8 rounded-full bg-white/10 animate-pulse border border-white/5"></div>
-                    <div className="w-24 h-4 rounded-md bg-white/10 animate-pulse"></div>
-                  </div>
-                ) : (
-                  <UserMenu />
-                )}
-              </div>
               {!isMounted ? (
                 <div className="w-9 h-9 rounded-md bg-white/10 animate-pulse border border-white/5"></div>
               ) : (
