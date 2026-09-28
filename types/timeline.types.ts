@@ -1,6 +1,6 @@
 import { ZoomFragment, ZoomMovement } from "./zoom.types";
 import type { AudioTrack, UploadedAudio } from "./audio.types";
-import type { VideoTrackClip } from "./video-track.types";
+import type { TrimEdge, VideoTrackClip } from "./video-track.types";
 import { MockupMotionFragment } from "@/lib/mockup-motion";
 import { CanvasElement } from "./canvas-elements.types";
 
@@ -61,6 +61,7 @@ export interface TimelineProps {
     onUpdateZoomMovement?: (id: string, updates: Partial<ZoomMovement>) => void;
     onDeleteZoomMovement?: (id: string) => void;
     onAddZoomMovementAtRange?: (startTime: number, endTime: number) => void;
+    onRestoreVideoClipTrim?: (clipId: string | null, edge?: TrimEdge) => void;
 }
 
 export const DEFAULT_ZOOM_FRAGMENT_DURATION = 3;
