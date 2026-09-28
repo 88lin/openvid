@@ -116,6 +116,10 @@ export function StructuredData({ data }: StructuredDataProps) {
 
 export function generateVideoObjectSchema(locale: string): VideoObjectSchema {
   const content: Record<string, { name: string; description: string }> = {
+    zh: {
+      name: "Openvid — 支持电影级缩放的在线视频编辑器",
+      description: "免费在线视频编辑器演示：屏幕录制、电影级缩放、3D 设备模型，以及无水印高清导出。",
+    },
     es: {
       name: "Openvid  — Editor de video online con zooms cinemáticos",
       description: "Demo del editor de video online gratuito: screen recorder, zooms cinemáticos, mockups 3D y exportación HD sin marca de agua.",
@@ -189,10 +193,22 @@ export function generateHowToSchema(
   };
 }
 
-export function generateWebAppSchema(locale: 'es' | 'en' | 'ru' | 'ko'): WebApplicationSchema {
+export function generateWebAppSchema(locale: 'zh' | 'es' | 'en' | 'ru' | 'ko'): WebApplicationSchema {
   const baseUrl = SEO_BASE_URL;
 
   const content = {
+    zh: {
+      name: 'openvid - 在线视频编辑器',
+      description: '免费的 AI 在线视频编辑器。屏幕录制、电影级缩放、专业设备模型，支持无水印高清导出。',
+      features: [
+        '高清屏幕录制',
+        'AI 电影级缩放',
+        '专业设备模型',
+        '无水印',
+        '高质量导出',
+        '免费在线编辑器',
+      ],
+    },
     es: {
       name: 'openvid - Editor de Video Online',
       description: 'Editor de video online gratuito con IA. Graba pantalla, añade zooms cinemáticos, mockups profesionales y exporta en HD sin marca de agua.',
@@ -291,7 +307,7 @@ export function generateOrganizationSchema(): OrganizationSchema {
   };
 }
 
-export function generateWebSiteSchema(locale: 'es' | 'en' | 'ru' | 'ko'): WebSiteSchema {
+export function generateWebSiteSchema(locale: 'zh' | 'es' | 'en' | 'ru' | 'ko'): WebSiteSchema {
   return {
     '@context': 'https://schema.org',
     '@type': 'WebSite',

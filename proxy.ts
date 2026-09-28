@@ -12,7 +12,11 @@ const intlMiddleware = createIntlMiddleware({
   locales,
   defaultLocale,
   localePrefix: "always",
-  localeDetection: true,
+  // Default every first-time visitor to the Chinese (defaultLocale) version
+  // instead of auto-switching by the browser's Accept-Language header.
+  // Users can still pick another language from the in-app LanguageSwitcher.
+  // Set this back to `true` to re-enable automatic browser-language detection.
+  localeDetection: false,
 });
 
 export default async function proxy(request: NextRequest) {

@@ -33,6 +33,7 @@ export const SEO_ICON_ABSOLUTE = {
 } as const;
 
 export const OG_LOCALE_MAP: Record<string, string> = {
+  zh: "zh_CN",
   en: "en_US",
   es: "es_ES",
   ru: "ru_RU",

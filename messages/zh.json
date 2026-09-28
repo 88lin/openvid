@@ -1,0 +1,1703 @@
+{
+  "header": {
+    "guide": "指南",
+    "github": "GitHub",
+    "editor": "前往编辑器",
+    "donate": "捐赠",
+    "login": "登录",
+    "logout": "退出登录",
+    "loggingOut": "正在退出登录…",
+    "menu": "菜单",
+    "screen": "录制",
+    "close": "关闭",
+    "videoEditor": "视频编辑器",
+    "screenRecorder": "录屏工具",
+    "product": "产品"
+  },
+  "footer": {
+    "description": "用于<recording>屏幕录制</recording>和<editing>视频编辑</editing>的现代化应用。为网页而生。无需安装，无需等待，直接在你的浏览器中运行。",
+    "recording": "屏幕录制",
+    "editing": "视频编辑",
+    "product": "产品",
+    "contact": "联系我们",
+    "legal": "法律",
+    "privacy": "隐私",
+    "terms": "条款",
+    "rights": "保留所有权利。",
+    "guide": "指南",
+    "editor": "前往编辑器",
+    "donate": "捐赠",
+    "github": "GitHub",
+    "email": "电子邮件",
+    "videoEditor": "视频编辑器",
+    "screenRecorder": "录屏工具"
+  },
+  "privacy": {
+    "backToHome": "返回首页",
+    "title": "隐私政策",
+    "lastUpdated": "最后更新：{date}",
+    "intro": {
+      "title": "简介",
+      "content": "在 openvid，我们尊重您的隐私，并致力于保护您的个人信息。本政策说明了当您使用我们的平台时，我们如何收集、使用和保护您的数据。"
+    },
+    "collection": {
+      "title": "我们收集的信息",
+      "content": "当您使用 openvid 时，我们会收集以下信息：",
+      "items": [
+        "账户信息（邮箱、姓名），若您通过 Google 注册",
+        "用于改善体验的使用情况和分析数据",
+        "技术信息，例如浏览器类型和操作系统",
+        "您处理的视频和内容（仅临时保留，绝不存储在服务器上）"
+      ]
+    },
+    "usage": {
+      "title": "我们如何使用您的信息",
+      "content": "我们使用您的信息来：",
+      "items": [
+        "提供并维护我们的服务",
+        "改善用户体验",
+        "发送重要的服务更新",
+        "分析平台使用情况",
+        "防范欺诈行为"
+      ]
+    },
+    "processing": {
+      "title": "视频处理",
+      "badge": "所有视频处理均使用现代 Web 技术（WebAssembly、FFmpeg.wasm）完全在您的浏览器中进行。您的视频绝不会上传到我们的服务器。整个过程都是本地且私密的。"
+    },
+    "cookies": {
+      "title": "Cookie 及类似技术",
+      "content": "我们使用 Cookie 及类似技术来：",
+      "items": [
+        "保持您的会话处于活动状态",
+        "记住您的偏好设置",
+        "分析网站性能",
+        "提升安全性"
+      ],
+      "note": "您可以将浏览器配置为拒绝 Cookie，但这可能会影响应用程序的功能。"
+    },
+    "sharing": {
+      "title": "信息共享",
+      "content": "我们不会出售或与第三方共享您的个人信息，以下情况除外：",
+      "items": [
+        "经您明确同意",
+        "为遵守法律义务",
+        "为保护我们的权利和安全"
+      ]
+    },
+    "security": {
+      "title": "安全",
+      "content": "我们采取技术和组织层面的安全措施来保护您的信息：",
+      "items": [
+        "传输中的数据加密（HTTPS）",
+        "通过受信任的提供商进行安全身份验证",
+        "限制对个人信息的访问",
+        "定期安全审计"
+      ]
+    },
+    "rights": {
+      "title": "您的权利",
+      "content": "您有权：",
+      "items": [
+        "访问您的个人信息",
+        "更正不准确的数据",
+        "请求删除您的账户",
+        "反对数据处理",
+        "导出您的数据"
+      ]
+    },
+    "children": {
+      "title": "儿童隐私",
+      "content": "我们的服务不面向 13 岁以下的儿童。我们不会有意收集未成年人的信息。"
+    },
+    "changes": {
+      "title": "本政策的变更",
+      "content": "我们可能会不时更新本政策。对于重大变更，我们将通过在本页面发布新政策来通知您。"
+    },
+    "contact": {
+      "title": "联系我们",
+      "content": "如果您对本隐私政策有任何疑问，可以通过我们的 GitHub 仓库联系我们。"
+    },
+    "acceptance": {
+      "title": "接受条款",
+      "content": "使用 openvid 即表示您也接受我们的<terms>服务条款</terms>。",
+      "termsLink": "服务条款"
+    }
+  },
+  "terms": {
+    "backToHome": "返回主页",
+    "title": "服务条款",
+    "lastUpdated": "最后更新：{date}",
+    "acceptance": {
+      "title": "条款的接受",
+      "content": "访问并使用 openvid 即表示你同意受本服务条款的法律约束。如果你不同意本条款的任何部分，则不应使用我们的平台。"
+    },
+    "description": {
+      "title": "服务说明",
+      "content": "Openvid 是一款用于视频编辑的 Web 应用，允许用户：",
+      "items": [
+        "直接从浏览器录制屏幕",
+        "使用专业工具编辑视频",
+        "以多种格式和质量导出",
+        "在本地处理一切，无需服务器"
+      ]
+    },
+    "account": {
+      "title": "用户账户",
+      "content": "要访问某些功能，你可能需要通过以下方式创建账户：",
+      "items": [
+        "Google 身份验证",
+        "GitHub 身份验证"
+      ],
+      "note": "你有责任维护账户的机密性。"
+    },
+    "acceptable": {
+      "title": "可接受的使用",
+      "content": "使用 openvid 即表示你同意：",
+      "items": [
+        "不上传非法、冒犯性或侵犯版权的内容",
+        "不试图破坏服务的安全性",
+        "不将平台用于欺诈活动",
+        "尊重其他用户的权利"
+      ]
+    },
+    "intellectual": {
+      "title": "知识产权",
+      "content": "你保留对上传到 openvid 的内容的所有权利。我们仅临时处理你的视频以提供编辑服务。未经你的明确同意，我们不会存储或分享你的内容。"
+    },
+    "limitation": {
+      "title": "责任限制",
+      "content": "Openvid 按“原样”提供，不作任何形式的保证。我们不对以下情况负责：",
+      "items": [
+        "数据或内容丢失",
+        "服务中断",
+        "间接或后果性损害",
+        "浏览器兼容性问题"
+      ]
+    },
+    "modifications": {
+      "title": "服务变更",
+      "content": "我们保留随时修改、暂停或终止服务的权利，恕不另行通知。我们也可能会定期更新本条款。"
+    },
+    "law": {
+      "title": "适用法律",
+      "content": "本条款受你所在司法管辖区的适用法律管辖。任何争议将在有管辖权的法院解决。"
+    },
+    "contact": {
+      "title": "联系我们",
+      "content": "如果你对本条款有疑问，可以通过我们的 GitHub 仓库联系我们。"
+    },
+    "acceptance2": {
+      "content": "使用 openvid 即表示你也接受我们的 <privacy>隐私政策</privacy>。",
+      "privacyLink": "隐私政策"
+    }
+  },
+  "hero": {
+    "title": "创建演示与<screen>屏幕</screen>",
+    "titleHighlight": "4K 画质  ",
+    "description": "添加流畅的缩放、设备模型，自定义背景、摄像头、音频、元素，并导出专业演示。",
+    "uploadButton": "上传视频",
+    "uploadButtonDragging": "将视频拖放到此处",
+    "uploadButtonUploading": "上传中…",
+    "recordButton": "录制屏幕",
+    "uploadHint": "拖入视频或点击选择",
+    "goToVideoEditor": "前往视频编辑器",
+    "uploadPhotoButton": "上传照片",
+    "uploadPhotoDragging": "将照片拖放到此处",
+    "uploadPhotoUploading": "上传中…",
+    "goToPhotoEditor": "前往照片编辑器"
+  },
+  "recording": {
+    "steps": {
+      "title": "创建你的镜头，只需",
+      "title2": "四个简单步骤",
+      "subtitle": "按照以下说明捕捉你的屏幕。整个过程都在浏览器中完成，无需安装任何软件。",
+      "step1": {
+        "title": "开始捕捉",
+        "description": "点击下方按钮。浏览器会询问你想要分享的内容。为获得最佳性能和更干净的画面，我们建议选择<tab>标签页</tab>或<window>特定窗口</window>。",
+        "startButton": "开始录制",
+        "stopButton": "停止录制",
+        "countdownButton": "准备中…",
+        "recordingButton": "录制中…",
+        "processingButton": "处理中…",
+        "mobileAlert": "移动设备不支持屏幕录制。请使用台式电脑。",
+        "permissionRequired": "需要授权",
+        "visual": {
+          "browserTab": "Brave 标签页",
+          "window": "窗口",
+          "fullscreen": "整个屏幕",
+          "tabTitle": "openvid - 创建镜头…",
+          "codeTitle": "RecordingSteps.tsx",
+          "shareAudio": "同时分享系统音频",
+          "share": "分享",
+          "cancel": "取消"
+        }
+      },
+      "step2": {
+        "title": "隐藏干扰项",
+        "description": "分享屏幕时，浏览器会自动显示一个悬浮提示栏，提示捕捉正在进行。点击<hide>隐藏</hide>，确保它不会出现在你的最终视频中。",
+        "visual": {
+          "barText": "https://openvid.dev 正在分享一个窗口。",
+          "stop": "停止分享",
+          "hide": "隐藏"
+        }
+      },
+      "step3": {
+        "title": "准备开始",
+        "description": "别着急。在步骤 1 中授权后，我们会启动一个<countdown>3 秒</countdown>倒计时。你会在浏览器标签页看到指示，从而准确知道何时开始讲话或移动鼠标。",
+        "visual": {
+          "title": "切换标签页！",
+          "subtitle": "录制将在你所选的屏幕上开始。"
+        }
+      },
+      "step4": {
+        "title": "结束并进入编辑器",
+        "description": "讲解完成后，只需停止录制。文件不会立即下载，而是会神奇地转移到我们的网页编辑器，你可以在其中应用缩放、背景和裁剪。",
+        "visual": {
+          "recording": "录制中",
+          "stop": "停止"
+        }
+      }
+    },
+    "overlay": {
+      "countdown": {
+        "title": "立即切换标签页！",
+        "subtitle": "录制将在你所选的屏幕上开始。"
+      },
+      "recording": {
+        "status": "录制中",
+        "stop": "停止"
+      },
+      "processing": {
+        "title": "正在处理你的录制",
+        "subtitle": "正在为编辑器准备你的视频…"
+      }
+    }
+  },
+  "login": {
+    "title": "登录",
+    "subtitle": "选择你偏好的方式以继续",
+    "backToHome": "返回首页",
+    "disclaimer": "继续即表示你接受我们的<terms>服务条款</terms>和<privacy>隐私政策</privacy>。",
+    "providers": {
+      "google": "使用 Google 继续",
+      "github": "使用 GitHub 继续",
+      "twitch": "使用 Twitch 继续",
+      "groupLabel": "登录选项",
+      "loading": "正在连接……"
+    },
+    "errors": {
+      "generic": "登录出错。请重试。",
+      "signIn": "使用 {provider} 登录时出错"
+    }
+  },
+  "placeholder": {
+    "browserBar": {
+      "newTab": "新标签页",
+      "search": "搜索或输入 URL"
+    },
+    "upload": {
+      "title": "点击上传",
+      "subtitle": "或拖入你的视频",
+      "dragging": "将视频拖放到此处！",
+      "button": "选择文件",
+      "uploading": "上传中...",
+      "formats": "MP4、WebM、MOV 或 MKV",
+      "titleImage": "点击上传",
+      "subtitleImage": "或拖入你的图片",
+      "draggingImage": "将图片拖放到此处！",
+      "formatsImage": "JPG、PNG、WebP 或 GIF"
+    }
+  },
+  "notFound": {
+    "title": "页面未找到",
+    "description": "你查找的路由在我们的编辑器中不存在。",
+    "backHome": "返回首页"
+  },
+  "userMenu": {
+    "login": "登录",
+    "connectedWith": "已通过 {provider} 连接",
+    "home": "首页",
+    "editor": "编辑器",
+    "videoEditor": "前往视频编辑器",
+    "photoEditor": "前往照片编辑器",
+    "logout": "退出登录",
+    "loggingOut": "正在退出登录…",
+    "ariaLabel": "用户菜单",
+    "defaultUser": "用户",
+    "theme": "主题",
+    "themeLight": "浅色",
+    "themeDark": "深色",
+    "themeSystem": "跟随系统"
+  },
+  "donation": {
+    "title": "请我喝杯咖啡",
+    "description": "支持 openvid 项目",
+    "page": {
+      "title": "支持开发",
+      "description": "Openvid 是一款开源工具。你的贡献让我们能够维持服务器运行并继续开发新功能。",
+      "backHome": "返回主页",
+      "methods": "方式",
+      "copy": "复制",
+      "copied": "已复制",
+      "scanQR": "扫描二维码",
+      "close": "关闭",
+      "alternative": "或者",
+      "openLink": "打开直接付款链接",
+      "yape": {
+        "tagline": "本地转账",
+        "detail": "扫描二维码或使用电话号码",
+        "phone": "电话号码"
+      },
+      "visa": {
+        "tagline": "国内网络",
+        "detail": "直接存入 BCP 账户（索尔）",
+        "account": "BCP 账户（索尔）",
+        "cci": "CCI"
+      },
+      "paypal": {
+        "tagline": "国际转账",
+        "detail": "通过电子邮件或直接链接发送",
+        "email": "PayPal 电子邮箱",
+        "link": "https://www.paypal.com/ncp/payment/AZ3LS98LJ9SM2"
+      }
+    }
+  },
+  "demo": {
+    "title": "完美演示",
+    "subtitle": "几秒内即可设计完成"
+  },
+  "recordingSetup": {
+    "title": "录制设置",
+    "description": "选择你的摄像头、麦克风，以及气泡窗口的外观。",
+    "close": "关闭",
+    "preview": {
+      "initialPosition": "初始位置"
+    },
+    "camera": {
+      "title": "摄像头",
+      "description": "添加一个显示网络摄像头画面的气泡窗口。",
+      "permissionDenied": "摄像头访问被拒绝。将鼠标悬停在此处查看解决方法。",
+      "errorGeneric": "无法访问摄像头。请检查你的连接。",
+      "selectPlaceholder": "选择摄像头",
+      "default": "默认摄像头",
+      "shape": "形状",
+      "size": "大小",
+      "mirror": "水平镜像"
+    },
+    "mic": {
+      "title": "麦克风",
+      "description": "在同一轨道上录制你的声音。",
+      "errorGeneric": "无法访问麦克风。",
+      "selectPlaceholder": "选择麦克风",
+      "default": " 麦克风"
+    },
+    "systemAudio": {
+      "title": "系统音频",
+      "description": "捕获来自共享标签页或窗口的音频。"
+    },
+    "actions": {
+      "cancel": "取消",
+      "shareScreen": "共享屏幕"
+    },
+    "shapes": {
+      "circle": "圆形",
+      "squircle": "圆角方形",
+      "square": "方形"
+    },
+    "corners": {
+      "top-left": "左上",
+      "top-right": "右上",
+      "bottom-left": "左下",
+      "bottom-right": "右下"
+    },
+    "drag": "拖动"
+  },
+  "controlPanel": {
+    "header": {
+      "close": "关闭控制面板"
+    },
+    "screenshot": {
+      "background": "背景",
+      "tabs": {
+        "wallpaper": "壁纸",
+        "color": "颜色",
+        "image": "图片"
+      },
+      "options": "选项",
+      "settings": "设置",
+      "sliders": {
+        "blur": "背景模糊",
+        "padding": "内边距",
+        "rounded": "圆角",
+        "shadows": "阴影"
+      }
+    },
+    "tools": {
+      "mockup": "设备模型",
+      "videos": "视频",
+      "elements": "元素",
+      "audio": "音频",
+      "zoom": "缩放",
+      "cursor": "光标",
+      "camera": "摄像头"
+    }
+  },
+  "toolsSidebar": {
+    "tools": {
+      "background": "背景",
+      "mockup": "设备模型",
+      "videos": "视频",
+      "elements": "元素",
+      "audio": "音频",
+      "zoom": "缩放",
+      "camera": "摄像头",
+      "cursor": "光标",
+      "toolbar": "工具栏",
+      "soon": "即将推出",
+      "motion": "动效",
+      "newTool": "新增"
+    },
+    "popovers": {
+      "background": {
+        "title": "背景与画布",
+        "description": "添加渐变、颜色或图片"
+      },
+      "mockup": {
+        "title": "设备模型生成器",
+        "description": "将你的画面嵌入浏览器、移动设备或 IDE 中"
+      },
+      "videos": {
+        "title": "导入视频",
+        "description": "上传你的屏幕录制或片段"
+      },
+      "elements": {
+        "title": "元素与批注",
+        "description": "添加箭头、几何图形、文本或高亮标记"
+      },
+      "audio": {
+        "title": "音轨与音效",
+        "description": "同步背景音乐音轨或音效"
+      },
+      "zoom": {
+        "title": "动态缩放",
+        "description": "对屏幕特定部分创建平滑的特写，引导观众的注意力。"
+      },
+      "camera": {
+        "title": "屏幕摄像头",
+        "description": "以圆形裁剪叠加你的摄像头录制画面"
+      },
+      "history": {
+        "title": "图片历史记录",
+        "description": "访问你之前的画面以重复使用或编辑它们。"
+      },
+      "motion": {
+        "title": "动效",
+        "description": "为你的元素应用平滑的过渡和动画。"
+      }
+    },
+    "recording": {
+      "idle": "录制屏幕",
+      "inProgress": "正在录制…",
+      "preparing": "准备中…",
+      "recording": "录制中…",
+      "processing": "处理中…",
+      "start": "录制"
+    },
+    "upload": {
+      "tooltip": "上传自定义视频",
+      "tooltipUploading": "正在上传视频…",
+      "button": "上传",
+      "buttonUploading": "上传中…",
+      "dropHere": "拖放到此处"
+    },
+    "alerts": {
+      "mobile": "移动设备不支持屏幕录制，请使用电脑。"
+    },
+    "photo": {
+      "captureTooltip": "捕获图片",
+      "capturing": "正在捕获图片…",
+      "capture": "捕获",
+      "uploadTooltip": "上传自定义图片",
+      "upload": "上传",
+      "libraryTooltip": "你的图片",
+      "library": "图库",
+      "dropHere": "拖放到此处"
+    },
+    "imagesLibrary": {
+      "title": "我的图片",
+      "project": "个项目",
+      "projects": "个项目",
+      "loading": "正在加载图库…",
+      "current": "当前",
+      "delete": "删除",
+      "confirmDelete": "确认？",
+      "empty": {
+        "title": "图库为空",
+        "description": "保存后，你的图片项目将显示在这里。"
+      },
+      "time": {
+        "justNow": "刚刚",
+        "minutesAgo": "{count, plural, =1 {1 分钟前} other {# 分钟前}}",
+        "hoursAgo": "{count, plural, =1 {1 小时前} other {# 小时前}}",
+        "daysAgo": "{count, plural, =1 {1 天前} other {# 天前}}"
+      }
+    }
+  },
+  "historyMenu": {
+    "title": "图片历史记录",
+    "items": "张图片",
+    "loading": "正在加载历史记录…",
+    "upload": {
+      "drop": "将图片拖放到此处",
+      "dragOrClick": "拖动或点击以上传"
+    },
+    "empty": {
+      "title": "暂无图片",
+      "description": "上传或捕获图片后即可在此查看"
+    },
+    "time": {
+      "justNow": "刚刚",
+      "hoursAgo": "{hours, plural, =1 {1 小时前} other {# 小时前}}",
+      "yesterday": "昨天",
+      "daysAgo": "{days, plural, =1 {1 天前} other {# 天前}}"
+    },
+    "actions": {
+      "delete": "从历史记录中删除"
+    }
+  },
+  "wallpapers": {
+    "categories": {
+      "desktop": "桌面",
+      "gradient": "渐变",
+      "pattern": "图案",
+      "minimal": "极简"
+    },
+    "options": {
+      "none": "无背景",
+      "showMore": "显示更多",
+      "showLess": "收起",
+      "upload": "上传图像"
+    },
+    "popover": {
+      "seeMore": "查看更多来自 {name} 的内容",
+      "moreCount": "+{count} 更多"
+    }
+  },
+  "colorEditor": {
+    "modes": {
+      "gradient": "渐变",
+      "solid": "纯色"
+    },
+    "sections": {
+      "presets": "预设",
+      "customize": "自定义",
+      "moreColors": "更多颜色",
+      "moreGradients": "更多 {type} 渐变",
+      "type": "类型",
+      "angle": "角度",
+      "originX": "原点 X",
+      "originY": "原点 Y",
+      "stops": "颜色 ({count})",
+      "add": "添加"
+    },
+    "tooltips": {
+      "moreColors": "查看更多颜色",
+      "moreGradients": "查看更多渐变"
+    },
+    "types": {
+      "linear": "线性",
+      "radial": "径向",
+      "conic": "锥形"
+    }
+  },
+  "imageRecentGrid": {
+    "upload": {
+      "instruction": "将图片拖到此处，或",
+      "action": "上传文件"
+    },
+    "sections": {
+      "recent": "最近"
+    },
+    "alt": {
+      "recent": "最近 {index}"
+    }
+  },
+  "mockupMenu": {
+    "title": "设备模型",
+    "windowType": "窗口类型",
+    "none": "无",
+    "suggested": "推荐",
+    "count": "{count} 个设备模型",
+    "remove": "移除设备模型",
+    "frames2D": "2D 外框",
+    "devices3D": "3D 设备",
+    "device3DTitle": "3D 设备",
+    "configuration": "配置",
+    "reset": "重置",
+    "scale": "缩放",
+    "laptopOpening": "笔记本开合",
+    "foldOpening": "折叠开合",
+    "deviceLoadError": "无法加载 3D 设备。",
+    "retry": "重试",
+    "shadow": "阴影",
+    "position": "位置",
+    "removeFrame": "移除外框",
+    "darkMode": {
+      "label": "深色模式",
+      "dark": "深色",
+      "light": "浅色"
+    },
+    "frameColor": {
+      "label": "外框颜色",
+      "ariaLabel": "选择颜色 {color}"
+    },
+    "url": {
+      "label": "页面 URL",
+      "placeholder": "https://your-site.com"
+    },
+    "sliders": {
+      "headerScale": "标题栏缩放",
+      "headerOpacity": "标题栏不透明度"
+    },
+    "categories": {
+      "all": "全部",
+      "browser": "浏览器",
+      "device": "手机",
+      "ide": "代码编辑器"
+    },
+    "mockups": {
+      "none": "无",
+      "macos": "MacOS",
+      "macos-glass": "MacOS Glass",
+      "outline": "轮廓",
+      "glass-ui-container": "Glass UI Container",
+      "macos-ghost": "MacOS Ghost",
+      "macos-ghost-glass": "MacOS Ghost Glass",
+      "macos-container-glass": "MacOS Container Glass",
+      "brave": "Brave",
+      "brave-glass": "Brave Glass",
+      "browser-tab-glass": "Browser Tab Glass",
+      "chrome": "Chrome",
+      "chrome-glass": "Chrome Glass",
+      "iphone-slim": "iPhone Slim",
+      "glass-curve": "Glass Curve",
+      "glass-full": "Glass Full",
+      "hard-shell": "Hard Shell",
+      "s24-ultra": "S24 Ultra",
+      "vscode": "VS Code",
+      "macos-dark-ide": "VS Code MacOS",
+      "macos-ghost-ide": "MacOS Ghost IDE",
+      "macbook-photo": "MacBook"
+    },
+    "devices": {
+      "iphone-13-pro-max": "iPhone 13 Pro",
+      "iphone-duo": "iPhone Duo",
+      "double_iphone_13_pro": "Double iPhone 13 Pro",
+      "iphone-17-pro-max": "iPhone 17 Pro",
+      "iphone": "iPhone 15 Pro",
+      "phone": "通用手机",
+      "laptop": "macOS 笔记本",
+      "ipad_mini_6_2021": "iPad mini 6 (2021)"
+    },
+    "positionPresets": {
+      "tooltip": "默认位置",
+      "trigger": "透视",
+      "title": "3D 位置",
+      "resetDefault": "恢复默认",
+      "tabs": {
+        "presets": "预设",
+        "custom": "自定义"
+      },
+      "custom": {
+        "perspective": "透视",
+        "scale": "缩放",
+        "rotationXY": "旋转 X/Y",
+        "rotationZ": "旋转 Z",
+        "vertical": "垂直",
+        "reset": "重置"
+      }
+    },
+    "viewer3d": "3D 查看器",
+    "autoRotate": "自动旋转",
+    "rotationSpeed": "旋转速度",
+    "glow": "辉光",
+    "environment": "环境",
+    "environments": {
+      "sunset": "日落",
+      "dawn": "黎明",
+      "night": "夜晚",
+      "warehouse": "仓库",
+      "forest": "森林",
+      "apartment": "公寓",
+      "studio": "工作室",
+      "city": "城市",
+      "park": "公园",
+      "lobby": "大厅"
+    },
+    "modelProperties": "模型属性",
+    "lightingAndEnvironment": "光照与环境",
+    "presentation": "动画与显示"
+  },
+  "videosMenu": {
+    "title": "视频",
+    "speed": "速度",
+    "dropzone": "将你的视频拖放到此处！",
+    "emptyState": {
+      "title": "上传视频",
+      "instruction": "点击或拖动文件到此处"
+    },
+    "upload": {
+      "button": "上传视频",
+      "action": "选择文件",
+      "status": "正在上传……"
+    },
+    "actions": {
+      "add": "添加",
+      "mute": "静音",
+      "unmute": "取消静音",
+      "delete": "删除视频"
+    },
+    "footer": "视频本地存储在你的浏览器中"
+  },
+  "elementsMenu": {
+    "title": "元素",
+    "tabs": {
+      "elements": "元素",
+      "text": "文本",
+      "uploads": "上传"
+    },
+    "sections": {
+      "shapes": "形状",
+      "images": "图片",
+      "hierarchy": "层级"
+    },
+    "filters": {
+      "all": "全部"
+    },
+    "counts": {
+      "shapes": "{count} 个形状",
+      "images": "{count} 张图片"
+    },
+    "tooltips": {
+      "allShapes": "查看全部形状",
+      "allImages": "查看全部图片"
+    },
+    "properties": {
+      "color": "颜色",
+      "size": "大小",
+      "opacity": "不透明度"
+    },
+    "actions": {
+      "delete": "删除",
+      "bringToFront": "移到最前",
+      "sendToBack": "移到最后",
+      "deleteMultiple": "删除所选 ({count})"
+    },
+    "text": {
+      "content": "内容",
+      "placeholder": "输入你的文本...",
+      "presets": "预设",
+      "size": "大小",
+      "font": "字体",
+      "weight": "字重",
+      "addButton": "添加文本"
+    },
+    "uploads": {
+      "title": "上传图片",
+      "instruction": "点击或将文件拖到此处",
+      "uploading": "上传中...",
+      "processing": "正在处理图片",
+      "selectFile": "选择文件",
+      "gallery": "你的图片 ({count})",
+      "clearAll": "全部清除",
+      "emptyTitle": "暂无图片",
+      "emptySubtitle": "你上传的图片将显示在这里"
+    }
+  },
+  "zoomFragmentEditor": {
+    "title": "缩放片段",
+    "deleteTooltip": "删除片段（Delete）",
+    "actions": {
+      "delete": "删除"
+    },
+    "focusPoints": {
+      "single": "焦点",
+      "multiple": "焦点",
+      "start": "起点",
+      "end": "终点"
+    },
+    "preview": {
+      "alt": "视频预览",
+      "dragAB": "拖动 A 和 B",
+      "dragOrClick": "拖动或点击",
+      "orbitalPath": "自动缩放光标路径"
+    },
+    "movement": {
+      "title": "摄像机移动",
+      "subtitle": "缩放期间的平移",
+      "orbitalDescription": "由自动缩放生成的光标轨迹。它在预览和导出期间保留。",
+      "tooShort": "片段太短，无法移动。请增加时长。",
+      "defaultName": "移动 {number}",
+      "timeline": {
+        "title": "移动时间轴",
+        "active": "活跃 {seconds} 秒",
+        "startLabel": "起点",
+        "endLabel": "终点"
+      },
+      "addMovement": "添加点",
+      "deleteMovement": "删除点"
+    },
+    "sliders": {
+      "zoomLevel": "缩放级别",
+      "transitionSpeed": "过渡速度"
+    },
+    "info": {
+      "fragmentDuration": "片段时长",
+      "zoomFactor": "缩放系数",
+      "transitionDuration": "过渡时长"
+    }
+  },
+  "zoomGlobalConfig": {
+    "title": "缩放",
+    "fragments": {
+      "title": "片段 ({count})",
+      "label": "缩放 {index}",
+      "add": "添加片段"
+    },
+    "shortcuts": {
+      "keys": {
+        "delete": "Delete",
+        "esc": "Esc",
+        "click": "点击"
+      },
+      "delete": "删除所选片段",
+      "esc": "取消选择片段",
+      "clickTrack": "在指定位置添加片段"
+    }
+  },
+  "cameraMenu": {
+    "title": "摄像头",
+    "noCamera": {
+      "title": "本次录制不包含摄像头画面。",
+      "description": "在开始新录制时启用摄像头，即可在此处看到画面。"
+    },
+    "shape": "形状",
+    "position": "位置",
+    "customPosition": "自定义位置（在画布上拖动摄像头）。",
+    "size": "大小",
+    "mirror": "镜像（反射）",
+    "shapes": {
+      "squircle": "圆角方形",
+      "circle": "圆形",
+      "square": "方形"
+    },
+    "corners": {
+      "top-left": "左上",
+      "top-right": "右上",
+      "bottom-left": "左下",
+      "bottom-right": "右下"
+    }
+  },
+  "editor": {
+    "topBar": {
+      "exportError": {
+        "title": "导出出错",
+        "tip": "导出前请先完整播放一遍视频。",
+        "close": "关闭提示"
+      },
+      "history": {
+        "undo": "撤销 (Ctrl+Z)",
+        "noUndo": "没有可撤销的操作",
+        "redo": "重做 (Ctrl+Y)",
+        "noRedo": "没有可重做的操作"
+      },
+      "auth": {
+        "defaultUser": "用户",
+        "signIn": "登录",
+        "userMenu": "用户菜单",
+        "connectedWith": "已通过 {provider} 连接",
+        "home": "首页",
+        "editor": "编辑器",
+        "signOut": "退出登录",
+        "signingOut": "正在退出登录…",
+        "access": "访问"
+      }
+    },
+    "export": {
+      "button": "导出",
+      "title": "导出质量",
+      "recommended": "推荐",
+      "noBackground": "透明",
+      "solidBackground": "纯色背景",
+      "gifNotice": "纯黑色背景",
+      "qualities": {
+        "4k": {
+          "label": "4K 超高清",
+          "desc": "3840 × 2160 • 最高画质"
+        },
+        "2k": {
+          "label": "2K 四倍高清",
+          "desc": "2560 × 1440 • 理想平衡"
+        },
+        "1080p": {
+          "label": "1080p 全高清",
+          "desc": "1920 × 1080 • 网页标准"
+        },
+        "720p": {
+          "label": "720p 高清",
+          "desc": "1280 × 720 • 小文件"
+        },
+        "480p": {
+          "label": "480p 标清",
+          "desc": "854 × 480 • 草稿画质"
+        },
+        "gif": {
+          "label": "动画 GIF",
+          "desc": "1280 × 720 • 无声循环播放"
+        }
+      }
+    },
+    "photoMode": {
+      "title": "图像编辑模式",
+      "description": "调整背景、设备模型和元素以自定义你的图像",
+      "previewLabel": "3D 预览",
+      "views": "视图"
+    },
+    "imagesLibrary": {
+      "title": "我的图像",
+      "project": "个项目",
+      "projects": "个项目",
+      "loading": "正在加载素材库…",
+      "current": "当前",
+      "delete": "删除",
+      "confirmDelete": "确认？",
+      "empty": {
+        "title": "素材库为空",
+        "description": "保存后，你的图像项目将显示在这里。"
+      },
+      "time": {
+        "justNow": "刚刚",
+        "minutesAgo": "{count, plural, =1 {1 分钟前} other {# 分钟前}}",
+        "hoursAgo": "{count, plural, =1 {1 小时前} other {# 小时前}}",
+        "daysAgo": "{count, plural, =1 {1 天前} other {# 天前}}"
+      }
+    },
+    "exportImage": {
+      "button": "导出",
+      "title": "导出图像",
+      "transparent": "透明",
+      "recommended": "推荐",
+      "noTransparency": "不透明",
+      "transparentInfo": "透明背景仅在 PNG 和 WebP 格式中保留。",
+      "presets": {
+        "png4x": {
+          "label": "PNG 4x (超清)"
+        },
+        "png2x": {
+          "label": "PNG 2x (Retina)"
+        },
+        "pngOriginal": {
+          "label": "原始 PNG"
+        },
+        "webpHigh": {
+          "label": "WebP 高质量",
+          "description": "95% 质量 — 最佳压缩"
+        },
+        "jpegHigh": {
+          "label": "JPEG 高质量",
+          "description": "95% 质量 — 平衡文件大小"
+        },
+        "webpMedium": {
+          "label": "WebP 中等质量",
+          "description": "80% 质量 — 网页优化"
+        },
+        "jpegMedium": {
+          "label": "JPEG 中等质量",
+          "description": "80% 质量 — 缩小文件"
+        }
+      },
+      "exporting": "导出.."
+    },
+    "effect3d": {
+      "title": "3D 效果",
+      "subtitle": "带景深的透视",
+      "intensity": "强度",
+      "direction": "透视方向",
+      "directionHint": "点击选择倾斜方向",
+      "perspective": "透视",
+      "scale": "缩放",
+      "rotation": "3D 旋转",
+      "clickToAdjust": "点击调整",
+      "rotationHint": "使用面板定义角度",
+      "rotateZ": "扭转 (Z 轴)",
+      "verticalPosition": "垂直偏移",
+      "reset": "重置数值"
+    },
+    "cropper": {
+      "button": "裁剪图像",
+      "tooltip": "调整尺寸并裁剪"
+    },
+    "photoPreview": {
+      "custom": {
+        "label": "自定义",
+        "customize": "自定义",
+        "title": "3D 设置",
+        "perspective": "透视",
+        "scale": "缩放",
+        "rotationXY": "旋转 (X/Y)",
+        "rotationZ": "Z 旋转",
+        "vertical": "垂直",
+        "reset": "重置"
+      },
+      "settings": "设置",
+      "apply3D": "应用 3D 效果",
+      "mockup3D": "3D：设备模型",
+      "resetDefaults": "恢复默认",
+      "reset": "重置",
+      "configs": {
+        "front": "正面",
+        "tilt-up": "向上倾斜",
+        "tilt-down": "向下倾斜",
+        "top-left-angle": "左上角度",
+        "top-right-angle": "右上角度",
+        "bottom-left-angle": "左下角度",
+        "bottom-right-angle": "右下角度",
+        "isometric": "等轴测"
+      }
+    },
+    "imageMask": {
+      "trigger": "蒙版",
+      "tooltip": "图像蒙版效果",
+      "title": "蒙版效果",
+      "tabs": {
+        "presets": "预设",
+        "custom": "自定义"
+      },
+      "presets": {
+        "none": "无蒙版",
+        "fade-top": "顶部渐隐",
+        "fade-bottom": "底部渐隐",
+        "fade-sides": "两侧渐隐",
+        "vignette": "暗角",
+        "angle-45": "对角 45°"
+      },
+      "controls": {
+        "top": "上",
+        "bottom": "下",
+        "left": "左",
+        "right": "右",
+        "add": "添加",
+        "remove": "移除",
+        "from": "起始",
+        "to": "结束"
+      }
+    },
+    "hoverTooltip": {
+      "zoom": "缩放",
+      "paste": "粘贴",
+      "ctrl": "Ctrl",
+      "scroll": "滚动",
+      "keyV": "V"
+    },
+    "layerPanel": {
+      "tooltips": {
+        "show": "显示",
+        "hide": "隐藏",
+        "lock": "锁定",
+        "unlock": "解锁",
+        "delete": "删除",
+        "deleteGroup": "删除组",
+        "showLayers": "显示图层面板",
+        "hideLayers": "隐藏图层面板",
+        "groupSelected": "将所选编组",
+        "ungroup": "取消编组"
+      },
+      "layers": "图层",
+      "noLayers": "无图层",
+      "group": "组",
+      "selected": "已选中",
+      "groupAction": "编组",
+      "ungroupAction": "取消编组",
+      "videoLayer": "视频",
+      "imageLayer": "图像"
+    }
+  },
+  "playerControls": {
+    "toolbar": "播放控制",
+    "fullscreen": {
+      "enter": "全屏（F）",
+      "exit": "退出全屏（F）"
+    },
+    "zoom": {
+      "group": "时间轴缩放",
+      "out": "缩小（↓）",
+      "in": "放大（↑）",
+      "label": "时间轴缩放：{level}×"
+    },
+    "split": {
+      "clip": "分割片段"
+    },
+    "transport": {
+      "group": "传输控制",
+      "currentTime": "当前时间：{time}",
+      "totalTime": "总时长：{time}",
+      "backward": "后退 5 秒（← 或 J）",
+      "forward": "前进 5 秒（→ 或 L）",
+      "play": "播放（Space 或 K）",
+      "pause": "暂停（Space 或 K）"
+    },
+    "cropper": {
+      "tooltip": "打开视频裁剪器",
+      "button": "裁剪"
+    }
+  },
+  "aspectRatioSelect": {
+    "tooltip": "选择宽高比",
+    "labels": {
+      "auto": "自动",
+      "custom": "自定义",
+      "youtube": "YouTube",
+      "tiktok": "TikTok",
+      "instagram": "Instagram",
+      "portrait": "竖屏",
+      "standard": "标准"
+    },
+    "customSection": {
+      "title": "自定义",
+      "width": "宽度",
+      "height": "高度",
+      "apply": "应用尺寸"
+    }
+  },
+  "videoCropper": {
+    "title": "裁剪视频",
+    "noVideo": "无视频",
+    "sections": {
+      "ratio": "宽高比",
+      "area": "区域"
+    },
+    "labels": {
+      "x": "X",
+      "y": "Y",
+      "width": "宽",
+      "height": "高"
+    },
+    "buttons": {
+      "reset": "重置",
+      "apply": "应用裁剪"
+    },
+    "close": "关闭",
+    "freeRatio": "自由"
+  },
+  "timeline": {
+    "noSpace": "无空间",
+    "trimStartHint": "拖动以修剪起点",
+    "trimEndHint": "拖动以修剪终点",
+    "trimmedStart": "已从起点修剪 {seconds} 秒 · 双击可还原",
+    "trimmedEnd": "已从终点修剪 {seconds} 秒 · 双击可还原",
+    "restore": "还原",
+    "restoreTitle": "还原片段的原始时长"
+  },
+  "audioMenu": {
+    "title": "音频",
+    "originalAudio": "原始音频",
+    "muted": "已静音",
+    "active": "已激活",
+    "masterVolume": "主音量",
+    "uploadButton": "上传音频",
+    "uploadHint": "MP3、WAV、OGG、AAC、M4A（最大 10MB）",
+    "timelineTracks": "时间轴轨道 ({count})",
+    "start": "开始",
+    "duration": "时长",
+    "exceedsDuration": "超出视频时长",
+    "trimAction": "修剪音频",
+    "deleteAction": "删除音频",
+    "noTracks": "暂无音频轨道",
+    "noTracksHint": "上传音频文件即可自动将其添加到时间轴",
+    "errors": {
+      "unsupportedFormat": "不支持的音频格式。请使用 MP3、WAV、OGG、AAC 或 M4A。",
+      "fileTooLarge": "文件过大。最大大小为 10MB。"
+    },
+    "defaultSounds": "默认音效",
+    "categories": {
+      "confirmation": "确认",
+      "alert": "提醒",
+      "ui": "界面",
+      "transition": "转场",
+      "ambient": "环境",
+      "system": "系统"
+    }
+  },
+  "exportOverlay": {
+    "processing": "正在处理视频",
+    "status": {
+      "preparing": "正在准备渲染环境",
+      "capturing": "正在捕获 PNG 帧（第 1 步，共 2 步）",
+      "encoding": "正在编码视频序列",
+      "encodingWebM": "正在编码 WebM 视频（第 2 步，共 2 步）",
+      "finalizing": "正在打包最终文件"
+    },
+    "warnings": {
+      "performance": "为优化 GPU 和 CPU 资源，<highlight>请勿最小化此窗口</highlight>。此过程占用资源较多，需要系统优先级。",
+      "transparency": "此过程可能比平常耗时更长。<highlight>带透明度的 WebM 导出</highlight>需要额外的 CPU 处理。"
+    },
+    "actions": {
+      "cancel": "停止导出"
+    }
+  },
+  "photoPicker": {
+    "tooltip": "搜索背景 (Unsplash、Pexels、Pixabay)",
+    "title": "背景",
+    "statusDiscovering": "发现中",
+    "searchPlaceholder": "搜索背景...",
+    "noResults": "无结果",
+    "footerPhotosBy": "图片来自",
+    "footerAnd": " 和 ",
+    "badges": {
+      "blur_gradient": "模糊渐变",
+      "dark_wallpaper": "深色壁纸",
+      "minimal_abstract": "极简抽象",
+      "neon_city": "霓虹城市",
+      "nature_landscape": "自然风光",
+      "aurora_borealis": "北极光",
+      "gradient_wallpaper": "渐变壁纸"
+    }
+  },
+  "featuresShowcase": {
+    "common": {
+      "videoThumbnail": "视频缩略图"
+    },
+    "videos": {
+      "titleLine1": "精美视频",
+      "titleLine2": "演示已创建。",
+      "description": "观看由我们社区生成的高保真屏幕录制和电影级片段。"
+    },
+    "images": {
+      "titleLine1": "精美图片",
+      "titleLine2": "静态导出。",
+      "description": "非常适合你的落地页、社交媒体或更新日志。一键导出超清晰的设备模型。"
+    },
+    "alts": {
+      "laptop": "笔记本电脑",
+      "iphone": "iPhone",
+      "browser": "浏览器"
+    }
+  },
+  "featuresGrid": {
+    "ariaLabel": "产品功能",
+    "titleLine1": "打造惊艳演示",
+    "titleLine2": "所需的一切。",
+    "description": "录制、优化并导出——直接在浏览器中获得电影级效果，无需安装。",
+    "cards": {
+      "deviceMockups": {
+        "title": "3D 设备模型",
+        "description": "将你的屏幕录制包裹在超逼真的 3D 设备外框中。"
+      },
+      "transparency": {
+        "title": "透明度"
+      },
+      "backgrounds": {
+        "title": "背景"
+      },
+      "cinematicZoom": {
+        "title": "电影级缩放"
+      },
+      "elementsLayers": {
+        "title": "元素与图层"
+      },
+      "multiTrackTimeline": {
+        "title": "多轨时间轴",
+        "description": "叠加多个视频、音频轨道，并缩放画布。"
+      }
+    },
+    "alts": {
+      "abstract3dRendering": "抽象 3D 渲染",
+      "backgroundLayer3": "背景图层 3",
+      "backgroundLayer2": "背景图层 2",
+      "transparentPreview": "透明预览",
+      "backgroundPattern": "背景图案",
+      "bottomRightAsset": "右下素材",
+      "rightAsset": "右侧素材"
+    },
+    "tags": {
+      "textOverlay": "文字叠加层",
+      "svgShapes": "SVG 图形",
+      "blurEffects": "模糊效果"
+    }
+  },
+  "socialReactions": {
+    "titleLine1": "别只听",
+    "titleLine2": "我们的一面之词",
+    "description": "看看创始人和创作者如何用 Openvid 改造他们的演示。",
+    "views": "观看次数",
+    "watchReel": "观看短片",
+    "originalAudio": "原始音频",
+    "sparklesAlt": "闪光装饰",
+    "posts": {
+      "post1": {
+        "text": "Openvid 是一款开源的、基于浏览器的视频编辑器，用于录制和编辑带有电影级效果的屏幕画面，无需上传。\n\n- 支持 H.264、WebM、GIF 和图片格式的 4K 导出\n- 3D 摄像机移动、缩放和透视调整\n- 适用于 Safari、Chrome、Arc 和三星的设备模型\n- 多音轨音频，支持单轨和主音量控制\n\n在此探索：",
+        "timestamp": "2026 年 5 月 26 日下午 5:30"
+      },
+      "post2": {
+        "text": "🚨 截图 ➔ 精美的产品演示视频，即刻生成\n\n这家伙做了一个工具，能把任何应用……"
+      },
+      "post3": {
+        "text": "🎥 一款免费开源工具，可直接从浏览器创建专业的产品演示。\n\n录制屏幕，添加缩放效果、设备外框和 3D 效果，然后以高质量导出视频。\n\n如果你在制作教程或展示应用，这值得一试。\n\n🐱 GitHub: CristianOlivera1/openvid",
+        "timestamp": "2026 年 7 月 5 日上午 4:09"
+      },
+      "post4": {
+        "text": "🚨 截图 ➔ 精美的产品演示视频，即刻生成\n\n这家伙做了一个工具，能把任何应用截图变成简洁、专业的动态演示视频。\n\n附带：\n- 一键将截图 ➔ 完整动画演示\n- 平滑的 UI 动画和功能高亮\n- 无需 After Effects、无需 Premiere、无需设计师\n- 非常适合落地页和社交媒体发布\n\n👉 https://github.com/CristianOlivera1/openvid\n\n今天谁在把截图变成专业视频？留个 🔥"
+      },
+      "post5": {
+        "text": "Openvid Hero 是一款开源的浏览器内工具，无需外部编辑软件即可将应用截图转换为专业的、支持 4K 的动态演示视频。该工具具有本地渲染、3D 摄像机运动和设备模型功能，为创建高端产品演示提供了快速、私密的替代方案。在 GitHub 上探索该项目：https://github.com/CristianOlivera1/openvid。"
+      }
+    }
+  },
+  "dropMedia": {
+    "titleImage": "拖放图片",
+    "titleVideo": "将你的视频拖放到此处"
+  },
+  "audioTrimModal": {
+    "title": "修剪音频",
+    "subtitle": "拖动手柄或蓝色区域进行调整",
+    "totalDuration": "总时长：",
+    "start": "开始",
+    "end": "结束",
+    "duration": "时长",
+    "cancel": "取消",
+    "apply": "应用修剪"
+  },
+  "motionMenu": {
+    "title": "动效",
+    "duoEyebrow": "折叠设备",
+    "duoDescription": "双屏。一气呵成的连续动效。",
+    "duoAdd": "添加 iPhone Duo",
+    "duoActive": "可开始制作动画",
+    "duoHint": "在下方选择一个展开或折叠动效。",
+    "globalMotionLabel": "为全部添加动画",
+    "empty2D": {
+      "title": "需要 2D 设备模型",
+      "description": "请先应用一个 2D 设备模型（浏览器、macOS 等）再为其制作动画。"
+    },
+    "categories": {
+      "Entrance": "入场",
+      "Continue": "持续",
+      "Exit": "退场"
+    },
+    "presets": {
+      "focus-in": "渐进聚焦",
+      "depth-emerge": "景深浮现",
+      "z-spin-reveal": "3D 旋转呈现",
+      "isometric-lift": "等距升起",
+      "cinematic-showcase": "电影级展示",
+      "macro-track": "对角微距跟拍",
+      "exit-fade-down": "向下淡出退场",
+      "exit-scale-blur": "缩放模糊退场",
+      "whip-showcase": "急摇展示",
+      "spatial-roam": "空间漫游",
+      "rise-crash": "升起坠落",
+      "crane-sweep": "摇臂扫拍",
+      "orbit-entrance": "环绕入场",
+      "duo-unfold": "展开",
+      "duo-fold": "折叠",
+      "duo-cycle": "折叠与展开",
+      "flick-exit": "轻甩退场",
+      "hero-reveal": "主视觉呈现",
+      "macro-pan": "微距平移",
+      "screen-glide": "屏幕滑移",
+      "float-hold": "悬浮停留",
+      "spiral-drop": "螺旋落下"
+    },
+    "controls": {
+      "intensity": "强度",
+      "speed": "速度"
+    },
+    "deleteTooltip": "删除动效",
+    "actions": {
+      "delete": "删除"
+    },
+    "customize": {
+      "title": "自定义动效",
+      "subtitle": "手动调整位置、缩放、旋转",
+      "positionLabel": "位置",
+      "positionHint": "拖动设备模型以调整其位置",
+      "tiltLabel": "倾斜 (X / Y)",
+      "tiltHint": "点击或拖动以倾斜",
+      "zoomLabel": "缩放",
+      "rotateZLabel": "Z 轴旋转",
+      "reverseLabel": "反向",
+      "resetButton": "重置自定义",
+      "blurLabel": "运动模糊"
+    },
+    "customize3D": {
+      "rotationTitle": "旋转偏移",
+      "rotationSubtitle": "在预设基础旋转之上叠加（角度）",
+      "rotateXLabel": "绕 X 轴旋转（俯仰）",
+      "rotateYLabel": "绕 Y 轴旋转（偏航）",
+      "rotateZLabel": "绕 Z 轴旋转（翻滚）",
+      "positionTitle": "位置偏移",
+      "positionSubtitle": "在预设基础位置之上叠加（场景单位）",
+      "positionLabel": "位置",
+      "positionHint": "拖动以设置 X / Y 位置",
+      "scaleTitle": "缩放",
+      "scaleSubtitle": "对模型应用的等比缩放系数",
+      "scaleLabel": "缩放"
+    }
+  },
+  "MobileTools": {
+    "openMenu": "打开工具菜单",
+    "title": "工具",
+    "close": "关闭",
+    "background": "背景",
+    "mockup": "设备模型",
+    "motion": "动效",
+    "zoom": "缩放",
+    "videos": "视频",
+    "elements": "元素",
+    "audio": "音频",
+    "uploading": "上传中…",
+    "uploadVideo": "上传视频"
+  },
+  "feedback": {
+    "tooltip": "发送反馈",
+    "title": "发送反馈",
+    "close": "关闭",
+    "types": {
+      "bug": "Bug",
+      "idea": "想法",
+      "other": "其他"
+    },
+    "messagePlaceholder": "告诉我们发生了什么，或你希望看到什么……",
+    "emailPlaceholder": "你的电子邮件（可选，以便我们回复）",
+    "emailInvalid": "请输入有效的电子邮件地址。",
+    "submit": "发送",
+    "successMessage": "谢谢！我们已收到你的反馈。",
+    "errorMessage": "发送失败。请重试。"
+  },
+  "tour": {
+    "nextBtn": "下一步",
+    "prevBtn": "上一步",
+    "doneBtn": "知道了！",
+    "step1": {
+      "title": "录制你的屏幕！",
+      "description": "点击此处开始录制你的屏幕。如果你需要更多信息或帮助，可以查看我们的",
+      "guideLinkText": "用户指南"
+    },
+    "step2": {
+      "title": "上传自定义视频",
+      "description": "已经有视频了？你也可以直接从设备上传视频进行编辑。"
+    },
+    "step3": {
+      "title": "用照片创建设备模型",
+      "description": "不只是视频！上传一张图片，用你的照片创建精彩的设备模型。"
+    }
+  },
+  "labelSidebar": {
+    "video": "视频",
+    "zoom": "缩放",
+    "elements": "对象",
+    "audio": "音频",
+    "motion": "动效",
+    "movement": "移动"
+  },
+  "heroPreview": {
+    "sidebar": {
+      "record": "录制",
+      "upload": "上传",
+      "new": "新建"
+    },
+    "background": {
+      "title": "背景",
+      "tabWallpaper": "壁纸",
+      "tabColor": "颜色",
+      "options": "选项",
+      "desktopLabel": "桌面",
+      "gradientsLabel": "渐变",
+      "showMore": "显示更多",
+      "settings": "设置",
+      "blur": "模糊",
+      "padding": "内边距",
+      "rounded": "圆角",
+      "shadow": "阴影"
+    },
+    "timeline": {
+      "video": "视频",
+      "zoom": "缩放"
+    },
+    "transport": {
+      "rewind": "后退 5 秒",
+      "forward": "前进 5 秒",
+      "play": "播放",
+      "pause": "暂停",
+      "mask": "遮罩",
+      "crop": "裁剪",
+      "auto": "自动"
+    }
+  },
+  "faq": {
+    "eyebrow": "常见问题",
+    "title1": "关于编辑器",
+    "title2": "你需要了解的一切",
+    "subtitle": "解答关于我们在线视频编辑器、录屏工具和录制编辑器的最常见问题。",
+    "contact": "还有疑问？",
+    "contactLink": "联系我们",
+    "items": [
+      {
+        "q": "什么是 Openvid？",
+        "a": "Openvid 是一款免费的在线视频编辑器，直接在你的浏览器中运行。它专为专业演示、教程和社交视频打造，无需安装。内置录屏工具、自动电影级缩放、3D 设备模型和高清导出。"
+      },
+      {
+        "q": "它真的免费且无水印吗？",
+        "a": "是的。你无需注册即可使用这款免费视频编辑器，并可无水印导出。首批项目没有隐藏限制，也无需信用卡。"
+      },
+      {
+        "q": "录屏工具和录制编辑器如何工作？",
+        "a": "录屏工具一键即可捕获屏幕、摄像头和音频。完成后，录制编辑器会自动在时间轴中打开你的录制内容：修剪、添加 AI 缩放、模糊和设备模型，然后导出。非常适合产品演示和教程。"
+      },
+      {
+        "q": "我需要下载或安装任何东西吗？",
+        "a": "不需要。这是一款在浏览器（Chrome、Edge、Firefox）中运行的在线视频编辑器。上传你的视频或录制屏幕，编辑并下载结果。无需安装，可在 Windows、Mac 和 Linux 上使用。"
+      },
+      {
+        "q": "什么是电影级缩放和 3D 设备模型？",
+        "a": "电影级缩放会自动跟随光标，以流畅、专业的运镜聚焦于录制内容中的重点部分。3D 设备模型将你的视频包裹在逼真的设备（MacBook、iPhone）中，无需 After Effects 即可用于演示和作品集。"
+      },
+      {
+        "q": "我可以导出哪些格式和质量？",
+        "a": "以高质量导出为 MP4 (H.264)，最高可达 4K，具体取决于你的源录制内容。选择宽高比（16:9、9:16、1:1），并保持文字和界面清晰锐利——非常适合 YouTube、TikTok 或你的着陆页。"
+      },
+      {
+        "q": "我的视频是否私密安全？",
+        "a": "是的。你的视频会尽可能在浏览器中本地处理。我们不会用它们训练模型，也不会分享它们。你可以随时删除自己的项目。"
+      },
+      {
+        "q": "它与其他视频编辑器有何不同？",
+        "a": "与通用编辑器不同，Openvid 针对录屏和演示进行了优化：简洁的多轨时间轴、自动缩放和跟踪，以及一键设备模型。对于这类用途，它比 Premiere 或 CapCut 更快，且无水印。"
+      }
+    ]
+  },
+  "videoEditor": {
+    "heroEyebrow": "在线视频编辑器",
+    "heroTitle1": "视频编辑器",
+    "heroTitle2": "无水印",
+    "heroSubtitle": "使用电影级缩放、3D 设备模型和多轨时间轴创建演示、教程和社交视频。免费、无需安装，并可导出高清视频。",
+    "ctaPrimary": "打开免费编辑器",
+    "ctaSecondary": "了解工作原理",
+    "comparisonTitle": "为什么选择 Openvid 而非其他编辑器？",
+    "comparisonSubtitle": "相较于 CapCut、Clipchamp 和 Premiere——专为演示和屏幕录制优化。",
+    "featuresTitle": "你所需要的一切",
+    "howItWorksTitle": "三步了解工作原理",
+    "features": [
+      {
+        "title": "电影级缩放",
+        "desc": "跟随光标并聚焦。可借助 AI 自动调整速度和焦点。"
+      },
+      {
+        "title": "3D 设备模型",
+        "desc": "一键将你的视频套入 MacBook、iPhone 或 iPad。"
+      },
+      {
+        "title": "多轨时间轴",
+        "desc": "在一个画布上叠加多个视频、音频和缩放效果。借助实时预览轻松修剪和同步各图层。"
+      }
+    ],
+    "steps": [
+      {
+        "t": "上传或录制",
+        "d": "拖入你的 MP4/WebM 文件，或直接在浏览器中录制屏幕、音频和摄像头画面。",
+        "tag": "输入"
+      },
+      {
+        "t": "使用缩放进行编辑",
+        "d": "添加 AI 电影级缩放、3D 设备模型，并精确调整你的时间轴。",
+        "tag": "处理"
+      },
+      {
+        "t": "导出高清视频",
+        "d": "选择 16:9、9:16 或 1:1 格式，并导出为无水印的 MP4/GIF。",
+        "tag": "输出"
+      }
+    ],
+    "faqEyebrow": "编辑器常见问题",
+    "faqTitle1": "关于",
+    "faqTitle2": "视频编辑器的疑问",
+    "faqSubtitle": "快速解答，助你开始无水印编辑。",
+    "ctaTitle": "立即开始编辑",
+    "ctaSubtitle": "免费、无水印、无需安装。",
+    "ctaButton": "打开视频编辑器",
+    "faqItems": [
+      {
+        "q": "是免费且无水印的吗？",
+        "a": "是的。可导出高清视频，无水印、无需绑卡。首个项目免费使用。"
+      },
+      {
+        "q": "我需要安装任何东西吗？",
+        "a": "不需要。可在 Windows、Mac 和 Linux 上的浏览器（Chrome、Edge、Firefox）中运行。"
+      },
+      {
+        "q": "它支持导出哪些格式？",
+        "a": "最高 4K 的 MP4 H.264、支持透明度的 WebM 以及 GIF。可选择 16:9、9:16 或 1:1。"
+      },
+      {
+        "q": "我的视频是私密的吗？",
+        "a": "是的。一切都通过 WebAssembly 在本地处理。你的视频不会上传到服务器。"
+      }
+    ]
+  },
+  "screenRecorder": {
+    "heroEyebrow": "在线录屏",
+    "heroTitle1": "录制屏幕",
+    "heroTitle2": "一键搞定",
+    "heroSubtitle": "无需安装即可捕捉屏幕、摄像头和音频。停止后，你的视频会直接进入录制编辑器，用于应用缩放、设备模型并以 HD 导出。",
+    "ctaPrimary": "免费录制屏幕",
+    "ctaSecondary": "查看指南",
+    "features": [
+      {
+        "title": "锐利捕捉，最高 4K",
+        "desc": "以晶莹清晰的分辨率、60fps 录制你的屏幕。无水印，无性能损失。"
+      },
+      {
+        "title": "气泡摄像头",
+        "desc": "以圆形或圆角方形添加你的网络摄像头，尺寸和悬浮位置均可自定义。"
+      },
+      {
+        "title": "完整音频与直接集成",
+        "desc": "分别捕捉麦克风和系统音频。无需中间导出，直接进入视频编辑器。"
+      }
+    ],
+    "stepsTitle": "3 步即可上手",
+    "stepsSubtitle": "录制屏幕并直接进入编辑，不浪费时间。",
+    "steps": [
+      {
+        "n": "01",
+        "t": "选择录制内容",
+        "d": "选择标签页、窗口或整个屏幕。按需启用系统音频。",
+        "tag": "输入"
+      },
+      {
+        "n": "02",
+        "t": "带摄像头录制",
+        "d": "可拖动气泡、边角调整以及镜像模式，并有 3 秒倒计时。",
+        "tag": "录制"
+      },
+      {
+        "n": "03",
+        "t": "即刻编辑",
+        "d": "停止录制后，你的视频会在编辑器中打开，用于应用缩放、3D 设备模型并导出。",
+        "tag": "输出"
+      }
+    ],
+    "ctaTitle": "准备好开始录制了吗？",
+    "ctaSubtitle": "免费、无水印，无需安装。30 秒完成你的首次录制。",
+    "ctaButton": "立即录制屏幕"
+  },
+  "exportSuccess": {
+    "title": "导出完成！",
+    "photoSuccess": "你的图片已成功导出。",
+    "videoSuccess": "你的视频已成功导出。",
+    "supportCoffee": "请我们喝杯咖啡以支持我们",
+    "starGithub": "在 GitHub 上给我们一颗星",
+    "close": "关闭"
+  }
+}
