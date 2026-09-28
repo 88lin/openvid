@@ -22,7 +22,6 @@ import { buildLayerNames, buildGroupNumbers, getIsMobileServerSnapshot, getIsMob
 import ContextMenu from "./ContextMenu";
 import { useTranslations } from "next-intl";
 import { TooltipAction } from "@/components/ui/tooltip-action";
-import { FeedbackWidget } from "./FeedbackWidget";
 
 export function LayersPanelInner({
     elements,
@@ -839,9 +838,6 @@ export function LayersPanelInner({
                         return rows;
                     })()
                 )}
-            </div>
-            <div className="shrink-0 px-2 py-1.5 flex items-center justify-end">
-                <FeedbackWidget />
             </div>
             {selectedIds.length > 1 && (
                 <div className="shrink-0 border-t border-border px-2 py-1.5 flex items-center gap-1">

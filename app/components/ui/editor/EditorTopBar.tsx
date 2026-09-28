@@ -1,6 +1,5 @@
 "use client";
 
-import { EDITOR_WITHOUT_AUTH } from "@/app/config/editor";
 import { Icon } from "@iconify/react";
 import { ExportDropdown } from "../ExportDropdown";
 import { ExportImageDropdown } from "../ExportImageDropdown";
@@ -9,12 +8,8 @@ import type { EditorMode } from "@/types/editor-mode.types";
 import type { ImageExportFormat } from "@/types/image-project.types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useEffect, useState } from "react";
-import { useAuth } from "@/app/contexts/useAuth";
 import { useTranslations } from "next-intl";
-import Image from "next/image";
-import Link from "next/link";
 import { TooltipAction } from "@/components/ui/tooltip-action";
-import { UserMenuDropdown } from "@/app/components/common/UserMenuDropdown";
 
 interface ImageExportProgress {
     status: "idle" | "preparing" | "rendering" | "complete" | "error";
@@ -56,22 +51,6 @@ export function EditorTopBar({
     const t = useTranslations("editor.topBar");
     const [showAlert, setShowAlert] = useState(false);
     const [prevStatus, setPrevStatus] = useState<string>(exportProgress.status);
-    const { user, profile, loading } = useAuth();
-
-    const meta = user?.user_metadata || {};
-    const displayName =
-        profile?.first_name ||
-        profile?.full_name ||
-        meta.full_name ||
-        meta.name ||
-        user?.email?.split("@")[0] ||
-        t("auth.defaultUser");
-
-    const avatarUrl =
-        profile?.avatar_url ||
-        meta.avatar_url ||
-        meta.picture ||
-        `https://api.dicebear.com/7.x/initials/svg?seed=${displayName}`;
 
     if (exportProgress.status !== prevStatus) {
         setPrevStatus(exportProgress.status);
@@ -142,38 +121,6 @@ export function EditorTopBar({
                         </button>
                     </TooltipAction>
                 </div>
-
-                {EDITOR_WITHOUT_AUTH ? null : loading ? (
-                    <div className="flex items-center gap-2 pl-3 border-l border-border ml-1">
-                        <div className="hidden sm:flex flex-col items-end gap-1.5">
-                            <div className="w-16 h-2.5 bg-muted rounded-sm animate-pulse"></div>
-                            <div className="w-24 h-2 bg-muted rounded-sm animate-pulse"></div>
-                        </div>
-                        <div className="h-8 w-8 rounded-full bg-muted animate-pulse border border-border shrink-0"></div>
-                    </div>
-                ) : !user ? (
-                    <div className="pr-2 flex items-center h-8">
-                        <Link href="/login" className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors">
-                            {t("auth.access")}
-                        </Link>
-                    </div>
-                ) : (
-                    <UserMenuDropdown
-                        showTheme
-                        editorMode={editorMode}
-                        trigger={
-                            <button
-                                className="flex items-center gap-1.5 px-2 border-border hover:opacity-80 transition-opacity focus:outline-none"
-                                aria-label={t("auth.userMenu")}
-                            >
-                                <div className="h-8 w-8 rounded-full border border-border bg-muted overflow-hidden shrink-0 relative">
-                                    <Image src={avatarUrl} alt={displayName} fill sizes="32px" className="object-cover" unoptimized />
-                                </div>
-                                <Icon icon="mdi:chevron-down" width="16" className="text-muted-foreground" />
-                            </button>
-                        }
-                    />
-                )}
 
                 {isPhotoMode && onImageExport && imageExportProgress ? (
                     <ExportImageDropdown

@@ -1,7 +1,6 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { AuthProvider } from "@/app/contexts/useAuth";
 import { Link } from "@/navigation";
 import Footer from "../components/common/Footer";
 import Header from "../components/common/Header";
@@ -9,9 +8,9 @@ import Image from "next/image";
 
 export default function NotFound() {
   const t = useTranslations('notFound');
-  
+
   return (
-    <AuthProvider>
+    <>
         <Header />
 
       <div className="flex flex-col items-center justify-center min-h-dvh bg-[#050505] text-center px-6 relative overflow-hidden dark">
@@ -43,6 +42,6 @@ export default function NotFound() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,163,255,0.08)_0%,transparent_60%)] pointer-events-none" />
       </div>
       <Footer/>
-    </AuthProvider>
+    </>
   );
 }

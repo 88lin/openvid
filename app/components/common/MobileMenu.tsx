@@ -1,22 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Link, useRouter } from "@/navigation";
+import { Link } from "@/navigation";
 import { Icon } from "@iconify/react";
-import { useAuth } from "@/app/contexts/useAuth";
-import { hasAnyVideo } from "@/lib/video-cache-utils";
 import * as Dialog from "@radix-ui/react-dialog";
 import Image from "next/image";
-import { Button } from "@/components/ui/button";
 import { useTranslations } from "next-intl";
 
 export function MobileMenu() {
   const t = useTranslations('header');
-  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
-  const [hasCachedVideo, setHasCachedVideo] = useState(false);
-  const { user, signOut } = useAuth();
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const [isMounted, setIsMounted] = useState(false);
 
@@ -27,35 +20,6 @@ export function MobileMenu() {
 
     return () => cancelAnimationFrame(frameId);
   }, []);
-
-  useEffect(() => {
-    const checkVideo = () => {
-      hasAnyVideo().then(setHasCachedVideo).catch(() => { });
-    };
-
-    checkVideo();
-
-    const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        checkVideo();
-      }
-    };
-
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
-  }, []);
-
-  const handleSignOut = async () => {
-    setIsLoggingOut(true);
-    try {
-      await signOut();
-      setIsOpen(false);
-      router.push("/");
-    } catch (error) {
-      console.error("Error signing out:", error);
-      setIsLoggingOut(false);
-    }
-  };
 
   const closeMenu = () => setIsOpen(false);
 
@@ -158,40 +122,6 @@ export function MobileMenu() {
               </Link>
             </div>
           </nav>
-
-          <div className="p-4 border-t border-white/5">
-            {user ? (
-              <button
-                onClick={handleSignOut}
-                disabled={isLoggingOut}
-                className="w-full flex items-center justify-center gap-3 px-4 py-2 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed border border-red-500/20 text-sm"
-              >
-                {isLoggingOut ? (
-                  <>
-                    <Icon icon="svg-spinners:ring-resize" className="w-5 h-5 animate-spin" aria-hidden="true" />
-                    <span className="font-medium">{t('loggingOut')}</span>
-                  </>
-                ) : (
-                  <>
-                    <Icon icon="solar:logout-2-linear" className="w-5 h-5" aria-hidden="true" />
-                    <span className="font-medium">{t('logout')}</span>
-                  </>
-                )}
-              </button>
-            ) : (
-              <Button variant="primary" asChild className="w-full text-white">
-                <Link
-                  href="/login"
-                  onClick={closeMenu}
-                  className="flex items-center gap-3 px-4 py-3"
-                >
-                  <Icon icon="solar:login-2-linear" className="w-5 h-5" aria-hidden="true" />
-                  <span>{t('login')}</span>
-                </Link>
-              </Button>
-
-            )}
-          </div>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
