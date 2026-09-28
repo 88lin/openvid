@@ -29,7 +29,7 @@ export default function GitHubBadge() {
 
   return (
     <a
-      href="https://github.com/CristianOlivera1/openvid"
+      href="https://github.com/88lin/openvid"
       target="_blank"
       rel="noopener noreferrer"
       className="relative inline-flex items-center gap-2 px-3 py-1 sm:py-1.5 rounded-full bg-linear-to-r from-yellow-400 via-amber-500 to-yellow-600 text-black font-semibold text-sm shadow-xl hover:scale-105 active:scale-95 transition-all duration-200 border border-white/20 select-none whitespace-nowrap"

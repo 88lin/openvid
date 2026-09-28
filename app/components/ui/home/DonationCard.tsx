@@ -8,7 +8,7 @@ export default function DonationCard() {
 
   return (
     <a 
-      href="/donate" 
+      href="https://blog.88lin.eu.org/coffee" 
       target="_blank" 
       rel="noopener noreferrer"
       className="relative group flex items-center justify-between w-full overflow-hidden squircle-element-camera border border-white/10 bg-[#0E0E12] p-8 transition-all hover:border-white/20 hover:bg-white/4 active:scale-[0.99]"
