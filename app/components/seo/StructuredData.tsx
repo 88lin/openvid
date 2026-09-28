@@ -297,7 +297,7 @@ export function generateOrganizationSchema(): OrganizationSchema {
       'https://www.tiktok.com/@openvid',
       'https://www.instagram.com/openvidink',
       'https://www.youtube.com/@openvidink',
-      'https://github.com/CristianOlivera1/openvid',
+      'https://github.com/88lin/openvid',
     ],
     contactPoint: {
       '@type': 'ContactPoint',

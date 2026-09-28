@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
-    const res = await fetch("https://api.github.com/repos/CristianOlivera1/openvid", {
+    const res = await fetch("https://api.github.com/repos/88lin/openvid", {
       headers: {
         "Authorization": `Bearer ${process.env.GITHUB_TOKEN}`,
         "Accept": "application/vnd.github+json"

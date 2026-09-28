@@ -1,6 +1,5 @@
 "use client";
 
-import { Icon } from "@iconify/react";
 import { Link } from "@/navigation";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
@@ -35,7 +34,7 @@ export default function Footer() {
               <li><Link href="/screen-recorder" className="hover:text-white transition-colors">{t('screenRecorder')}</Link></li>
               <li><Link href="/guide" target="_blank" className="hover:text-white transition-colors">{t('guide')}</Link></li>
               <li><Link href="/editor" className="hover:text-white transition-colors">{t('editor')}</Link></li>
-              <li><Link href="/donate" target="_blank" className="hover:text-white transition-colors">{t('donate')}</Link></li>
+              <li><a href="https://blog.88lin.eu.org/coffee" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">{t('donate')}</a></li>
             </ul>
           </nav>
           <nav aria-label={t('contact')}>
@@ -56,11 +55,6 @@ export default function Footer() {
 
       <div className="max-w-7xl mx-auto px-6 pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
         <span className="text-xs text-neutral-600">© {currentYear} openvid  {t('rights')}</span>
-        <div className="flex gap-4 text-white" aria-label="Social links">
-          <a href="https://x.com/openvid" className="hover:text-white transition-colors" aria-label="X" target="_blank" rel="noopener noreferrer"><Icon icon="mingcute:social-x-line" width="18" aria-hidden="true" /></a>
-          <a href="https://www.instagram.com/openvidink" className="hover:text-white transition-colors" aria-label="Instagram" target="_blank" rel="noopener noreferrer"><Icon icon="mdi:instagram" width="18" aria-hidden="true" /></a>
-          <a href="https://www.youtube.com/@openvidink" className="hover:text-white transition-colors" aria-label="Youtube" target="_blank" rel="noopener noreferrer"><Icon icon="mdi:youtube" width="18" aria-hidden="true" /></a>
-        </div>
       </div>
     </footer>
   );
