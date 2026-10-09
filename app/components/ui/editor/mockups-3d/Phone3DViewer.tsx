@@ -19,7 +19,16 @@ import {
   applyTextureCover
 } from "@/lib/phone3d.utils";
 import type { OrbitControls as OrbitControlsType } from 'three-stdlib';
-import { EnvironmentPreset, HDRI_FILES, sphericalCameraPos } from "@/lib/viewer-controls3d";
+import {
+  DEFAULT_MOCKUP_CAMERA,
+  EnvironmentPreset,
+  HDRI_FILES,
+  type CameraNavigationMode,
+  type MockupCameraConfig,
+  getCameraNavigationOptions,
+  getMockupCameraPosition,
+  reportMockupCameraChange,
+} from "@/lib/viewer-controls3d";
 import { GetMediaMaskStyles } from "@/lib/media-mask.utils";
 
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
@@ -44,6 +53,9 @@ interface Props {
   initialRotationY?: number;
   initialRotationZ?: number;
   onRotationChange?: (rx: number, ry: number) => void;
+  cameraConfig?: MockupCameraConfig;
+  cameraNavigationMode?: CameraNavigationMode;
+  onCameraChange?: (camera: MockupCameraConfig) => void;
   onMount?: (canvas: HTMLCanvasElement) => void;
   onApi?: (api: Phone3DApi | null) => void;
   modelUrl?: string;
@@ -106,7 +118,7 @@ function applyMetalMaterial(m: THREE.MeshStandardMaterial, matName: string): voi
   }
 }
 export function Phone3DScene({
-  imageUrl, imageMaskConfig, cropArea, initialRotationX = -58.23, initialRotationY = -29, initialRotationZ = 0, onRotationChange, rootRef, cameraRef, zoom = 1, modelUrl, onApi, onLoaded, videoElement, autoRotate = false, rotationSpeed = 3.5, glow = 1.0, environment = "studio", isSelected = false, isHovered = false,
+  imageUrl, imageMaskConfig, cropArea, initialRotationX = -58.23, initialRotationY = -29, initialRotationZ = 0, onRotationChange, cameraConfig = DEFAULT_MOCKUP_CAMERA, cameraNavigationMode = "orbit", onCameraChange, rootRef, cameraRef, zoom = 1, modelUrl, onApi, onLoaded, videoElement, autoRotate = false, rotationSpeed = 3.5, glow = 1.0, environment = "studio", isSelected = false, isHovered = false,
 }: Props & { rootRef: React.MutableRefObject<THREE.Group | null>; cameraRef: React.MutableRefObject<THREE.PerspectiveCamera | null>; onLoaded?: () => void; }) {
   const { gl, scene, camera, invalidate, size } = useThree();
   const orbitRef = useRef<OrbitControlsType | null>(null);
@@ -665,11 +677,11 @@ export function Phone3DScene({
 
   return (
     <>
-      <PerspectiveCamera ref={cameraRef} makeDefault fov={40} near={0.01} far={100} position={sphericalCameraPos(initialRotationX, initialRotationY)} zoom={zoom} />
+      <PerspectiveCamera ref={cameraRef} makeDefault fov={cameraConfig.fov ?? 40} near={0.01} far={100} position={getMockupCameraPosition(initialRotationX, initialRotationY, cameraConfig.distance, cameraConfig.target)} zoom={zoom} />
       <OrbitControls
         ref={orbitRef}
-        enableZoom={false}
-        enablePan={false}
+        {...getCameraNavigationOptions(cameraNavigationMode)}
+        target={cameraConfig.target}
         enableDamping
         dampingFactor={0.08}
         autoRotate={autoRotate}
@@ -679,11 +691,7 @@ export function Phone3DScene({
         }}
         onEnd={() => {
           isUserInteractingRef.current = false;
-          const orbit = orbitRef.current;
-          if (!orbit || !onRotationChange) return;
-          const ry = orbit.getAzimuthalAngle() * (180 / Math.PI);
-          const rx = (Math.PI / 2 - orbit.getPolarAngle()) * (180 / Math.PI);
-          onRotationChange(rx, ry);
+          reportMockupCameraChange(orbitRef.current, 1.5, onCameraChange, onRotationChange);
         }}
       />
       <Environment files={HDRI_FILES[environment as EnvironmentPreset]} environmentIntensity={glow} background={false} />

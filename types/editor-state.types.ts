@@ -7,6 +7,7 @@ import type { CameraConfig } from "@/types/camera.types";
 import type { Preview3DConfig, ImageMaskConfig } from "@/types/photo.types";
 import { MockupMotionFragment } from "@/lib/mockup-motion";
 import { VideoTrackClip } from "./video-track.types";
+import type { MockupCameraConfig } from "@/lib/viewer-controls3d";
 
 export interface VideoTransform {
     rotation: number;
@@ -48,6 +49,7 @@ export interface EditorState {
     imagePhoneRotY: number;
     imagePhoneRotZ: number;
     imagePhonePerspective: number;
+    mockupCamera: MockupCameraConfig;
     imagePhoneDevice: ImageDeviceId;
     imagePhonePresetId: string;
     imagePhoneOpening: number;
@@ -121,6 +123,7 @@ export function createInitialEditorState(overrides?: Partial<EditorState>): Edit
         imagePhoneRotY: 0,
         imagePhoneRotZ: 0,
         imagePhonePerspective: 600,
+        mockupCamera: { target: [0, 0, 0], distance: 1, fov: null },
         imagePhoneDevice: 'phone',
         imagePhonePresetId: 'front',
         imagePhoneOpening: 1,

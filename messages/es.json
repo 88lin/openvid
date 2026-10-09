@@ -598,6 +598,18 @@
     "retry": "Reintentar",
     "shadow": "Sombra",
     "position": "Posición",
+    "cameraControls": "Cámara 3D",
+    "cameraFraming": "Encuadre de cámara",
+    "cameraTarget": "Punto de enfoque",
+    "orbit": "Orbitar",
+    "trackXY": "Mover XY",
+    "trackZ": "Acercar / alejar",
+    "orbitHint": "Arrastra para girar alrededor del dispositivo.",
+    "trackXYHint": "Arrastra para desplazar la vista.",
+    "trackZHint": "Arrastra o usa la rueda para acercar o alejar.",
+    "dolly": "Distancia de cámara",
+    "fieldOfView": "Campo de visión",
+    "target": "Objetivo",
     "removeFrame": "Quitar marco",
     "darkMode": {
       "label": "Modo oscuro",
@@ -698,6 +710,8 @@
   "videosMenu": {
     "title": "Videos",
     "speed": "Velocidad",
+    "speedExport": "Se aplica a la vista previa y a la exportación",
+    "speedPresets": "Ajustes rápidos de velocidad",
     "dropzone": "¡Suelta tu video aquí!",
     "emptyState": {
       "title": "Subir video",

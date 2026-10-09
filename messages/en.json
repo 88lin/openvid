@@ -642,6 +642,18 @@
     "retry": "Try again",
     "shadow": "Shadow",
     "position": "Position",
+    "cameraControls": "3D camera",
+    "cameraFraming": "Camera framing",
+    "cameraTarget": "Look-at point",
+    "orbit": "Orbit",
+    "trackXY": "Track XY",
+    "trackZ": "Track Z",
+    "orbitHint": "Drag to rotate around the device.",
+    "trackXYHint": "Drag to pan the view.",
+    "trackZHint": "Drag or scroll to move closer or farther.",
+    "dolly": "Camera distance",
+    "fieldOfView": "Field of view",
+    "target": "Target",
     "removeFrame": "Remove frame",
     "darkMode": {
       "label": "Dark mode",
@@ -742,6 +754,8 @@
   "videosMenu": {
     "title": "Videos",
     "speed": "Speed",
+    "speedExport": "Applies to preview and export",
+    "speedPresets": "Playback speed presets",
     "dropzone": "Drop your video here!",
     "emptyState": {
       "title": "Upload video",

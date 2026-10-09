@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { DetailPageHeader } from "@/components/ui/DetailHeaderMenu";
 import { Position3DPresetsEditor } from "@/components/ui/Position3DPresetsEditor";
 import { ENVIRONMENT_OPTIONS, type EnvironmentPreset } from "@/lib/viewer-controls3d";
+import type { CameraNavigationMode, MockupCameraConfig } from "@/lib/viewer-controls3d";
 import {
     Select,
     SelectContent,
@@ -189,6 +190,10 @@ export interface Mockup3dMenuProps {
     setViewer3DGlow: (v: number) => void;
     viewer3DEnvironment: EnvironmentPreset;
     setViewer3DEnvironment: (v: EnvironmentPreset) => void;
+    mockupCamera: MockupCameraConfig;
+    setMockupCamera: (v: MockupCameraConfig) => void;
+    cameraNavigationMode: CameraNavigationMode;
+    setCameraNavigationMode: (v: CameraNavigationMode) => void;
 }
 
 export function Mockup3dMenu({
@@ -227,6 +232,10 @@ export function Mockup3dMenu({
     setViewer3DGlow,
     viewer3DEnvironment,
     setViewer3DEnvironment,
+    mockupCamera,
+    setMockupCamera,
+    cameraNavigationMode,
+    setCameraNavigationMode,
 }: Mockup3dMenuProps) {
     const t = useTranslations("mockupMenu");
 
@@ -238,6 +247,7 @@ export function Mockup3dMenu({
         const defaultRotY = imagePhoneDevice === "laptop" ? -37.82 : -29.82;
         setImagePhoneRotX(defaultRotX);
         setImagePhoneRotY(defaultRotY);
+        setCameraNavigationMode("orbit");
         setImagePhoneRotZ(0);
 
         if (imagePhoneDevice === "iphone-duo") {
@@ -259,6 +269,7 @@ export function Mockup3dMenu({
         }
         setImagePhoneShadowColor("#000000");
         setImagePhonePresetId("custom");
+        setMockupCamera({ target: [0, 0, 0], distance: 1, fov: null });
     }, [
         imagePhoneDevice,
         setImagePhoneX,
@@ -271,6 +282,8 @@ export function Mockup3dMenu({
         setImagePhoneShadow,
         setImagePhoneShadowColor,
         setImagePhonePresetId,
+        setMockupCamera,
+        setCameraNavigationMode,
     ]);
 
     return (
@@ -351,6 +364,105 @@ export function Mockup3dMenu({
                         suffix="%"
                     />
                 </div>
+
+                <section className="flex flex-col gap-3 pt-4 border-t border-border" aria-labelledby="camera-controls-title">
+                    <div className="flex items-center gap-2">
+                        <span className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-primary/20 bg-primary/10 text-primary">
+                            <Icon icon="mdi:camera" width="17" aria-hidden="true" />
+                        </span>
+                        <div className="min-w-0">
+                            <h3 id="camera-controls-title" className="text-[11px] font-bold text-foreground uppercase tracking-wider">
+                                {t("cameraControls")}
+                            </h3>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-1" role="group" aria-label={t("cameraControls")}>
+                        {([
+                            ["orbit", "mdi:orbit-variant", "orbit"],
+                            ["trackXY", "mdi:move", "trackXY"],
+                            ["trackZ", "mdi:arrow-expand-vertical", "trackZ"],
+                        ] as const).map(([mode, icon, label]) => (
+                            <button
+                                key={mode}
+                                type="button"
+                                onClick={() => setCameraNavigationMode(mode)}
+                                aria-pressed={cameraNavigationMode === mode}
+                                aria-label={t(label)}
+                                title={`${t(label)}: ${t(mode === "orbit" ? "orbitHint" : mode === "trackXY" ? "trackXYHint" : "trackZHint")}`}
+                                className={`relative flex h-10 min-w-0 items-center justify-center gap-1.5 rounded-lg border px-2 text-[10px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+                                    cameraNavigationMode === mode
+                                        ? "border-primary/50 bg-primary/10 text-primary"
+                                        : "border-border bg-muted/40 text-muted-foreground hover:border-muted-foreground/40 hover:bg-muted hover:text-foreground"
+                                }`}
+                            >
+                                <Icon icon={icon} width="15" aria-hidden="true" />
+                                <span className="leading-tight">{mode === "trackXY" ? "XY" : mode === "trackZ" ? "Z" : t(label)}</span>
+                                {cameraNavigationMode === mode && (
+                                    <Icon
+                                        icon="lucide:check"
+                                        width="11"
+                                        className="absolute right-1 top-1"
+                                        aria-hidden="true"
+                                    />
+                                )}
+                            </button>
+                        ))}
+                    </div>
+
+                    <div className="space-y-2 border-t border-border/70 pt-2.5">
+                        <h4 className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                            <Icon icon="mdi:camera-metering-center" width="13" aria-hidden="true" />
+                            {t("cameraFraming")}
+                        </h4>
+                        <SliderControl
+                            icon="mdi:arrow-expand-vertical"
+                            label={t("dolly")}
+                            value={Math.round(mockupCamera.distance * 100)}
+                            min={25}
+                            max={400}
+                            step={1}
+                            onChange={(value) => setMockupCamera({ ...mockupCamera, distance: value / 100 })}
+                            suffix="%"
+                        />
+                        <SliderControl
+                            icon="mdi:camera-metering-center"
+                            label={t("fieldOfView")}
+                            value={mockupCamera.fov ?? (imagePhoneDevice === "iphone-duo" ? 30 : 40)}
+                            min={20}
+                            max={80}
+                            step={1}
+                            onChange={(fov) => setMockupCamera({ ...mockupCamera, fov })}
+                            suffix="°"
+                        />
+                    </div>
+
+                    <div className="space-y-2 border-t border-border/70 pt-2.5">
+                        <h4 className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                            <Icon icon="mdi:crosshairs-gps" width="13" aria-hidden="true" />
+                            {t("cameraTarget")}
+                        </h4>
+                        {(["X", "Y", "Z"] as const).map((axis, index) => {
+                            const targetRange = imagePhoneDevice === "laptop" ? 100 : imagePhoneDevice === "iphone-duo" ? 5 : 1;
+                            return (
+                                <SliderControl
+                                    key={axis}
+                                    icon="mdi:crosshairs-gps"
+                                    label={`${t("target")} ${axis}`}
+                                    value={Math.round((mockupCamera.target[index] / targetRange) * 100)}
+                                    min={-100}
+                                    max={100}
+                                    step={1}
+                                    onChange={(value) => {
+                                        const target = [...mockupCamera.target] as [number, number, number];
+                                        target[index] = (value / 100) * targetRange;
+                                        setMockupCamera({ ...mockupCamera, target });
+                                    }}
+                                />
+                            );
+                        })}
+                    </div>
+                </section>
 
                 <div className="flex flex-col gap-3 pt-4 border-t border-border">
                     <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">

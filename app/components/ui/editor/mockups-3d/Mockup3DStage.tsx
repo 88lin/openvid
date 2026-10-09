@@ -12,7 +12,11 @@ import { IPhone17ProMax3DApi, IPhone17ProMaxScene } from "./IPhone17ProMax3DView
 import { IPadMini63DApi, IPadMiniScene } from "./IPadMini63DViewer";
 import { ImageMaskConfigLike, PHONE_DEVICE_URLS } from "@/lib/phone3d.utils";
 import type { ImageDeviceId } from "@/types/mockup.types";
-import { EnvironmentPreset } from "@/lib/viewer-controls3d";
+import type {
+  CameraNavigationMode,
+  EnvironmentPreset,
+  MockupCameraConfig,
+} from "@/lib/viewer-controls3d";
 import { REST_MOCKUP_3D_MOTION, type Mockup3DMotionTransform } from "@/lib/mockup-motion-3d";
 import { useFrame } from "@react-three/fiber";
 
@@ -34,6 +38,9 @@ export interface Mockup3DStageProps {
   openingProgress?: number;   // laptop / foldable phone
   modelUrl?: string;          // solo devices genéricos (phone/iphone)
   onRotationChange?: (rx: number, ry: number) => void;
+  cameraConfig?: MockupCameraConfig;
+  cameraNavigationMode?: CameraNavigationMode;
+  onCameraChange?: (camera: MockupCameraConfig) => void;
   onMount?: (canvas: HTMLCanvasElement) => void;
   onApi?: (api: Mockup3DApi | null) => void;
   scale?: number;

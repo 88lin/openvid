@@ -14,7 +14,16 @@ import {
   applyTextureCover
 } from "@/lib/phone3d.utils";
 import type { OrbitControls as OrbitControlsType } from 'three-stdlib';
-import { EnvironmentPreset, HDRI_FILES, sphericalCameraPos } from "@/lib/viewer-controls3d";
+import {
+  DEFAULT_MOCKUP_CAMERA,
+  EnvironmentPreset,
+  HDRI_FILES,
+  type CameraNavigationMode,
+  type MockupCameraConfig,
+  getCameraNavigationOptions,
+  getMockupCameraPosition,
+  reportMockupCameraChange,
+} from "@/lib/viewer-controls3d";
 import { GetMediaMaskStyles } from "@/lib/media-mask.utils";
 
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
@@ -39,6 +48,9 @@ interface Props {
   initialRotationY?: number;
   initialRotationZ?: number;
   onRotationChange?: (rx: number, ry: number) => void;
+  cameraConfig?: MockupCameraConfig;
+  cameraNavigationMode?: CameraNavigationMode;
+  onCameraChange?: (camera: MockupCameraConfig) => void;
   onMount?: (canvas: HTMLCanvasElement) => void;
   onApi?: (api: DoubleIPhone3DApi | null) => void;
   zoom?: number;
@@ -70,6 +82,9 @@ export function DoubleIPhoneScene({
   initialRotationY = -29,
   initialRotationZ = 0,
   onRotationChange,
+  cameraConfig = DEFAULT_MOCKUP_CAMERA,
+  cameraNavigationMode = "orbit",
+  onCameraChange,
   rootRef,
   cameraRef,
   zoom = 1,
@@ -463,11 +478,11 @@ export function DoubleIPhoneScene({
 
   return (
     <>
-      <PerspectiveCamera ref={cameraRef} makeDefault fov={40} near={0.01} far={100} position={sphericalCameraPos(initialRotationX, initialRotationY)} zoom={zoom} />
+      <PerspectiveCamera ref={cameraRef} makeDefault fov={cameraConfig.fov ?? 40} near={0.01} far={100} position={getMockupCameraPosition(initialRotationX, initialRotationY, cameraConfig.distance, cameraConfig.target)} zoom={zoom} />
       <OrbitControls
         ref={orbitRef}
-        enableZoom={false}
-        enablePan={false}
+        {...getCameraNavigationOptions(cameraNavigationMode)}
+        target={cameraConfig.target}
         enableDamping
         dampingFactor={0.08}
         autoRotate={autoRotate}
@@ -478,14 +493,13 @@ export function DoubleIPhoneScene({
         onEnd={() => {
           isUserInteractingRef.current = false;
           const orbit = orbitRef.current;
-          if (!orbit || !onRotationChange) return;
-
-          const ry = orbit.getAzimuthalAngle() * (180 / Math.PI);
-          const rx = (Math.PI / 2 - orbit.getPolarAngle()) * (180 / Math.PI);
-
-          prevRotationRef.current = { x: rx, y: ry };
-
-          onRotationChange(rx, ry);
+          if (orbit) {
+            prevRotationRef.current = {
+              x: 90 - orbit.getPolarAngle() * (180 / Math.PI),
+              y: orbit.getAzimuthalAngle() * (180 / Math.PI),
+            };
+          }
+          reportMockupCameraChange(orbitRef.current, 1.5, onCameraChange, onRotationChange);
         }}
       />
       <Environment files={HDRI_FILES[environment as EnvironmentPreset]} environmentIntensity={glow} background={false} />

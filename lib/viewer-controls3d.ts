@@ -1,7 +1,106 @@
 import { useControls } from "leva";
 import { useEffect } from "react";
+import { MOUSE, TOUCH } from "three";
+import type { OrbitControls as OrbitControlsType } from "three-stdlib";
 
 export type EnvironmentPreset = "sunset" | "dawn" | "night" | "warehouse" | "forest" | "apartment" | "studio" | "city" | "park" | "lobby";
+export type CameraNavigationMode = "orbit" | "trackXY" | "trackZ";
+
+export interface MockupCameraConfig {
+    target: [number, number, number];
+    distance: number;
+    fov: number | null;
+}
+
+export const DEFAULT_MOCKUP_CAMERA: MockupCameraConfig = {
+    target: [0, 0, 0],
+    distance: 1,
+    fov: null,
+};
+
+export function normalizeMockupCameraConfig(
+    value?: Partial<MockupCameraConfig> | null,
+): MockupCameraConfig {
+    const target = value?.target;
+    const coordinateAt = (index: number) => {
+        const coordinate = target?.[index];
+        return typeof coordinate === "number" && Number.isFinite(coordinate)
+            ? Math.max(-1000, Math.min(1000, coordinate))
+            : 0;
+    };
+    const normalizedTarget: [number, number, number] = [
+        coordinateAt(0),
+        coordinateAt(1),
+        coordinateAt(2),
+    ];
+    const distance = value?.distance;
+    const fov = value?.fov;
+    return {
+        target: normalizedTarget,
+        distance: typeof distance === "number" && Number.isFinite(distance)
+            ? Math.max(0.25, Math.min(4, distance))
+            : 1,
+        fov: typeof fov === "number" && Number.isFinite(fov)
+            ? Math.max(20, Math.min(80, fov))
+            : null,
+    };
+}
+
+export function getCameraNavigationOptions(mode: CameraNavigationMode = "orbit") {
+    return {
+        enableRotate: mode === "orbit",
+        enablePan: mode === "trackXY",
+        enableZoom: mode === "trackZ",
+        mouseButtons: {
+            LEFT: mode === "orbit" ? MOUSE.ROTATE : mode === "trackXY" ? MOUSE.PAN : MOUSE.DOLLY,
+            MIDDLE: MOUSE.DOLLY,
+            RIGHT: MOUSE.PAN,
+        },
+        touches: {
+            ONE: mode === "orbit" ? TOUCH.ROTATE : TOUCH.PAN,
+            TWO: mode === "trackZ" ? TOUCH.DOLLY_PAN : TOUCH.PAN,
+        },
+    };
+}
+
+export function getMockupCameraPosition(
+    rotX: number,
+    rotY: number,
+    distance: number,
+    target: [number, number, number],
+    baseRadius = 1.5,
+): [number, number, number] {
+    const camera = normalizeMockupCameraConfig({ target, distance });
+    const safeRotX = Number.isFinite(rotX) ? rotX : 0;
+    const safeRotY = Number.isFinite(rotY) ? rotY : 0;
+    const safeBaseRadius = Number.isFinite(baseRadius) && baseRadius > 0 ? baseRadius : 1.5;
+    const [x, y, z] = sphericalCameraPos(safeRotX, safeRotY, safeBaseRadius * camera.distance);
+    return [x + camera.target[0], y + camera.target[1], z + camera.target[2]];
+}
+
+export function reportMockupCameraChange(
+    controls: OrbitControlsType | null,
+    baseRadius: number,
+    onCameraChange?: (camera: MockupCameraConfig) => void,
+    onRotationChange?: (rotX: number, rotY: number) => void,
+): void {
+    if (!controls || !Number.isFinite(baseRadius) || baseRadius <= 0) return;
+    const camera = controls.object;
+    const distance = camera.position.distanceTo(controls.target) / baseRadius;
+    if (!Number.isFinite(distance) || ![controls.target.x, controls.target.y, controls.target.z].every(Number.isFinite)) return;
+
+    onCameraChange?.({
+        target: normalizeMockupCameraConfig({ target: [controls.target.x, controls.target.y, controls.target.z] }).target,
+        distance: Math.max(0.25, Math.min(4, distance)),
+        fov: "fov" in camera && typeof camera.fov === "number" && Number.isFinite(camera.fov)
+            ? Math.max(20, Math.min(80, camera.fov))
+            : null,
+    });
+    onRotationChange?.(
+        90 - controls.getPolarAngle() * (180 / Math.PI),
+        controls.getAzimuthalAngle() * (180 / Math.PI),
+    );
+}
 
 interface ViewerControlsOptions {
     defaultEnvironment?: EnvironmentPreset;

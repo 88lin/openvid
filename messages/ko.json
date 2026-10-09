@@ -642,6 +642,18 @@
     "retry": "다시 시도",
     "shadow": "그림자",
     "position": "위치",
+    "cameraControls": "3D 카메라",
+    "cameraFraming": "카메라 구도",
+    "cameraTarget": "시선 대상",
+    "orbit": "회전",
+    "trackXY": "XY 이동",
+    "trackZ": "Z 이동",
+    "orbitHint": "드래그하여 기기 주변을 회전합니다.",
+    "trackXYHint": "드래그하여 화면을 이동합니다.",
+    "trackZHint": "드래그하거나 스크롤하여 가까이 또는 멀리 이동합니다.",
+    "dolly": "카메라 거리",
+    "fieldOfView": "시야각",
+    "target": "대상",
     "removeFrame": "프레임 제거",
     "darkMode": {
       "label": "다크 모드",
@@ -742,6 +754,8 @@
   "videosMenu": {
     "title": "동영상",
     "speed": "속도",
+    "speedExport": "미리보기와 내보내기에 적용",
+    "speedPresets": "재생 속도 빠른 설정",
     "dropzone": "여기에 동영상을 놓으세요!",
     "emptyState": {
       "title": "동영상 업로드",

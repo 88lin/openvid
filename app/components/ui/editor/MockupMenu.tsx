@@ -74,6 +74,8 @@ export function MockupMenu({
     imagePhoneOpening, setImagePhoneOpening,
     imagePhoneShadow, setImagePhoneShadow,
     imagePhoneShadowColor,
+    mockupCamera, setMockupCamera,
+    cameraNavigationMode, setCameraNavigationMode,
     imagePhonePresetId, setImagePhonePresetId,
     setImagePhoneShadowColor,
     viewer3DAutoRotate, setViewer3DAutoRotate,
@@ -295,6 +297,10 @@ export function MockupMenu({
         onRemove={handleRemoveAll}
         imagePhoneRotX={imagePhoneRotX}
         imagePhoneRotY={imagePhoneRotY}
+        mockupCamera={mockupCamera}
+        setMockupCamera={setMockupCamera}
+        cameraNavigationMode={cameraNavigationMode}
+        setCameraNavigationMode={setCameraNavigationMode}
         imagePhoneRotZ={imagePhoneRotZ}
         setImagePhoneRotZ={setImagePhoneRotZ}
         imagePhonePresetId={imagePhonePresetId}

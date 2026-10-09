@@ -135,6 +135,7 @@ function VideoCanvasInner({
         imagePhoneShadow, imagePhoneShadowColor,
         imagePhoneRefWidth, setImagePhoneRefWidth,
         viewer3DAutoRotate, viewer3DRotationSpeed, viewer3DGlow, viewer3DEnvironment,
+        mockupCamera, setMockupCamera, cameraNavigationMode,
     } = useMockup3dContext();
 
     // 3D phone overlay is active in both video and image mode
@@ -2557,6 +2558,9 @@ function VideoCanvasInner({
                                                             initialRotationY={imagePhoneRotY}
                                                             initialRotationZ={imagePhoneRotZ}
                                                             onRotationChange={handlePhoneRotationChange}
+                                                            cameraConfig={mockupCamera}
+                                                            cameraNavigationMode={cameraNavigationMode}
+                                                            onCameraChange={setMockupCamera}
                                                             onMount={handlePhoneMount}
                                                             onApi={handlePhoneApi}
                                                             zoom={1}

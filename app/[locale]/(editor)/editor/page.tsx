@@ -31,6 +31,7 @@ import { DEFAULT_CAMERA_CONFIG } from "@/types/camera.types";
 import type { Preview3DConfig, ImageMaskConfig } from "@/types/photo.types";
 import { DEFAULT_MASK_CONFIG, PREVIEW_CONFIGS } from "@/types/photo.types";
 import { MOCKUPS } from "@/lib/mockup-data";
+import { normalizeMockupCameraConfig } from "@/lib/viewer-controls3d";
 import { gradientToCss, generateDefaultZoomFragments } from "@/types";
 import { ToolsSidebar } from "@/app/components/ui/editor/ToolsSidebar";
 import { MobileToolsMenu } from "@/app/components/ui/editor/MobileToolsMenu";
@@ -79,6 +80,7 @@ export default function Editor() {
         imagePhoneRotY, setImagePhoneRotY,
         imagePhoneRotZ, setImagePhoneRotZ,
         imagePhonePerspective, setImagePhonePerspective,
+        mockupCamera, setMockupCamera,
         imagePhoneDevice, setImagePhoneDevice,
         imagePhonePresetId, setImagePhonePresetId,
         imagePhoneOpening, setImagePhoneOpening,
@@ -373,11 +375,12 @@ export default function Editor() {
         imagePreview3D: imageTransform,
         apply3DToBackground,
         imageMaskConfig,
+        mockupCamera,
     }), [
         backgroundTab, selectedWallpaper, backgroundBlur, selectedImageUrl,
         backgroundColorConfig, padding, roundedCorners, shadows, aspectRatio,
         customDimensions, cropArea, mockupId, mockupConfig, canvasElements,
-        videoTransform, imageTransform, apply3DToBackground, imageMaskConfig,
+        videoTransform, imageTransform, apply3DToBackground, imageMaskConfig, mockupCamera,
     ]);
 
     const autoSaveCurrentProject = useCallback(async () => {
@@ -386,12 +389,12 @@ export default function Editor() {
         if (autoSaveTimeoutRef.current) clearTimeout(autoSaveTimeoutRef.current);
         autoSaveTimeoutRef.current = setTimeout(async () => {
             try {
-                await saveCurrentProject({ ...buildPhotoProjectSnapshot(), imageZoomScale, imagePhoneActive });
+                await saveCurrentProject({ ...buildPhotoProjectSnapshot(), imageZoomScale, imagePhoneActive, mockupCamera });
             } catch (error) {
                 console.error("Auto-save failed:", error);
             }
         }, 3000);
-    }, [isPhotoMode, imageUrl, currentProject, saveCurrentProject, buildPhotoProjectSnapshot, imageZoomScale, imagePhoneActive]);
+    }, [isPhotoMode, imageUrl, currentProject, saveCurrentProject, buildPhotoProjectSnapshot, imageZoomScale, imagePhoneActive, mockupCamera]);
 
     const currentProjectId = currentProject?.id ?? null;
     const autoSaveRef = useRef(autoSaveCurrentProject);
@@ -444,6 +447,7 @@ export default function Editor() {
             setApply3DToBackground(currentProject.apply3DToBackground);
             setImageMaskConfig(currentProject.imageMaskConfig);
             setImageZoomScale(currentProject.imageZoomScale ?? 1);
+            setMockupCamera(normalizeMockupCameraConfig(currentProject.mockupCamera));
             setImageDimensions({
                 width: currentProject.imageWidth,
                 height: currentProject.imageHeight,
@@ -675,6 +679,7 @@ export default function Editor() {
                 imagePhoneShadow,
                 imagePhoneShadowColor,
                 imagePhoneRefWidth,
+                mockupCamera,
                 mockupMotionFragments,
                 videoClips,
                 globalSpeed,
@@ -692,6 +697,7 @@ export default function Editor() {
         imagePhoneActive, imagePhoneX, imagePhoneY, imagePhoneScale, imagePhoneRotX, imagePhoneRotY,
         imagePhoneRotZ, imagePhonePerspective, imagePhoneDevice, imagePhonePresetId, imagePhoneOpening,
         imagePhoneShadow, imagePhoneShadowColor, imagePhoneRefWidth, mockupMotionFragments,
+        mockupCamera,
         setEditorState, videoClips, globalSpeed
     ]);
 
@@ -744,6 +750,7 @@ export default function Editor() {
             setImagePhoneShadow(editorState.imagePhoneShadow);
             setImagePhoneShadowColor(editorState.imagePhoneShadowColor);
             setImagePhoneRefWidth(editorState.imagePhoneRefWidth ?? 0);
+            setMockupCamera(normalizeMockupCameraConfig(editorState.mockupCamera));
             setMockupMotionFragments(editorState.mockupMotionFragments ?? []);
             setGlobalSpeed(editorState.globalSpeed ?? 1);
 
@@ -972,6 +979,7 @@ export default function Editor() {
         canvasElements,
         mockupId,
         mockupConfig,
+        mockupCamera,
         mockupMotionFragments,
         backgroundTab,
         selectedWallpaper,
@@ -1000,7 +1008,7 @@ export default function Editor() {
         zoomFragments, zoomMovements,
         audioTracks, uploadedAudios, muteOriginalAudio, masterVolume,
         canvasElements,
-        mockupId, mockupConfig,
+        mockupId, mockupConfig, mockupCamera,
         mockupMotionFragments,
         backgroundTab, selectedWallpaper, backgroundBlur, selectedImageUrl,
         unsplashBgUrl, backgroundColorConfig,
@@ -1752,6 +1760,7 @@ export default function Editor() {
                         setZoomMovements(savedProject.zoomMovements ?? []);
                         setMockupId(savedProject.mockupId);
                         setMockupConfig(savedProject.mockupConfig);
+                        setMockupCamera(normalizeMockupCameraConfig(savedProject.mockupCamera));
                         setCanvasElements(savedProject.canvasElements ?? []);
                         setAudioTracks(savedProject.audioTracks ?? []);
                         setMuteOriginalAudio(savedProject.muteOriginalAudio ?? false);

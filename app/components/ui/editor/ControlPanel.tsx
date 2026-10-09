@@ -142,9 +142,7 @@ export function ControlPanel({
     const hasMockup2D = mediaType === "video" && !imagePhoneActive;
     const hasMockup3D = imagePhoneActive;
 
-    const [isDark, setIsDark] = useState(
-        () => typeof window !== "undefined" && document.documentElement.classList.contains("dark")
-    );
+    const [isDark, setIsDark] = useState(false);
 
     useEffect(() => {
         const html = document.documentElement;
