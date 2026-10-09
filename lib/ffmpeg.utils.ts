@@ -22,6 +22,13 @@ export function getActiveClipAtTime(clips: VideoTrackClip[], timelineTime: numbe
     return null;
 }
 
+export function resolveClipTrimStart(clips: VideoTrackClip[] | undefined, fallbackTimelineStart: number): number {
+    if (clips && clips.length === 1) {
+        return clips[0].trimStart;
+    }
+    return fallbackTimelineStart;
+}
+
 export async function blobToUint8Array(blob: Blob): Promise<Uint8Array> {
     const buffer = await blob.arrayBuffer();
     return new Uint8Array(buffer);

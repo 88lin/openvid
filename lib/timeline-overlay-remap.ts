@@ -4,22 +4,12 @@ import type { AudioTrack } from "@/types/audio.types";
 import type { CanvasElement } from "@/types/canvas-elements.types";
 import type { MockupMotionFragment } from "@/lib/mockup-motion";
 
-/**
- * Keeps timeline overlays (zoom fragments, audio tracks, canvas elements,
- * motion fragments) in sync when the video clip layout changes (clip deleted,
- * trimmed, or reordered).
- *
- * Overlays are stored in absolute timeline time. When clips move, shrink, or
- * disappear, each overlay interval is mapped through the clip that contains
- * it: shifted by that clip's new offset, clamped to its new bounds, and
- * dropped entirely when its containing clip was removed.
- */
-
 interface ClipRange {
     oldStart: number;
     oldEnd: number;
     newStart: number;
     newEnd: number;
+    trimShift: number;
 }
 
 function buildClipRanges(oldClips: VideoTrackClip[], newClips: VideoTrackClip[]): ClipRange[] {
@@ -36,6 +26,7 @@ function buildClipRanges(oldClips: VideoTrackClip[], newClips: VideoTrackClip[])
             oldEnd: oldClip.startTime + oldDuration,
             newStart: newClip.startTime,
             newEnd: newClip.startTime + newDuration,
+            trimShift: newClip.trimStart - oldClip.trimStart,
         });
     }
 
@@ -65,7 +56,7 @@ function mapInterval(
         return { start, end };
     }
 
-    const offset = containing.newStart - containing.oldStart;
+    const offset = containing.newStart - containing.oldStart - containing.trimShift;
     let newStart = start + offset;
     let newEnd = end + offset;
 
@@ -105,7 +96,7 @@ export function remapOverlaysAfterClipChange(input: RemapOverlaysInput): RemapOv
     const ranges = buildClipRanges(oldClips, newClips);
 
     // Skip all work when nothing relevant changed (pure selection updates etc.)
-    const layoutChanged = ranges.some(r => r.newStart !== r.oldStart || r.newEnd !== r.oldEnd)
+    const layoutChanged = ranges.some(r => r.newStart !== r.oldStart || r.newEnd !== r.oldEnd || r.trimShift !== 0)
         || newClips.length !== oldClips.length;
     if (!layoutChanged) {
         return {

@@ -46,6 +46,7 @@ export function ControlPanel({
     roundedCorners,
     shadows,
     selectedImageUrl,
+    unsplashBgUrl,
     backgroundColorConfig,
     backgroundColorCss,
     onBackgroundTabChange,
@@ -316,6 +317,7 @@ export function ControlPanel({
                             backgroundTab={backgroundTab}
                             selectedWallpaper={selectedWallpaper}
                             selectedImageUrl={selectedImageUrl}
+                            backgroundUrl={unsplashBgUrl}
                             backgroundColorCss={backgroundColorCss}
                             initialPage={initialMockupMenuPage}
                             mediaType={mediaType}

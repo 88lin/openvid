@@ -35,7 +35,7 @@ const CATEGORY_CONFIGS: CategoryConfig[] = [
 ];
 
 let globalIndex = 0;
-const CACHE_VERSION = '20260911';
+const CACHE_VERSION = '20260925';
 
 export const WALLPAPER_CATEGORIES: WallpaperCategory[] = CATEGORY_CONFIGS.map(config => {
     const items: WallpaperItem[] = [];

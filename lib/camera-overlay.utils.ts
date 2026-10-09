@@ -72,7 +72,7 @@ export async function drawCameraOverlayToCtx(
         ctx.clip();
     } else {
         const radius = cameraConfig.shape === "squircle"
-            ? Math.round(85 * sizeMultiplier)
+            ? Math.round(65 * sizeMultiplier)
             : Math.round(6 * sizeMultiplier);
         drawRoundedRect(ctx, drawX, drawY, size, size, radius);
         ctx.fill();

@@ -1,4 +1,3 @@
-// Adapted from iphone-duo by Justin Levine (MIT). See ./LICENSE.
 import { Matrix3, Matrix4, ShaderMaterial, Vector2 } from 'three'
 
 export function createScreenMaterial(cover: boolean) {

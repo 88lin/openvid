@@ -176,9 +176,14 @@
     border-radius: 40px !important;
   }
 
+  .squircle-element-xl {
+    corner-shape: squircle;
+    border-radius: 50px !important;
+  }
+
   .squircle-element-2xl {
     corner-shape: squircle;
-    border-radius: 70px;
+    border-radius: 70px !important;
   }
 
   .squircle-corner {
@@ -308,11 +313,6 @@ button {
 .squircle-element {
   corner-shape: squircle;
   border-radius: 20px;
-}
-
-.squircle-element-xl {
-  corner-shape: squircle;
-  border-radius: 50px;
 }
 
 .hero-perspective-container {

@@ -51,8 +51,8 @@ export const DEFAULT_CAMERA_CONFIG: CameraConfig = {
     enabled: false,
     deviceId: null,
     shape: "squircle",
-    size: 0.18,
-    position: { x: 0.88, y: 0.88 },
+    size: 0.30,
+    position: { x: 0.88, y: 0.8 },
     corner: "bottom-right",
     mirror: true,
 };

@@ -48,7 +48,6 @@ export function easeInOutQuart(t: number): number {
     return t < 0.5 ? 8 * t * t * t * t : 1 - Math.pow(-2 * t + 2, 4) / 2;
 }
 
-
 export interface ZoomPhaseState {
     phase: 'entry' | 'hold' | 'exit';
     scale: number;

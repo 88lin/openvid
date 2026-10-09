@@ -179,3 +179,46 @@ export async function probeMediaDimensions(url: string): Promise<{ width: number
         }, 2000);
     });
 }
+
+export type TrimEdge = "start" | "end" | "both";
+
+export function getClipTrimInfo(clip: VideoTrackClip) {
+    const head = Math.max(0, clip.trimStart);
+    const tail = Math.max(0, clip.duration - clip.trimEnd);
+    return { head, tail, isTrimmed: head > 0.01 || tail > 0.01 };
+}
+
+export function rippleTrimClip(
+    clips: VideoTrackClip[],
+    clipId: string,
+    patch: { trimStart?: number; trimEnd?: number }
+): VideoTrackClip[] {
+    const ordered = [...clips].sort((a, b) => a.startTime - b.startTime);
+    const updated = ordered.map(c => {
+        if (c.id !== clipId) return c;
+        const rawStart = patch.trimStart ?? c.trimStart;
+        const rawEnd = patch.trimEnd ?? c.trimEnd;
+        const trimEnd = Math.min(c.duration, Math.max(rawEnd, rawStart + MIN_CLIP_DURATION));
+        const trimStart = Math.max(0, Math.min(rawStart, trimEnd - MIN_CLIP_DURATION));
+        return { ...c, trimStart, trimEnd };
+    });
+    return resequenceClips(updated).clips;
+}
+
+export function restoreClipTrim(
+    clips: VideoTrackClip[],
+    clipId: string | null,
+    edge: TrimEdge = "both"
+): VideoTrackClip[] {
+    let changed = false;
+    const ordered = [...clips].sort((a, b) => a.startTime - b.startTime);
+    const updated = ordered.map(c => {
+        if (clipId !== null && c.id !== clipId) return c;
+        const trimStart = edge === "end" ? c.trimStart : 0;
+        const trimEnd = edge === "start" ? c.trimEnd : c.duration;
+        if (trimStart === c.trimStart && trimEnd === c.trimEnd) return c;
+        changed = true;
+        return { ...c, trimStart, trimEnd };
+    });
+    return changed ? resequenceClips(updated).clips : clips;
+}
