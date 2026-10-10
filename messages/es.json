@@ -624,6 +624,13 @@
     "cameraTarget": "Punto de enfoque",
     "cameraTargetPosition": "Posición XY",
     "cameraTargetPadHint": "Arrastra el punto para mover el encuadre. Usa las flechas para ajustar y Home para centrar.",
+    "cameraTargetQuick": {
+      "left": "Enfocar a la izquierda",
+      "right": "Enfocar a la derecha",
+      "top": "Enfocar arriba",
+      "bottom": "Enfocar abajo",
+      "center": "Centrar encuadre"
+    },
     "orbit": "Orbitar",
     "trackXY": "Mover XY",
     "trackZ": "Acercar / alejar",
@@ -1209,6 +1216,7 @@
     "noSpace": "Sin espacio",
     "cameraKeyframe": "Fotograma de cámara",
     "cameraTrackClickHint": "Haz clic en un espacio vacío para añadir un fotograma de cámara.",
+    "cameraAddAtPlayhead": "Añadir fotograma en el cabezal de reproducción",
     "cameraKeyframeMarkerHint": "Clic para ir a ese momento; doble clic para eliminar.",
     "trimStartHint": "Arrastra para recortar el inicio",
     "trimEndHint": "Arrastra para recortar el final",

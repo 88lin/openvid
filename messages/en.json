@@ -668,6 +668,13 @@
     "cameraTarget": "Look-at point",
     "cameraTargetPosition": "XY position",
     "cameraTargetPadHint": "Drag the dot to move the framing. Use arrow keys to adjust and Home to center.",
+    "cameraTargetQuick": {
+      "left": "Focus left",
+      "right": "Focus right",
+      "top": "Focus up",
+      "bottom": "Focus down",
+      "center": "Center framing"
+    },
     "orbit": "Orbit",
     "trackXY": "Track XY",
     "trackZ": "Track Z",
@@ -1231,6 +1238,7 @@
     "noSpace": "No space",
     "cameraKeyframe": "Camera keyframe",
     "cameraTrackClickHint": "Click an empty spot to add a camera keyframe.",
+    "cameraAddAtPlayhead": "Add a keyframe at the playhead",
     "cameraKeyframeMarkerHint": "Click to jump to this time; double-click to delete.",
     "trimStartHint": "Drag to trim the start",
     "trimEndHint": "Drag to trim the end",

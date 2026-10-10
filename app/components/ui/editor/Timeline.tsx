@@ -674,6 +674,10 @@ export function Timeline({
                                 motionTracksCount={mockupMotionFragments.length}
                                 showMovementRow={showMovementRow}
                                 showCameraTrack={showCameraTrack}
+                                cameraAddLabel={t("cameraAddAtPlayhead")}
+                                onAddCameraKeyframe={onAddMockupCameraKeyframeAtTime
+                                    ? () => onAddMockupCameraKeyframeAtTime(currentTime)
+                                    : undefined}
                             />
                             <div className="relative flex flex-col pb-1 min-w-0">
                                 <motion.div
@@ -862,7 +866,7 @@ export function Timeline({
                                             className="shrink-0 w-full flex items-center relative border-t border-border/70 bg-muted/20"
                                             style={{ height: 34 }}
                                             role="group"
-                                            aria-label={t("cameraKeyframe")}
+                                            aria-label={`${t("cameraKeyframe")} · ${t("cameraTrackClickHint")}`}
                                             title={t("cameraTrackClickHint")}
                                             onClick={(event) => {
                                                 if (!onAddMockupCameraKeyframeAtTime || contentWidth <= 0 || scaledDuration <= 0) return;
@@ -873,6 +877,11 @@ export function Timeline({
                                             }}
                                         >
                                             <div className="pointer-events-none absolute inset-x-0 top-1/2 h-px bg-primary/15" aria-hidden="true" />
+                                            {mockupCameraKeyframes.length === 0 && (
+                                                <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-primary/35" aria-hidden="true">
+                                                    <Icon icon="mdi:camera-plus-outline" width="16" />
+                                                </span>
+                                            )}
                                             {mockupCameraKeyframes.map((keyframe) => {
                                                 const left = scaledDuration > 0
                                                     ? (keyframe.time / scaledDuration) * contentWidth
