@@ -31,7 +31,20 @@ import { DEFAULT_CAMERA_CONFIG } from "@/types/camera.types";
 import type { Preview3DConfig, ImageMaskConfig } from "@/types/photo.types";
 import { DEFAULT_MASK_CONFIG, PREVIEW_CONFIGS } from "@/types/photo.types";
 import { MOCKUPS } from "@/lib/mockup-data";
-import { normalizeMockupCameraConfig } from "@/lib/viewer-controls3d";
+import {
+    createAutomaticMockupCameraTour,
+    DEFAULT_MOCKUP_CAMERA_FOV,
+    getAutomaticMockupCameraPreset,
+    normalizeMockupCameraConfig,
+} from "@/lib/viewer-controls3d";
+import {
+    sampleMockupCameraKeyframes,
+} from "@/lib/viewer-controls3d";
+import type {
+    MockupCameraKeyframe,
+    MockupCameraPose,
+    MockupCameraPreset,
+} from "@/lib/viewer-controls3d";
 import { gradientToCss, generateDefaultZoomFragments } from "@/types";
 import { ToolsSidebar } from "@/app/components/ui/editor/ToolsSidebar";
 import { MobileToolsMenu } from "@/app/components/ui/editor/MobileToolsMenu";
@@ -87,6 +100,7 @@ export default function Editor() {
         imagePhoneShadow, setImagePhoneShadow,
         imagePhoneShadowColor, setImagePhoneShadowColor,
         imagePhoneRefWidth, setImagePhoneRefWidth,
+        setCameraNavigationMode,
     } = useMockup3dContext();
 
     // Undo/Redo system - centralized state management
@@ -255,6 +269,8 @@ export default function Editor() {
     // Mockup state
     const [mockupId, setMockupId] = useState<string>("none");
     const [mockupConfig, setMockupConfig] = useState<MockupConfig>(DEFAULT_MOCKUP_CONFIG);
+    const [mockupCameraKeyframes, setMockupCameraKeyframes] = useState<MockupCameraKeyframe[]>([]);
+    const [selectedMockupCameraKeyframeId, setSelectedMockupCameraKeyframeId] = useState<string | null>(null);
 
     // Whether the currently loaded source video file contains an audio stream
     const [videoHasAudioTrack, setVideoHasAudioTrack] = useState<boolean>(true);
@@ -343,6 +359,58 @@ export default function Editor() {
 
     const handleCameraConfigChange = useCallback((partial: Partial<CameraConfig>) => {
         setCameraConfig((prev) => (prev ? { ...prev, ...partial } : prev));
+    }, []);
+
+    const updateMockupCameraKeyframe = useCallback((id: string, updates: Partial<MockupCameraKeyframe>) => {
+        setMockupCameraKeyframes((previous) => previous.map((keyframe) =>
+            keyframe.id === id ? { ...keyframe, ...updates } : keyframe
+        ));
+    }, []);
+
+    const upsertMockupCameraKeyframe = useCallback((pose: MockupCameraPose, time = currentTime) => {
+        const existing = mockupCameraKeyframes.find((keyframe) => Math.abs(keyframe.time - time) <= 0.05);
+        const keyframe: MockupCameraKeyframe = {
+            id: existing?.id ?? `camera_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+            time,
+            camera: normalizeMockupCameraConfig(pose.camera),
+            rotationX: pose.rotationX,
+            rotationY: pose.rotationY,
+        };
+        setMockupCameraKeyframes((previous) => [
+            ...previous.filter((item) => item.id !== keyframe.id),
+            keyframe,
+        ].sort((a, b) => a.time - b.time));
+        setSelectedMockupCameraKeyframeId(keyframe.id);
+        return keyframe;
+    }, [currentTime, mockupCameraKeyframes]);
+
+    const handleAddOrUpdateMockupCameraKeyframe = useCallback((time = currentTime) => {
+        const pose = sampleMockupCameraKeyframes(mockupCameraKeyframes, time, DEFAULT_MOCKUP_CAMERA_FOV[imagePhoneDevice])
+            ?? { camera: mockupCamera, rotationX: imagePhoneRotX, rotationY: imagePhoneRotY };
+        upsertMockupCameraKeyframe(pose, time);
+    }, [mockupCameraKeyframes, currentTime, mockupCamera, imagePhoneRotX, imagePhoneRotY, imagePhoneDevice, upsertMockupCameraKeyframe]);
+
+    const handleApplyMockupCameraPreset = useCallback((preset: MockupCameraPreset) => {
+        setMockupCamera(preset.camera);
+        setImagePhoneRotX(preset.rotationX);
+        setImagePhoneRotY(preset.rotationY);
+        if (!isPhotoMode) {
+            upsertMockupCameraKeyframe(preset);
+        }
+    }, [isPhotoMode, setMockupCamera, setImagePhoneRotX, setImagePhoneRotY, upsertMockupCameraKeyframe]);
+
+    const handleMockupCameraUpdate = useCallback((camera: typeof mockupCamera) => {
+        setMockupCamera(camera);
+        if (isPlaying) return;
+        const selected = mockupCameraKeyframes.find((keyframe) =>
+            keyframe.id === selectedMockupCameraKeyframeId && Math.abs(keyframe.time - currentTime) <= 0.05
+        );
+        if (selected) updateMockupCameraKeyframe(selected.id, { camera });
+    }, [setMockupCamera, isPlaying, mockupCameraKeyframes, selectedMockupCameraKeyframeId, currentTime, updateMockupCameraKeyframe]);
+
+    const handleDeleteMockupCameraKeyframe = useCallback((id: string) => {
+        setMockupCameraKeyframes((previous) => previous.filter((keyframe) => keyframe.id !== id));
+        setSelectedMockupCameraKeyframeId((previous) => previous === id ? null : previous);
     }, []);
 
     const handleCameraClick = useCallback(() => {
@@ -685,6 +753,7 @@ export default function Editor() {
                 imagePhoneShadowColor,
                 imagePhoneRefWidth,
                 mockupCamera,
+                mockupCameraKeyframes,
                 mockupMotionFragments,
                 videoClips,
                 globalSpeed,
@@ -702,7 +771,7 @@ export default function Editor() {
         imagePhoneActive, imagePhoneX, imagePhoneY, imagePhoneScale, imagePhoneRotX, imagePhoneRotY,
         imagePhoneRotZ, imagePhonePerspective, imagePhoneDevice, imagePhonePresetId, imagePhoneOpening,
         imagePhoneShadow, imagePhoneShadowColor, imagePhoneRefWidth, mockupMotionFragments,
-        mockupCamera,
+        mockupCamera, mockupCameraKeyframes,
         setEditorState, videoClips, globalSpeed
     ]);
 
@@ -756,6 +825,8 @@ export default function Editor() {
             setImagePhoneShadowColor(editorState.imagePhoneShadowColor);
             setImagePhoneRefWidth(editorState.imagePhoneRefWidth ?? 0);
             setMockupCamera(normalizeMockupCameraConfig(editorState.mockupCamera));
+            setMockupCameraKeyframes(editorState.mockupCameraKeyframes ?? []);
+            setSelectedMockupCameraKeyframeId(null);
             setMockupMotionFragments(editorState.mockupMotionFragments ?? []);
             setGlobalSpeed(editorState.globalSpeed ?? 1);
 
@@ -985,6 +1056,7 @@ export default function Editor() {
         mockupId,
         mockupConfig,
         mockupCamera,
+        mockupCameraKeyframes,
         mockupMotionFragments,
         backgroundTab,
         selectedWallpaper,
@@ -1013,7 +1085,7 @@ export default function Editor() {
         zoomFragments, zoomMovements,
         audioTracks, uploadedAudios, muteOriginalAudio, masterVolume,
         canvasElements,
-        mockupId, mockupConfig, mockupCamera,
+        mockupId, mockupConfig, mockupCamera, mockupCameraKeyframes,
         mockupMotionFragments,
         backgroundTab, selectedWallpaper, backgroundBlur, selectedImageUrl,
         unsplashBgUrl, backgroundColorConfig,
@@ -1776,6 +1848,8 @@ export default function Editor() {
                         setMockupId(savedProject.mockupId);
                         setMockupConfig(savedProject.mockupConfig);
                         setMockupCamera(normalizeMockupCameraConfig(savedProject.mockupCamera));
+                        setMockupCameraKeyframes(savedProject.mockupCameraKeyframes ?? []);
+                        setSelectedMockupCameraKeyframeId(null);
                         setCanvasElements(savedProject.canvasElements ?? []);
                         setAudioTracks(savedProject.audioTracks ?? []);
                         setMuteOriginalAudio(savedProject.muteOriginalAudio ?? false);
@@ -2623,6 +2697,44 @@ export default function Editor() {
         }
     }, [isDraggingPlayhead, isPlaying, syncAudioPlayback, findActiveClipAtTime, timelineToClipTime, scheduleUpdateFrame]);
 
+    const handleSelectMockupCameraKeyframe = useCallback((keyframe: MockupCameraKeyframe) => {
+        setSelectedMockupCameraKeyframeId(keyframe.id);
+        setMockupCamera(normalizeMockupCameraConfig(keyframe.camera));
+        setImagePhoneRotX(keyframe.rotationX);
+        setImagePhoneRotY(keyframe.rotationY);
+        handleSeek(keyframe.time);
+    }, [setMockupCamera, setImagePhoneRotX, setImagePhoneRotY, handleSeek]);
+
+    const handleApplyAutomaticMockupCamera = useCallback(() => {
+        if (isPhotoMode) {
+            handleApplyMockupCameraPreset(getAutomaticMockupCameraPreset(imagePhoneDevice));
+            setCameraNavigationMode("orbit");
+            return;
+        }
+
+        const keyframes = createAutomaticMockupCameraTour(imagePhoneDevice, videoDuration, mockupCameraKeyframes);
+        if (keyframes.length === 0) return;
+
+        setCameraNavigationMode("orbit");
+        setMockupCameraKeyframes((previous) => [...previous, ...keyframes].sort((a, b) => a.time - b.time));
+        setSelectedMockupCameraKeyframeId(keyframes[0].id);
+        setMockupCamera(keyframes[0].camera);
+        setImagePhoneRotX(keyframes[0].rotationX);
+        setImagePhoneRotY(keyframes[0].rotationY);
+        handleSeek(keyframes[0].time);
+    }, [
+        isPhotoMode,
+        imagePhoneDevice,
+        videoDuration,
+        mockupCameraKeyframes,
+        handleApplyMockupCameraPreset,
+        setCameraNavigationMode,
+        setMockupCamera,
+        setImagePhoneRotX,
+        setImagePhoneRotY,
+        handleSeek,
+    ]);
+
     const handleImageSelect = useCallback((url: string) => {
         if (backgroundTab === "wallpaper") setUnsplashBgUrl(url);
         else setSelectedImageUrl(url);
@@ -2991,6 +3103,12 @@ export default function Editor() {
                                         onUpdateMockupMotionFragment={handleUpdateMockupMotionFragment}
                                         onSelectMockupMotionFragment={handleSelectMockupMotionFragment}
                                         onDeleteMockupMotionFragment={handleDeleteMockupMotionFragment}
+                                        currentTime={currentTime}
+                                        mockupCameraKeyframes={mockupCameraKeyframes}
+                                        selectedMockupCameraKeyframeId={selectedMockupCameraKeyframeId}
+                                        onApplyMockupCameraPreset={handleApplyMockupCameraPreset}
+                                        onApplyAutomaticMockupCamera={handleApplyAutomaticMockupCamera}
+                                        onUpdateMockupCameraKeyframe={handleMockupCameraUpdate}
                                         selectedAudioTrackId={selectedAudioTrackId}
                                         setSelectedAudioTrackId={handleSelectAudioTrack}
                                     />
@@ -3101,6 +3219,9 @@ export default function Editor() {
                         onSelectZoomMovement={handleSelectZoomMovement}
                         onUpdateZoomMovement={handleUpdateZoomMovement}
                         videoClips={videoClips}
+                        mockupCameraKeyframes={mockupCameraKeyframes}
+                        selectedMockupCameraKeyframeId={selectedMockupCameraKeyframeId}
+                        onUpdateMockupCameraKeyframe={updateMockupCameraKeyframe}
                     />
 
                     {/* Video mode: Show player controls and timeline */}
@@ -3172,6 +3293,15 @@ export default function Editor() {
                                     isPlaying={isPlaying}
                                     onZoomChange={handleZoomChange}
                                     mockupMotionFragments={mockupMotionFragments}
+                                    showCameraTrack={imagePhoneActive}
+                                    mockupCameraKeyframes={mockupCameraKeyframes}
+                                    selectedMockupCameraKeyframeId={selectedMockupCameraKeyframeId}
+                                    onSelectMockupCameraKeyframe={handleSelectMockupCameraKeyframe}
+                                    onDeleteMockupCameraKeyframe={handleDeleteMockupCameraKeyframe}
+                                    onAddMockupCameraKeyframeAtTime={(time) => {
+                                        handleAddOrUpdateMockupCameraKeyframe(time);
+                                        handleSeek(time);
+                                    }}
                                     selectedMockupMotionFragmentId={selectedMockupMotionFragmentId}
                                     onSelectMockupMotionFragment={handleSelectMockupMotionFragment}
                                     onUpdateMockupMotionFragment={handleUpdateMockupMotionFragment}

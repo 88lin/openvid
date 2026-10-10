@@ -6,6 +6,7 @@ import type { MockupConfig } from "./mockup.types";
 import type { CameraConfig } from "./camera.types";
 import { MockupMotionFragment } from "@/lib/mockup-motion";
 import type { VideoTrackClip } from "./video-track.types";
+import type { MockupCameraKeyframe } from "@/lib/viewer-controls3d";
 
 export type Tool = "screenshot" | "elements" | "audio" | "zoom" | "mockup" | "cursor" | "video" | "camera" | "history" | "motion";
 export type BackgroundTab = "wallpaper" | "image" | "color";
@@ -115,6 +116,9 @@ export interface VideoCanvasProps {
   onImageZoomScaleChange?: (scale: number) => void;
   otherSelectionActive?: boolean;
   mockupMotionFragments?: MockupMotionFragment[];
+  mockupCameraKeyframes?: MockupCameraKeyframe[];
+  selectedMockupCameraKeyframeId?: string | null;
+  onUpdateMockupCameraKeyframe?: (id: string, updates: Partial<MockupCameraKeyframe>) => void;
   videoDuration?: number;
   onMockupConfigChange?: (config: Partial<MockupConfig>) => void;
   selectedZoomFragment?: ZoomFragment | null;

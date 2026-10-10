@@ -644,6 +644,27 @@
     "position": "Position",
     "cameraControls": "3D camera",
     "cameraFraming": "Camera framing",
+    "cameraPresets": "Camera views",
+    "cameraPreset": {
+      "front": "Front view",
+      "threeQuarter": "Three-quarter view",
+      "top": "Top view",
+      "detail": "Close-up view"
+    },
+    "cameraKeyframes": "Camera keyframes",
+    "autoCamera": "Auto camera",
+    "autoCameraHint": "Creates a smooth, device-matched camera move.",
+    "autoCameraNoSpace": "Add at least 0.8 s of free timeline space first.",
+    "autoCameraFrame": "Auto frame",
+    "autoCameraFrameHint": "Sets a polished angle for this device.",
+    "cameraAdvanced": "Adjust",
+    "cameraDragHint": "Choose a mode, then drag the 3D preview.",
+    "cameraReviewGuides": {
+      "title": "Framing guides",
+      "thirds": "Rule of thirds",
+      "center": "Center crosshair",
+      "safeArea": "Safe area"
+    },
     "cameraTarget": "Look-at point",
     "orbit": "Orbit",
     "trackXY": "Track XY",
@@ -1206,6 +1227,9 @@
   },
   "timeline": {
     "noSpace": "No space",
+    "cameraKeyframe": "Camera keyframe",
+    "cameraTrackClickHint": "Click an empty spot to add a camera keyframe.",
+    "cameraKeyframeMarkerHint": "Click to jump to this time; double-click to delete.",
     "trimStartHint": "Drag to trim the start",
     "trimEndHint": "Drag to trim the end",
     "trimmedStart": "Trimmed {seconds}s from the start · double-click to restore",
@@ -1509,6 +1533,7 @@
   },
   "labelSidebar": {
     "video": "Video",
+    "camera": "Camera",
     "zoom": "Zoom",
     "elements": "Object",
     "audio": "Audio",

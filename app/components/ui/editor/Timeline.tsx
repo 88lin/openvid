@@ -56,6 +56,12 @@ export function Timeline({
     onSelectMockupMotionFragment,
     onUpdateMockupMotionFragment,
     onDeleteMockupMotionFragment,
+    showCameraTrack = false,
+    mockupCameraKeyframes = [],
+    selectedMockupCameraKeyframeId = null,
+    onSelectMockupCameraKeyframe,
+    onDeleteMockupCameraKeyframe,
+    onAddMockupCameraKeyframeAtTime,
     onActivateMotionTool,
     canvasElements = [],
     selectedElementId = null,
@@ -213,11 +219,12 @@ export function Timeline({
     const totalLanesCount = useMemo(() => {
         let count = 0;
         if (showMovementRow) count += 1;
+        if (showCameraTrack) count += 1;
         if (canvasElements.length > 0) count += elementLaneCount;
         if (audioTracks.length > 0) count += audioLaneCount;
         if (mockupMotionFragments.length > 0) count += 1;
         return count;
-    }, [showMovementRow, canvasElements.length, elementLaneCount, audioTracks.length, audioLaneCount, mockupMotionFragments.length]);
+    }, [showMovementRow, showCameraTrack, canvasElements.length, elementLaneCount, audioTracks.length, audioLaneCount, mockupMotionFragments.length]);
 
     useEffect(() => {
         if (!isDraggingTrim) {
@@ -648,7 +655,7 @@ export function Timeline({
                 <div className="flex-1 flex flex-col relative overflow-hidden">
                     <div
                         ref={trackRef}
-                        className={`flex-1 overflow-x-auto custom-scrollbar pr-2 ${audioTracks.length > 0 || elementLaneCount > 1 || canvasElements.length > 0 || showMovementRow
+                        className={`flex-1 overflow-x-auto custom-scrollbar pr-2 ${audioTracks.length > 0 || elementLaneCount > 1 || canvasElements.length > 0 || showMovementRow || showCameraTrack
                             ? "overflow-y-auto no-scrollbar"
                             : "overflow-y-hidden"
                             }`}
@@ -666,6 +673,7 @@ export function Timeline({
                                 audioLaneCount={audioTracks.length > 0 ? audioLaneCount : 0}
                                 motionTracksCount={mockupMotionFragments.length}
                                 showMovementRow={showMovementRow}
+                                showCameraTrack={showCameraTrack}
                             />
                             <div className="relative flex flex-col pb-1 min-w-0">
                                 <motion.div
@@ -848,6 +856,47 @@ export function Timeline({
                                             )}
                                         </div>
                                     </div>
+
+                                    {showCameraTrack && (
+                                        <div
+                                            className="shrink-0 w-full flex items-center relative border-t border-border/70 bg-muted/20"
+                                            style={{ height: 34 }}
+                                            role="group"
+                                            aria-label={t("cameraKeyframe")}
+                                            title={t("cameraTrackClickHint")}
+                                            onClick={(event) => {
+                                                if (!onAddMockupCameraKeyframeAtTime || contentWidth <= 0 || scaledDuration <= 0) return;
+                                                if ((event.target as HTMLElement).closest("button")) return;
+                                                const bounds = event.currentTarget.getBoundingClientRect();
+                                                const progress = Math.max(0, Math.min(1, (event.clientX - bounds.left) / contentWidth));
+                                                onAddMockupCameraKeyframeAtTime(progress * scaledDuration);
+                                            }}
+                                        >
+                                            <div className="pointer-events-none absolute inset-x-0 top-1/2 h-px bg-primary/15" aria-hidden="true" />
+                                            {mockupCameraKeyframes.map((keyframe) => {
+                                                const left = scaledDuration > 0
+                                                    ? (keyframe.time / scaledDuration) * contentWidth
+                                                    : 0;
+                                                return (
+                                                    <button
+                                                        key={keyframe.id}
+                                                        type="button"
+                                                        className={`absolute top-1/2 z-10 size-3 -translate-x-1/2 -translate-y-1/2 rotate-45 rounded-[2px] border shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                                                            selectedMockupCameraKeyframeId === keyframe.id
+                                                                ? "border-primary bg-primary text-primary-foreground"
+                                                                : "border-primary/40 bg-background text-primary hover:bg-primary/10"
+                                                        }`}
+                                                        style={{ left }}
+                                                        title={`${t("cameraKeyframe")} · ${formatTime(keyframe.time)} · ${t("cameraKeyframeMarkerHint")}`}
+                                                        aria-label={`${t("cameraKeyframe")} · ${formatTime(keyframe.time)} · ${t("cameraKeyframeMarkerHint")}`}
+                                                        aria-pressed={selectedMockupCameraKeyframeId === keyframe.id}
+                                                        onClick={() => onSelectMockupCameraKeyframe?.(keyframe)}
+                                                        onDoubleClick={() => onDeleteMockupCameraKeyframe?.(keyframe.id)}
+                                                    />
+                                                );
+                                            })}
+                                        </div>
+                                    )}
 
                                     <div
                                         className="shrink-0 w-full flex items-center relative"

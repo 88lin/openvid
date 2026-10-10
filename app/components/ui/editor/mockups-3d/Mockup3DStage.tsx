@@ -17,6 +17,8 @@ import type {
   EnvironmentPreset,
   MockupCameraConfig,
 } from "@/lib/viewer-controls3d";
+import { applyMockupCameraPoseForRender } from "@/lib/viewer-controls3d";
+import type { MockupCameraPose } from "@/lib/viewer-controls3d";
 import { REST_MOCKUP_3D_MOTION, type Mockup3DMotionTransform } from "@/lib/mockup-motion-3d";
 import { useFrame } from "@react-three/fiber";
 
@@ -155,6 +157,11 @@ function StageContent({ device, rootRef: externalRootRef, cameraRef: externalCam
   const rootRef = externalRootRef ?? internalRootRef;
   const cameraRef = externalCameraRef ?? internalCameraRef;
   const canvasElRef = useRef<HTMLCanvasElement | null>(null);
+  const zoomRef = useRef(props.zoom ?? 1);
+  const onApi = props.onApi;
+  useEffect(() => {
+    zoomRef.current = props.zoom ?? 1;
+  }, [props.zoom]);
 
   const hasMotion = props.motionTransform && props.motionTransform !== REST_MOCKUP_3D_MOTION;
 
@@ -170,6 +177,29 @@ function StageContent({ device, rootRef: externalRootRef, cameraRef: externalCam
     setLoaded(true);
     onLoadedChange?.(true);
   }, [onLoadedChange]);
+
+  const handleApi = useCallback((api: Mockup3DApi | null) => {
+    if (!api) {
+      onApi?.(null);
+      return;
+    }
+
+    const wrappedApi = {
+      ...api,
+      renderAt: (width: number, height: number, _motion?: Mockup3DMotionTransform, cameraPose?: MockupCameraPose) => {
+        const camera = cameraRef.current;
+        const restoreCamera = camera && cameraPose
+          ? applyMockupCameraPoseForRender(camera, cameraPose, device, zoomRef.current)
+          : null;
+        try {
+          api.renderAt(width, height);
+        } finally {
+          restoreCamera?.();
+        }
+      },
+    };
+    onApi?.(wrappedApi as Mockup3DApi);
+  }, [device, onApi, cameraRef]);
 
   const handleMount = (canvas: HTMLCanvasElement) => {
     canvasElRef.current = canvas;
@@ -201,25 +231,25 @@ function StageContent({ device, rootRef: externalRootRef, cameraRef: externalCam
         <Motion3DApplicator rootRef={rootRef} motionTransform={props.motionTransform ?? REST_MOCKUP_3D_MOTION} device={device} baseRotationZ={props.initialRotationZ ?? 0} />
         <Suspense fallback={null}>
           {device === "iphone-13-pro-max" && (
-            <IPhone13ProMaxScene {...props} rootRef={rootRef} cameraRef={cameraRef} onLoaded={markLoaded} />
+            <IPhone13ProMaxScene {...props} onApi={handleApi} rootRef={rootRef} cameraRef={cameraRef} onLoaded={markLoaded} />
           )}
           {device === "double_iphone_13_pro" && (
-            <DoubleIPhoneScene {...props} rootRef={rootRef} cameraRef={cameraRef} onLoaded={markLoaded} />
+            <DoubleIPhoneScene {...props} onApi={handleApi} rootRef={rootRef} cameraRef={cameraRef} onLoaded={markLoaded} />
           )}
           {device === "iphone-17-pro-max" && (
-            <IPhone17ProMaxScene {...props} rootRef={rootRef} cameraRef={cameraRef} onLoaded={markLoaded} />
+            <IPhone17ProMaxScene {...props} onApi={handleApi} rootRef={rootRef} cameraRef={cameraRef} onLoaded={markLoaded} />
           )}
           {device === "iphone-duo" && (
-            <IPhoneDuoScene {...props} rootRef={rootRef} cameraRef={cameraRef} onLoaded={markLoaded} />
+            <IPhoneDuoScene {...props} onApi={handleApi} rootRef={rootRef} cameraRef={cameraRef} onLoaded={markLoaded} />
           )}
           {device === "laptop" && (
-            <LaptopScene {...props} rootRef={rootRef} cameraRef={cameraRef} onLoaded={markLoaded} />
+            <LaptopScene {...props} onApi={handleApi} rootRef={rootRef} cameraRef={cameraRef} onLoaded={markLoaded} />
           )}
           {device === "ipad_mini_6_2021" && (
-            <IPadMiniScene {...props} rootRef={rootRef} cameraRef={cameraRef} onLoaded={markLoaded} />
+            <IPadMiniScene {...props} onApi={handleApi} rootRef={rootRef} cameraRef={cameraRef} onLoaded={markLoaded} />
           )}
           {(device === "iphone" || device === "phone") && (
-            <Phone3DScene {...props} rootRef={rootRef} cameraRef={cameraRef} onLoaded={markLoaded} />
+            <Phone3DScene {...props} onApi={handleApi} rootRef={rootRef} cameraRef={cameraRef} onLoaded={markLoaded} />
           )}
         </Suspense>
       </Canvas>

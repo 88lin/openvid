@@ -7,6 +7,11 @@ import type { UploadedAudio, AudioTrack } from "./audio.types";
 import type { CameraConfig } from "./camera.types";
 import type { ImageProjectPreview } from "./image-project.types";
 import { MockupMotionFragment, MockupMotionPresetId } from "@/lib/mockup-motion";
+import type {
+    MockupCameraKeyframe,
+    MockupCameraPreset,
+    MockupCameraConfig,
+} from "@/lib/viewer-controls3d";
 
 export interface ControlPanelProps {
     activeTool: Tool;
@@ -105,6 +110,12 @@ export interface ControlPanelProps {
     onUpdateMockupMotionFragment?: (id: string, updates: Partial<MockupMotionFragment>) => void;
     onSelectMockupMotionFragment?: (id: string | null) => void;
     onDeleteMockupMotionFragment?: (id: string) => void;
+    currentTime?: number;
+    mockupCameraKeyframes?: MockupCameraKeyframe[];
+    selectedMockupCameraKeyframeId?: string | null;
+    onApplyMockupCameraPreset?: (preset: MockupCameraPreset) => void;
+    onApplyAutomaticMockupCamera?: () => void;
+    onUpdateMockupCameraKeyframe?: (camera: MockupCameraConfig) => void;
     selectedAudioTrackId?: string | null;
     setSelectedAudioTrackId?: (trackId: string | null) => void;
 }

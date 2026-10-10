@@ -2,6 +2,7 @@ import { ZoomFragment, ZoomMovement } from "./zoom.types";
 import type { AudioTrack, UploadedAudio } from "./audio.types";
 import type { TrimEdge, VideoTrackClip } from "./video-track.types";
 import { MockupMotionFragment } from "@/lib/mockup-motion";
+import type { MockupCameraKeyframe } from "@/lib/viewer-controls3d";
 import { CanvasElement } from "./canvas-elements.types";
 
 export interface TrimRange {
@@ -49,6 +50,12 @@ export interface TimelineProps {
     onSelectMockupMotionFragment?: (id: string | null) => void;
     onUpdateMockupMotionFragment?: (id: string, updates: Partial<MockupMotionFragment>) => void;
     onDeleteMockupMotionFragment?: (id: string) => void;
+    showCameraTrack?: boolean;
+    mockupCameraKeyframes?: MockupCameraKeyframe[];
+    selectedMockupCameraKeyframeId?: string | null;
+    onSelectMockupCameraKeyframe?: (keyframe: MockupCameraKeyframe) => void;
+    onDeleteMockupCameraKeyframe?: (id: string) => void;
+    onAddMockupCameraKeyframeAtTime?: (time: number) => void;
     canvasElements?: CanvasElement[];
     selectedElementId?: string | null;
     onSelectElement?: (id: string | null) => void;

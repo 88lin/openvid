@@ -644,6 +644,27 @@
     "position": "위치",
     "cameraControls": "3D 카메라",
     "cameraFraming": "카메라 구도",
+    "cameraPresets": "카메라 보기",
+    "cameraPreset": {
+      "front": "정면 보기",
+      "threeQuarter": "3/4 보기",
+      "top": "상단 보기",
+      "detail": "근접 보기"
+    },
+    "cameraKeyframes": "카메라 키프레임",
+    "autoCamera": "자동 카메라",
+    "autoCameraHint": "기기에 맞는 부드러운 카메라 움직임을 만듭니다.",
+    "autoCameraNoSpace": "타임라인에 0.8초 이상의 빈 공간을 확보하세요.",
+    "autoCameraFrame": "자동 구도",
+    "autoCameraFrameHint": "기기에 맞는 세련된 각도를 설정합니다.",
+    "cameraAdvanced": "세부 설정",
+    "cameraDragHint": "모드를 선택한 뒤 3D 미리보기를 드래그하세요.",
+    "cameraReviewGuides": {
+      "title": "구도 가이드",
+      "thirds": "삼분할",
+      "center": "중앙 십자선",
+      "safeArea": "안전 영역"
+    },
     "cameraTarget": "시선 대상",
     "orbit": "회전",
     "trackXY": "XY 이동",
@@ -1206,6 +1227,9 @@
   },
   "timeline": {
     "noSpace": "공간 없음",
+    "cameraKeyframe": "카메라 키프레임",
+    "cameraTrackClickHint": "빈 곳을 클릭하면 카메라 키프레임이 추가됩니다.",
+    "cameraKeyframeMarkerHint": "클릭하면 해당 시점으로 이동하고, 두 번 클릭하면 삭제합니다.",
     "trimStartHint": "드래그하여 시작 부분 자르기",
     "trimEndHint": "드래그하여 끝 부분 자르기",
     "trimmedStart": "시작 부분 {seconds}초 잘림 · 더블 클릭하여 복원",
@@ -1509,6 +1533,7 @@
   },
   "labelSidebar": {
     "video": "비디오",
+    "camera": "카메라",
     "zoom": "줌",
     "elements": "오브젝트",
     "audio": "오디오",

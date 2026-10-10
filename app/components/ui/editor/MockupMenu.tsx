@@ -20,6 +20,11 @@ import { getWallpaperUrl } from "@/lib/wallpaper.utils";
 import { Mockup2dMenu } from "./Mockup2dMenu";
 import { Mockup3dMenu, type ActiveDeviceTpl } from "./Mockup3dMenu";
 import { DeviceCard } from "@/components/ui/DeviceCard";
+import type {
+  MockupCameraConfig,
+  MockupCameraKeyframe,
+  MockupCameraPreset,
+} from "@/lib/viewer-controls3d";
 
 export interface MockupMenuProps {
   mockupId?: string;
@@ -33,6 +38,13 @@ export interface MockupMenuProps {
   selectedImageUrl?: string;
   initialPage?: MenuPage;
   mediaType?: "video" | "image";
+  currentTime?: number;
+  mockupCameraKeyframes?: MockupCameraKeyframe[];
+  selectedMockupCameraKeyframeId?: string | null;
+  onApplyCameraPreset?: (preset: MockupCameraPreset) => void;
+  onApplyAutomaticCamera?: () => void;
+  onUpdateCameraKeyframe?: (camera: MockupCameraConfig) => void;
+  videoDuration?: number;
 }
 
 export function MockupMenu({
@@ -47,6 +59,13 @@ export function MockupMenu({
   selectedImageUrl,
   initialPage = "home",
   mediaType = "image",
+  currentTime = 0,
+  mockupCameraKeyframes = [],
+  selectedMockupCameraKeyframeId = null,
+  onApplyCameraPreset,
+  onApplyAutomaticCamera,
+  onUpdateCameraKeyframe,
+  videoDuration = 0,
 }: MockupMenuProps) {
   const t = useTranslations("mockupMenu");
 
@@ -301,6 +320,13 @@ export function MockupMenu({
         setMockupCamera={setMockupCamera}
         cameraNavigationMode={cameraNavigationMode}
         setCameraNavigationMode={setCameraNavigationMode}
+        currentTime={currentTime}
+        mockupCameraKeyframes={mockupCameraKeyframes}
+        selectedMockupCameraKeyframeId={selectedMockupCameraKeyframeId}
+        onApplyCameraPreset={onApplyCameraPreset}
+        onApplyAutomaticCamera={onApplyAutomaticCamera}
+        onUpdateCameraKeyframe={onUpdateCameraKeyframe}
+        videoDuration={videoDuration}
         imagePhoneRotZ={imagePhoneRotZ}
         setImagePhoneRotZ={setImagePhoneRotZ}
         imagePhonePresetId={imagePhonePresetId}

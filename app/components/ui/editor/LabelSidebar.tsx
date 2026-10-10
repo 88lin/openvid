@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from 'next-intl';
+import { Icon } from '@iconify/react';
 import { ELEMENT_ROW_HEIGHT } from '@/types/timeline.types';
 
 interface LabelSidebarProps {
@@ -8,6 +9,7 @@ interface LabelSidebarProps {
     motionTracksCount?: number;
     elementLaneCount?: number;
     showMovementRow?: boolean;
+    showCameraTrack?: boolean;
 }
 
 export default function LabelSidebar({
@@ -15,6 +17,7 @@ export default function LabelSidebar({
     motionTracksCount = 0,
     elementLaneCount = 0,
     showMovementRow = false,
+    showCameraTrack = false,
 }: LabelSidebarProps) {
     const t = useTranslations('labelSidebar');
 
@@ -27,6 +30,18 @@ export default function LabelSidebar({
                     {t('video')}
                 </span>
             </div>
+
+            {showCameraTrack && (
+                <div
+                    className="flex items-center justify-center border-t border-border/70 bg-muted/20 text-primary"
+                    style={{ height: 34 }}
+                    role="group"
+                    title={t('camera')}
+                    aria-label={t('camera')}
+                >
+                    <Icon icon="mdi:camera" width="13" aria-hidden="true" />
+                </div>
+            )}
 
             <div
                 className="flex items-center px-3 border-t border-border"

@@ -135,6 +135,12 @@ export function ControlPanel({
     onUpdateMockupMotionFragment,
     onSelectMockupMotionFragment,
     onDeleteMockupMotionFragment,
+    currentTime = 0,
+    mockupCameraKeyframes = [],
+    selectedMockupCameraKeyframeId = null,
+    onApplyMockupCameraPreset,
+    onApplyAutomaticMockupCamera,
+    onUpdateMockupCameraKeyframe,
 }: ExtendedControlPanelProps) {
 
     const t = useTranslations("controlPanel");
@@ -318,6 +324,13 @@ export function ControlPanel({
                             backgroundColorCss={backgroundColorCss}
                             initialPage={initialMockupMenuPage}
                             mediaType={mediaType}
+                            currentTime={currentTime}
+                            mockupCameraKeyframes={mockupCameraKeyframes}
+                            selectedMockupCameraKeyframeId={selectedMockupCameraKeyframeId}
+                            onApplyCameraPreset={onApplyMockupCameraPreset}
+                            onApplyAutomaticCamera={onApplyAutomaticMockupCamera}
+                            onUpdateCameraKeyframe={onUpdateMockupCameraKeyframe}
+                            videoDuration={videoDuration}
                         />
                     </Suspense>
                 )}

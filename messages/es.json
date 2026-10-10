@@ -600,6 +600,27 @@
     "position": "Posición",
     "cameraControls": "Cámara 3D",
     "cameraFraming": "Encuadre de cámara",
+    "cameraPresets": "Vistas de cámara",
+    "cameraPreset": {
+      "front": "Vista frontal",
+      "threeQuarter": "Vista tres cuartos",
+      "top": "Vista superior",
+      "detail": "Primer plano"
+    },
+    "cameraKeyframes": "Fotogramas de cámara",
+    "autoCamera": "Cámara automática",
+    "autoCameraHint": "Crea un movimiento suave adaptado al dispositivo.",
+    "autoCameraNoSpace": "Libera al menos 0,8 s en la línea de tiempo.",
+    "autoCameraFrame": "Encuadre automático",
+    "autoCameraFrameHint": "Aplica un ángulo cuidado para este dispositivo.",
+    "cameraAdvanced": "Ajustes",
+    "cameraDragHint": "Elige un modo y arrastra la vista 3D.",
+    "cameraReviewGuides": {
+      "title": "Guías de encuadre",
+      "thirds": "Regla de tercios",
+      "center": "Cruz central",
+      "safeArea": "Área segura"
+    },
     "cameraTarget": "Punto de enfoque",
     "orbit": "Orbitar",
     "trackXY": "Mover XY",
@@ -1184,6 +1205,9 @@
   },
   "timeline": {
     "noSpace": "Sin espacio",
+    "cameraKeyframe": "Fotograma de cámara",
+    "cameraTrackClickHint": "Haz clic en un espacio vacío para añadir un fotograma de cámara.",
+    "cameraKeyframeMarkerHint": "Clic para ir a ese momento; doble clic para eliminar.",
     "trimStartHint": "Arrastra para recortar el inicio",
     "trimEndHint": "Arrastra para recortar el final",
     "trimmedStart": "Recortado {seconds}s al inicio · doble clic para restaurar",
@@ -1487,6 +1511,7 @@
   },
   "labelSidebar": {
     "video": "Video",
+    "camera": "Cámara",
     "zoom": "Zoom",
     "elements": "Objeto",
     "audio": "Audio",

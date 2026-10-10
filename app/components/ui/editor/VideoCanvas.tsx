@@ -36,6 +36,11 @@ import { drawPhone3DCompositeWithZoom, type Phone3DCompositeContext } from "@/li
 import { buildMockupMotionCss, MockupMotionTransform, REST_MOCKUP_MOTION, sampleCombinedMockupMotion, sampleCombined3DMotion, REST_MOCKUP_3D_MOTION, Mockup3DMotionTransform, MOTION_PRESET_3D_IDS } from "@/lib/mockup-motion";
 import { filterVisibleElements } from "@/lib/canvas-elements-timeline.utils";
 import { ZoomPointOverlay, ZOOM_POINT_VISUAL_SCALE } from "@/components/ui/ZoomPointOverlay";
+import {
+    DEFAULT_MOCKUP_CAMERA_FOV,
+    sampleMockupCameraKeyframes,
+} from "@/lib/viewer-controls3d";
+import type { MockupCameraKeyframe, MockupCameraPose } from "@/lib/viewer-controls3d";
 
 export type { VideoCanvasHandle, VideoCanvasProps };
 
@@ -119,6 +124,9 @@ function VideoCanvasInner({
     onSelectZoomMovement,
     onUpdateZoomMovement,
     videoClips = [],
+    mockupCameraKeyframes = [],
+    selectedMockupCameraKeyframeId = null,
+    onUpdateMockupCameraKeyframe,
 }: VideoCanvasProps & {
     ref?: React.Ref<VideoCanvasHandle>;
     onSelectedElementIdsChange?: (ids: string[]) => void;
@@ -136,8 +144,15 @@ function VideoCanvasInner({
         imagePhoneShadow, imagePhoneShadowColor,
         imagePhoneRefWidth, setImagePhoneRefWidth,
         viewer3DAutoRotate, viewer3DRotationSpeed, viewer3DGlow, viewer3DEnvironment,
-        mockupCamera, setMockupCamera, cameraNavigationMode,
+        mockupCamera, setMockupCamera, cameraNavigationMode, cameraReviewGuides, setCameraReviewGuides,
     } = useMockup3dContext();
+
+    const previewCameraPose = useMemo(
+        () => mediaType === "video"
+            ? sampleMockupCameraKeyframes(mockupCameraKeyframes, currentTime, DEFAULT_MOCKUP_CAMERA_FOV[imagePhoneDevice])
+            : null,
+        [mediaType, mockupCameraKeyframes, currentTime, imagePhoneDevice],
+    );
 
     // 3D phone overlay is active in both video and image mode
     const handlePhoneMount = useCallback((canvas: HTMLCanvasElement) => {
@@ -151,7 +166,24 @@ function VideoCanvasInner({
     const handlePhoneRotationChange = useCallback((rx: number, ry: number) => {
         setImagePhoneRotX(rx);
         setImagePhoneRotY(ry);
-    }, [setImagePhoneRotX, setImagePhoneRotY]);
+        const selectedKeyframe = mockupCameraKeyframes.find((keyframe) =>
+            keyframe.id === selectedMockupCameraKeyframeId && Math.abs(keyframe.time - currentTime) <= 0.05
+        );
+        if (selectedKeyframe) {
+            onUpdateMockupCameraKeyframe?.(selectedKeyframe.id, { rotationX: rx, rotationY: ry });
+        }
+    }, [setImagePhoneRotX, setImagePhoneRotY, mockupCameraKeyframes, selectedMockupCameraKeyframeId, currentTime, onUpdateMockupCameraKeyframe]);
+
+    const handleMockupCameraChange = useCallback((camera: typeof mockupCamera) => {
+        setMockupCamera(camera);
+        const selectedKeyframe = mockupCameraKeyframes.find((keyframe) =>
+            keyframe.id === selectedMockupCameraKeyframeId && Math.abs(keyframe.time - currentTime) <= 0.05
+        );
+        if (selectedKeyframe) {
+            onUpdateMockupCameraKeyframe?.(selectedKeyframe.id, { camera });
+        }
+    }, [setMockupCamera, mockupCameraKeyframes, selectedMockupCameraKeyframeId, currentTime, onUpdateMockupCameraKeyframe]);
+
     // Ctrl+scroll zoom badge state for image phone overlay
     const [imagePhoneZoomVisible, setImagePhoneZoomVisible] = useState(false);
     const imagePhoneZoomTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -249,7 +281,7 @@ function VideoCanvasInner({
     // Root THREE.Group ref for applying 3D motion during export rendering.
     const imagePhoneRootRef = useRef<THREE.Group | null>(null);
     const imagePhoneApiRef = useRef<{
-        renderAt: (w: number, h: number, motion?: Mockup3DMotionTransform) => void;
+        renderAt: (w: number, h: number, motion?: Mockup3DMotionTransform, cameraPose?: MockupCameraPose) => void;
         restorePreview: () => void;
         hasBuiltInShadow?: boolean;
         getVisualSize?: () => { width: number; height: number; offsetY?: number } | null; // ← offsetY
@@ -1395,6 +1427,9 @@ function VideoCanvasInner({
             effectivePhoneMaskConfig, maskCompositeCanvasRef,
             imagePhoneRootRef,
             motion3DForFrame,
+            cameraPoseForFrame: mediaType === "video"
+                ? sampleMockupCameraKeyframes(mockupCameraKeyframes, frameTime, DEFAULT_MOCKUP_CAMERA_FOV[imagePhoneDevice]) ?? undefined
+                : undefined,
         };
 
         ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -2554,13 +2589,13 @@ function VideoCanvasInner({
                                                             modelUrl={imagePhoneDevice === "phone" || imagePhoneDevice === "iphone" ? imagePhoneModelUrl : undefined}
                                                             imageMaskConfig={effectivePhoneMaskConfig}
                                                             cropArea={cropArea}
-                                                            initialRotationX={imagePhoneRotX}
-                                                            initialRotationY={imagePhoneRotY}
+                                                            initialRotationX={previewCameraPose?.rotationX ?? imagePhoneRotX}
+                                                            initialRotationY={previewCameraPose?.rotationY ?? imagePhoneRotY}
                                                             initialRotationZ={imagePhoneRotZ}
                                                             onRotationChange={handlePhoneRotationChange}
-                                                            cameraConfig={mockupCamera}
+                                                            cameraConfig={previewCameraPose?.camera ?? mockupCamera}
                                                             cameraNavigationMode={cameraNavigationMode}
-                                                            onCameraChange={setMockupCamera}
+                                                            onCameraChange={handleMockupCameraChange}
                                                             onMount={handlePhoneMount}
                                                             onApi={handlePhoneApi}
                                                             zoom={1}
@@ -2582,6 +2617,36 @@ function VideoCanvasInner({
                                     )}
                                 </div>
                                 {/* End perspective wrapper div */}
+                                {imagePhoneActive && (
+                                    <>
+                                        {(cameraReviewGuides.thirds || cameraReviewGuides.center || cameraReviewGuides.safeArea) && (
+                                            <div
+                                                className="pointer-events-none absolute inset-0"
+                                                style={{ zIndex: 300 }}
+                                                aria-hidden="true"
+                                            >
+                                                {cameraReviewGuides.thirds && (
+                                                    <div className="absolute inset-0">
+                                                        <div className="absolute inset-y-0 left-1/3 border-l border-dashed border-white/65 mix-blend-difference" />
+                                                        <div className="absolute inset-y-0 left-2/3 border-l border-dashed border-white/65 mix-blend-difference" />
+                                                        <div className="absolute inset-x-0 top-1/3 border-t border-dashed border-white/65 mix-blend-difference" />
+                                                        <div className="absolute inset-x-0 top-2/3 border-t border-dashed border-white/65 mix-blend-difference" />
+                                                    </div>
+                                                )}
+                                                {cameraReviewGuides.center && (
+                                                    <div className="absolute inset-0">
+                                                        <div className="absolute inset-y-0 left-1/2 border-l border-white/70 mix-blend-difference" />
+                                                        <div className="absolute inset-x-0 top-1/2 border-t border-white/70 mix-blend-difference" />
+                                                        <div className="absolute left-1/2 top-1/2 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/80 mix-blend-difference" />
+                                                    </div>
+                                                )}
+                                                {cameraReviewGuides.safeArea && (
+                                                    <div className="absolute inset-[5%] rounded-sm border border-dashed border-white/80 mix-blend-difference" />
+                                                )}
+                                            </div>
+                                        )}
+                                    </>
+                                )}
                                 {(isDraggingElement && (alignmentGuides.vertical.length > 0 || alignmentGuides.horizontal.length > 0)) && (
                                     <>
                                         {alignmentGuides.vertical.map((x, index) => (
