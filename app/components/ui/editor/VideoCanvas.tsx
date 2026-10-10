@@ -27,6 +27,7 @@ import { GetMediaMaskStyles } from "@/lib/media-mask.utils";
 import { MediaContent } from "@/components/ui/MediaContent";
 import { RotationGuideLine } from "@/components/ui/RotationGuideLine";
 import { drawCameraOverlayToCtx } from "@/lib/camera-overlay.utils";
+import { sampleCameraOverlayKeyframes } from "@/lib/camera-overlay-animation";
 import { getActiveClipAtTime } from "@/lib/ffmpeg.utils";
 import DropMedia from "@/components/ui/DropMedia";
 import { renderCanvasElements } from "@/lib/canvas-elements-render.utils";
@@ -41,6 +42,7 @@ import {
     sampleMockupCameraKeyframes,
 } from "@/lib/viewer-controls3d";
 import type { MockupCameraKeyframe, MockupCameraPose } from "@/lib/viewer-controls3d";
+import { normalizeCamera3DConfig, normalizeCameraZoom } from "@/types/camera.types";
 
 export type { VideoCanvasHandle, VideoCanvasProps };
 
@@ -96,6 +98,7 @@ function VideoCanvasInner({
     cameraUrl = null,
     cameraSourceUrl = null,
     cameraConfig = null,
+    cameraOverlayKeyframes = [],
     onCameraConfigChange,
     onCameraClick,
     videoMaskConfig,
@@ -134,6 +137,9 @@ function VideoCanvasInner({
     const wallpaperUrl = getWallpaperUrl(selectedWallpaper);
 
     const hasMedia = mediaType === "video" ? !!videoUrl : !!imageUrl;
+    const renderedCameraConfig = sampleCameraOverlayKeyframes(cameraConfig, cameraOverlayKeyframes, currentTime);
+    const cameraOverlay3D = normalizeCamera3DConfig(renderedCameraConfig?.threeD);
+    const cameraOverlayZoom = normalizeCameraZoom(renderedCameraConfig?.zoom);
 
     // Motion 3D phone overlay state (reads from shared MotionContext)
     const {
@@ -1850,7 +1856,8 @@ function VideoCanvasInner({
         ctx.restore();
 
         if (showCameraOverlay) {
-            await drawCameraOverlayToCtx(ctx, canvasWidth, canvasHeight, cameraVideoRef.current, videoRef.current, cameraConfig);
+            const cameraConfigForFrame = sampleCameraOverlayKeyframes(cameraConfig, cameraOverlayKeyframes, frameTime);
+            await drawCameraOverlayToCtx(ctx, canvasWidth, canvasHeight, cameraVideoRef.current, videoRef.current, cameraConfigForFrame);
         }
     };
 
@@ -2596,6 +2603,8 @@ function VideoCanvasInner({
                                                             cameraConfig={previewCameraPose?.camera ?? mockupCamera}
                                                             cameraNavigationMode={cameraNavigationMode}
                                                             onCameraChange={handleMockupCameraChange}
+                                                            cameraKeyframes={mockupCameraKeyframes}
+                                                            selectedCameraKeyframeId={selectedMockupCameraKeyframeId}
                                                             onMount={handlePhoneMount}
                                                             onApi={handlePhoneApi}
                                                             zoom={1}
@@ -2686,7 +2695,7 @@ function VideoCanvasInner({
                                 )}
 
                                 {/* Capa 4: Camera overlay for preview — only in video mode */}
-                                {mediaType !== "image" && cameraSourceUrl && cameraConfig?.enabled && (
+                                {mediaType !== "image" && cameraSourceUrl && renderedCameraConfig?.enabled && (
                                     <div
                                         data-camera-overlay
                                         className="absolute inset-0 pointer-events-none"
@@ -2696,7 +2705,7 @@ function VideoCanvasInner({
                                             tabIndex={0}
                                             onClick={() => { if (onCameraClick) onCameraClick(); }}
                                             onPointerDown={(e) => {
-                                                if (!onCameraConfigChange || !cameraConfig) return;
+                                                if (!onCameraConfigChange || !renderedCameraConfig) return;
                                                 if (e.button !== 0) return;
                                                 const container = previewContainerRef.current;
                                                 if (!container) return;
@@ -2706,8 +2715,8 @@ function VideoCanvasInner({
                                                     pointerId: e.pointerId,
                                                     startX: e.clientX,
                                                     startY: e.clientY,
-                                                    initialX: cameraConfig.position.x,
-                                                    initialY: cameraConfig.position.y,
+                                                    initialX: renderedCameraConfig.position.x,
+                                                    initialY: renderedCameraConfig.position.y,
                                                     rect,
                                                 };
                                                 setIsDraggingCamera(true);
@@ -2737,25 +2746,36 @@ function VideoCanvasInner({
                                             }}
                                             className={`absolute pointer-events-auto select-none outline-none group ${onCameraConfigChange ? (isDraggingCamera ? "cursor-grabbing" : "cursor-grab") : ""}`}
                                             style={{
-                                                width: `${cameraConfig.size * 100}cqmin`,
+                                                width: `${renderedCameraConfig.size * 100}cqmin`,
                                                 aspectRatio: "1 / 1",
-                                                left: `clamp(0px, calc(${cameraConfig.position.x * 100}% - ${cameraConfig.size * 50}cqmin), calc(100% - ${cameraConfig.size * 100}cqmin))`,
-                                                top: `clamp(0px, calc(${cameraConfig.position.y * 100}% - ${cameraConfig.size * 50}cqmin), calc(100% - ${cameraConfig.size * 100}cqmin))`,
+                                                left: `clamp(0px, calc(${renderedCameraConfig.position.x * 100}% - ${renderedCameraConfig.size * 50}cqmin), calc(100% - ${renderedCameraConfig.size * 100}cqmin))`,
+                                                top: `clamp(0px, calc(${renderedCameraConfig.position.y * 100}% - ${renderedCameraConfig.size * 50}cqmin), calc(100% - ${renderedCameraConfig.size * 100}cqmin))`,
                                                 transition: isDraggingCamera ? "none" : "left 120ms ease, top 120ms ease",
                                                 touchAction: "none",
+                                                transform: cameraOverlay3D.enabled
+                                                    ? `perspective(${cameraOverlay3D.perspective / 10.8}cqh) rotateX(${-cameraOverlay3D.rotationX}deg) rotateY(${cameraOverlay3D.rotationY}deg)`
+                                                    : undefined,
+                                                transformStyle: "preserve-3d",
+                                                willChange: cameraOverlay3D.enabled ? "transform" : undefined,
                                             }}
                                         >
-                                            <video
-                                                ref={cameraVideoRef}
-                                                muted
-                                                playsInline
-                                                preload="auto"
-                                                className={`size-full object-cover shadow-[0_8px_30px_rgba(0,0,0,0.45)] transition-shadow duration-200 ring-1 ring-white/15 group-hover:ring-1 group-hover:ring-white group-focus:ring-1 group-focus:ring-white ${cameraConfig.shape === "squircle" ? "squircle-element-2xl " : ""}`}
+                                            <div
+                                                className="size-full overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.45)] ring-1 ring-white/15 transition-shadow duration-200 group-hover:ring-white group-focus:ring-white"
                                                 style={{
-                                                    borderRadius: cameraConfig.shape === "circle" ? "50%" : cameraConfig.shape === "squircle" ? `${Math.round(20 * (0.5 + (cameraConfig.size * 100 - 20) / 40))}px` : `${Math.round(6 * (0.5 + (cameraConfig.size * 100 - 20) / 40))}px`,
-                                                    transform: cameraConfig.mirror ? "scaleX(-1)" : undefined,
+                                                    borderRadius: renderedCameraConfig.shape === "circle" ? "50%" : renderedCameraConfig.shape === "squircle" ? `${Math.round(20 * (0.5 + (renderedCameraConfig.size * 100 - 20) / 40))}px` : `${Math.round(6 * (0.5 + (renderedCameraConfig.size * 100 - 20) / 40))}px`,
                                                 }}
-                                            />
+                                            >
+                                                <video
+                                                    ref={cameraVideoRef}
+                                                    muted
+                                                    playsInline
+                                                    preload="auto"
+                                                    className={`size-full object-cover ${renderedCameraConfig.shape === "squircle" ? "squircle-element-2xl " : ""}`}
+                                                    style={{
+                                                        transform: `scale(${cameraOverlayZoom}) scaleX(${renderedCameraConfig.mirror ? -1 : 1})`,
+                                                    }}
+                                                />
+                                            </div>
                                         </div>
                                     </div>
                                 )}

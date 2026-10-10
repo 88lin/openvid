@@ -7,6 +7,7 @@ import type { ImageDeviceId } from "@/types/mockup.types";
 
 export type EnvironmentPreset = "sunset" | "dawn" | "night" | "warehouse" | "forest" | "apartment" | "studio" | "city" | "park" | "lobby";
 export type CameraNavigationMode = "orbit" | "trackXY" | "trackZ";
+export type CameraKeyframeTransition = "smooth" | "linear" | "hold";
 
 export interface MockupCameraConfig {
     target: [number, number, number];
@@ -23,6 +24,7 @@ export interface MockupCameraPose {
 export interface MockupCameraKeyframe extends MockupCameraPose {
     id: string;
     time: number;
+    transition?: CameraKeyframeTransition;
 }
 
 export interface MockupCameraPreset extends MockupCameraPose {
@@ -195,7 +197,11 @@ export function sampleMockupCameraKeyframes(
     const duration = to.time - from.time;
     if (duration <= 0) return poseFromKeyframe(to);
     const linearProgress = Math.max(0, Math.min(1, (time - from.time) / duration));
-    const progress = linearProgress * linearProgress * (3 - 2 * linearProgress);
+    const progress = from.transition === "linear"
+        ? linearProgress
+        : from.transition === "hold"
+            ? 0
+            : linearProgress * linearProgress * (3 - 2 * linearProgress);
     const fromPose = poseFromKeyframe(from);
     const toPose = poseFromKeyframe(to);
     const fromFov = fromPose.camera.fov ?? defaultFov;

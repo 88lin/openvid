@@ -164,6 +164,10 @@ function CameraTargetPad({
     hint,
     backgroundUrl,
     backgroundColorCss,
+    presets,
+    onApplyPreset,
+    reviewGuides,
+    onToggleReviewGuide,
 }: {
     x: number;
     y: number;
@@ -173,6 +177,10 @@ function CameraTargetPad({
     hint: string;
     backgroundUrl?: string | null;
     backgroundColorCss?: string | null;
+    presets: MockupCameraPreset[];
+    onApplyPreset?: (preset: MockupCameraPreset) => void;
+    reviewGuides: { thirds: boolean; center: boolean; safeArea: boolean };
+    onToggleReviewGuide: (guide: keyof typeof reviewGuides) => void;
 }) {
     const t = useTranslations("mockupMenu");
     const padRef = useRef<HTMLDivElement>(null);
@@ -278,6 +286,50 @@ function CameraTargetPad({
                     <span className="absolute left-1/2 top-1/2 size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white" />
                 </span>
             </div>
+            <div className="flex items-center justify-between gap-1 rounded-b-xl border-x border-b border-border bg-muted/30 px-1.5 py-1">
+                {presets.length > 0 && (
+                    <>
+                        <div className="flex items-center gap-0.5" role="group" aria-label={t("cameraPresets")}>
+                            {presets.map((preset) => (
+                                <TooltipAction key={preset.id} label={t(`cameraPreset.${preset.id}`)}>
+                                    <button
+                                        type="button"
+                                        onClick={() => onApplyPreset?.(preset)}
+                                        aria-label={t(`cameraPreset.${preset.id}`)}
+                                        className="flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-background hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                                    >
+                                        <Icon icon={preset.icon} width="15" aria-hidden="true" />
+                                    </button>
+                                </TooltipAction>
+                            ))}
+                        </div>
+                        <span className="h-5 w-px bg-border" aria-hidden="true" />
+                    </>
+                )}
+                <div className="flex items-center gap-0.5" role="group" aria-label={t("cameraReviewGuides.title")}>
+                    {([
+                        ["thirds", "mdi:grid"],
+                        ["center", "mdi:crosshairs"],
+                        ["safeArea", "mdi:crop-free"],
+                    ] as const).map(([guide, icon]) => (
+                        <TooltipAction key={guide} label={t(`cameraReviewGuides.${guide}`)}>
+                            <button
+                                type="button"
+                                onClick={() => onToggleReviewGuide(guide)}
+                                aria-label={t(`cameraReviewGuides.${guide}`)}
+                                aria-pressed={reviewGuides[guide]}
+                                className={`flex size-7 items-center justify-center rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                                    reviewGuides[guide]
+                                        ? "bg-primary/15 text-primary"
+                                        : "text-muted-foreground hover:bg-background hover:text-foreground"
+                                }`}
+                            >
+                                <Icon icon={icon} width="14" aria-hidden="true" />
+                            </button>
+                        </TooltipAction>
+                    ))}
+                </div>
+            </div>
         </div>
     );
 }
@@ -328,6 +380,7 @@ export interface Mockup3dMenuProps {
     setViewer3DGlow: (v: number) => void;
     viewer3DEnvironment: EnvironmentPreset;
     setViewer3DEnvironment: (v: EnvironmentPreset) => void;
+    isPlaying: boolean;
     mockupCamera: MockupCameraConfig;
     setMockupCamera: (v: MockupCameraConfig) => void;
     cameraNavigationMode: CameraNavigationMode;
@@ -337,7 +390,10 @@ export interface Mockup3dMenuProps {
     selectedMockupCameraKeyframeId: string | null;
     onApplyCameraPreset?: (preset: MockupCameraPreset) => void;
     onApplyAutomaticCamera?: () => void;
-    onUpdateCameraKeyframe?: (camera: MockupCameraConfig) => void;
+    onPreviewCameraSegment?: () => void;
+    onUpdateCameraKeyframe?: (updates: Partial<MockupCameraKeyframe>) => void;
+    onAddCameraKeyframe?: () => void;
+    onDeleteCameraKeyframe?: (id: string) => void;
 }
 
 export function Mockup3dMenu({
@@ -377,6 +433,7 @@ export function Mockup3dMenu({
     setViewer3DGlow,
     viewer3DEnvironment,
     setViewer3DEnvironment,
+    isPlaying,
     mockupCamera,
     setMockupCamera,
     cameraNavigationMode,
@@ -386,18 +443,27 @@ export function Mockup3dMenu({
     selectedMockupCameraKeyframeId,
     onApplyCameraPreset,
     onApplyAutomaticCamera,
+    onPreviewCameraSegment,
     onUpdateCameraKeyframe,
+    onAddCameraKeyframe,
+    onDeleteCameraKeyframe,
 }: Mockup3dMenuProps) {
     const t = useTranslations("mockupMenu");
     const { cameraReviewGuides, setCameraReviewGuides } = useMockup3dContext();
     const canCreateAutomaticTour = mediaType !== "video"
         || hasMockupCameraTourSpace(videoDuration, mockupCameraKeyframes);
     const cameraTargetRange = imagePhoneDevice === "laptop" ? 100 : imagePhoneDevice === "iphone-duo" ? 5 : 1;
+    const selectedCameraKeyframe = mockupCameraKeyframes.find(
+        (keyframe) => keyframe.id === selectedMockupCameraKeyframeId,
+    );
+    const hasNextCameraKeyframe = !!selectedCameraKeyframe && mockupCameraKeyframes.some(
+        (keyframe) => keyframe.time > selectedCameraKeyframe.time,
+    );
 
     const handleCameraChange = useCallback((camera: MockupCameraConfig) => {
-        if (onUpdateCameraKeyframe) onUpdateCameraKeyframe(camera);
+        if (onUpdateCameraKeyframe && selectedCameraKeyframe) onUpdateCameraKeyframe({ camera });
         else setMockupCamera(camera);
-    }, [setMockupCamera, onUpdateCameraKeyframe]);
+    }, [setMockupCamera, onUpdateCameraKeyframe, selectedCameraKeyframe]);
 
     const handleReset = useCallback(() => {
         setImagePhoneX(0);
@@ -566,23 +632,54 @@ export function Mockup3dMenu({
                     )}
 
                     {mediaType === "video" && (
-                        <div className="flex items-center gap-1.5 px-1 text-[9px] text-muted-foreground">
-                            <TooltipAction label={`${t("cameraKeyframes")}: ${mockupCameraKeyframes.length}`}>
-                                <span
-                                    tabIndex={0}
-                                    aria-label={`${t("cameraKeyframes")}: ${mockupCameraKeyframes.length}`}
-                                    className="inline-flex items-center gap-1 rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                                >
-                                    <Icon icon="mdi:movie-open-play-outline" width="13" className="text-primary" aria-hidden="true" />
-                                    <span className="font-mono">{mockupCameraKeyframes.length}</span>
+                        <div className="flex items-center gap-1 px-1">
+                            {mockupCameraKeyframes.length > 0 && (
+                                <span className="mr-auto font-mono text-[9px] text-muted-foreground" aria-label={`${t("cameraKeyframes")}: ${mockupCameraKeyframes.length}`}>
+                                    {mockupCameraKeyframes.length} · {t("cameraKeyframes")}
+                                    {selectedCameraKeyframe && ` · ${currentTime.toFixed(1)}s`}
                                 </span>
+                            )}
+                            {selectedCameraKeyframe && hasNextCameraKeyframe && (
+                                <TooltipAction label={t("cameraPreviewSegment")}>
+                                    <button
+                                        type="button"
+                                        onClick={onPreviewCameraSegment}
+                                        disabled={!onPreviewCameraSegment || isPlaying}
+                                        aria-label={t("cameraPreviewSegment")}
+                                        className="flex size-7 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:border-primary/40 hover:bg-primary/10 hover:text-primary disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                                    >
+                                        <Icon icon="lucide:play" width="13" aria-hidden="true" />
+                                    </button>
+                                </TooltipAction>
+                            )}
+                            <TooltipAction label={t("cameraKeyframeAdd")}>
+                                <button
+                                    type="button"
+                                    onClick={onAddCameraKeyframe}
+                                    disabled={!onAddCameraKeyframe}
+                                    aria-label={t("cameraKeyframeAdd")}
+                                    className="flex size-7 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:border-primary/40 hover:bg-primary/10 hover:text-primary disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                                >
+                                    <Icon icon="lucide:plus" width="14" aria-hidden="true" />
+                                </button>
                             </TooltipAction>
-                            {selectedMockupCameraKeyframeId && (
-                                <span className="ml-auto font-mono">{currentTime.toFixed(1)}s</span>
+                            {mockupCameraKeyframes.length > 0 && (
+                                <TooltipAction label={t("cameraKeyframeRemove")}>
+                                    <button
+                                        type="button"
+                                        onClick={() => selectedCameraKeyframe && onDeleteCameraKeyframe?.(selectedCameraKeyframe.id)}
+                                        disabled={!selectedCameraKeyframe || !onDeleteCameraKeyframe}
+                                        aria-label={t("cameraKeyframeRemove")}
+                                        className="flex size-7 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                                    >
+                                        <Icon icon="lucide:trash-2" width="13" aria-hidden="true" />
+                                    </button>
+                                </TooltipAction>
                             )}
                         </div>
                     )}
 
+                    {(mediaType !== "video" || mockupCameraKeyframes.length > 0) && (
                     <details className="group rounded-lg border border-border/70 bg-muted/20">
                         <summary className="flex cursor-pointer list-none items-center gap-2 px-2.5 py-2 text-[10px] font-medium text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary [&::-webkit-details-marker]:hidden">
                             <Icon icon="lucide:sliders-horizontal" width="14" className="text-primary" aria-hidden="true" />
@@ -590,6 +687,30 @@ export function Mockup3dMenu({
                             <Icon icon="lucide:chevron-down" width="13" className="ml-auto transition-transform group-open:rotate-180" aria-hidden="true" />
                         </summary>
                         <div className="space-y-3 border-t border-border/70 p-2.5">
+                    {mediaType === "video" && selectedCameraKeyframe && (
+                        <div className="space-y-1.5">
+                            <span className="text-[10px] font-medium text-muted-foreground">
+                                {t("cameraTransition.label")}
+                            </span>
+                            <Select
+                                value={selectedCameraKeyframe.transition ?? "smooth"}
+                                onValueChange={(value) => {
+                                    if (value === "smooth" || value === "linear" || value === "hold") {
+                                        onUpdateCameraKeyframe?.({ transition: value });
+                                    }
+                                }}
+                            >
+                                <SelectTrigger className="h-8 bg-background text-xs">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="smooth">{t("cameraTransition.smooth")}</SelectItem>
+                                    <SelectItem value="linear">{t("cameraTransition.linear")}</SelectItem>
+                                    <SelectItem value="hold">{t("cameraTransition.hold")}</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    )}
                     <div className="grid grid-cols-3 gap-1 rounded-lg border border-border bg-muted/30 p-1" role="group" aria-label={t("cameraControls")}>
                         {([
                             ["orbit", "mdi:orbit-variant", "orbit"],
@@ -625,51 +746,27 @@ export function Mockup3dMenu({
                     </TooltipAction>
 
                     <div className="space-y-2 border-t border-border/70 pt-2.5">
-                        <div className="flex items-center justify-between">
-                            <h4 className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                                <Icon icon="mdi:camera-metering-center" width="13" aria-hidden="true" />
-                                {t("cameraFraming")}
-                            </h4>
-                            <span className="text-[9px] text-muted-foreground/70">{t("cameraPresets")}</span>
-                        </div>
-                        <div className="grid grid-cols-4 gap-1" role="group" aria-label={t("cameraPresets")}>
-                            {MOCKUP_CAMERA_PRESETS.map((preset) => (
-                                <button
-                                    key={preset.id}
-                                    type="button"
-                                    onClick={() => onApplyCameraPreset?.(preset)}
-                                    title={t(`cameraPreset.${preset.id}`)}
-                                    aria-label={t(`cameraPreset.${preset.id}`)}
-                                    className="flex h-8 items-center justify-center rounded-md border border-border bg-muted/40 text-muted-foreground transition-colors hover:border-primary/40 hover:bg-primary/10 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                                >
-                                    <Icon icon={preset.icon} width="15" aria-hidden="true" />
-                                </button>
-                            ))}
-                        </div>
-                        <div className="flex items-center gap-1 rounded-lg border border-border/70 bg-muted/20 p-1" role="group" aria-label={t("cameraReviewGuides.title")}>
-                            {([
-                                ["thirds", "mdi:grid"],
-                                ["center", "mdi:crosshairs"],
-                                ["safeArea", "mdi:crop-free"],
-                            ] as const).map(([guide, icon]) => (
-                                <button
-                                    key={guide}
-                                    type="button"
-                                    onClick={() => handleToggleReviewGuide(guide)}
-                                    aria-label={t(`cameraReviewGuides.${guide}`)}
-                                    aria-pressed={cameraReviewGuides[guide]}
-                                    title={`${t("cameraReviewGuides.title")}: ${t(`cameraReviewGuides.${guide}`)}`}
-                                    className={`flex size-7 items-center justify-center rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-                                        cameraReviewGuides[guide]
-                                            ? "bg-primary/15 text-primary"
-                                            : "text-muted-foreground hover:bg-background hover:text-foreground"
-                                    }`}
-                                >
-                                    <Icon icon={icon} width="14" aria-hidden="true" />
-                                </button>
-                            ))}
-                            <span className="ml-auto mr-1 text-[9px] text-muted-foreground">{t("cameraReviewGuides.title")}</span>
-                        </div>
+                        <h4 className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                            <Icon icon="mdi:crosshairs-gps" width="13" aria-hidden="true" />
+                            {t("cameraTarget")}
+                        </h4>
+                        <CameraTargetPad
+                            x={mockupCamera.target[0]}
+                            y={mockupCamera.target[1]}
+                            range={cameraTargetRange}
+                            label={t("cameraTargetPosition")}
+                            hint={t("cameraTargetPadHint")}
+                            backgroundUrl={backgroundUrl}
+                            backgroundColorCss={backgroundColorCss}
+                            presets={mediaType === "video" ? [] : MOCKUP_CAMERA_PRESETS}
+                            onApplyPreset={onApplyCameraPreset}
+                            reviewGuides={cameraReviewGuides}
+                            onToggleReviewGuide={handleToggleReviewGuide}
+                            onChange={(x, y) => {
+                                const target: [number, number, number] = [x, y, mockupCamera.target[2]];
+                                handleCameraChange({ ...mockupCamera, target });
+                            }}
+                        />
                         <SliderControl
                             icon="mdi:camera-metering-center"
                             label={t("fieldOfView")}
@@ -683,23 +780,6 @@ export function Mockup3dMenu({
                     </div>
 
                     <div className="space-y-2 border-t border-border/70 pt-2.5">
-                        <h4 className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                            <Icon icon="mdi:crosshairs-gps" width="13" aria-hidden="true" />
-                            {t("cameraTarget")}
-                        </h4>
-                        <CameraTargetPad
-                            x={mockupCamera.target[0]}
-                            y={mockupCamera.target[1]}
-                            range={cameraTargetRange}
-                            label={t("cameraTargetPosition")}
-                            hint={t("cameraTargetPadHint")}
-                            backgroundUrl={backgroundUrl}
-                            backgroundColorCss={backgroundColorCss}
-                            onChange={(x, y) => {
-                                const target: [number, number, number] = [x, y, mockupCamera.target[2]];
-                                handleCameraChange({ ...mockupCamera, target });
-                            }}
-                        />
                         <SliderControl
                             icon="mdi:arrow-expand-vertical"
                             label={t("dolly")}
@@ -729,6 +809,7 @@ export function Mockup3dMenu({
                     </div>
                         </div>
                     </details>
+                    )}
                 </section>
 
                 <div className="flex flex-col gap-3 pt-4 border-t border-border">

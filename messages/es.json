@@ -622,8 +622,17 @@
       "safeArea": "Área segura"
     },
     "cameraTarget": "Punto de enfoque",
-    "cameraTargetPosition": "Posición XY",
-    "cameraTargetPadHint": "Arrastra el punto para mover el encuadre. Usa las flechas para ajustar y Home para centrar.",
+    "cameraTargetPosition": "Objetivo XY",
+    "cameraTargetPadHint": "Mueve el objetivo real de la cámara. Arrastra el punto o usa las flechas; Home lo centra.",
+    "cameraKeyframeAdd": "Guardar cámara en el tiempo actual",
+    "cameraKeyframeRemove": "Quitar fotograma seleccionado",
+    "cameraPreviewSegment": "Previsualizar este movimiento de cámara",
+    "cameraTransition": {
+      "label": "Movimiento al siguiente fotograma",
+      "smooth": "Suave",
+      "linear": "Velocidad constante",
+      "hold": "Mantener y luego cortar"
+    },
     "orbit": "Orbitar",
     "trackXY": "Mover XY",
     "trackZ": "Acercar / alejar",
@@ -879,7 +888,20 @@
     "position": "Posición",
     "customPosition": "Posición personalizada (arrastra la cámara en el canvas).",
     "size": "Tamaño",
+    "zoom": "Zoom",
+    "animation": "Animación de webcam",
+    "startAnimation": "Animar webcam",
+    "savePose": "Guardar pose",
+    "poseCount": "{count} poses",
+    "removePose": "Quitar pose seleccionada",
     "mirror": "Reflejar (espejo)",
+    "threeD": {
+      "title": "Profundidad 3D",
+      "enable": "Activar efecto 3D",
+      "tilt": "Inclinación vertical",
+      "turn": "Inclinación horizontal",
+      "perspective": "Perspectiva"
+    },
     "shapes": {
       "squircle": "Squircle",
       "circle": "Círculo",
@@ -1209,6 +1231,8 @@
     "noSpace": "Sin espacio",
     "cameraKeyframe": "Fotograma de cámara",
     "cameraTrackClickHint": "Haz clic en un espacio vacío para añadir un fotograma de cámara.",
+    "webcamKeyframe": "Pose de webcam",
+    "webcamTrackClickHint": "Haz clic en un espacio vacío para añadir una pose de webcam.",
     "cameraKeyframeMarkerHint": "Arrastra para mover; doble clic para eliminar.",
     "cameraKeyframeDragHint": "Arrastra para mover; usa las flechas del teclado o Supr para eliminar.",
     "trimStartHint": "Arrastra para recortar el inicio",
@@ -1515,6 +1539,7 @@
   "labelSidebar": {
     "video": "Video",
     "camera": "Cámara",
+    "webcam": "Webcam",
     "zoom": "Zoom",
     "elements": "Objeto",
     "audio": "Audio",

@@ -21,7 +21,6 @@ import { Mockup2dMenu } from "./Mockup2dMenu";
 import { Mockup3dMenu, type ActiveDeviceTpl } from "./Mockup3dMenu";
 import { DeviceCard } from "@/components/ui/DeviceCard";
 import type {
-  MockupCameraConfig,
   MockupCameraKeyframe,
   MockupCameraPreset,
 } from "@/lib/viewer-controls3d";
@@ -38,12 +37,16 @@ export interface MockupMenuProps {
   selectedImageUrl?: string;
   initialPage?: MenuPage;
   mediaType?: "video" | "image";
+  isPlaying?: boolean;
   currentTime?: number;
   mockupCameraKeyframes?: MockupCameraKeyframe[];
   selectedMockupCameraKeyframeId?: string | null;
   onApplyCameraPreset?: (preset: MockupCameraPreset) => void;
   onApplyAutomaticCamera?: () => void;
-  onUpdateCameraKeyframe?: (camera: MockupCameraConfig) => void;
+  onPreviewCameraSegment?: () => void;
+  onUpdateCameraKeyframe?: (updates: Partial<MockupCameraKeyframe>) => void;
+  onAddCameraKeyframe?: () => void;
+  onDeleteCameraKeyframe?: (id: string) => void;
   videoDuration?: number;
 }
 
@@ -59,12 +62,16 @@ export function MockupMenu({
   selectedImageUrl,
   initialPage = "home",
   mediaType = "image",
+  isPlaying = false,
   currentTime = 0,
   mockupCameraKeyframes = [],
   selectedMockupCameraKeyframeId = null,
   onApplyCameraPreset,
   onApplyAutomaticCamera,
+  onPreviewCameraSegment,
   onUpdateCameraKeyframe,
+  onAddCameraKeyframe,
+  onDeleteCameraKeyframe,
   videoDuration = 0,
 }: MockupMenuProps) {
   const t = useTranslations("mockupMenu");
@@ -297,6 +304,7 @@ export function MockupMenu({
         imagePhoneDevice={imagePhoneDevice}
         isLaptop={isLaptop}
         mediaType={mediaType}
+        isPlaying={isPlaying}
         imagePhoneScale={imagePhoneScale}
         setImagePhoneScale={setImagePhoneScale}
         imagePhoneOpening={imagePhoneOpening}
@@ -325,7 +333,10 @@ export function MockupMenu({
         selectedMockupCameraKeyframeId={selectedMockupCameraKeyframeId}
         onApplyCameraPreset={onApplyCameraPreset}
         onApplyAutomaticCamera={onApplyAutomaticCamera}
+        onPreviewCameraSegment={onPreviewCameraSegment}
         onUpdateCameraKeyframe={onUpdateCameraKeyframe}
+        onAddCameraKeyframe={onAddCameraKeyframe}
+        onDeleteCameraKeyframe={onDeleteCameraKeyframe}
         videoDuration={videoDuration}
         imagePhoneRotZ={imagePhoneRotZ}
         setImagePhoneRotZ={setImagePhoneRotZ}

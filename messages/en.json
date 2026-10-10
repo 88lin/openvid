@@ -666,8 +666,17 @@
       "safeArea": "Safe area"
     },
     "cameraTarget": "Look-at point",
-    "cameraTargetPosition": "XY position",
-    "cameraTargetPadHint": "Drag the dot to move the framing. Use arrow keys to adjust and Home to center.",
+    "cameraTargetPosition": "XY target",
+    "cameraTargetPadHint": "Move the actual camera target. Drag the dot or use arrow keys; Home centers it.",
+    "cameraKeyframeAdd": "Save camera at the current time",
+    "cameraKeyframeRemove": "Remove selected keyframe",
+    "cameraPreviewSegment": "Preview this camera move",
+    "cameraTransition": {
+      "label": "Move to next keyframe",
+      "smooth": "Smooth",
+      "linear": "Constant speed",
+      "hold": "Hold, then cut"
+    },
     "orbit": "Orbit",
     "trackXY": "Track XY",
     "trackZ": "Track Z",
@@ -923,7 +932,20 @@
     "position": "Position",
     "customPosition": "Custom position (drag the camera on the canvas).",
     "size": "Size",
+    "zoom": "Zoom",
+    "animation": "Webcam animation",
+    "startAnimation": "Animate webcam",
+    "savePose": "Save pose",
+    "poseCount": "{count} poses",
+    "removePose": "Remove selected pose",
     "mirror": "Mirror (reflection)",
+    "threeD": {
+      "title": "3D depth",
+      "enable": "Enable 3D effect",
+      "tilt": "Vertical tilt",
+      "turn": "Horizontal tilt",
+      "perspective": "Perspective"
+    },
     "shapes": {
       "squircle": "Squircle",
       "circle": "Circle",
@@ -1231,6 +1253,8 @@
     "noSpace": "No space",
     "cameraKeyframe": "Camera keyframe",
     "cameraTrackClickHint": "Click an empty spot to add a camera keyframe.",
+    "webcamKeyframe": "Webcam pose",
+    "webcamTrackClickHint": "Click an empty spot to add a webcam pose.",
     "cameraKeyframeMarkerHint": "Drag to move; double-click to delete.",
     "cameraKeyframeDragHint": "Drag to move; use arrow keys to nudge or Delete to remove.",
     "trimStartHint": "Drag to trim the start",
@@ -1537,6 +1561,7 @@
   "labelSidebar": {
     "video": "Video",
     "camera": "Camera",
+    "webcam": "Webcam",
     "zoom": "Zoom",
     "elements": "Object",
     "audio": "Audio",

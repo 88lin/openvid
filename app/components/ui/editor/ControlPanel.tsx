@@ -117,6 +117,10 @@ export function ControlPanel({
     cameraUrl = null,
     cameraConfig = null,
     onCameraConfigChange,
+    cameraOverlayKeyframes = [],
+    selectedCameraOverlayKeyframeId = null,
+    onAddCameraOverlayKeyframe,
+    onDeleteCameraOverlayKeyframe,
     // History/Image projects props
     imageProjects = [],
     currentImageProjectId = null,
@@ -135,12 +139,16 @@ export function ControlPanel({
     onUpdateMockupMotionFragment,
     onSelectMockupMotionFragment,
     onDeleteMockupMotionFragment,
+    isPlaying = false,
     currentTime = 0,
     mockupCameraKeyframes = [],
     selectedMockupCameraKeyframeId = null,
     onApplyMockupCameraPreset,
     onApplyAutomaticMockupCamera,
+    onPreviewMockupCameraSegment,
     onUpdateMockupCameraKeyframe,
+    onAddMockupCameraKeyframe,
+    onDeleteMockupCameraKeyframe,
 }: ExtendedControlPanelProps) {
 
     const t = useTranslations("controlPanel");
@@ -324,12 +332,16 @@ export function ControlPanel({
                             backgroundColorCss={backgroundColorCss}
                             initialPage={initialMockupMenuPage}
                             mediaType={mediaType}
+                            isPlaying={isPlaying}
                             currentTime={currentTime}
                             mockupCameraKeyframes={mockupCameraKeyframes}
                             selectedMockupCameraKeyframeId={selectedMockupCameraKeyframeId}
                             onApplyCameraPreset={onApplyMockupCameraPreset}
                             onApplyAutomaticCamera={onApplyAutomaticMockupCamera}
+                            onPreviewCameraSegment={onPreviewMockupCameraSegment}
                             onUpdateCameraKeyframe={onUpdateMockupCameraKeyframe}
+                            onAddCameraKeyframe={onAddMockupCameraKeyframe}
+                            onDeleteCameraKeyframe={onDeleteMockupCameraKeyframe}
                             videoDuration={videoDuration}
                         />
                     </Suspense>
@@ -462,6 +474,10 @@ export function ControlPanel({
                         cameraUrl={cameraUrl}
                         cameraConfig={cameraConfig}
                         onCameraConfigChange={onCameraConfigChange || (() => { })}
+                        cameraOverlayKeyframes={cameraOverlayKeyframes}
+                        selectedCameraOverlayKeyframeId={selectedCameraOverlayKeyframeId}
+                        onAddCameraOverlayKeyframe={onAddCameraOverlayKeyframe}
+                        onDeleteCameraOverlayKeyframe={onDeleteCameraOverlayKeyframe}
                     />
                 )}
 

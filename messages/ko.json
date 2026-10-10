@@ -666,8 +666,17 @@
       "safeArea": "안전 영역"
     },
     "cameraTarget": "시선 대상",
-    "cameraTargetPosition": "XY 위치",
-    "cameraTargetPadHint": "점을 드래그해 구도를 이동하세요. 화살표 키로 조정하고 Home 키로 가운데에 놓으세요.",
+    "cameraTargetPosition": "XY 대상",
+    "cameraTargetPadHint": "실제 카메라 대상을 이동합니다. 점을 드래그하거나 화살표 키를 사용하고 Home 키로 가운데에 놓으세요.",
+    "cameraKeyframeAdd": "현재 시간에 카메라 저장",
+    "cameraKeyframeRemove": "선택한 키프레임 삭제",
+    "cameraPreviewSegment": "이 카메라 이동 미리보기",
+    "cameraTransition": {
+      "label": "다음 키프레임으로 이동",
+      "smooth": "부드럽게",
+      "linear": "일정한 속도",
+      "hold": "유지 후 전환"
+    },
     "orbit": "회전",
     "trackXY": "XY 이동",
     "trackZ": "Z 이동",
@@ -923,7 +932,20 @@
     "position": "위치",
     "customPosition": "사용자 지정 위치(캔버스에서 카메라를 드래그하세요).",
     "size": "크기",
+    "zoom": "확대",
+    "animation": "웹캠 애니메이션",
+    "startAnimation": "웹캠 애니메이션",
+    "savePose": "포즈 저장",
+    "poseCount": "{count}개 포즈",
+    "removePose": "선택한 포즈 삭제",
     "mirror": "미러(좌우 반전)",
+    "threeD": {
+      "title": "3D 깊이",
+      "enable": "3D 효과 사용",
+      "tilt": "세로 기울기",
+      "turn": "가로 기울기",
+      "perspective": "원근감"
+    },
     "shapes": {
       "squircle": "스퀴클",
       "circle": "원형",
@@ -1231,6 +1253,8 @@
     "noSpace": "공간 없음",
     "cameraKeyframe": "카메라 키프레임",
     "cameraTrackClickHint": "빈 곳을 클릭하면 카메라 키프레임이 추가됩니다.",
+    "webcamKeyframe": "웹캠 포즈",
+    "webcamTrackClickHint": "빈 곳을 클릭하여 웹캠 포즈를 추가하세요.",
     "cameraKeyframeMarkerHint": "드래그하여 이동하고 두 번 클릭하여 삭제하세요.",
     "cameraKeyframeDragHint": "드래그하여 이동하고 화살표 키로 조정하거나 Delete 키로 삭제하세요.",
     "trimStartHint": "드래그하여 시작 부분 자르기",
@@ -1537,6 +1561,7 @@
   "labelSidebar": {
     "video": "비디오",
     "camera": "카메라",
+    "webcam": "웹캠",
     "zoom": "줌",
     "elements": "오브젝트",
     "audio": "오디오",

@@ -9,6 +9,7 @@ import { MockupMotionFragment } from "@/lib/mockup-motion";
 import { VideoTrackClip } from "./video-track.types";
 import type { MockupCameraConfig } from "@/lib/viewer-controls3d";
 import type { MockupCameraKeyframe } from "@/lib/viewer-controls3d";
+import type { CameraOverlayKeyframe } from "@/lib/camera-overlay-animation";
 
 export interface VideoTransform {
     rotation: number;
@@ -37,6 +38,7 @@ export interface EditorState {
     muteOriginalAudio: boolean;
     masterVolume: number;
     cameraConfig: CameraConfig | null;
+    cameraOverlayKeyframes: CameraOverlayKeyframe[];
     videoTransform: VideoTransform;
     imageTransform: Preview3DConfig;
     apply3DToBackground: boolean;
@@ -95,6 +97,7 @@ export function createInitialEditorState(overrides?: Partial<EditorState>): Edit
         muteOriginalAudio: false,
         masterVolume: 1,
         cameraConfig: null,
+        cameraOverlayKeyframes: [],
         videoTransform: {
             rotation: 0,
             translateX: 0,

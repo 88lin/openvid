@@ -3,7 +3,7 @@ import { useRef, useMemo, useCallback, useEffect, useLayoutEffect, useState } fr
 import { motion, useMotionValue, useTransform, animate, PanInfo } from "framer-motion";
 import { formatTime, getZoomMultiplier } from "@/lib/video.utils";
 import { TIMELINE_LABEL_WIDTH, MIN_TRIM_DURATION } from "@/lib/constants";
-import { DEFAULT_MOVEMENT_DURATION, DEFAULT_ZOOM_FRAGMENT_DURATION, ELEMENT_ROW_HEIGHT, VIDEO_ROW_MAX_HEIGHT, VIDEO_ROW_MIN_HEIGHT, type TimelineProps } from "@/types/timeline.types";
+import { CAMERA_KEYFRAME_ROW_HEIGHT, DEFAULT_MOVEMENT_DURATION, DEFAULT_ZOOM_FRAGMENT_DURATION, ELEMENT_ROW_HEIGHT, VIDEO_ROW_HEIGHT, type TimelineProps } from "@/types/timeline.types";
 import LabelSidebar from "./LabelSidebar";
 import { ZoomFragmentTrackItem } from "./ZoomFragmentTrackItem";
 import { AudioFragmentTrackItem } from "./AudioFragmentTrackItem";
@@ -18,12 +18,14 @@ import { ElementFragmentTrackItem } from "./ElementFragmentTrackItem";
 import { findValidFragmentPosition, findValidMovementPosition, getFragmentHoldBounds } from "@/types/zoom.types";
 import { ZoomMovementTrackItem, MIN_MOVEMENT_TRACK_DURATION } from "./ZoomMovementTrackItem";
 import { collectSnapPoints, findSnap } from "@/lib/timeline-snapping";
+import type { SnapPoint } from "@/lib/timeline-snapping";
 import { MAX_ZOOM, MIN_ZOOM, ZOOM_STEP } from "@/types/player-control.types";
 import { getClipTrimInfo } from "@/types/video-track.types";
 import type { MockupCameraKeyframe } from "@/lib/viewer-controls3d";
+import type { CameraOverlayKeyframe } from "@/lib/camera-overlay-animation";
 const TAIL_PAD = 96;
 
-function CameraKeyframeMarker({
+function CameraKeyframeMarker<T extends { id: string; time: number }>({
     keyframe,
     keyframes,
     duration,
@@ -35,21 +37,24 @@ function CameraKeyframeMarker({
     formatKeyframeTime,
     keyframeLabel,
     dragHint,
+    snapPoints,
 }: {
-    keyframe: MockupCameraKeyframe;
-    keyframes: MockupCameraKeyframe[];
+    keyframe: T;
+    keyframes: T[];
     duration: number;
     contentWidth: number;
     isSelected: boolean;
-    onSelect?: (keyframe: MockupCameraKeyframe) => void;
+    onSelect?: (keyframe: T) => void;
     onDelete?: (id: string) => void;
     onMove?: (id: string, time: number) => void;
     formatKeyframeTime: (time: number) => string;
     keyframeLabel: string;
     dragHint: string;
+    snapPoints: SnapPoint[];
 }) {
     const [dragTime, setDragTime] = useState<number | null>(null);
     const [isDragging, setIsDragging] = useState(false);
+    const [isSnapped, setIsSnapped] = useState(false);
     const dragRef = useRef<{
         pointerId: number;
         rect: DOMRect;
@@ -61,6 +66,19 @@ function CameraKeyframeMarker({
     const suppressClickRef = useRef(false);
     const displayTime = dragTime ?? keyframe.time;
     const left = duration > 0 ? (displayTime / duration) * contentWidth : 0;
+    const getSnappedTime = (candidate: number, minTime: number, maxTime: number) => {
+        const bounded = Math.max(minTime, Math.min(maxTime, candidate));
+        const timeToPixels = (time: number) => (time / duration) * contentWidth;
+        const snap = findSnap(bounded, snapPoints, timeToPixels, 8);
+        const snapped = Math.max(minTime, Math.min(maxTime, snap.time));
+        return {
+            time: snapped,
+            isSnapped: Math.abs(snapped - snap.time) < 0.001 && snapPoints.some((point) =>
+                Math.abs(timeToPixels(point.time) - timeToPixels(bounded)) <= 8
+                && Math.abs(point.time - snapped) < 0.001
+            ),
+        };
+    };
 
     const handlePointerDown = (event: React.PointerEvent<HTMLButtonElement>) => {
         if (event.button !== 0 || duration <= 0 || contentWidth <= 0) return;
@@ -92,16 +110,25 @@ function CameraKeyframeMarker({
         const drag = dragRef.current;
         if (!drag || drag.pointerId !== event.pointerId) return;
         const x = event.clientX - drag.pointerOffset - drag.rect.left;
-        const nextTime = Math.max(drag.minTime, Math.min(drag.maxTime, (x / contentWidth) * duration));
+        const { time: nextTime, isSnapped: snapped } = getSnappedTime(
+            (x / contentWidth) * duration,
+            drag.minTime,
+            drag.maxTime,
+        );
         if (Math.abs(nextTime - keyframe.time) > 0.01) drag.moved = true;
         setDragTime(nextTime);
+        setIsSnapped(snapped);
     };
 
     const handlePointerUp = (event: React.PointerEvent<HTMLButtonElement>) => {
         const drag = dragRef.current;
         if (!drag || drag.pointerId !== event.pointerId) return;
         const x = event.clientX - drag.pointerOffset - drag.rect.left;
-        const nextTime = Math.max(drag.minTime, Math.min(drag.maxTime, (x / contentWidth) * duration));
+        const { time: nextTime } = getSnappedTime(
+            (x / contentWidth) * duration,
+            drag.minTime,
+            drag.maxTime,
+        );
         if (drag.moved && Math.abs(nextTime - keyframe.time) > 0.001) {
             suppressClickRef.current = true;
             const movedKeyframe = { ...keyframe, time: nextTime };
@@ -111,6 +138,7 @@ function CameraKeyframeMarker({
         dragRef.current = null;
         setDragTime(null);
         setIsDragging(false);
+        setIsSnapped(false);
     };
 
     return (
@@ -120,7 +148,7 @@ function CameraKeyframeMarker({
                 isSelected
                     ? "border-primary bg-primary text-primary-foreground"
                     : "border-primary/40 bg-background text-primary hover:bg-primary/10"
-            } ${isDragging ? "cursor-grabbing scale-110" : "cursor-grab"}`}
+            } ${isDragging ? "cursor-grabbing scale-110" : "cursor-grab"} ${isSnapped ? "ring-2 ring-primary/50 shadow-[0_0_8px_rgba(59,130,246,0.55)]" : ""}`}
             style={{ left }}
             title={`${keyframeLabel} · ${formatKeyframeTime(keyframe.time)} · ${dragHint}`}
             aria-label={`${keyframeLabel} · ${formatKeyframeTime(keyframe.time)} · ${dragHint}`}
@@ -132,6 +160,7 @@ function CameraKeyframeMarker({
                 dragRef.current = null;
                 setDragTime(null);
                 setIsDragging(false);
+                setIsSnapped(false);
             }}
             onClick={(event) => {
                 event.stopPropagation();
@@ -161,7 +190,7 @@ function CameraKeyframeMarker({
                 const maxTime = index >= 0 && index < ordered.length - 1
                     ? ordered[index + 1].time - 0.06
                     : duration;
-                const time = Math.max(minTime, Math.min(maxTime, keyframe.time + direction * step));
+                const { time } = getSnappedTime(keyframe.time + direction * step, minTime, maxTime);
                 if (time !== keyframe.time) {
                     onMove?.(keyframe.id, time);
                     onSelect?.({ ...keyframe, time });
@@ -212,6 +241,13 @@ export function Timeline({
     onDeleteMockupCameraKeyframe,
     onUpdateMockupCameraKeyframeTime,
     onAddMockupCameraKeyframeAtTime,
+    cameraOverlayKeyframes = [],
+    selectedCameraOverlayKeyframeId = null,
+    showCameraOverlayTrack = false,
+    onSelectCameraOverlayKeyframe,
+    onDeleteCameraOverlayKeyframe,
+    onUpdateCameraOverlayKeyframeTime,
+    onAddCameraOverlayKeyframeAtTime,
     onActivateMotionTool,
     canvasElements = [],
     selectedElementId = null,
@@ -370,11 +406,12 @@ export function Timeline({
         let count = 0;
         if (showMovementRow) count += 1;
         if (showCameraTrack) count += 1;
+        if (showCameraOverlayTrack) count += 1;
         if (canvasElements.length > 0) count += elementLaneCount;
         if (audioTracks.length > 0) count += audioLaneCount;
         if (mockupMotionFragments.length > 0) count += 1;
         return count;
-    }, [showMovementRow, showCameraTrack, canvasElements.length, elementLaneCount, audioTracks.length, audioLaneCount, mockupMotionFragments.length]);
+    }, [showMovementRow, showCameraTrack, showCameraOverlayTrack, canvasElements.length, elementLaneCount, audioTracks.length, audioLaneCount, mockupMotionFragments.length]);
 
     useEffect(() => {
         if (!isDraggingTrim) {
@@ -428,6 +465,22 @@ export function Timeline({
             position: (adjustedInterval * i / validDuration) * contentWidth
         })).filter(m => m.time <= outputDuration);
     }, [outputDuration, validDuration, zoomLevel, contentWidth]);
+
+    const keyframeSnapPoints = useMemo(() => {
+        const clipEdges = videoClips.length > 0
+            ? videoClips.map((clip) => ({
+                start: clip.startTime,
+                end: clip.startTime + (clip.trimEnd - clip.trimStart),
+            }))
+            : [{ start: trimRange.start, end: trimRange.end }];
+        const markerTimes = timeMarkers.map(({ position }) =>
+            contentWidth > 0 ? (position / contentWidth) * scaledDuration : 0
+        );
+        return collectSnapPoints({
+            clipEdges,
+            markers: markerTimes,
+        });
+    }, [videoClips, trimRange.start, trimRange.end, timeMarkers, contentWidth, scaledDuration]);
 
     const handleTrackClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
         if (isDragging || isDraggingTrim) return;
@@ -800,12 +853,12 @@ export function Timeline({
                             : totalLanesCount === 1
                                 ? 'h-50'
                                 : 'h-38'
-                    } shrink-0 bg-background border-t border-border flex flex-col font-mono text-[11px] transition-all duration-200`}
+                    } max-h-[min(24rem,45vh)] shrink-0 bg-background border-t border-border flex flex-col font-mono text-[11px] transition-all duration-200`}
             >
                 <div className="flex-1 flex flex-col relative overflow-hidden">
                     <div
                         ref={trackRef}
-                        className={`flex-1 overflow-x-auto custom-scrollbar pr-2 ${audioTracks.length > 0 || elementLaneCount > 1 || canvasElements.length > 0 || showMovementRow || showCameraTrack
+                        className={`flex-1 overflow-x-auto custom-scrollbar pr-2 ${audioTracks.length > 0 || elementLaneCount > 1 || canvasElements.length > 0 || showMovementRow || showCameraTrack || showCameraOverlayTrack
                             ? "overflow-y-auto no-scrollbar"
                             : "overflow-y-hidden"
                             }`}
@@ -824,6 +877,7 @@ export function Timeline({
                                 motionTracksCount={mockupMotionFragments.length}
                                 showMovementRow={showMovementRow}
                                 showCameraTrack={showCameraTrack}
+                                showCameraOverlayTrack={showCameraOverlayTrack}
                             />
                             <div className="relative flex flex-col pb-1 min-w-0">
                                 <motion.div
@@ -894,8 +948,8 @@ export function Timeline({
                                 <div className="flex-1 flex flex-col min-h-max" onClick={handleTrackClick}>
 
                                     <div
-                                        className="flex-1 shrink-0 flex items-center py-0.5 relative"
-                                        style={{ minHeight: VIDEO_ROW_MIN_HEIGHT, maxHeight: VIDEO_ROW_MAX_HEIGHT }}
+                                        className="shrink-0 flex items-center relative"
+                                        style={{ height: VIDEO_ROW_HEIGHT }}
                                     >
                                         <div className="h-full w-full rounded-md flex items-center relative bg-muted/40 dark:bg-[#0a1510] border border-border">
                                             {videoClips.length > 0 ? (
@@ -1010,7 +1064,7 @@ export function Timeline({
                                     {showCameraTrack && (
                                         <div
                                             className="shrink-0 w-full flex items-center relative border-t border-border/70 bg-muted/20"
-                                            style={{ height: 34 }}
+                                            style={{ height: CAMERA_KEYFRAME_ROW_HEIGHT }}
                                             role="group"
                                             aria-label={`${t("cameraKeyframe")} · ${t("cameraTrackClickHint")}`}
                                             title={t("cameraTrackClickHint")}
@@ -1023,11 +1077,6 @@ export function Timeline({
                                             }}
                                         >
                                             <div className="pointer-events-none absolute inset-x-0 top-1/2 h-px bg-primary/15" aria-hidden="true" />
-                                            {mockupCameraKeyframes.length === 0 && (
-                                                <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-primary/35" aria-hidden="true">
-                                                    <Icon icon="lucide:plus" width="14" />
-                                                </span>
-                                            )}
                                             {mockupCameraKeyframes.map((keyframe) => {
                                                 return (
                                                     <CameraKeyframeMarker
@@ -1043,15 +1092,53 @@ export function Timeline({
                                                         formatKeyframeTime={formatTime}
                                                         keyframeLabel={t("cameraKeyframe")}
                                                         dragHint={t("cameraKeyframeDragHint")}
+                                                        snapPoints={keyframeSnapPoints}
                                                     />
                                                 );
                                             })}
                                         </div>
                                     )}
 
+                                    {showCameraOverlayTrack && (
+                                        <div
+                                            className="shrink-0 w-full flex items-center relative border-t border-border/70 bg-muted/20"
+                                            style={{ height: CAMERA_KEYFRAME_ROW_HEIGHT }}
+                                            role="group"
+                                            aria-label={`${t("webcamKeyframe")} · ${t("webcamTrackClickHint")}`}
+                                            title={t("webcamTrackClickHint")}
+                                            onClick={(event) => {
+                                                if (!onAddCameraOverlayKeyframeAtTime || contentWidth <= 0 || scaledDuration <= 0) return;
+                                                if ((event.target as HTMLElement).closest("button")) return;
+                                                event.stopPropagation();
+                                                const bounds = event.currentTarget.getBoundingClientRect();
+                                                const progress = Math.max(0, Math.min(1, (event.clientX - bounds.left) / contentWidth));
+                                                onAddCameraOverlayKeyframeAtTime(progress * scaledDuration);
+                                            }}
+                                        >
+                                            <div className="pointer-events-none absolute inset-x-0 top-1/2 h-px bg-primary/15" aria-hidden="true" />
+                                            {cameraOverlayKeyframes.map((keyframe) => (
+                                                <CameraKeyframeMarker<CameraOverlayKeyframe>
+                                                    key={keyframe.id}
+                                                    keyframe={keyframe}
+                                                    keyframes={cameraOverlayKeyframes}
+                                                    duration={scaledDuration}
+                                                    contentWidth={contentWidth}
+                                                    isSelected={selectedCameraOverlayKeyframeId === keyframe.id}
+                                                    onSelect={onSelectCameraOverlayKeyframe}
+                                                    onDelete={onDeleteCameraOverlayKeyframe}
+                                                    onMove={onUpdateCameraOverlayKeyframeTime}
+                                                    formatKeyframeTime={formatTime}
+                                                    keyframeLabel={t("webcamKeyframe")}
+                                                    dragHint={t("cameraKeyframeDragHint")}
+                                                    snapPoints={keyframeSnapPoints}
+                                                />
+                                            ))}
+                                        </div>
+                                    )}
+
                                     <div
                                         className="shrink-0 w-full flex items-center relative"
-                                        style={{ minHeight: ELEMENT_ROW_HEIGHT }}
+                                        style={{ height: ELEMENT_ROW_HEIGHT }}
                                         onMouseMove={(e) => {
                                             if (isDraggingZoomFragment) return;
                                             const rect = e.currentTarget.getBoundingClientRect();
@@ -1142,7 +1229,7 @@ export function Timeline({
                                         return (
                                             <div
                                                 className="shrink-0 w-full flex items-center relative bg-black/10 dark:bg-white/10"
-                                                style={{ minHeight: ELEMENT_ROW_HEIGHT }}
+                                                style={{ height: ELEMENT_ROW_HEIGHT }}
                                                 onMouseMove={(e) => {
                                                     if (isDraggingMovementItem) return;
                                                     const rect = e.currentTarget.getBoundingClientRect();
@@ -1299,7 +1386,7 @@ export function Timeline({
 
                                     {mockupMotionFragments.length > 0 && (
                                         <div className="shrink-0 w-full flex items-center relative"
-                                            style={{ minHeight: ELEMENT_ROW_HEIGHT }}
+                                            style={{ height: ELEMENT_ROW_HEIGHT }}
                                             onClick={(e) => { e.stopPropagation(); onSelectMockupMotionFragment?.(null); }}
                                         >
                                             <div className="h-full w-full relative">

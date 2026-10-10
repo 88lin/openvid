@@ -7,6 +7,7 @@ import type { CameraConfig } from "./camera.types";
 import { MockupMotionFragment } from "@/lib/mockup-motion";
 import type { VideoTrackClip } from "./video-track.types";
 import type { MockupCameraKeyframe } from "@/lib/viewer-controls3d";
+import type { CameraOverlayKeyframe } from "@/lib/camera-overlay-animation";
 
 export type Tool = "screenshot" | "elements" | "audio" | "zoom" | "mockup" | "cursor" | "video" | "camera" | "history" | "motion";
 export type BackgroundTab = "wallpaper" | "image" | "color";
@@ -100,6 +101,7 @@ export interface VideoCanvasProps {
   cameraUrl?: string | null;
   cameraSourceUrl?: string | null;
   cameraConfig?: CameraConfig | null;
+  cameraOverlayKeyframes?: CameraOverlayKeyframe[];
   onCameraConfigChange?: (partial: Partial<CameraConfig>) => void;
   onCameraClick?: () => void;
   layersPanelToolbar?: React.ReactNode;

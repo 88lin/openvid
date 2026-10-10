@@ -2,7 +2,7 @@
 import { Device3DBoundary } from "./Device3DBoundary";
 import { IPhoneDuoScene } from "./IPhoneDuo3DViewer";
 import { Canvas } from "@react-three/fiber";
-import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { IPhone13ProMax3DApi, IPhone13ProMaxScene } from "./IPhone13ProMax3DViewer";
 import { DoubleIPhone3DApi, DoubleIPhoneScene } from "./DoubleIPhone3DViewer";
@@ -21,6 +21,7 @@ import { applyMockupCameraPoseForRender } from "@/lib/viewer-controls3d";
 import type { MockupCameraPose } from "@/lib/viewer-controls3d";
 import { REST_MOCKUP_3D_MOTION, type Mockup3DMotionTransform } from "@/lib/mockup-motion-3d";
 import { useFrame } from "@react-three/fiber";
+import { getMockupCameraPosition, type MockupCameraKeyframe } from "@/lib/viewer-controls3d";
 
 export type Mockup3DApi =
   | IPhone13ProMax3DApi
@@ -43,6 +44,8 @@ export interface Mockup3DStageProps {
   cameraConfig?: MockupCameraConfig;
   cameraNavigationMode?: CameraNavigationMode;
   onCameraChange?: (camera: MockupCameraConfig) => void;
+  cameraKeyframes?: MockupCameraKeyframe[];
+  selectedCameraKeyframeId?: string | null;
   onMount?: (canvas: HTMLCanvasElement) => void;
   onApi?: (api: Mockup3DApi | null) => void;
   scale?: number;
@@ -156,6 +159,7 @@ function StageContent({ device, rootRef: externalRootRef, cameraRef: externalCam
   const internalCameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const rootRef = externalRootRef ?? internalRootRef;
   const cameraRef = externalCameraRef ?? internalCameraRef;
+  const cameraPathRef = useRef<THREE.Group | null>(null);
   const canvasElRef = useRef<HTMLCanvasElement | null>(null);
   const zoomRef = useRef(props.zoom ?? 1);
   const onApi = props.onApi;
@@ -191,9 +195,13 @@ function StageContent({ device, rootRef: externalRootRef, cameraRef: externalCam
         const restoreCamera = camera && cameraPose
           ? applyMockupCameraPoseForRender(camera, cameraPose, device, zoomRef.current)
           : null;
+        const cameraPath = cameraPathRef.current;
+        const wasCameraPathVisible = cameraPath?.visible ?? false;
+        if (cameraPath) cameraPath.visible = false;
         try {
           api.renderAt(width, height);
         } finally {
+          if (cameraPath) cameraPath.visible = wasCameraPathVisible;
           restoreCamera?.();
         }
       },
@@ -229,6 +237,14 @@ function StageContent({ device, rootRef: externalRootRef, cameraRef: externalCam
         }}
       >
         <Motion3DApplicator rootRef={rootRef} motionTransform={props.motionTransform ?? REST_MOCKUP_3D_MOTION} device={device} baseRotationZ={props.initialRotationZ ?? 0} />
+        {props.cameraKeyframes && props.cameraKeyframes.length > 0 && (
+          <CameraPath
+            cameraKeyframes={props.cameraKeyframes}
+            selectedCameraKeyframeId={props.selectedCameraKeyframeId}
+            device={device}
+            groupRef={cameraPathRef}
+          />
+        )}
         <Suspense fallback={null}>
           {device === "iphone-13-pro-max" && (
             <IPhone13ProMaxScene {...props} onApi={handleApi} rootRef={rootRef} cameraRef={cameraRef} onLoaded={markLoaded} />
@@ -259,5 +275,68 @@ function StageContent({ device, rootRef: externalRootRef, cameraRef: externalCam
         </div>
       )}
     </>
+  );
+}
+
+function CameraPath({
+  cameraKeyframes,
+  selectedCameraKeyframeId,
+  device,
+  groupRef,
+}: {
+  cameraKeyframes: MockupCameraKeyframe[];
+  selectedCameraKeyframeId?: string | null;
+  device: ImageDeviceId;
+  groupRef: React.MutableRefObject<THREE.Group | null>;
+}) {
+  const baseRadius = device === "laptop" ? 90 : device === "iphone-duo" ? 1.7 : 1.5;
+  const sortedKeyframes = useMemo(
+    () => [...cameraKeyframes].filter((keyframe) => Number.isFinite(keyframe.time)).sort((a, b) => a.time - b.time),
+    [cameraKeyframes],
+  );
+  const points = useMemo(
+    () => sortedKeyframes.map((keyframe) => new THREE.Vector3(
+      ...getMockupCameraPosition(
+        keyframe.rotationX,
+        keyframe.rotationY,
+        keyframe.camera.distance,
+        keyframe.camera.target,
+        baseRadius,
+      ),
+    )),
+    [sortedKeyframes, baseRadius],
+  );
+  const pathGeometry = useMemo(() => new THREE.BufferGeometry().setFromPoints(points), [points]);
+  const pathMaterial = useMemo(
+    () => new THREE.LineBasicMaterial({ color: "#38bdf8", transparent: true, opacity: 0.8, depthTest: false }),
+    [],
+  );
+  const pathLine = useMemo(() => {
+    const line = new THREE.Line(pathGeometry, pathMaterial);
+    line.frustumCulled = false;
+    return line;
+  }, [pathGeometry, pathMaterial]);
+
+  useEffect(() => () => {
+    pathGeometry.dispose();
+    pathMaterial.dispose();
+  }, [pathGeometry, pathMaterial]);
+
+  return (
+    <group ref={groupRef} raycast={() => null}>
+      {points.length > 1 && (
+        <primitive object={pathLine} />
+      )}
+      {points.map((point, index) => (
+        <mesh key={sortedKeyframes[index].id} position={point} renderOrder={1000}>
+          <sphereGeometry args={[baseRadius * 0.025, 12, 12]} />
+          <meshBasicMaterial
+            color={sortedKeyframes[index].id === selectedCameraKeyframeId ? "#f8fafc" : "#38bdf8"}
+            depthTest={false}
+            toneMapped={false}
+          />
+        </mesh>
+      ))}
+    </group>
   );
 }

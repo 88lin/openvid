@@ -12,6 +12,13 @@ export interface CameraPosition {
     y: number;
 }
 
+export interface Camera3DConfig {
+    enabled: boolean;
+    rotationX: number;
+    rotationY: number;
+    perspective: number;
+}
+
 export interface CameraConfig {
     enabled: boolean;
     deviceId: string | null;
@@ -20,6 +27,8 @@ export interface CameraConfig {
     position: CameraPosition;
     corner: CameraCorner;
     mirror: boolean;
+    zoom?: number;
+    threeD?: Camera3DConfig;
 }
 
 export interface MicrophoneConfig {
@@ -55,7 +64,31 @@ export const DEFAULT_CAMERA_CONFIG: CameraConfig = {
     position: { x: 0.88, y: 0.8 },
     corner: "bottom-right",
     mirror: true,
+    zoom: 1,
+    threeD: {
+        enabled: false,
+        rotationX: 0,
+        rotationY: 0,
+        perspective: 900,
+    },
 };
+
+export function normalizeCamera3DConfig(value?: Partial<Camera3DConfig> | null): Camera3DConfig {
+    const finite = (input: unknown, fallback: number) =>
+        typeof input === "number" && Number.isFinite(input) ? input : fallback;
+    return {
+        enabled: value?.enabled === true,
+        rotationX: Math.max(-45, Math.min(45, finite(value?.rotationX, 0))),
+        rotationY: Math.max(-45, Math.min(45, finite(value?.rotationY, 0))),
+        perspective: Math.max(300, Math.min(1600, finite(value?.perspective, 900))),
+    };
+}
+
+export function normalizeCameraZoom(value?: number | null): number {
+    return typeof value === "number" && Number.isFinite(value)
+        ? Math.max(1, Math.min(3, value))
+        : 1;
+}
 
 export const DEFAULT_MICROPHONE_CONFIG: MicrophoneConfig = {
     enabled: false,
