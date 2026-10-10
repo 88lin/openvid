@@ -666,6 +666,8 @@
       "safeArea": "Safe area"
     },
     "cameraTarget": "Look-at point",
+    "cameraTargetPosition": "XY position",
+    "cameraTargetPadHint": "Drag the dot to move the framing. Use arrow keys to adjust and Home to center.",
     "orbit": "Orbit",
     "trackXY": "Track XY",
     "trackZ": "Track Z",

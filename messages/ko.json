@@ -666,6 +666,8 @@
       "safeArea": "안전 영역"
     },
     "cameraTarget": "시선 대상",
+    "cameraTargetPosition": "XY 위치",
+    "cameraTargetPadHint": "점을 드래그해 구도를 이동하세요. 화살표 키로 조정하고 Home 키로 가운데에 놓으세요.",
     "orbit": "회전",
     "trackXY": "XY 이동",
     "trackZ": "Z 이동",

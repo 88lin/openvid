@@ -155,6 +155,116 @@ function PositionPad({
     );
 }
 
+function CameraTargetPad({
+    x,
+    y,
+    range,
+    onChange,
+    label,
+    hint,
+}: {
+    x: number;
+    y: number;
+    range: number;
+    onChange: (x: number, y: number) => void;
+    label: string;
+    hint: string;
+}) {
+    const padRef = useRef<HTMLDivElement>(null);
+    const dragPointerId = useRef<number | null>(null);
+    const rectCache = useRef<DOMRect | null>(null);
+    const positionX = Math.max(-range, Math.min(range, x));
+    const positionY = Math.max(-range, Math.min(range, y));
+    const left = ((positionX / range + 1) / 2) * 100;
+    const top = ((1 - positionY / range) / 2) * 100;
+
+    const updateFromPointer = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
+        const rect = rectCache.current;
+        if (!rect) return;
+        const normalizedX = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+        const normalizedY = Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height));
+        onChange(
+            (normalizedX * 2 - 1) * range,
+            (1 - normalizedY * 2) * range,
+        );
+    }, [onChange, range]);
+
+    return (
+        <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+                <span className="text-[10px] font-medium text-muted-foreground">{label}</span>
+                <TooltipAction label={hint} side="right">
+                    <button
+                        type="button"
+                        aria-label={hint}
+                        className="flex size-6 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    >
+                        <Icon icon="lucide:circle-help" width="13" aria-hidden="true" />
+                    </button>
+                </TooltipAction>
+            </div>
+            <div
+                ref={padRef}
+                role="group"
+                tabIndex={0}
+                aria-label={`${label}, X ${positionX.toFixed(2)}, Y ${positionY.toFixed(2)}`}
+                onPointerDown={(event) => {
+                    if (event.button !== 0) return;
+                    rectCache.current = padRef.current?.getBoundingClientRect() ?? null;
+                    dragPointerId.current = event.pointerId;
+                    event.currentTarget.setPointerCapture(event.pointerId);
+                    updateFromPointer(event);
+                }}
+                onPointerMove={(event) => {
+                    if (dragPointerId.current === event.pointerId) updateFromPointer(event);
+                }}
+                onPointerUp={(event) => {
+                    if (dragPointerId.current !== event.pointerId) return;
+                    dragPointerId.current = null;
+                    rectCache.current = null;
+                }}
+                onPointerCancel={() => {
+                    dragPointerId.current = null;
+                    rectCache.current = null;
+                }}
+                onKeyDown={(event) => {
+                    const step = event.shiftKey ? range / 5 : range / 20;
+                    let nextX = positionX;
+                    let nextY = positionY;
+                    if (event.key === "ArrowLeft") nextX -= step;
+                    else if (event.key === "ArrowRight") nextX += step;
+                    else if (event.key === "ArrowUp") nextY += step;
+                    else if (event.key === "ArrowDown") nextY -= step;
+                    else if (event.key === "Home") {
+                        nextX = 0;
+                        nextY = 0;
+                    } else return;
+                    event.preventDefault();
+                    onChange(
+                        Math.max(-range, Math.min(range, nextX)),
+                        Math.max(-range, Math.min(range, nextY)),
+                    );
+                }}
+                className="group relative h-28 touch-none select-none overflow-hidden rounded-xl border border-border bg-gradient-to-br from-cyan-500/35 via-emerald-500/25 to-violet-500/35 shadow-inner outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            >
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_45%,transparent_0%,rgba(0,0,0,0.22)_100%)]" />
+                <div className="pointer-events-none absolute inset-0 opacity-25 [background-image:linear-gradient(to_right,rgba(255,255,255,0.3)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.3)_1px,transparent_1px)] [background-size:25%_25%]" />
+                <div className="pointer-events-none absolute left-1/2 top-0 h-full w-px -translate-x-1/2 bg-white/25" />
+                <div className="pointer-events-none absolute left-0 top-1/2 h-px w-full -translate-y-1/2 bg-white/25" />
+                <span className="pointer-events-none absolute left-2 top-1.5 rounded bg-black/20 px-1.5 py-0.5 font-mono text-[9px] font-medium text-white/85">
+                    X {positionX.toFixed(2)} · Y {positionY.toFixed(2)}
+                </span>
+                <span
+                    className="pointer-events-none absolute z-10 size-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-white/20 shadow-[0_0_12px_3px_rgba(255,255,255,0.45)] transition-[left,top] duration-75 group-active:scale-110"
+                    style={{ left: `${left}%`, top: `${top}%` }}
+                >
+                    <span className="absolute left-1/2 top-1/2 size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white" />
+                </span>
+            </div>
+        </div>
+    );
+}
+
 export interface ActiveDeviceTpl {
     id: ImageDeviceId;
     title: string;
@@ -265,6 +375,7 @@ export function Mockup3dMenu({
     const { cameraReviewGuides, setCameraReviewGuides } = useMockup3dContext();
     const canCreateAutomaticTour = mediaType !== "video"
         || hasMockupCameraTourSpace(videoDuration, mockupCameraKeyframes);
+    const cameraTargetRange = imagePhoneDevice === "laptop" ? 100 : imagePhoneDevice === "iphone-duo" ? 5 : 1;
 
     const handleCameraChange = useCallback((camera: MockupCameraConfig) => {
         if (onUpdateCameraKeyframe) onUpdateCameraKeyframe(camera);
@@ -566,25 +677,33 @@ export function Mockup3dMenu({
                             <Icon icon="mdi:crosshairs-gps" width="13" aria-hidden="true" />
                             {t("cameraTarget")}
                         </h4>
-                        {(["X", "Y", "Z"] as const).map((axis, index) => {
-                            const targetRange = imagePhoneDevice === "laptop" ? 100 : imagePhoneDevice === "iphone-duo" ? 5 : 1;
-                            return (
-                                <SliderControl
-                                    key={axis}
-                                    icon="mdi:crosshairs-gps"
-                                    label={`${t("target")} ${axis}`}
-                                    value={Math.round((mockupCamera.target[index] / targetRange) * 100)}
-                                    min={-100}
-                                    max={100}
-                                    step={1}
-                                    onChange={(value) => {
-                                        const target = [...mockupCamera.target] as [number, number, number];
-                                        target[index] = (value / 100) * targetRange;
-                                        handleCameraChange({ ...mockupCamera, target });
-                                    }}
-                                />
-                            );
-                        })}
+                        <CameraTargetPad
+                            x={mockupCamera.target[0]}
+                            y={mockupCamera.target[1]}
+                            range={cameraTargetRange}
+                            label={t("cameraTargetPosition")}
+                            hint={t("cameraTargetPadHint")}
+                            onChange={(x, y) => {
+                                const target: [number, number, number] = [x, y, mockupCamera.target[2]];
+                                handleCameraChange({ ...mockupCamera, target });
+                            }}
+                        />
+                        <SliderControl
+                            icon="mdi:crosshairs-gps"
+                            label={`${t("target")} Z`}
+                            value={Math.round((mockupCamera.target[2] / cameraTargetRange) * 100)}
+                            min={-100}
+                            max={100}
+                            step={1}
+                            onChange={(value) => {
+                                const target: [number, number, number] = [
+                                    mockupCamera.target[0],
+                                    mockupCamera.target[1],
+                                    (value / 100) * cameraTargetRange,
+                                ];
+                                handleCameraChange({ ...mockupCamera, target });
+                            }}
+                        />
                     </div>
                         </div>
                     </details>

@@ -622,6 +622,8 @@
       "safeArea": "Área segura"
     },
     "cameraTarget": "Punto de enfoque",
+    "cameraTargetPosition": "Posición XY",
+    "cameraTargetPadHint": "Arrastra el punto para mover el encuadre. Usa las flechas para ajustar y Home para centrar.",
     "orbit": "Orbitar",
     "trackXY": "Mover XY",
     "trackZ": "Acercar / alejar",
