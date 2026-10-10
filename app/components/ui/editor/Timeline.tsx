@@ -1071,6 +1071,7 @@ export function Timeline({
                                             onClick={(event) => {
                                                 if (!onAddMockupCameraKeyframeAtTime || contentWidth <= 0 || scaledDuration <= 0) return;
                                                 if ((event.target as HTMLElement).closest("button")) return;
+                                                event.stopPropagation();
                                                 const bounds = event.currentTarget.getBoundingClientRect();
                                                 const progress = Math.max(0, Math.min(1, (event.clientX - bounds.left) / contentWidth));
                                                 onAddMockupCameraKeyframeAtTime(progress * scaledDuration);

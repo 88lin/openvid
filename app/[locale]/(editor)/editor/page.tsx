@@ -38,8 +38,10 @@ import { DEFAULT_MASK_CONFIG, PREVIEW_CONFIGS } from "@/types/photo.types";
 import { MOCKUPS } from "@/lib/mockup-data";
 import {
     createAutomaticMockupCameraTour,
+    DEFAULT_MOCKUP_CAMERA_FOV,
     getAutomaticMockupCameraPreset,
     normalizeMockupCameraConfig,
+    sampleMockupCameraKeyframes,
 } from "@/lib/viewer-controls3d";
 import type {
     MockupCameraKeyframe,
@@ -426,12 +428,25 @@ export default function Editor() {
     }, [currentTime, mockupCameraKeyframes]);
 
     const handleSaveMockupCameraKeyframe = useCallback((time = currentTime) => {
-        upsertMockupCameraKeyframe({
+        const sampledPose = sampleMockupCameraKeyframes(
+            mockupCameraKeyframes,
+            time,
+            DEFAULT_MOCKUP_CAMERA_FOV[imagePhoneDevice],
+        );
+        upsertMockupCameraKeyframe(sampledPose ?? {
             camera: mockupCamera,
             rotationX: imagePhoneRotX,
             rotationY: imagePhoneRotY,
         }, time);
-    }, [upsertMockupCameraKeyframe, mockupCamera, imagePhoneRotX, imagePhoneRotY, currentTime]);
+    }, [
+        upsertMockupCameraKeyframe,
+        mockupCameraKeyframes,
+        imagePhoneDevice,
+        mockupCamera,
+        imagePhoneRotX,
+        imagePhoneRotY,
+        currentTime,
+    ]);
 
     const handleApplyMockupCameraPreset = useCallback((preset: MockupCameraPreset) => {
         setMockupCamera(preset.camera);

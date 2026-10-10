@@ -636,7 +636,7 @@ export function Mockup3dMenu({
                             {mockupCameraKeyframes.length > 0 && (
                                 <span className="mr-auto font-mono text-[9px] text-muted-foreground" aria-label={`${t("cameraKeyframes")}: ${mockupCameraKeyframes.length}`}>
                                     {mockupCameraKeyframes.length} · {t("cameraKeyframes")}
-                                    {selectedCameraKeyframe && ` · ${currentTime.toFixed(1)}s`}
+                                    {selectedCameraKeyframe && ` · ${selectedCameraKeyframe.time.toFixed(1)}s`}
                                 </span>
                             )}
                             {selectedCameraKeyframe && hasNextCameraKeyframe && (
