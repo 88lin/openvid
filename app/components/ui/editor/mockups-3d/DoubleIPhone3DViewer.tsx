@@ -384,14 +384,24 @@ export function DoubleIPhoneScene({
     onLoaded?.();
   }, [onLoaded]);
 
-  const prevRotationRef = useRef<{ x: number; y: number } | null>({ x: initialRotationX, y: initialRotationY });
+  const prevCameraStateRef = useRef({
+    x: initialRotationX,
+    y: initialRotationY,
+    distance: cameraConfig.distance,
+    target: cameraConfig.target,
+  });
 
   useEffect(() => {
     if (isUserInteractingRef.current) return;
 
     const currentAngles = { x: initialRotationX, y: initialRotationY };
 
-    if (areAnglesEqual(prevRotationRef.current, currentAngles)) {
+    const previous = prevCameraStateRef.current;
+    if (
+      areAnglesEqual(previous, currentAngles) &&
+      previous.distance === cameraConfig.distance &&
+      previous.target.every((coordinate, index) => coordinate === cameraConfig.target[index])
+    ) {
       return;
     }
 
@@ -400,18 +410,20 @@ export function DoubleIPhoneScene({
       const orbit = orbitRef.current;
       if (!orbit) return;
 
-      const radius = 1.5;
-      const phi = Math.PI / 2 - initialRotationX * DEG;
-      const theta = initialRotationY * DEG;
-
-      orbit.object.position.setFromSphericalCoords(radius, phi, theta);
+      orbit.object.position.fromArray(
+        getMockupCameraPosition(initialRotationX, initialRotationY, cameraConfig.distance, cameraConfig.target),
+      );
       orbit.update();
       invalidateRef.current();
-      prevRotationRef.current = currentAngles;
+      prevCameraStateRef.current = {
+        ...currentAngles,
+        distance: cameraConfig.distance,
+        target: cameraConfig.target,
+      };
     }, 0);
 
     return () => clearTimeout(id);
-  }, [initialRotationX, initialRotationY, zoom, areAnglesEqual]);
+  }, [initialRotationX, initialRotationY, zoom, areAnglesEqual, cameraConfig.distance, cameraConfig.target]);
 
   useEffect(() => {
     if (rootRef.current) {
@@ -494,12 +506,13 @@ export function DoubleIPhoneScene({
           isUserInteractingRef.current = false;
           const orbit = orbitRef.current;
           if (orbit) {
-            prevRotationRef.current = {
+            prevCameraStateRef.current = {
+              ...prevCameraStateRef.current,
               x: 90 - orbit.getPolarAngle() * (180 / Math.PI),
               y: orbit.getAzimuthalAngle() * (180 / Math.PI),
             };
           }
-          reportMockupCameraChange(orbitRef.current, 1.5, onCameraChange, onRotationChange);
+          reportMockupCameraChange(orbitRef.current, 1.5, onCameraChange, onRotationChange, cameraConfig.fov);
         }}
       />
       <Environment files={HDRI_FILES[environment as EnvironmentPreset]} environmentIntensity={glow} background={false} />

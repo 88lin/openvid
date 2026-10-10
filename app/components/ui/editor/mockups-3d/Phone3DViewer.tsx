@@ -586,14 +586,21 @@ export function Phone3DScene({
     };
   }, [modelUrl, onLoaded]);
 
-  const prevRotationRef = useRef<{ x: number; y: number } | null>({ x: initialRotationX, y: initialRotationY });
+  const prevCameraStateRef = useRef({
+    x: initialRotationX,
+    y: initialRotationY,
+    distance: cameraConfig.distance,
+    target: cameraConfig.target,
+  });
 
   useEffect(() => {
     if (isUserInteractingRef.current) return;
 
     if (
-      prevRotationRef.current?.x === initialRotationX &&
-      prevRotationRef.current?.y === initialRotationY
+      prevCameraStateRef.current.x === initialRotationX &&
+      prevCameraStateRef.current.y === initialRotationY &&
+      prevCameraStateRef.current.distance === cameraConfig.distance &&
+      prevCameraStateRef.current.target.every((coordinate, index) => coordinate === cameraConfig.target[index])
     ) {
       return;
     }
@@ -601,16 +608,20 @@ export function Phone3DScene({
       if (isUserInteractingRef.current) return;
       const orbit = orbitRef.current;
       if (!orbit) return;
-      const radius = 1.5;
-      const phi = Math.PI / 2 - initialRotationX * DEG;
-      const theta = initialRotationY * DEG;
-      orbit.object.position.setFromSphericalCoords(radius, phi, theta);
+      orbit.object.position.fromArray(
+        getMockupCameraPosition(initialRotationX, initialRotationY, cameraConfig.distance, cameraConfig.target),
+      );
       orbit.update();
       invalidateRef.current();
-      prevRotationRef.current = { x: initialRotationX, y: initialRotationY };
+      prevCameraStateRef.current = {
+        x: initialRotationX,
+        y: initialRotationY,
+        distance: cameraConfig.distance,
+        target: cameraConfig.target,
+      };
     }, 0);
     return () => clearTimeout(id);
-  }, [initialRotationX, initialRotationY]);
+  }, [initialRotationX, initialRotationY, cameraConfig.distance, cameraConfig.target]);
 
   useEffect(() => {
     if (rootRef.current) {
@@ -691,7 +702,7 @@ export function Phone3DScene({
         }}
         onEnd={() => {
           isUserInteractingRef.current = false;
-          reportMockupCameraChange(orbitRef.current, 1.5, onCameraChange, onRotationChange);
+          reportMockupCameraChange(orbitRef.current, 1.5, onCameraChange, onRotationChange, cameraConfig.fov);
         }}
       />
       <Environment files={HDRI_FILES[environment as EnvironmentPreset]} environmentIntensity={glow} background={false} />

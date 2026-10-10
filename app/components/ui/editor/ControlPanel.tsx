@@ -7,7 +7,7 @@ import { TabButton } from "../../../../components/ui/TabButton";
 import type { ControlPanelProps } from "@/types/control-panel.types";
 import Link from "next/link";
 import Image from "next/image";
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import { useTranslations } from "next-intl";
 
 import { ElementsMenuSkeleton, ZoomGlobalConfigSkeleton, MockupMenuSkeleton, WallpaperSkeleton, BackgroundColorSkeleton, ZoomFragmentEditorSkeleton, AudioMenuSkeleton, VideosMenuSkeleton, HistoryMenuSkeleton, MotionGlobalConfigSkeleton, MotionFragmentEditorSkeleton } from "../Skeleton";
@@ -143,25 +143,11 @@ export function ControlPanel({
     const hasMockup2D = mediaType === "video" && !imagePhoneActive;
     const hasMockup3D = imagePhoneActive;
 
-    const [isDark, setIsDark] = useState(false);
-
-    useEffect(() => {
-        const html = document.documentElement;
-        const update = () => setIsDark(html.classList.contains("dark"));
-        update();
-        const observer = new MutationObserver(update);
-        observer.observe(html, { attributes: true, attributeFilter: ["class"] });
-        return () => observer.disconnect();
-    }, []);
-
     return (
         <div className="relative w-full sm:w-[320px] h-screen bg-background flex flex-col shrink-0" role="complementary" aria-label="Control panel">
             <header className="relative flex items-center justify-between h-13 p-2 border-r shrink-0 bg-transparent isolation-isolate" role="banner">
                 <div
-                    className={`absolute inset-0 z-0 bg-cover bg-center bg-no-repeat pointer-events-none opacity-90 ${isDark
-                        ? "bg-[url('/images/pages/header-gradient.avif')]"
-                        : "bg-[url('/images/pages/header-gradient-light.png')]"
-                        }`}
+                    className="absolute inset-0 z-0 pointer-events-none opacity-90"
                     style={{
                         maskImage: `
                             linear-gradient(to bottom, black 55%, transparent 99%),
@@ -176,7 +162,10 @@ export function ControlPanel({
                         maskComposite: "intersect",
                         WebkitMaskComposite: "source-in"
                     }}
-                />
+                >
+                    <div className="absolute inset-0 hidden bg-[url('/images/pages/header-gradient.avif')] bg-cover bg-center bg-no-repeat dark:block" />
+                    <div className="absolute inset-0 bg-[url('/images/pages/header-gradient-light.png')] bg-cover bg-center bg-no-repeat dark:hidden" />
+                </div>
 
                 <Link
                     href="/"
@@ -185,10 +174,18 @@ export function ControlPanel({
                     aria-label="Openvid home"
                 >
                     <Image
-                        src={isDark ? "/svg/openvid-complete-static.svg" : "/svg/openvid-complete-light.svg"}
+                        src="/svg/openvid-complete-static.svg"
                         alt="Openvid"
                         width={100}
                         height={80}
+                        className="hidden dark:block"
+                    />
+                    <Image
+                        src="/svg/openvid-complete-light.svg"
+                        alt="Openvid"
+                        width={100}
+                        height={80}
+                        className="dark:hidden"
                     />
                 </Link>
 

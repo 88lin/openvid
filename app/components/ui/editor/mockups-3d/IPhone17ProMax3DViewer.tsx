@@ -483,7 +483,7 @@ export function IPhone17ProMaxScene({
                 autoRotate={autoRotate}
                 autoRotateSpeed={rotationSpeed}
                 onEnd={() => {
-                    reportMockupCameraChange(orbitRef.current, 1.5, onCameraChange, onRotationChange);
+                    reportMockupCameraChange(orbitRef.current, 1.5, onCameraChange, onRotationChange, cameraConfig.fov);
                 }}
             />
             <ambientLight intensity={0.3} />
@@ -513,10 +513,11 @@ export function IPhone17ProMaxScene({
 function CanvasWithLoader({
     imageUrl, imageMaskConfig, cropArea, initialRotationX, initialRotationY, initialRotationZ, onRotationChange,
     rootRef, cameraRef, zoom, onApi, onMount, videoElement, shadowIntensity, shadowColor, autoRotate, rotationSpeed,
-    glow, environment, isSelected, isHovered,
+    glow, environment, isSelected, isHovered, cameraConfig, cameraNavigationMode, onCameraChange,
 }: {
     imageUrl: string | null; imageMaskConfig: ImageMaskConfigLike | null; cropArea: { x: number; y: number; width: number; height: number } | null;
     initialRotationX: number; initialRotationY: number; initialRotationZ: number; onRotationChange?: (rx: number, ry: number) => void;
+    cameraConfig?: MockupCameraConfig; cameraNavigationMode?: CameraNavigationMode; onCameraChange?: (camera: MockupCameraConfig) => void;
     rootRef: React.MutableRefObject<THREE.Group | null>; cameraRef: React.MutableRefObject<THREE.PerspectiveCamera | null>; zoom: number;
     onApi?: (api: IPhone17ProMax3DApi | null) => void; onMount?: (canvas: HTMLCanvasElement) => void; videoElement?: HTMLVideoElement | null;
     shadowIntensity?: number; shadowColor?: string; autoRotate?: boolean; rotationSpeed?: number; glow?: number; environment?: EnvironmentPreset;
@@ -545,6 +546,7 @@ function CanvasWithLoader({
                     <IPhone17ProMaxScene
                         imageUrl={imageUrl} imageMaskConfig={imageMaskConfig} cropArea={cropArea} initialRotationX={initialRotationX}
                         initialRotationY={initialRotationY} initialRotationZ={initialRotationZ} onRotationChange={onRotationChange}
+                        cameraConfig={cameraConfig} cameraNavigationMode={cameraNavigationMode} onCameraChange={onCameraChange}
                         rootRef={rootRef} cameraRef={cameraRef} zoom={zoom} onApi={onApi} onLoaded={handleLoaded} videoElement={videoElement}
                         shadowIntensity={shadowIntensity} shadowColor={shadowColor} autoRotate={autoRotate} rotationSpeed={rotationSpeed}
                         glow={glow} environment={environment} isSelected={isSelected} isHovered={isHovered}
@@ -564,7 +566,7 @@ export function IPhone17ProMax3DViewer({
     imageUrl = null, imageMaskConfig = null, cropArea = null, initialRotationX = -58.23, initialRotationY = -29.82,
     initialRotationZ = 0, onRotationChange, onMount, onApi, zoom = 1, shadowIntensity = 0, shadowColor = "#000000",
     videoElement = null, autoRotate, rotationSpeed, glow, environment, isSelected = false, isHovered = false,
-    onHoverChange, onSelectChange,
+    onHoverChange, onSelectChange, cameraConfig = DEFAULT_MOCKUP_CAMERA, cameraNavigationMode = "orbit", onCameraChange,
 }: Props) {
     const rootRef = useRef<THREE.Group | null>(null);
     const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
@@ -687,6 +689,9 @@ export function IPhone17ProMax3DViewer({
                             initialRotationY={initialRotationY}
                             initialRotationZ={initialRotationZ}
                             onRotationChange={onRotationChange}
+                            cameraConfig={cameraConfig}
+                            cameraNavigationMode={cameraNavigationMode}
+                            onCameraChange={onCameraChange}
                             rootRef={rootRef}
                             cameraRef={cameraRef}
                             zoom={zoom}

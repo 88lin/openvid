@@ -29,6 +29,7 @@ export function TickSliderControl({
     onChange,
     onChangeEnd,
 }: TickSliderControlProps) {
+    const [isHelperOpen, setIsHelperOpen] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     
     const formatValue = useCallback((val: number) => {
@@ -139,16 +140,20 @@ export function TickSliderControl({
                     {label}
                 </span>
                 {helperText && (
-                    <span
-                        className="text-muted-foreground/70"
-                        title={helperText}
+                    <button
+                        type="button"
                         aria-label={helperText}
-                        role="img"
+                        aria-expanded={isHelperOpen}
+                        onClick={() => setIsHelperOpen((open) => !open)}
+                        className="inline-flex shrink-0 items-center gap-1 text-[10px] text-muted-foreground/80 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-sm"
                     >
                         <Icon icon="mdi:export-variant" width="14" aria-hidden="true" />
-                    </span>
+                    </button>
                 )}
             </div>
+            {helperText && isHelperOpen && (
+                <p className="text-[10px] leading-tight text-muted-foreground">{helperText}</p>
+            )}
 
             <div className="flex items-center gap-6">
                 <div

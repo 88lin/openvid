@@ -83,17 +83,17 @@ export function reportMockupCameraChange(
     baseRadius: number,
     onCameraChange?: (camera: MockupCameraConfig) => void,
     onRotationChange?: (rotX: number, rotY: number) => void,
+    configuredFov: number | null = null,
 ): void {
     if (!controls || !Number.isFinite(baseRadius) || baseRadius <= 0) return;
-    const camera = controls.object;
-    const distance = camera.position.distanceTo(controls.target) / baseRadius;
+    const distance = controls.object.position.distanceTo(controls.target) / baseRadius;
     if (!Number.isFinite(distance) || ![controls.target.x, controls.target.y, controls.target.z].every(Number.isFinite)) return;
 
     onCameraChange?.({
         target: normalizeMockupCameraConfig({ target: [controls.target.x, controls.target.y, controls.target.z] }).target,
         distance: Math.max(0.25, Math.min(4, distance)),
-        fov: "fov" in camera && typeof camera.fov === "number" && Number.isFinite(camera.fov)
-            ? Math.max(20, Math.min(80, camera.fov))
+        fov: typeof configuredFov === "number" && Number.isFinite(configuredFov)
+            ? Math.max(20, Math.min(80, configuredFov))
             : null,
     });
     onRotationChange?.(

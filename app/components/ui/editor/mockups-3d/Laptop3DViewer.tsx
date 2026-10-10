@@ -594,7 +594,7 @@ export function LaptopScene({
         }}
         onEnd={() => {
           isUserInteractingRef.current = false;
-          reportMockupCameraChange(orbitRef.current, CAM_RADIUS / zoom, onCameraChange, onRotationChange);
+          reportMockupCameraChange(orbitRef.current, CAM_RADIUS / zoom, onCameraChange, onRotationChange, cameraConfig.fov);
         }}
       />
       <Environment files={HDRI_FILES[environment as EnvironmentPreset]} environmentIntensity={glow} background={false} />

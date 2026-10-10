@@ -227,7 +227,7 @@ export function IPhoneDuoScene({
       <OrbitControls ref={orbitRef} {...getCameraNavigationOptions(cameraNavigationMode)} target={cameraConfig.target} enableDamping
         autoRotate={autoRotate} autoRotateSpeed={rotationSpeed}
         onEnd={() => {
-          reportMockupCameraChange(orbitRef.current, CAMERA_RADIUS / zoom, onCameraChange, onRotationChange);
+          reportMockupCameraChange(orbitRef.current, CAMERA_RADIUS / zoom, onCameraChange, onRotationChange, cameraConfig.fov);
         }} />
       <Environment files={HDRI_FILES[environment]} environmentIntensity={glow} />
       <ambientLight intensity={1.5} />

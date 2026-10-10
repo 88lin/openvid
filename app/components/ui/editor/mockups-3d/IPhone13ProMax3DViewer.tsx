@@ -578,7 +578,7 @@ export function IPhone13ProMaxScene({
         autoRotate={autoRotate}
         autoRotateSpeed={rotationSpeed}
         onEnd={() => {
-          reportMockupCameraChange(orbitRef.current, 1.5, onCameraChange, onRotationChange);
+          reportMockupCameraChange(orbitRef.current, 1.5, onCameraChange, onRotationChange, cameraConfig.fov);
         }}
       />
       <ambientLight intensity={0.3} />
@@ -646,6 +646,9 @@ function CanvasWithLoader({
   initialRotationY,
   initialRotationZ,
   onRotationChange,
+  cameraConfig,
+  cameraNavigationMode,
+  onCameraChange,
   rootRef,
   cameraRef,
   zoom,
@@ -668,6 +671,9 @@ function CanvasWithLoader({
   initialRotationY: number;
   initialRotationZ: number;
   onRotationChange?: (rx: number, ry: number) => void;
+  cameraConfig?: MockupCameraConfig;
+  cameraNavigationMode?: CameraNavigationMode;
+  onCameraChange?: (camera: MockupCameraConfig) => void;
   rootRef: React.MutableRefObject<THREE.Group | null>;
   cameraRef: React.MutableRefObject<THREE.PerspectiveCamera | null>;
   zoom: number;
@@ -716,6 +722,9 @@ function CanvasWithLoader({
             initialRotationY={initialRotationY}
             initialRotationZ={initialRotationZ}
             onRotationChange={onRotationChange}
+            cameraConfig={cameraConfig}
+            cameraNavigationMode={cameraNavigationMode}
+            onCameraChange={onCameraChange}
             rootRef={rootRef}
             cameraRef={cameraRef}
             zoom={zoom}
@@ -753,6 +762,9 @@ export function IPhone13ProMax3DViewer({
   initialRotationY = -29.82,
   initialRotationZ = 0,
   onRotationChange,
+  cameraConfig = DEFAULT_MOCKUP_CAMERA,
+  cameraNavigationMode = "orbit",
+  onCameraChange,
   onMount,
   onApi,
   zoom = 1,
@@ -871,6 +883,9 @@ export function IPhone13ProMax3DViewer({
               initialRotationY={initialRotationY}
               initialRotationZ={initialRotationZ}
               onRotationChange={onRotationChange}
+              cameraConfig={cameraConfig}
+              cameraNavigationMode={cameraNavigationMode}
+              onCameraChange={onCameraChange}
               rootRef={rootRef}
               cameraRef={cameraRef}
               zoom={zoom}
