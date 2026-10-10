@@ -55,6 +55,7 @@ export interface TimelineProps {
     selectedMockupCameraKeyframeId?: string | null;
     onSelectMockupCameraKeyframe?: (keyframe: MockupCameraKeyframe) => void;
     onDeleteMockupCameraKeyframe?: (id: string) => void;
+    onUpdateMockupCameraKeyframeTime?: (id: string, time: number) => void;
     onAddMockupCameraKeyframeAtTime?: (time: number) => void;
     canvasElements?: CanvasElement[];
     selectedElementId?: string | null;

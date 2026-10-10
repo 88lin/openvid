@@ -10,8 +10,6 @@ interface LabelSidebarProps {
     elementLaneCount?: number;
     showMovementRow?: boolean;
     showCameraTrack?: boolean;
-    cameraAddLabel?: string;
-    onAddCameraKeyframe?: () => void;
 }
 
 export default function LabelSidebar({
@@ -20,8 +18,6 @@ export default function LabelSidebar({
     elementLaneCount = 0,
     showMovementRow = false,
     showCameraTrack = false,
-    cameraAddLabel,
-    onAddCameraKeyframe,
 }: LabelSidebarProps) {
     const t = useTranslations('labelSidebar');
 
@@ -39,23 +35,10 @@ export default function LabelSidebar({
                 <div
                     className="flex items-center justify-center border-t border-border/70 bg-muted/20"
                     style={{ height: 34 }}
-                    role="group"
                     title={t('camera')}
                     aria-label={t('camera')}
                 >
-                    <button
-                        type="button"
-                        onClick={onAddCameraKeyframe}
-                        disabled={!onAddCameraKeyframe}
-                        title={cameraAddLabel}
-                        aria-label={cameraAddLabel ?? t('camera')}
-                        className="relative flex size-7 items-center justify-center rounded-md text-primary transition-colors hover:bg-primary/10 disabled:cursor-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                    >
-                        <Icon icon="mdi:camera" width="14" aria-hidden="true" />
-                        <span className="absolute -right-0.5 -top-0.5 flex size-3.5 items-center justify-center rounded-full border border-background bg-primary text-primary-foreground" aria-hidden="true">
-                            <Icon icon="lucide:plus" width="9" />
-                        </span>
-                    </button>
+                    <span className="size-2 rotate-45 rounded-[1px] bg-primary/60" aria-hidden="true" />
                 </div>
             )}
 

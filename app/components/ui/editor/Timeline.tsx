@@ -20,7 +20,156 @@ import { ZoomMovementTrackItem, MIN_MOVEMENT_TRACK_DURATION } from "./ZoomMoveme
 import { collectSnapPoints, findSnap } from "@/lib/timeline-snapping";
 import { MAX_ZOOM, MIN_ZOOM, ZOOM_STEP } from "@/types/player-control.types";
 import { getClipTrimInfo } from "@/types/video-track.types";
+import type { MockupCameraKeyframe } from "@/lib/viewer-controls3d";
 const TAIL_PAD = 96;
+
+function CameraKeyframeMarker({
+    keyframe,
+    keyframes,
+    duration,
+    contentWidth,
+    isSelected,
+    onSelect,
+    onDelete,
+    onMove,
+    formatKeyframeTime,
+    keyframeLabel,
+    dragHint,
+}: {
+    keyframe: MockupCameraKeyframe;
+    keyframes: MockupCameraKeyframe[];
+    duration: number;
+    contentWidth: number;
+    isSelected: boolean;
+    onSelect?: (keyframe: MockupCameraKeyframe) => void;
+    onDelete?: (id: string) => void;
+    onMove?: (id: string, time: number) => void;
+    formatKeyframeTime: (time: number) => string;
+    keyframeLabel: string;
+    dragHint: string;
+}) {
+    const [dragTime, setDragTime] = useState<number | null>(null);
+    const [isDragging, setIsDragging] = useState(false);
+    const dragRef = useRef<{
+        pointerId: number;
+        rect: DOMRect;
+        pointerOffset: number;
+        minTime: number;
+        maxTime: number;
+        moved: boolean;
+    } | null>(null);
+    const suppressClickRef = useRef(false);
+    const displayTime = dragTime ?? keyframe.time;
+    const left = duration > 0 ? (displayTime / duration) * contentWidth : 0;
+
+    const handlePointerDown = (event: React.PointerEvent<HTMLButtonElement>) => {
+        if (event.button !== 0 || duration <= 0 || contentWidth <= 0) return;
+        event.preventDefault();
+        event.stopPropagation();
+        const rect = event.currentTarget.parentElement?.getBoundingClientRect();
+        if (!rect) return;
+        const ordered = [...keyframes].sort((a, b) => a.time - b.time);
+        const index = ordered.findIndex((item) => item.id === keyframe.id);
+        const minTime = index > 0 ? ordered[index - 1].time + 0.06 : 0;
+        const maxTime = index >= 0 && index < ordered.length - 1
+            ? ordered[index + 1].time - 0.06
+            : duration;
+        const markerCenter = rect.left + (keyframe.time / duration) * contentWidth;
+        dragRef.current = {
+            pointerId: event.pointerId,
+            rect,
+            pointerOffset: event.clientX - markerCenter,
+            minTime: Math.min(minTime, keyframe.time),
+            maxTime: Math.max(maxTime, keyframe.time),
+            moved: false,
+        };
+        suppressClickRef.current = false;
+        setIsDragging(true);
+        event.currentTarget.setPointerCapture(event.pointerId);
+    };
+
+    const handlePointerMove = (event: React.PointerEvent<HTMLButtonElement>) => {
+        const drag = dragRef.current;
+        if (!drag || drag.pointerId !== event.pointerId) return;
+        const x = event.clientX - drag.pointerOffset - drag.rect.left;
+        const nextTime = Math.max(drag.minTime, Math.min(drag.maxTime, (x / contentWidth) * duration));
+        if (Math.abs(nextTime - keyframe.time) > 0.01) drag.moved = true;
+        setDragTime(nextTime);
+    };
+
+    const handlePointerUp = (event: React.PointerEvent<HTMLButtonElement>) => {
+        const drag = dragRef.current;
+        if (!drag || drag.pointerId !== event.pointerId) return;
+        const x = event.clientX - drag.pointerOffset - drag.rect.left;
+        const nextTime = Math.max(drag.minTime, Math.min(drag.maxTime, (x / contentWidth) * duration));
+        if (drag.moved && Math.abs(nextTime - keyframe.time) > 0.001) {
+            suppressClickRef.current = true;
+            const movedKeyframe = { ...keyframe, time: nextTime };
+            onMove?.(keyframe.id, nextTime);
+            onSelect?.(movedKeyframe);
+        }
+        dragRef.current = null;
+        setDragTime(null);
+        setIsDragging(false);
+    };
+
+    return (
+        <button
+            type="button"
+            className={`absolute top-1/2 z-10 size-4 -translate-x-1/2 -translate-y-1/2 rotate-45 rounded-[2px] border shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                isSelected
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-primary/40 bg-background text-primary hover:bg-primary/10"
+            } ${isDragging ? "cursor-grabbing scale-110" : "cursor-grab"}`}
+            style={{ left }}
+            title={`${keyframeLabel} · ${formatKeyframeTime(keyframe.time)} · ${dragHint}`}
+            aria-label={`${keyframeLabel} · ${formatKeyframeTime(keyframe.time)} · ${dragHint}`}
+            aria-pressed={isSelected}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onPointerCancel={() => {
+                dragRef.current = null;
+                setDragTime(null);
+                setIsDragging(false);
+            }}
+            onClick={(event) => {
+                event.stopPropagation();
+                if (suppressClickRef.current) {
+                    suppressClickRef.current = false;
+                    return;
+                }
+                onSelect?.(keyframe);
+            }}
+            onDoubleClick={(event) => {
+                event.stopPropagation();
+                onDelete?.(keyframe.id);
+            }}
+            onKeyDown={(event) => {
+                if (event.key === "Delete" || event.key === "Backspace") {
+                    event.preventDefault();
+                    onDelete?.(keyframe.id);
+                    return;
+                }
+                const step = event.shiftKey ? 1 : 0.1;
+                const direction = event.key === "ArrowLeft" ? -1 : event.key === "ArrowRight" ? 1 : 0;
+                if (direction === 0 || duration <= 0) return;
+                event.preventDefault();
+                const ordered = [...keyframes].sort((a, b) => a.time - b.time);
+                const index = ordered.findIndex((item) => item.id === keyframe.id);
+                const minTime = index > 0 ? ordered[index - 1].time + 0.06 : 0;
+                const maxTime = index >= 0 && index < ordered.length - 1
+                    ? ordered[index + 1].time - 0.06
+                    : duration;
+                const time = Math.max(minTime, Math.min(maxTime, keyframe.time + direction * step));
+                if (time !== keyframe.time) {
+                    onMove?.(keyframe.id, time);
+                    onSelect?.({ ...keyframe, time });
+                }
+            }}
+        />
+    );
+}
 
 export function Timeline({
     videoDuration,
@@ -61,6 +210,7 @@ export function Timeline({
     selectedMockupCameraKeyframeId = null,
     onSelectMockupCameraKeyframe,
     onDeleteMockupCameraKeyframe,
+    onUpdateMockupCameraKeyframeTime,
     onAddMockupCameraKeyframeAtTime,
     onActivateMotionTool,
     canvasElements = [],
@@ -674,10 +824,6 @@ export function Timeline({
                                 motionTracksCount={mockupMotionFragments.length}
                                 showMovementRow={showMovementRow}
                                 showCameraTrack={showCameraTrack}
-                                cameraAddLabel={t("cameraAddAtPlayhead")}
-                                onAddCameraKeyframe={onAddMockupCameraKeyframeAtTime
-                                    ? () => onAddMockupCameraKeyframeAtTime(currentTime)
-                                    : undefined}
                             />
                             <div className="relative flex flex-col pb-1 min-w-0">
                                 <motion.div
@@ -879,28 +1025,24 @@ export function Timeline({
                                             <div className="pointer-events-none absolute inset-x-0 top-1/2 h-px bg-primary/15" aria-hidden="true" />
                                             {mockupCameraKeyframes.length === 0 && (
                                                 <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-primary/35" aria-hidden="true">
-                                                    <Icon icon="mdi:camera-plus-outline" width="16" />
+                                                    <Icon icon="lucide:plus" width="14" />
                                                 </span>
                                             )}
                                             {mockupCameraKeyframes.map((keyframe) => {
-                                                const left = scaledDuration > 0
-                                                    ? (keyframe.time / scaledDuration) * contentWidth
-                                                    : 0;
                                                 return (
-                                                    <button
+                                                    <CameraKeyframeMarker
                                                         key={keyframe.id}
-                                                        type="button"
-                                                        className={`absolute top-1/2 z-10 size-3 -translate-x-1/2 -translate-y-1/2 rotate-45 rounded-[2px] border shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-                                                            selectedMockupCameraKeyframeId === keyframe.id
-                                                                ? "border-primary bg-primary text-primary-foreground"
-                                                                : "border-primary/40 bg-background text-primary hover:bg-primary/10"
-                                                        }`}
-                                                        style={{ left }}
-                                                        title={`${t("cameraKeyframe")} · ${formatTime(keyframe.time)} · ${t("cameraKeyframeMarkerHint")}`}
-                                                        aria-label={`${t("cameraKeyframe")} · ${formatTime(keyframe.time)} · ${t("cameraKeyframeMarkerHint")}`}
-                                                        aria-pressed={selectedMockupCameraKeyframeId === keyframe.id}
-                                                        onClick={() => onSelectMockupCameraKeyframe?.(keyframe)}
-                                                        onDoubleClick={() => onDeleteMockupCameraKeyframe?.(keyframe.id)}
+                                                        keyframe={keyframe}
+                                                        keyframes={mockupCameraKeyframes}
+                                                        duration={scaledDuration}
+                                                        contentWidth={contentWidth}
+                                                        isSelected={selectedMockupCameraKeyframeId === keyframe.id}
+                                                        onSelect={onSelectMockupCameraKeyframe}
+                                                        onDelete={onDeleteMockupCameraKeyframe}
+                                                        onMove={onUpdateMockupCameraKeyframeTime}
+                                                        formatKeyframeTime={formatTime}
+                                                        keyframeLabel={t("cameraKeyframe")}
+                                                        dragHint={t("cameraKeyframeDragHint")}
                                                     />
                                                 );
                                             })}

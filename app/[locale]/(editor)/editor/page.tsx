@@ -3298,6 +3298,9 @@ export default function Editor() {
                                     selectedMockupCameraKeyframeId={selectedMockupCameraKeyframeId}
                                     onSelectMockupCameraKeyframe={handleSelectMockupCameraKeyframe}
                                     onDeleteMockupCameraKeyframe={handleDeleteMockupCameraKeyframe}
+                                    onUpdateMockupCameraKeyframeTime={(id, time) =>
+                                        updateMockupCameraKeyframe(id, { time })
+                                    }
                                     onAddMockupCameraKeyframeAtTime={(time) => {
                                         handleAddOrUpdateMockupCameraKeyframe(time);
                                         handleSeek(time);

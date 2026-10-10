@@ -159,9 +159,7 @@ function CameraTargetPad({
     x,
     y,
     range,
-    distance,
     onChange,
-    onDistanceChange,
     label,
     hint,
     backgroundUrl,
@@ -170,9 +168,7 @@ function CameraTargetPad({
     x: number;
     y: number;
     range: number;
-    distance: number;
     onChange: (x: number, y: number) => void;
-    onDistanceChange: (distance: number) => void;
     label: string;
     hint: string;
     backgroundUrl?: string | null;
@@ -186,7 +182,6 @@ function CameraTargetPad({
     const positionY = Math.max(-range, Math.min(range, y));
     const left = ((positionX / range + 1) / 2) * 100;
     const top = ((1 - positionY / range) / 2) * 100;
-    const clampedDistance = Math.max(0.25, Math.min(4, distance));
     const backgroundStyle: React.CSSProperties = backgroundUrl
         ? {
             backgroundImage: `url('${backgroundUrl}')`,
@@ -282,53 +277,6 @@ function CameraTargetPad({
                 >
                     <span className="absolute left-1/2 top-1/2 size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white" />
                 </span>
-                <div
-                    className="absolute right-1.5 top-1.5 z-20 flex items-center gap-0.5 rounded-lg border border-white/15 bg-black/40 p-0.5 shadow-sm backdrop-blur-sm"
-                    onPointerDown={(event) => event.stopPropagation()}
-                >
-                    {([
-                        ["left", "mdi:arrow-left", -0.45, 0],
-                        ["right", "mdi:arrow-right", 0.45, 0],
-                        ["top", "mdi:arrow-up", 0, 0.45],
-                        ["bottom", "mdi:arrow-down", 0, -0.45],
-                        ["center", "mdi:crosshairs-gps", 0, 0],
-                    ] as const).map(([position, icon, normalizedX, normalizedY]) => (
-                        <TooltipAction key={position} label={t(`cameraTargetQuick.${position}`)}>
-                            <button
-                                type="button"
-                                aria-label={t(`cameraTargetQuick.${position}`)}
-                                onPointerDown={(event) => event.stopPropagation()}
-                                onKeyDown={(event) => event.stopPropagation()}
-                                onClick={() => onChange(normalizedX * range, normalizedY * range)}
-                                className="flex size-6 items-center justify-center rounded-md text-white/85 transition-colors hover:bg-white/20 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-                            >
-                                <Icon icon={icon} width="14" aria-hidden="true" />
-                            </button>
-                        </TooltipAction>
-                    ))}
-                </div>
-                <div
-                    className="absolute inset-x-0 bottom-0 z-20 flex h-8 items-center gap-2 border-t border-white/10 bg-black/45 px-2 backdrop-blur-sm"
-                    onPointerDown={(event) => event.stopPropagation()}
-                >
-                    <Icon icon="mdi:arrow-expand-vertical" width="14" className="shrink-0 text-white/80" aria-hidden="true" />
-                    <input
-                        type="range"
-                        min={0.25}
-                        max={4}
-                        step={0.01}
-                        value={clampedDistance}
-                        aria-label={t("dolly")}
-                        title={t("dolly")}
-                        onPointerDown={(event) => event.stopPropagation()}
-                        onKeyDown={(event) => event.stopPropagation()}
-                        onChange={(event) => onDistanceChange(Number(event.target.value))}
-                        className="h-1 min-w-0 flex-1 cursor-ew-resize accent-white"
-                    />
-                    <span className="w-9 shrink-0 text-right font-mono text-[9px] text-white/90">
-                        {clampedDistance.toFixed(2)}×
-                    </span>
-                </div>
             </div>
         </div>
     );
@@ -743,16 +691,24 @@ export function Mockup3dMenu({
                             x={mockupCamera.target[0]}
                             y={mockupCamera.target[1]}
                             range={cameraTargetRange}
-                            distance={mockupCamera.distance}
                             label={t("cameraTargetPosition")}
                             hint={t("cameraTargetPadHint")}
                             backgroundUrl={backgroundUrl}
                             backgroundColorCss={backgroundColorCss}
-                            onDistanceChange={(distance) => handleCameraChange({ ...mockupCamera, distance })}
                             onChange={(x, y) => {
                                 const target: [number, number, number] = [x, y, mockupCamera.target[2]];
                                 handleCameraChange({ ...mockupCamera, target });
                             }}
+                        />
+                        <SliderControl
+                            icon="mdi:arrow-expand-vertical"
+                            label={t("dolly")}
+                            value={Math.round(mockupCamera.distance * 100)}
+                            min={25}
+                            max={400}
+                            step={1}
+                            onChange={(value) => handleCameraChange({ ...mockupCamera, distance: value / 100 })}
+                            suffix="%"
                         />
                         <SliderControl
                             icon="mdi:crosshairs-gps"
