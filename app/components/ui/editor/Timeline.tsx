@@ -1074,7 +1074,10 @@ export function Timeline({
                                                 event.stopPropagation();
                                                 const bounds = event.currentTarget.getBoundingClientRect();
                                                 const progress = Math.max(0, Math.min(1, (event.clientX - bounds.left) / contentWidth));
-                                                onAddMockupCameraKeyframeAtTime(progress * scaledDuration);
+                                                const rawTime = progress * scaledDuration;
+                                                const boundedTime = Math.max(0, Math.min(validDuration, rawTime));
+                                                const clampedTime = Math.max(trimRange.start, Math.min(trimRange.end, boundedTime));
+                                                onAddMockupCameraKeyframeAtTime(clampedTime);
                                             }}
                                         >
                                             <div className="pointer-events-none absolute inset-x-0 top-1/2 h-px bg-primary/15" aria-hidden="true" />
