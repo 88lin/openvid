@@ -28,9 +28,26 @@ import { createInitialEditorState } from "@/types/editor-state.types";
 import { DEFAULT_MOCKUP_CONFIG, getMockupDefaultConfig } from "@/types/mockup.types";
 import type { CameraConfig } from "@/types/camera.types";
 import { DEFAULT_CAMERA_CONFIG } from "@/types/camera.types";
+import {
+    mergeCameraConfig,
+    sampleCameraOverlayKeyframes,
+} from "@/lib/camera-overlay-animation";
+import type { CameraOverlayKeyframe } from "@/lib/camera-overlay-animation";
 import type { Preview3DConfig, ImageMaskConfig } from "@/types/photo.types";
 import { DEFAULT_MASK_CONFIG, PREVIEW_CONFIGS } from "@/types/photo.types";
 import { MOCKUPS } from "@/lib/mockup-data";
+import {
+    createAutomaticMockupCameraTour,
+    DEFAULT_MOCKUP_CAMERA_FOV,
+    getAutomaticMockupCameraPreset,
+    normalizeMockupCameraConfig,
+    sampleMockupCameraKeyframes,
+} from "@/lib/viewer-controls3d";
+import type {
+    MockupCameraKeyframe,
+    MockupCameraPose,
+    MockupCameraPreset,
+} from "@/lib/viewer-controls3d";
 import { gradientToCss, generateDefaultZoomFragments } from "@/types";
 import { ToolsSidebar } from "@/app/components/ui/editor/ToolsSidebar";
 import { MobileToolsMenu } from "@/app/components/ui/editor/MobileToolsMenu";
@@ -79,12 +96,14 @@ export default function Editor() {
         imagePhoneRotY, setImagePhoneRotY,
         imagePhoneRotZ, setImagePhoneRotZ,
         imagePhonePerspective, setImagePhonePerspective,
+        mockupCamera, setMockupCamera,
         imagePhoneDevice, setImagePhoneDevice,
         imagePhonePresetId, setImagePhonePresetId,
         imagePhoneOpening, setImagePhoneOpening,
         imagePhoneShadow, setImagePhoneShadow,
         imagePhoneShadowColor, setImagePhoneShadowColor,
         imagePhoneRefWidth, setImagePhoneRefWidth,
+        setCameraNavigationMode,
     } = useMockup3dContext();
 
     // Undo/Redo system - centralized state management
@@ -253,6 +272,10 @@ export default function Editor() {
     // Mockup state
     const [mockupId, setMockupId] = useState<string>("none");
     const [mockupConfig, setMockupConfig] = useState<MockupConfig>(DEFAULT_MOCKUP_CONFIG);
+    const [mockupCameraKeyframes, setMockupCameraKeyframes] = useState<MockupCameraKeyframe[]>([]);
+    const [selectedMockupCameraKeyframeId, setSelectedMockupCameraKeyframeId] = useState<string | null>(null);
+    const cameraPreviewEndTimeRef = useRef<number | null>(null);
+    const cameraPreviewPendingStartTimeRef = useRef<number | null>(null);
 
     // Whether the currently loaded source video file contains an audio stream
     const [videoHasAudioTrack, setVideoHasAudioTrack] = useState<boolean>(true);
@@ -261,6 +284,8 @@ export default function Editor() {
 
     // Camera overlay state (from recorded video's camera track, or post-record adjustments)
     const [cameraConfig, setCameraConfig] = useState<CameraConfig | null>(null);
+    const [cameraOverlayKeyframes, setCameraOverlayKeyframes] = useState<CameraOverlayKeyframe[]>([]);
+    const [selectedCameraOverlayKeyframeId, setSelectedCameraOverlayKeyframeId] = useState<string | null>(null);
     const [cameraUrl, setCameraUrl] = useState<string | null>(null);
 
     const [activeTool, setActiveTool] = useActiveTool();
@@ -339,8 +364,111 @@ export default function Editor() {
         restoreAudios,
     } = useAudioTracks({ videoDuration, isExportingRef, selectedAudioTrackId, setSelectedAudioTrackId, lastCopyActionRef });
 
+    const effectiveCameraConfig = useMemo(
+        () => sampleCameraOverlayKeyframes(cameraConfig, cameraOverlayKeyframes, currentTime),
+        [cameraConfig, cameraOverlayKeyframes, currentTime],
+    );
+
+    const upsertCameraOverlayKeyframe = useCallback((config: CameraConfig, time = currentTime) => {
+        const clampedTime = Math.max(0, time);
+        const existing = cameraOverlayKeyframes.find((keyframe) => Math.abs(keyframe.time - clampedTime) <= 0.05);
+        const keyframe: CameraOverlayKeyframe = {
+            id: existing?.id ?? `webcam_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+            time: clampedTime,
+            config,
+        };
+        setCameraOverlayKeyframes((previous) => [
+            ...previous.filter((item) => item.id !== keyframe.id),
+            keyframe,
+        ].sort((a, b) => a.time - b.time));
+        setSelectedCameraOverlayKeyframeId(keyframe.id);
+        return keyframe;
+    }, [cameraOverlayKeyframes, currentTime]);
+
+    const handleSaveCameraOverlayKeyframe = useCallback((time = currentTime) => {
+        if (!cameraConfig) return;
+        const currentPose = sampleCameraOverlayKeyframes(cameraConfig, cameraOverlayKeyframes, time) ?? cameraConfig;
+        upsertCameraOverlayKeyframe(currentPose, time);
+    }, [cameraConfig, cameraOverlayKeyframes, currentTime, upsertCameraOverlayKeyframe]);
+
     const handleCameraConfigChange = useCallback((partial: Partial<CameraConfig>) => {
-        setCameraConfig((prev) => (prev ? { ...prev, ...partial } : prev));
+        setCameraConfig((previous) => previous ? mergeCameraConfig(previous, partial) : previous);
+        if (cameraOverlayKeyframes.length === 0 || !cameraConfig) return;
+        const currentPose = sampleCameraOverlayKeyframes(cameraConfig, cameraOverlayKeyframes, currentTime) ?? cameraConfig;
+        upsertCameraOverlayKeyframe(mergeCameraConfig(currentPose, partial), currentTime);
+    }, [cameraConfig, cameraOverlayKeyframes, currentTime, upsertCameraOverlayKeyframe]);
+
+    const handleDeleteCameraOverlayKeyframe = useCallback((id: string) => {
+        setCameraOverlayKeyframes((previous) => previous.filter((keyframe) => keyframe.id !== id));
+        setSelectedCameraOverlayKeyframeId((previous) => previous === id ? null : previous);
+    }, []);
+
+    const updateMockupCameraKeyframe = useCallback((id: string, updates: Partial<MockupCameraKeyframe>) => {
+        setMockupCameraKeyframes((previous) => previous.map((keyframe) =>
+            keyframe.id === id ? { ...keyframe, ...updates } : keyframe
+        ));
+    }, []);
+
+    const upsertMockupCameraKeyframe = useCallback((pose: MockupCameraPose, time = currentTime) => {
+        const existing = mockupCameraKeyframes.find((keyframe) => Math.abs(keyframe.time - time) <= 0.05);
+        const keyframe: MockupCameraKeyframe = {
+            id: existing?.id ?? `camera_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+            time,
+            camera: normalizeMockupCameraConfig(pose.camera),
+            rotationX: pose.rotationX,
+            rotationY: pose.rotationY,
+            transition: existing?.transition,
+        };
+        setMockupCameraKeyframes((previous) => [
+            ...previous.filter((item) => item.id !== keyframe.id),
+            keyframe,
+        ].sort((a, b) => a.time - b.time));
+        setSelectedMockupCameraKeyframeId(keyframe.id);
+        return keyframe;
+    }, [currentTime, mockupCameraKeyframes]);
+
+    const handleSaveMockupCameraKeyframe = useCallback((time = currentTime) => {
+        const sampledPose = sampleMockupCameraKeyframes(
+            mockupCameraKeyframes,
+            time,
+            DEFAULT_MOCKUP_CAMERA_FOV[imagePhoneDevice],
+        );
+        upsertMockupCameraKeyframe(sampledPose ?? {
+            camera: mockupCamera,
+            rotationX: imagePhoneRotX,
+            rotationY: imagePhoneRotY,
+        }, time);
+    }, [
+        upsertMockupCameraKeyframe,
+        mockupCameraKeyframes,
+        imagePhoneDevice,
+        mockupCamera,
+        imagePhoneRotX,
+        imagePhoneRotY,
+        currentTime,
+    ]);
+
+    const handleApplyMockupCameraPreset = useCallback((preset: MockupCameraPreset) => {
+        setMockupCamera(preset.camera);
+        setImagePhoneRotX(preset.rotationX);
+        setImagePhoneRotY(preset.rotationY);
+        if (!isPhotoMode) {
+            upsertMockupCameraKeyframe(preset);
+        }
+    }, [isPhotoMode, setMockupCamera, setImagePhoneRotX, setImagePhoneRotY, upsertMockupCameraKeyframe]);
+
+    const handleMockupCameraUpdate = useCallback((updates: Partial<MockupCameraKeyframe>) => {
+        if (updates.camera) setMockupCamera(updates.camera);
+        if (isPlaying) return;
+        const selected = mockupCameraKeyframes.find((keyframe) =>
+            keyframe.id === selectedMockupCameraKeyframeId
+        );
+        if (selected) updateMockupCameraKeyframe(selected.id, updates);
+    }, [setMockupCamera, isPlaying, mockupCameraKeyframes, selectedMockupCameraKeyframeId, currentTime, updateMockupCameraKeyframe]);
+
+    const handleDeleteMockupCameraKeyframe = useCallback((id: string) => {
+        setMockupCameraKeyframes((previous) => previous.filter((keyframe) => keyframe.id !== id));
+        setSelectedMockupCameraKeyframeId((previous) => previous === id ? null : previous);
     }, []);
 
     const handleCameraClick = useCallback(() => {
@@ -373,11 +501,12 @@ export default function Editor() {
         imagePreview3D: imageTransform,
         apply3DToBackground,
         imageMaskConfig,
+        mockupCamera,
     }), [
         backgroundTab, selectedWallpaper, backgroundBlur, selectedImageUrl,
         backgroundColorConfig, padding, roundedCorners, shadows, aspectRatio,
         customDimensions, cropArea, mockupId, mockupConfig, canvasElements,
-        videoTransform, imageTransform, apply3DToBackground, imageMaskConfig,
+        videoTransform, imageTransform, apply3DToBackground, imageMaskConfig, mockupCamera,
     ]);
 
     const autoSaveCurrentProject = useCallback(async () => {
@@ -386,12 +515,12 @@ export default function Editor() {
         if (autoSaveTimeoutRef.current) clearTimeout(autoSaveTimeoutRef.current);
         autoSaveTimeoutRef.current = setTimeout(async () => {
             try {
-                await saveCurrentProject({ ...buildPhotoProjectSnapshot(), imageZoomScale, imagePhoneActive });
+                await saveCurrentProject({ ...buildPhotoProjectSnapshot(), imageZoomScale, imagePhoneActive, mockupCamera });
             } catch (error) {
                 console.error("Auto-save failed:", error);
             }
         }, 3000);
-    }, [isPhotoMode, imageUrl, currentProject, saveCurrentProject, buildPhotoProjectSnapshot, imageZoomScale, imagePhoneActive]);
+    }, [isPhotoMode, imageUrl, currentProject, saveCurrentProject, buildPhotoProjectSnapshot, imageZoomScale, imagePhoneActive, mockupCamera]);
 
     const currentProjectId = currentProject?.id ?? null;
     const autoSaveRef = useRef(autoSaveCurrentProject);
@@ -444,6 +573,7 @@ export default function Editor() {
             setApply3DToBackground(currentProject.apply3DToBackground);
             setImageMaskConfig(currentProject.imageMaskConfig);
             setImageZoomScale(currentProject.imageZoomScale ?? 1);
+            setMockupCamera(normalizeMockupCameraConfig(currentProject.mockupCamera));
             setImageDimensions({
                 width: currentProject.imageWidth,
                 height: currentProject.imageHeight,
@@ -660,6 +790,7 @@ export default function Editor() {
                 muteOriginalAudio,
                 masterVolume,
                 cameraConfig,
+                cameraOverlayKeyframes,
                 videoTransform,
                 imageTransform,
                 apply3DToBackground,
@@ -680,6 +811,8 @@ export default function Editor() {
                 imagePhoneShadow,
                 imagePhoneShadowColor,
                 imagePhoneRefWidth,
+                mockupCamera,
+                mockupCameraKeyframes,
                 mockupMotionFragments,
                 videoClips,
                 globalSpeed,
@@ -692,11 +825,12 @@ export default function Editor() {
         backgroundTab, selectedWallpaper, backgroundBlur, padding, roundedCorners, shadows,
         selectedImageUrl, unsplashBgUrl, backgroundColorConfig, aspectRatio, customDimensions,
         cropArea, trimRange, zoomFragments, zoomMovements, mockupId, mockupConfig, canvasElements,
-        audioTracks, muteOriginalAudio, masterVolume, cameraConfig, videoTransform, imageTransform,
+        audioTracks, muteOriginalAudio, masterVolume, cameraConfig, cameraOverlayKeyframes, videoTransform, imageTransform,
         apply3DToBackground, imageMaskConfig, videoMaskConfig, imageZoomScale,
         imagePhoneActive, imagePhoneX, imagePhoneY, imagePhoneScale, imagePhoneRotX, imagePhoneRotY,
         imagePhoneRotZ, imagePhonePerspective, imagePhoneDevice, imagePhonePresetId, imagePhoneOpening,
         imagePhoneShadow, imagePhoneShadowColor, imagePhoneRefWidth, mockupMotionFragments,
+        mockupCamera, mockupCameraKeyframes,
         setEditorState, videoClips, globalSpeed
     ]);
 
@@ -729,6 +863,8 @@ export default function Editor() {
             setMuteOriginalAudio(editorState.muteOriginalAudio);
             setMasterVolume(editorState.masterVolume);
             setCameraConfig(editorState.cameraConfig);
+            setCameraOverlayKeyframes(editorState.cameraOverlayKeyframes ?? []);
+            setSelectedCameraOverlayKeyframeId(null);
             setVideoTransform(editorState.videoTransform);
             setImageTransform(editorState.imageTransform);
             setApply3DToBackground(editorState.apply3DToBackground);
@@ -749,6 +885,9 @@ export default function Editor() {
             setImagePhoneShadow(editorState.imagePhoneShadow);
             setImagePhoneShadowColor(editorState.imagePhoneShadowColor);
             setImagePhoneRefWidth(editorState.imagePhoneRefWidth ?? 0);
+            setMockupCamera(normalizeMockupCameraConfig(editorState.mockupCamera));
+            setMockupCameraKeyframes(editorState.mockupCameraKeyframes ?? []);
+            setSelectedMockupCameraKeyframeId(null);
             setMockupMotionFragments(editorState.mockupMotionFragments ?? []);
             setGlobalSpeed(editorState.globalSpeed ?? 1);
 
@@ -977,6 +1116,8 @@ export default function Editor() {
         canvasElements,
         mockupId,
         mockupConfig,
+        mockupCamera,
+        mockupCameraKeyframes,
         mockupMotionFragments,
         backgroundTab,
         selectedWallpaper,
@@ -997,6 +1138,7 @@ export default function Editor() {
         videoMaskConfig,
         imageZoomScale,
         cameraConfig,
+        cameraOverlayKeyframes,
         cameraVideoId: cameraUrl
             ? (videoClips.find(c => c.hasCamera)?.libraryVideoId ?? null)
             : null,
@@ -1005,14 +1147,14 @@ export default function Editor() {
         zoomFragments, zoomMovements,
         audioTracks, uploadedAudios, muteOriginalAudio, masterVolume,
         canvasElements,
-        mockupId, mockupConfig,
+        mockupId, mockupConfig, mockupCamera, mockupCameraKeyframes,
         mockupMotionFragments,
         backgroundTab, selectedWallpaper, backgroundBlur, selectedImageUrl,
         unsplashBgUrl, backgroundColorConfig,
         padding, roundedCorners, shadows, aspectRatio, customDimensions, cropArea,
         videoTransform, imageTransform, apply3DToBackground,
         imageMaskConfig, videoMaskConfig, imageZoomScale,
-        cameraConfig, cameraUrl,
+        cameraConfig, cameraOverlayKeyframes, cameraUrl,
     ]);
 
     const [showExportSuccess, setShowExportSuccess] = useState(false);
@@ -1335,6 +1477,8 @@ export default function Editor() {
                         persistedCamera.cameraConfig
                         ?? { ...DEFAULT_CAMERA_CONFIG, enabled: true }
                     );
+                    setCameraOverlayKeyframes([]);
+                    setSelectedCameraOverlayKeyframeId(null);
                 }
 
                 showNewVideosBadge(0);
@@ -1771,11 +1915,16 @@ export default function Editor() {
                         setZoomMovements(savedProject.zoomMovements ?? []);
                         setMockupId(savedProject.mockupId);
                         setMockupConfig(savedProject.mockupConfig);
+                        setMockupCamera(normalizeMockupCameraConfig(savedProject.mockupCamera));
+                        setMockupCameraKeyframes(savedProject.mockupCameraKeyframes ?? []);
+                        setSelectedMockupCameraKeyframeId(null);
                         setCanvasElements(savedProject.canvasElements ?? []);
                         setAudioTracks(savedProject.audioTracks ?? []);
                         setMuteOriginalAudio(savedProject.muteOriginalAudio ?? false);
                         setMasterVolume(savedProject.masterVolume ?? 1);
                         setCameraConfig(savedProject.cameraConfig ?? null);
+                        setCameraOverlayKeyframes(savedProject.cameraOverlayKeyframes ?? []);
+                        setSelectedCameraOverlayKeyframeId(null);
 
                         if (savedProject.cameraVideoId) {
                             try {
@@ -1926,6 +2075,8 @@ export default function Editor() {
                         } else {
                             setCameraConfig(null);
                         }
+                        setCameraOverlayKeyframes([]);
+                        setSelectedCameraOverlayKeyframeId(null);
 
                         if ('aspectRatio' in videoToLoad) {
                             setAspectRatio(videoToLoad.aspectRatio || "auto");
@@ -2021,6 +2172,8 @@ export default function Editor() {
                         } else {
                             setCameraConfig(null);
                         }
+                        setCameraOverlayKeyframes([]);
+                        setSelectedCameraOverlayKeyframeId(null);
 
                         setTimeout(() => {
                             clearHistory();
@@ -2618,6 +2771,90 @@ export default function Editor() {
         }
     }, [isDraggingPlayhead, isPlaying, syncAudioPlayback, findActiveClipAtTime, timelineToClipTime, scheduleUpdateFrame]);
 
+    const handleSelectMockupCameraKeyframe = useCallback((keyframe: MockupCameraKeyframe) => {
+        setSelectedMockupCameraKeyframeId(keyframe.id);
+        setMockupCamera(normalizeMockupCameraConfig(keyframe.camera));
+        setImagePhoneRotX(keyframe.rotationX);
+        setImagePhoneRotY(keyframe.rotationY);
+        handleSeek(keyframe.time);
+    }, [setMockupCamera, setImagePhoneRotX, setImagePhoneRotY, handleSeek]);
+
+    const handleSelectCameraOverlayKeyframe = useCallback((keyframe: CameraOverlayKeyframe) => {
+        setSelectedCameraOverlayKeyframeId(keyframe.id);
+        setActiveTool("camera");
+        handleSeek(keyframe.time);
+    }, [handleSeek, setActiveTool]);
+
+    const handlePreviewMockupCameraSegment = useCallback(() => {
+        if (isPlaying || !selectedMockupCameraKeyframeId) return;
+        const sortedKeyframes = [...mockupCameraKeyframes].sort((a, b) => a.time - b.time);
+        const selectedIndex = sortedKeyframes.findIndex((keyframe) => keyframe.id === selectedMockupCameraKeyframeId);
+        const start = sortedKeyframes[selectedIndex];
+        const end = sortedKeyframes[selectedIndex + 1];
+        if (!start || !end) return;
+        cameraPreviewEndTimeRef.current = end.time;
+        if (Math.abs(currentTime - start.time) <= 0.05) {
+            togglePlayPause();
+            return;
+        }
+        cameraPreviewPendingStartTimeRef.current = start.time;
+        handleSeek(start.time);
+    }, [isPlaying, selectedMockupCameraKeyframeId, mockupCameraKeyframes, currentTime, handleSeek, togglePlayPause]);
+
+    useEffect(() => {
+        const pendingStart = cameraPreviewPendingStartTimeRef.current;
+        if (pendingStart === null || isPlaying) return;
+        if (Math.abs(currentTime - pendingStart) > 0.05) return;
+        cameraPreviewPendingStartTimeRef.current = null;
+        togglePlayPause();
+    }, [currentTime, isPlaying, togglePlayPause]);
+
+    useEffect(() => {
+        const endTime = cameraPreviewEndTimeRef.current;
+        if (endTime === null || !isPlaying || currentTime < endTime) return;
+        cameraPreviewEndTimeRef.current = null;
+        videoRef.current?.pause();
+        syncAudioPlayback(endTime, false);
+        setIsPlaying(false);
+        setCurrentTime(endTime);
+    }, [currentTime, isPlaying, syncAudioPlayback]);
+
+    useEffect(() => {
+        if (!isPlaying && cameraPreviewPendingStartTimeRef.current === null) {
+            cameraPreviewEndTimeRef.current = null;
+        }
+    }, [isPlaying]);
+
+    const handleApplyAutomaticMockupCamera = useCallback(() => {
+        if (isPhotoMode) {
+            handleApplyMockupCameraPreset(getAutomaticMockupCameraPreset(imagePhoneDevice));
+            setCameraNavigationMode("orbit");
+            return;
+        }
+
+        const keyframes = createAutomaticMockupCameraTour(imagePhoneDevice, videoDuration, mockupCameraKeyframes);
+        if (keyframes.length === 0) return;
+
+        setCameraNavigationMode("orbit");
+        setMockupCameraKeyframes((previous) => [...previous, ...keyframes].sort((a, b) => a.time - b.time));
+        setSelectedMockupCameraKeyframeId(keyframes[0].id);
+        setMockupCamera(keyframes[0].camera);
+        setImagePhoneRotX(keyframes[0].rotationX);
+        setImagePhoneRotY(keyframes[0].rotationY);
+        handleSeek(keyframes[0].time);
+    }, [
+        isPhotoMode,
+        imagePhoneDevice,
+        videoDuration,
+        mockupCameraKeyframes,
+        handleApplyMockupCameraPreset,
+        setCameraNavigationMode,
+        setMockupCamera,
+        setImagePhoneRotX,
+        setImagePhoneRotY,
+        handleSeek,
+    ]);
+
     const handleImageSelect = useCallback((url: string) => {
         if (backgroundTab === "wallpaper") setUnsplashBgUrl(url);
         else setSelectedImageUrl(url);
@@ -2964,8 +3201,12 @@ export default function Editor() {
                                         videosLibraryRefresh={videosLibraryRefresh}
                                         isVideoUploading={isUploading}
                                         cameraUrl={cameraUrl}
-                                        cameraConfig={cameraConfig}
+                                        cameraConfig={effectiveCameraConfig}
                                         onCameraConfigChange={handleCameraConfigChange}
+                                        cameraOverlayKeyframes={cameraOverlayKeyframes}
+                                        selectedCameraOverlayKeyframeId={selectedCameraOverlayKeyframeId}
+                                        onAddCameraOverlayKeyframe={() => handleSaveCameraOverlayKeyframe()}
+                                        onDeleteCameraOverlayKeyframe={handleDeleteCameraOverlayKeyframe}
                                         imageProjects={imageProjects}
                                         currentImageProjectId={currentProject?.id || null}
                                         isLoadingProjects={isLoadingProjects}
@@ -2975,6 +3216,7 @@ export default function Editor() {
                                         onUploadImageToHistory={handleUploadImageToHistory}
                                         elementsTextTabTrigger={elementsTextTabTrigger}
                                         mediaType={isPhotoMode ? "image" : "video"}
+                                        isPlaying={isPlaying}
                                         wallpaperShowAll={wallpaperShowAll}
                                         onWallpaperShowAllChange={setWallpaperShowAll}
                                         globalSpeed={globalSpeed}
@@ -2986,6 +3228,15 @@ export default function Editor() {
                                         onUpdateMockupMotionFragment={handleUpdateMockupMotionFragment}
                                         onSelectMockupMotionFragment={handleSelectMockupMotionFragment}
                                         onDeleteMockupMotionFragment={handleDeleteMockupMotionFragment}
+                                        currentTime={currentTime}
+                                        mockupCameraKeyframes={mockupCameraKeyframes}
+                                        selectedMockupCameraKeyframeId={selectedMockupCameraKeyframeId}
+                                        onApplyMockupCameraPreset={handleApplyMockupCameraPreset}
+                                        onApplyAutomaticMockupCamera={handleApplyAutomaticMockupCamera}
+                                        onPreviewMockupCameraSegment={handlePreviewMockupCameraSegment}
+                                        onUpdateMockupCameraKeyframe={handleMockupCameraUpdate}
+                                        onAddMockupCameraKeyframe={() => handleSaveMockupCameraKeyframe()}
+                                        onDeleteMockupCameraKeyframe={handleDeleteMockupCameraKeyframe}
                                         selectedAudioTrackId={selectedAudioTrackId}
                                         setSelectedAudioTrackId={handleSelectAudioTrack}
                                     />
@@ -3077,6 +3328,7 @@ export default function Editor() {
                         cameraUrl={effectiveCameraUrl}
                         cameraSourceUrl={cameraUrl}
                         cameraConfig={cameraConfig}
+                        cameraOverlayKeyframes={cameraOverlayKeyframes}
                         onCameraConfigChange={handleCameraConfigChange}
                         onCameraClick={handleCameraClick}
                         onEnded={handleVideoEnded}
@@ -3096,6 +3348,9 @@ export default function Editor() {
                         onSelectZoomMovement={handleSelectZoomMovement}
                         onUpdateZoomMovement={handleUpdateZoomMovement}
                         videoClips={videoClips}
+                        mockupCameraKeyframes={mockupCameraKeyframes}
+                        selectedMockupCameraKeyframeId={selectedMockupCameraKeyframeId}
+                        onUpdateMockupCameraKeyframe={updateMockupCameraKeyframe}
                     />
 
                     {/* Video mode: Show player controls and timeline */}
@@ -3167,6 +3422,32 @@ export default function Editor() {
                                     isPlaying={isPlaying}
                                     onZoomChange={handleZoomChange}
                                     mockupMotionFragments={mockupMotionFragments}
+                                    showCameraTrack={imagePhoneActive && mockupCameraKeyframes.length > 0}
+                                    showCameraOverlayTrack={!!cameraUrl && !!cameraConfig?.enabled && cameraOverlayKeyframes.length > 0}
+                                    cameraOverlayKeyframes={cameraOverlayKeyframes}
+                                    selectedCameraOverlayKeyframeId={selectedCameraOverlayKeyframeId}
+                                    onSelectCameraOverlayKeyframe={handleSelectCameraOverlayKeyframe}
+                                    onDeleteCameraOverlayKeyframe={handleDeleteCameraOverlayKeyframe}
+                                    onUpdateCameraOverlayKeyframeTime={(id, time) =>
+                                        setCameraOverlayKeyframes((previous) => previous.map((keyframe) =>
+                                            keyframe.id === id ? { ...keyframe, time } : keyframe
+                                        ).sort((a, b) => a.time - b.time))
+                                    }
+                                    onAddCameraOverlayKeyframeAtTime={(time) => {
+                                        handleSaveCameraOverlayKeyframe(time);
+                                        handleSeek(time);
+                                    }}
+                                    mockupCameraKeyframes={mockupCameraKeyframes}
+                                    selectedMockupCameraKeyframeId={selectedMockupCameraKeyframeId}
+                                    onSelectMockupCameraKeyframe={handleSelectMockupCameraKeyframe}
+                                    onDeleteMockupCameraKeyframe={handleDeleteMockupCameraKeyframe}
+                                    onUpdateMockupCameraKeyframeTime={(id, time) =>
+                                        updateMockupCameraKeyframe(id, { time })
+                                    }
+                                    onAddMockupCameraKeyframeAtTime={(time) => {
+                                        handleSaveMockupCameraKeyframe(time);
+                                        handleSeek(time);
+                                    }}
                                     selectedMockupMotionFragmentId={selectedMockupMotionFragmentId}
                                     onSelectMockupMotionFragment={handleSelectMockupMotionFragment}
                                     onUpdateMockupMotionFragment={handleUpdateMockupMotionFragment}

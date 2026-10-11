@@ -230,12 +230,12 @@ export function calculateSmoothZoom(
             return 1 + (targetScale - 1) * easeOutQuart(progress);
         }
 
-        const timeBeforeEnd = fragment.endTime - time;
-        if (transitionSec > 0 && timeBeforeEnd < transitionSec) {
-            const timeIntoExit = transitionSec - timeBeforeEnd;
-            const progress = Math.min(1, Math.max(0, timeIntoExit / transitionSec));
-            return targetScale - (targetScale - 1) * easeOutQuart(progress);
-        }
+         // Exit ramp [end-T, end]: begin at targetScale and decay back to 1 by endTime.
+         const timeBeforeEnd = fragment.endTime - time;
+         if (transitionSec > 0 && timeBeforeEnd < transitionSec) {
+             const progress = Math.min(1, Math.max(0, (transitionSec - timeBeforeEnd) / transitionSec));
+             return 1 + (targetScale - 1) * (1 - easeOutQuart(progress));
+         }
 
         return targetScale;
     };

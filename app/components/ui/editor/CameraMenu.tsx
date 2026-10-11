@@ -5,17 +5,24 @@ import { useTranslations } from "next-intl";
 import { 
   CAMERA_SHAPES, 
   CORNER_POSITIONS, 
+  normalizeCamera3DConfig,
+  normalizeCameraZoom,
   type CameraConfig, 
   type CameraCorner, 
   type CameraShape, 
 } from "@/types/camera.types";
 import { SliderControl } from "../../../../components/ui/SliderControl";
 import { Toggle } from "@/components/ui/toggle";
+import type { CameraOverlayKeyframe } from "@/lib/camera-overlay-animation";
 
 interface Props {
   cameraUrl: string | null;
   cameraConfig: CameraConfig | null;
   onCameraConfigChange: (partial: Partial<CameraConfig>) => void;
+  cameraOverlayKeyframes?: CameraOverlayKeyframe[];
+  selectedCameraOverlayKeyframeId?: string | null;
+  onAddCameraOverlayKeyframe?: () => void;
+  onDeleteCameraOverlayKeyframe?: (id: string) => void;
 }
 
 const CORNER_BUTTONS: Array<{ id: Exclude<CameraCorner, "custom"> }> = [
@@ -25,7 +32,15 @@ const CORNER_BUTTONS: Array<{ id: Exclude<CameraCorner, "custom"> }> = [
   { id: "bottom-right" },
 ];
 
-export function CameraMenu({ cameraUrl, cameraConfig, onCameraConfigChange }: Props) {
+export function CameraMenu({
+  cameraUrl,
+  cameraConfig,
+  onCameraConfigChange,
+  cameraOverlayKeyframes = [],
+  selectedCameraOverlayKeyframeId = null,
+  onAddCameraOverlayKeyframe,
+  onDeleteCameraOverlayKeyframe,
+}: Props) {
   const t = useTranslations("cameraMenu");
 
   if (!cameraUrl || !cameraConfig) {
@@ -45,6 +60,10 @@ export function CameraMenu({ cameraUrl, cameraConfig, onCameraConfigChange }: Pr
       </div>
     );
   }
+
+  const camera3D = normalizeCamera3DConfig(cameraConfig.threeD);
+  const cameraZoom = normalizeCameraZoom(cameraConfig.zoom);
+  const addPoseLabel = cameraOverlayKeyframes.length === 0 ? t("startAnimation") : t("savePose");
 
   return (
     <div className="p-4 flex flex-col gap-5 text-sm">
@@ -136,6 +155,51 @@ export function CameraMenu({ cameraUrl, cameraConfig, onCameraConfigChange }: Pr
             suffix="%"
             onChange={(newValue) => onCameraConfigChange({ size: newValue / 100 })}
           />
+          <SliderControl
+            icon="lucide:zoom-in"
+            label={t("zoom")}
+            value={Math.round(cameraZoom * 100)}
+            min={100}
+            max={300}
+            step={1}
+            suffix="%"
+            onChange={(newValue) => onCameraConfigChange({ zoom: newValue / 100 })}
+          />
+        </div>
+
+        <div className="rounded-lg border border-border bg-muted/30 p-3">
+          <div className="mb-2 flex items-center gap-2 text-xs font-medium text-foreground">
+            <Icon icon="solar:videocamera-record-bold" className="size-4 text-primary" aria-hidden="true" />
+            <span>{t("animation")}</span>
+            {cameraOverlayKeyframes.length > 0 && (
+              <span className="ml-auto text-[10px] text-muted-foreground">
+                {t("poseCount", { count: cameraOverlayKeyframes.length })}
+              </span>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={onAddCameraOverlayKeyframe}
+              className="flex min-h-9 flex-1 items-center justify-center gap-1.5 rounded-md border border-primary/30 bg-primary/10 px-2 text-xs font-medium text-foreground transition-colors hover:bg-primary/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              aria-label={addPoseLabel}
+              title={addPoseLabel}
+            >
+              <Icon icon="lucide:plus" className="size-3.5" aria-hidden="true" />
+              {addPoseLabel}
+            </button>
+            {selectedCameraOverlayKeyframeId && (
+              <button
+                type="button"
+                onClick={() => onDeleteCameraOverlayKeyframe?.(selectedCameraOverlayKeyframeId)}
+                className="flex size-9 shrink-0 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                aria-label={t("removePose")}
+                title={t("removePose")}
+              >
+                <Icon icon="lucide:trash-2" className="size-4" aria-hidden="true" />
+              </button>
+            )}
+          </div>
         </div>
 
         <label className="flex items-center justify-between squircle-element-camera border border-border bg-muted/50 px-3 py-2.5 cursor-pointer">
@@ -145,6 +209,60 @@ export function CameraMenu({ cameraUrl, cameraConfig, onCameraConfigChange }: Pr
           </div>
           <Toggle checked={cameraConfig.mirror} onChange={(v) => onCameraConfigChange({ mirror: v })} />
         </label>
+
+        <details className="group rounded-lg border border-border bg-muted/30">
+          <summary className="flex cursor-pointer list-none items-center gap-2 px-3 py-2.5 text-xs font-medium text-foreground outline-none hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-primary [&::-webkit-details-marker]:hidden">
+            <Icon icon="mdi:cube-scan" className="size-4 text-primary" aria-hidden="true" />
+            <span>{t("threeD.title")}</span>
+            <Icon icon="lucide:chevron-down" className="ml-auto size-3.5 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden="true" />
+          </summary>
+          <div className="space-y-4 border-t border-border p-3">
+            <label className="flex items-center justify-between text-xs text-muted-foreground">
+              <span className="flex items-center gap-2">
+                <Icon icon="mdi:rotate-3d-variant" className="size-4" aria-hidden="true" />
+                {t("threeD.enable")}
+              </span>
+              <Toggle
+                checked={camera3D.enabled}
+                onChange={(enabled) => onCameraConfigChange({ threeD: { ...camera3D, enabled } })}
+              />
+            </label>
+            {camera3D.enabled && (
+              <>
+                <SliderControl
+                  icon="mdi:axis-x-rotate-clockwise"
+                  label={t("threeD.tilt")}
+                  value={camera3D.rotationX}
+                  min={-45}
+                  max={45}
+                  step={1}
+                  suffix="°"
+                  onChange={(rotationX) => onCameraConfigChange({ threeD: { ...camera3D, rotationX } })}
+                />
+                <SliderControl
+                  icon="mdi:axis-y-rotate-clockwise"
+                  label={t("threeD.turn")}
+                  value={camera3D.rotationY}
+                  min={-45}
+                  max={45}
+                  step={1}
+                  suffix="°"
+                  onChange={(rotationY) => onCameraConfigChange({ threeD: { ...camera3D, rotationY } })}
+                />
+                <SliderControl
+                  icon="mdi:focus-field"
+                  label={t("threeD.perspective")}
+                  value={camera3D.perspective}
+                  min={300}
+                  max={1600}
+                  step={50}
+                  suffix="px"
+                  onChange={(perspective) => onCameraConfigChange({ threeD: { ...camera3D, perspective } })}
+                />
+              </>
+            )}
+          </div>
+        </details>
       </div>
     </div>
   );

@@ -2,6 +2,8 @@ import { ZoomFragment, ZoomMovement } from "./zoom.types";
 import type { AudioTrack, UploadedAudio } from "./audio.types";
 import type { TrimEdge, VideoTrackClip } from "./video-track.types";
 import { MockupMotionFragment } from "@/lib/mockup-motion";
+import type { MockupCameraKeyframe } from "@/lib/viewer-controls3d";
+import type { CameraOverlayKeyframe } from "@/lib/camera-overlay-animation";
 import { CanvasElement } from "./canvas-elements.types";
 
 export interface TrimRange {
@@ -49,6 +51,20 @@ export interface TimelineProps {
     onSelectMockupMotionFragment?: (id: string | null) => void;
     onUpdateMockupMotionFragment?: (id: string, updates: Partial<MockupMotionFragment>) => void;
     onDeleteMockupMotionFragment?: (id: string) => void;
+    showCameraTrack?: boolean;
+    mockupCameraKeyframes?: MockupCameraKeyframe[];
+    selectedMockupCameraKeyframeId?: string | null;
+    onSelectMockupCameraKeyframe?: (keyframe: MockupCameraKeyframe) => void;
+    onDeleteMockupCameraKeyframe?: (id: string) => void;
+    onUpdateMockupCameraKeyframeTime?: (id: string, time: number) => void;
+    onAddMockupCameraKeyframeAtTime?: (time: number) => void;
+    cameraOverlayKeyframes?: CameraOverlayKeyframe[];
+    selectedCameraOverlayKeyframeId?: string | null;
+    showCameraOverlayTrack?: boolean;
+    onSelectCameraOverlayKeyframe?: (keyframe: CameraOverlayKeyframe) => void;
+    onDeleteCameraOverlayKeyframe?: (id: string) => void;
+    onUpdateCameraOverlayKeyframeTime?: (id: string, time: number) => void;
+    onAddCameraOverlayKeyframeAtTime?: (time: number) => void;
     canvasElements?: CanvasElement[];
     selectedElementId?: string | null;
     onSelectElement?: (id: string | null) => void;
@@ -66,6 +82,8 @@ export interface TimelineProps {
 
 export const DEFAULT_ZOOM_FRAGMENT_DURATION = 3;
 export const ELEMENT_ROW_HEIGHT = 55;
+export const CAMERA_KEYFRAME_ROW_HEIGHT = 34;
+export const VIDEO_ROW_HEIGHT = 78;
 export const DEFAULT_MOVEMENT_DURATION = 1;
 export const VIDEO_ROW_MIN_HEIGHT = 64;
 export const VIDEO_ROW_MAX_HEIGHT = 78;

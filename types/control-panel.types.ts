@@ -7,6 +7,11 @@ import type { UploadedAudio, AudioTrack } from "./audio.types";
 import type { CameraConfig } from "./camera.types";
 import type { ImageProjectPreview } from "./image-project.types";
 import { MockupMotionFragment, MockupMotionPresetId } from "@/lib/mockup-motion";
+import type {
+    MockupCameraKeyframe,
+    MockupCameraPreset,
+} from "@/lib/viewer-controls3d";
+import type { CameraOverlayKeyframe } from "@/lib/camera-overlay-animation";
 
 export interface ControlPanelProps {
     activeTool: Tool;
@@ -84,6 +89,10 @@ export interface ControlPanelProps {
     cameraUrl?: string | null;
     cameraConfig?: CameraConfig | null;
     onCameraConfigChange?: (partial: Partial<CameraConfig>) => void;
+    cameraOverlayKeyframes?: CameraOverlayKeyframe[];
+    selectedCameraOverlayKeyframeId?: string | null;
+    onAddCameraOverlayKeyframe?: () => void;
+    onDeleteCameraOverlayKeyframe?: (id: string) => void;
     // History/Image projects props
     imageProjects?: ImageProjectPreview[];
     currentImageProjectId?: string | null;
@@ -105,6 +114,16 @@ export interface ControlPanelProps {
     onUpdateMockupMotionFragment?: (id: string, updates: Partial<MockupMotionFragment>) => void;
     onSelectMockupMotionFragment?: (id: string | null) => void;
     onDeleteMockupMotionFragment?: (id: string) => void;
+    isPlaying?: boolean;
+    currentTime?: number;
+    mockupCameraKeyframes?: MockupCameraKeyframe[];
+    selectedMockupCameraKeyframeId?: string | null;
+    onApplyMockupCameraPreset?: (preset: MockupCameraPreset) => void;
+    onApplyAutomaticMockupCamera?: () => void;
+    onPreviewMockupCameraSegment?: () => void;
+    onUpdateMockupCameraKeyframe?: (updates: Partial<MockupCameraKeyframe>) => void;
+    onAddMockupCameraKeyframe?: () => void;
+    onDeleteMockupCameraKeyframe?: (id: string) => void;
     selectedAudioTrackId?: string | null;
     setSelectedAudioTrackId?: (trackId: string | null) => void;
 }

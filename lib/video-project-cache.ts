@@ -8,6 +8,8 @@ import type { BackgroundTab, BackgroundColorConfig, AspectRatio, CropArea } from
 import type { CameraConfig } from "@/types/camera.types";
 import type { Preview3DConfig, ImageMaskConfig } from "@/types/photo.types";
 import type { TrimRange } from "@/types/timeline.types";
+import type { MockupCameraConfig, MockupCameraKeyframe } from "@/lib/viewer-controls3d";
+import type { CameraOverlayKeyframe } from "@/lib/camera-overlay-animation";
 
 const DB_NAME = "openvid-video-project";
 const DB_VERSION = 3;
@@ -38,6 +40,8 @@ export interface VideoProject {
 
     mockupId: string;
     mockupConfig: MockupConfig;
+    mockupCamera?: MockupCameraConfig;
+    mockupCameraKeyframes?: MockupCameraKeyframe[];
 
     mockupMotionFragments: MockupMotionFragment[];
 
@@ -63,6 +67,7 @@ export interface VideoProject {
     imageZoomScale: number;
 
     cameraConfig: CameraConfig | null;
+    cameraOverlayKeyframes?: CameraOverlayKeyframe[];
     cameraVideoId: string | null;
 }
 

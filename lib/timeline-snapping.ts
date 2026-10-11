@@ -28,6 +28,7 @@ export function collectSnapPoints(opts: {
     audioEdges?: Array<{ start: number; end: number }>;
     elementEdges?: Array<{ start: number; end: number }>;
     motionEdges?: Array<{ start: number; end: number }>;
+    markers?: number[];
     playhead?: number;
     zero?: boolean;
 }): SnapPoint[] {
@@ -56,6 +57,7 @@ export function collectSnapPoints(opts: {
         add(e.start);
         add(e.end);
     }
+    for (const marker of opts.markers ?? []) add(marker);
     if (opts.playhead !== undefined) add(opts.playhead);
 
     // De-duplicate within 1ms
