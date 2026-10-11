@@ -1183,7 +1183,7 @@ export default function Editor() {
     const pathname = usePathname();
     const router = useRouter();
 
-    const handleExport = useCallback((quality: ExportQuality) => {
+    const handleExport = useCallback((quality: ExportQuality, fps?: number, bitrate?: number) => {
         if (!EDITOR_WITHOUT_AUTH && !authUser) {
             savePendingExport(quality);
             router.replace({
@@ -1203,10 +1203,14 @@ export default function Editor() {
         if (videoRef.current) {
             videoRef.current.pause();
         }
-        setIsPlaying(false);
+        const activeClipBlob = videoClips.length > 0 ? videoBlobsRef.current.get(videoClips[0].libraryVideoId) : undefined;
+        const resolvedBlob = videoBlob || activeClipBlob;
+
         exportVideo({
             quality,
-            videoBlob: videoBlob ?? undefined,
+            fps,
+            bitrate,
+            videoBlob: resolvedBlob,
             transparentBackground: selectedWallpaper === -1,
             trim: trimRange.end > trimRange.start ? { start: trimRange.start, end: trimRange.end } : undefined,
             muteOriginalAudio,
@@ -1224,7 +1228,7 @@ export default function Editor() {
             }),
             masterVolume,
             videoClips: videoClips.length > 0 ? videoClips : undefined,
-            videoClipBlobs: videoClips.length > 1 ? videoBlobsRef.current : undefined,
+            videoClipBlobs: videoBlobsRef.current.size > 0 ? videoBlobsRef.current : undefined,
             clipAudioStates: Object.fromEntries(clipAudioStateRef.current),
             speed: globalSpeed,
         }).finally(() => {
