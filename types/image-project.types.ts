@@ -3,6 +3,7 @@ import type { BackgroundTab, BackgroundColorConfig, AspectRatio, CropArea } from
 import type { MockupConfig } from "@/types/mockup.types";
 import { CanvasElement } from "./canvas-elements.types";
 import type { Preview3DConfig, ImageMaskConfig } from "./photo.types";
+import type { MockupCameraConfig } from "@/lib/viewer-controls3d";
 
 export interface ImageProject {
     id: string;
@@ -51,6 +52,7 @@ export interface ImageProject {
     imagePhoneRotY: number;
     imagePhoneRotZ: number;
     imagePhonePerspective: number;
+    mockupCamera: MockupCameraConfig;
     imagePhoneDevice: ImageDeviceId;
     imagePhonePresetId: string;
     imagePhoneOpening: number;

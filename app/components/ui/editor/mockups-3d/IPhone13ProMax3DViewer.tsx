@@ -6,7 +6,16 @@ import { useEffect, useRef, useState, Suspense, useLayoutEffect, useMemo } from 
 import * as THREE from "three";
 import { createCoverScreenCanvas, applyCropToImage, type ImageMaskConfigLike, applyTextureCover } from "@/lib/phone3d.utils";
 import type { OrbitControls as OrbitControlsType } from 'three-stdlib';
-import { EnvironmentPreset, HDRI_FILES, sphericalCameraPos } from "@/lib/viewer-controls3d";
+import {
+  DEFAULT_MOCKUP_CAMERA,
+  EnvironmentPreset,
+  HDRI_FILES,
+  type CameraNavigationMode,
+  type MockupCameraConfig,
+  getCameraNavigationOptions,
+  getMockupCameraPosition,
+  reportMockupCameraChange,
+} from "@/lib/viewer-controls3d";
 import { GetMediaMaskStyles } from "@/lib/media-mask.utils";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
@@ -28,6 +37,9 @@ interface Props {
   initialRotationY?: number;
   initialRotationZ?: number;
   onRotationChange?: (rx: number, ry: number) => void;
+  cameraConfig?: MockupCameraConfig;
+  cameraNavigationMode?: CameraNavigationMode;
+  onCameraChange?: (camera: MockupCameraConfig) => void;
   onMount?: (canvas: HTMLCanvasElement) => void;
   onApi?: (api: IPhone13ProMax3DApi | null) => void;
   scale?: number;
@@ -115,6 +127,9 @@ export function IPhone13ProMaxScene({
   initialRotationY = -29.82,
   initialRotationZ = 0,
   onRotationChange,
+  cameraConfig = DEFAULT_MOCKUP_CAMERA,
+  cameraNavigationMode = "orbit",
+  onCameraChange,
   rootRef,
   cameraRef,
   zoom = 1,
@@ -137,6 +152,9 @@ export function IPhone13ProMaxScene({
   initialRotationY?: number;
   initialRotationZ?: number;
   onRotationChange?: (rx: number, ry: number) => void;
+  cameraConfig?: MockupCameraConfig;
+  cameraNavigationMode?: CameraNavigationMode;
+  onCameraChange?: (camera: MockupCameraConfig) => void;
   rootRef: React.MutableRefObject<THREE.Group | null>;
   cameraRef: React.MutableRefObject<THREE.PerspectiveCamera | null>;
   zoom?: number;
@@ -399,17 +417,14 @@ export function IPhone13ProMaxScene({
     const id = setTimeout(() => {
       const orbit = orbitRef.current;
       if (!orbit) return;
-      const DEG = Math.PI / 180;
       const radius = 1.5;
-      const phi = Math.PI / 2 - initialRotationX * DEG;
-      const theta = initialRotationY * DEG;
-      orbit.object.position.setFromSphericalCoords(radius, phi, theta);
+      orbit.object.position.fromArray(getMockupCameraPosition(initialRotationX, initialRotationY, cameraConfig.distance, cameraConfig.target, radius));
       orbit.update();
       invalidateRef.current();
       prevRotationRef.current = { x: initialRotationX, y: initialRotationY };
     }, 0);
     return () => clearTimeout(id);
-  }, [initialRotationX, initialRotationY, zoom]);
+  }, [initialRotationX, initialRotationY, zoom, cameraConfig.distance, cameraConfig.target]);
 
   useEffect(() => {
     const root = rootRef.current;
@@ -552,22 +567,18 @@ export function IPhone13ProMaxScene({
   }, 1);
   return (
     <>
-      <PerspectiveCamera ref={cameraRef} makeDefault fov={40} near={0.01} far={100} position={sphericalCameraPos(initialRotationX, initialRotationY)} zoom={zoom} />
+      <PerspectiveCamera ref={cameraRef} makeDefault fov={cameraConfig.fov ?? 40} near={0.01} far={100} position={getMockupCameraPosition(initialRotationX, initialRotationY, cameraConfig.distance, cameraConfig.target)} zoom={zoom} />
       <Environment files={HDRI_FILES[environment as EnvironmentPreset]} environmentIntensity={glow} background={false} />
       <OrbitControls
         ref={orbitRef}
-        enableZoom={false}
-        enablePan={false}
+        {...getCameraNavigationOptions(cameraNavigationMode)}
+        target={cameraConfig.target}
         enableDamping
         dampingFactor={0.08}
         autoRotate={autoRotate}
         autoRotateSpeed={rotationSpeed}
         onEnd={() => {
-          const orbit = orbitRef.current;
-          if (!orbit || !onRotationChange) return;
-          const ry = orbit.getAzimuthalAngle() * (180 / Math.PI);
-          const rx = (Math.PI / 2 - orbit.getPolarAngle()) * (180 / Math.PI);
-          onRotationChange(rx, ry);
+          reportMockupCameraChange(orbitRef.current, 1.5, onCameraChange, onRotationChange, cameraConfig.fov);
         }}
       />
       <ambientLight intensity={0.3} />
@@ -635,6 +646,9 @@ function CanvasWithLoader({
   initialRotationY,
   initialRotationZ,
   onRotationChange,
+  cameraConfig,
+  cameraNavigationMode,
+  onCameraChange,
   rootRef,
   cameraRef,
   zoom,
@@ -657,6 +671,9 @@ function CanvasWithLoader({
   initialRotationY: number;
   initialRotationZ: number;
   onRotationChange?: (rx: number, ry: number) => void;
+  cameraConfig?: MockupCameraConfig;
+  cameraNavigationMode?: CameraNavigationMode;
+  onCameraChange?: (camera: MockupCameraConfig) => void;
   rootRef: React.MutableRefObject<THREE.Group | null>;
   cameraRef: React.MutableRefObject<THREE.PerspectiveCamera | null>;
   zoom: number;
@@ -705,6 +722,9 @@ function CanvasWithLoader({
             initialRotationY={initialRotationY}
             initialRotationZ={initialRotationZ}
             onRotationChange={onRotationChange}
+            cameraConfig={cameraConfig}
+            cameraNavigationMode={cameraNavigationMode}
+            onCameraChange={onCameraChange}
             rootRef={rootRef}
             cameraRef={cameraRef}
             zoom={zoom}
@@ -742,6 +762,9 @@ export function IPhone13ProMax3DViewer({
   initialRotationY = -29.82,
   initialRotationZ = 0,
   onRotationChange,
+  cameraConfig = DEFAULT_MOCKUP_CAMERA,
+  cameraNavigationMode = "orbit",
+  onCameraChange,
   onMount,
   onApi,
   zoom = 1,
@@ -860,6 +883,9 @@ export function IPhone13ProMax3DViewer({
               initialRotationY={initialRotationY}
               initialRotationZ={initialRotationZ}
               onRotationChange={onRotationChange}
+              cameraConfig={cameraConfig}
+              cameraNavigationMode={cameraNavigationMode}
+              onCameraChange={onCameraChange}
               rootRef={rootRef}
               cameraRef={cameraRef}
               zoom={zoom}

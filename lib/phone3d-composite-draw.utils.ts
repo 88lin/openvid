@@ -4,9 +4,10 @@ import { PHONE_H, PHONE_W, DEVICE_3D_DIMENSIONS, type ImageMaskConfigLike } from
 import type { Mockup3DMotionTransform } from "@/lib/mockup-motion-3d";
 import { REST_MOCKUP_3D_MOTION } from "@/lib/mockup-motion-3d";
 import * as THREE from "three";
+import type { MockupCameraPose } from "@/lib/viewer-controls3d";
 
 export interface Phone3DApi {
-  renderAt: (w: number, h: number, motion?: Mockup3DMotionTransform) => void;
+  renderAt: (w: number, h: number, motion?: Mockup3DMotionTransform, cameraPose?: MockupCameraPose) => void;
   restorePreview: () => void;
   hasBuiltInShadow?: boolean;
   getVisualSize?: () => { width: number; height: number; offsetY?: number } | null;
@@ -28,6 +29,7 @@ export interface Phone3DCompositeContext {
   imagePhoneRootRef?: MutableRefObject<THREE.Group | null>;
   /** 3D motion transform to apply before rendering each export frame. */
   motion3DForFrame?: Mockup3DMotionTransform;
+  cameraPoseForFrame?: MockupCameraPose;
 }
 
 // Cache of the base transform so we can restore after export rendering.
@@ -53,6 +55,7 @@ export function drawPhone3DCompositeWithZoom(
     imagePhoneScale, imagePhoneX, imagePhoneY, imagePhoneShadow, imagePhoneShadowColor,
     effectivePhoneMaskConfig, maskCompositeCanvasRef,
     imagePhoneRootRef, motion3DForFrame,
+    cameraPoseForFrame,
   } = ctx2;
 
   const phoneGL = imagePhoneCanvasRef.current!;
@@ -95,8 +98,9 @@ export function drawPhone3DCompositeWithZoom(
     root.position.z = cachedBase.pz + motion.posZ;
   }
 
-  if (highQuality) {
-    imagePhoneApiRef.current?.renderAt(baseW, baseH, motion);
+  const shouldRender3DFrame = highQuality || cameraPoseForFrame !== undefined;
+  if (shouldRender3DFrame) {
+    imagePhoneApiRef.current?.renderAt(baseW, baseH, motion, cameraPoseForFrame);
   }
 
   c.save();
@@ -144,7 +148,7 @@ export function drawPhone3DCompositeWithZoom(
 
   c.restore();
 
-  if (highQuality) {
+  if (shouldRender3DFrame) {
     imagePhoneApiRef.current?.restorePreview();
   }
 

@@ -8,7 +8,17 @@ import { HANDLE_R, ImageDeviceId, PAD_H, X_HALF, Y_HALF } from "@/types/mockup.t
 import { Button } from "@/components/ui/button";
 import { DetailPageHeader } from "@/components/ui/DetailHeaderMenu";
 import { Position3DPresetsEditor } from "@/components/ui/Position3DPresetsEditor";
-import { ENVIRONMENT_OPTIONS, type EnvironmentPreset } from "@/lib/viewer-controls3d";
+import { useMockup3dContext } from "@/app/contexts/Mockup3dContext";
+import {
+    ENVIRONMENT_OPTIONS,
+    hasMockupCameraTourSpace,
+    MOCKUP_CAMERA_PRESETS,
+    type CameraNavigationMode,
+    type EnvironmentPreset,
+    type MockupCameraConfig,
+    type MockupCameraKeyframe,
+    type MockupCameraPreset,
+} from "@/lib/viewer-controls3d";
 import {
     Select,
     SelectContent,
@@ -17,6 +27,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Toggle } from "@/components/ui/toggle";
+import { TooltipAction } from "@/components/ui/tooltip-action";
 
 function PositionPad({
     x,
@@ -144,6 +155,185 @@ function PositionPad({
     );
 }
 
+function CameraTargetPad({
+    x,
+    y,
+    range,
+    onChange,
+    label,
+    hint,
+    backgroundUrl,
+    backgroundColorCss,
+    presets,
+    onApplyPreset,
+    reviewGuides,
+    onToggleReviewGuide,
+}: {
+    x: number;
+    y: number;
+    range: number;
+    onChange: (x: number, y: number) => void;
+    label: string;
+    hint: string;
+    backgroundUrl?: string | null;
+    backgroundColorCss?: string | null;
+    presets: MockupCameraPreset[];
+    onApplyPreset?: (preset: MockupCameraPreset) => void;
+    reviewGuides: { thirds: boolean; center: boolean; safeArea: boolean };
+    onToggleReviewGuide: (guide: keyof typeof reviewGuides) => void;
+}) {
+    const t = useTranslations("mockupMenu");
+    const padRef = useRef<HTMLDivElement>(null);
+    const dragPointerId = useRef<number | null>(null);
+    const rectCache = useRef<DOMRect | null>(null);
+    const positionX = Math.max(-range, Math.min(range, x));
+    const positionY = Math.max(-range, Math.min(range, y));
+    const left = ((positionX / range + 1) / 2) * 100;
+    const top = ((1 - positionY / range) / 2) * 100;
+    const backgroundStyle: React.CSSProperties = backgroundUrl
+        ? {
+            backgroundImage: `url('${backgroundUrl}')`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+        }
+        : backgroundColorCss
+            ? backgroundColorCss.startsWith("#") || backgroundColorCss.startsWith("rgb")
+                ? { backgroundColor: backgroundColorCss }
+                : { backgroundImage: backgroundColorCss, backgroundSize: "cover", backgroundPosition: "center" }
+            : {};
+
+    const updateFromPointer = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
+        const rect = rectCache.current;
+        if (!rect) return;
+        const normalizedX = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+        const normalizedY = Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height));
+        onChange(
+            (normalizedX * 2 - 1) * range,
+            (1 - normalizedY * 2) * range,
+        );
+    }, [onChange, range]);
+
+    return (
+        <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+                <span className="text-[10px] font-medium text-muted-foreground">{label}</span>
+                <TooltipAction label={hint} side="right">
+                    <button
+                        type="button"
+                        aria-label={hint}
+                        className="flex size-6 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    >
+                        <Icon icon="lucide:circle-help" width="13" aria-hidden="true" />
+                    </button>
+                </TooltipAction>
+            </div>
+            <div
+                ref={padRef}
+                role="group"
+                tabIndex={0}
+                aria-label={`${label}, X ${positionX.toFixed(2)}, Y ${positionY.toFixed(2)}`}
+                onPointerDown={(event) => {
+                    if (event.button !== 0) return;
+                    rectCache.current = padRef.current?.getBoundingClientRect() ?? null;
+                    dragPointerId.current = event.pointerId;
+                    event.currentTarget.setPointerCapture(event.pointerId);
+                    updateFromPointer(event);
+                }}
+                onPointerMove={(event) => {
+                    if (dragPointerId.current === event.pointerId) updateFromPointer(event);
+                }}
+                onPointerUp={(event) => {
+                    if (dragPointerId.current !== event.pointerId) return;
+                    dragPointerId.current = null;
+                    rectCache.current = null;
+                }}
+                onPointerCancel={() => {
+                    dragPointerId.current = null;
+                    rectCache.current = null;
+                }}
+                onKeyDown={(event) => {
+                    const step = event.shiftKey ? range / 5 : range / 20;
+                    let nextX = positionX;
+                    let nextY = positionY;
+                    if (event.key === "ArrowLeft") nextX -= step;
+                    else if (event.key === "ArrowRight") nextX += step;
+                    else if (event.key === "ArrowUp") nextY += step;
+                    else if (event.key === "ArrowDown") nextY -= step;
+                    else if (event.key === "Home") {
+                        nextX = 0;
+                        nextY = 0;
+                    } else return;
+                    event.preventDefault();
+                    onChange(
+                        Math.max(-range, Math.min(range, nextX)),
+                        Math.max(-range, Math.min(range, nextY)),
+                    );
+                }}
+                className={`group relative h-28 touch-none select-none overflow-hidden rounded-xl border border-border shadow-inner outline-none focus-visible:ring-2 focus-visible:ring-primary ${!backgroundUrl && !backgroundColorCss ? "bg-gradient-to-br from-cyan-500/35 via-emerald-500/25 to-violet-500/35" : ""}`}
+                style={backgroundStyle}
+            >
+                <div className="pointer-events-none absolute inset-0 bg-black/20" />
+                <div className="pointer-events-none absolute inset-0 opacity-25 [background-image:linear-gradient(to_right,rgba(255,255,255,0.3)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.3)_1px,transparent_1px)] [background-size:25%_25%]" />
+                <div className="pointer-events-none absolute left-1/2 top-0 h-full w-px -translate-x-1/2 bg-white/25" />
+                <div className="pointer-events-none absolute left-0 top-1/2 h-px w-full -translate-y-1/2 bg-white/25" />
+                <span className="pointer-events-none absolute left-2 top-1.5 rounded bg-black/20 px-1.5 py-0.5 font-mono text-[9px] font-medium text-white/85">
+                    X {positionX.toFixed(2)} · Y {positionY.toFixed(2)}
+                </span>
+                <span
+                    className="pointer-events-none absolute z-10 size-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-white/20 shadow-[0_0_12px_3px_rgba(255,255,255,0.45)] transition-[left,top] duration-75 group-active:scale-110"
+                    style={{ left: `${left}%`, top: `${top}%` }}
+                >
+                    <span className="absolute left-1/2 top-1/2 size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white" />
+                </span>
+            </div>
+            <div className="flex items-center justify-between gap-1 rounded-b-xl border-x border-b border-border bg-muted/30 px-1.5 py-1">
+                {presets.length > 0 && (
+                    <>
+                        <div className="flex items-center gap-0.5" role="group" aria-label={t("cameraPresets")}>
+                            {presets.map((preset) => (
+                                <TooltipAction key={preset.id} label={t(`cameraPreset.${preset.id}`)}>
+                                    <button
+                                        type="button"
+                                        onClick={() => onApplyPreset?.(preset)}
+                                        aria-label={t(`cameraPreset.${preset.id}`)}
+                                        className="flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-background hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                                    >
+                                        <Icon icon={preset.icon} width="15" aria-hidden="true" />
+                                    </button>
+                                </TooltipAction>
+                            ))}
+                        </div>
+                        <span className="h-5 w-px bg-border" aria-hidden="true" />
+                    </>
+                )}
+                <div className="flex items-center gap-0.5" role="group" aria-label={t("cameraReviewGuides.title")}>
+                    {([
+                        ["thirds", "mdi:grid"],
+                        ["center", "mdi:crosshairs"],
+                        ["safeArea", "mdi:crop-free"],
+                    ] as const).map(([guide, icon]) => (
+                        <TooltipAction key={guide} label={t(`cameraReviewGuides.${guide}`)}>
+                            <button
+                                type="button"
+                                onClick={() => onToggleReviewGuide(guide)}
+                                aria-label={t(`cameraReviewGuides.${guide}`)}
+                                aria-pressed={reviewGuides[guide]}
+                                className={`flex size-7 items-center justify-center rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                                    reviewGuides[guide]
+                                        ? "bg-primary/15 text-primary"
+                                        : "text-muted-foreground hover:bg-background hover:text-foreground"
+                                }`}
+                            >
+                                <Icon icon={icon} width="14" aria-hidden="true" />
+                            </button>
+                        </TooltipAction>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+}
+
 export interface ActiveDeviceTpl {
     id: ImageDeviceId;
     title: string;
@@ -181,6 +371,7 @@ export interface Mockup3dMenuProps {
     imagePhonePresetId: string;
     setImagePhonePresetId: (id: string) => void;
     mediaType: "video" | "image";
+    videoDuration: number;
     viewer3DAutoRotate: boolean;
     setViewer3DAutoRotate: (v: boolean) => void;
     viewer3DRotationSpeed: number;
@@ -189,6 +380,20 @@ export interface Mockup3dMenuProps {
     setViewer3DGlow: (v: number) => void;
     viewer3DEnvironment: EnvironmentPreset;
     setViewer3DEnvironment: (v: EnvironmentPreset) => void;
+    isPlaying: boolean;
+    mockupCamera: MockupCameraConfig;
+    setMockupCamera: (v: MockupCameraConfig) => void;
+    cameraNavigationMode: CameraNavigationMode;
+    setCameraNavigationMode: (v: CameraNavigationMode) => void;
+    currentTime: number;
+    mockupCameraKeyframes: MockupCameraKeyframe[];
+    selectedMockupCameraKeyframeId: string | null;
+    onApplyCameraPreset?: (preset: MockupCameraPreset) => void;
+    onApplyAutomaticCamera?: () => void;
+    onPreviewCameraSegment?: () => void;
+    onUpdateCameraKeyframe?: (updates: Partial<MockupCameraKeyframe>) => void;
+    onAddCameraKeyframe?: () => void;
+    onDeleteCameraKeyframe?: (id: string) => void;
 }
 
 export function Mockup3dMenu({
@@ -219,6 +424,7 @@ export function Mockup3dMenu({
     imagePhonePresetId,
     setImagePhonePresetId,
     mediaType,
+    videoDuration,
     viewer3DAutoRotate,
     setViewer3DAutoRotate,
     viewer3DRotationSpeed,
@@ -227,8 +433,37 @@ export function Mockup3dMenu({
     setViewer3DGlow,
     viewer3DEnvironment,
     setViewer3DEnvironment,
+    isPlaying,
+    mockupCamera,
+    setMockupCamera,
+    cameraNavigationMode,
+    setCameraNavigationMode,
+    currentTime,
+    mockupCameraKeyframes,
+    selectedMockupCameraKeyframeId,
+    onApplyCameraPreset,
+    onApplyAutomaticCamera,
+    onPreviewCameraSegment,
+    onUpdateCameraKeyframe,
+    onAddCameraKeyframe,
+    onDeleteCameraKeyframe,
 }: Mockup3dMenuProps) {
     const t = useTranslations("mockupMenu");
+    const { cameraReviewGuides, setCameraReviewGuides } = useMockup3dContext();
+    const canCreateAutomaticTour = mediaType !== "video"
+        || hasMockupCameraTourSpace(videoDuration, mockupCameraKeyframes);
+    const cameraTargetRange = imagePhoneDevice === "laptop" ? 100 : imagePhoneDevice === "iphone-duo" ? 5 : 1;
+    const selectedCameraKeyframe = mockupCameraKeyframes.find(
+        (keyframe) => keyframe.id === selectedMockupCameraKeyframeId,
+    );
+    const hasNextCameraKeyframe = !!selectedCameraKeyframe && mockupCameraKeyframes.some(
+        (keyframe) => keyframe.time > selectedCameraKeyframe.time,
+    );
+
+    const handleCameraChange = useCallback((camera: MockupCameraConfig) => {
+        if (onUpdateCameraKeyframe && selectedCameraKeyframe) onUpdateCameraKeyframe({ camera });
+        else setMockupCamera(camera);
+    }, [setMockupCamera, onUpdateCameraKeyframe, selectedCameraKeyframe]);
 
     const handleReset = useCallback(() => {
         setImagePhoneX(0);
@@ -238,6 +473,7 @@ export function Mockup3dMenu({
         const defaultRotY = imagePhoneDevice === "laptop" ? -37.82 : -29.82;
         setImagePhoneRotX(defaultRotX);
         setImagePhoneRotY(defaultRotY);
+        setCameraNavigationMode("orbit");
         setImagePhoneRotZ(0);
 
         if (imagePhoneDevice === "iphone-duo") {
@@ -259,6 +495,7 @@ export function Mockup3dMenu({
         }
         setImagePhoneShadowColor("#000000");
         setImagePhonePresetId("custom");
+        setMockupCamera({ target: [0, 0, 0], distance: 1, fov: null });
     }, [
         imagePhoneDevice,
         setImagePhoneX,
@@ -271,7 +508,13 @@ export function Mockup3dMenu({
         setImagePhoneShadow,
         setImagePhoneShadowColor,
         setImagePhonePresetId,
+        setMockupCamera,
+        setCameraNavigationMode,
     ]);
+
+    const handleToggleReviewGuide = useCallback((guide: keyof typeof cameraReviewGuides) => {
+        setCameraReviewGuides((previous) => ({ ...previous, [guide]: !previous[guide] }));
+    }, [setCameraReviewGuides]);
 
     return (
         <>
@@ -351,6 +594,223 @@ export function Mockup3dMenu({
                         suffix="%"
                     />
                 </div>
+
+                <section className="flex flex-col gap-3 pt-4 border-t border-border" aria-labelledby="camera-controls-title">
+                    <div className="flex items-center justify-between">
+                        <h3 id="camera-controls-title" className="flex items-center gap-1.5 text-[10px] font-bold text-foreground uppercase tracking-wider">
+                            <Icon icon="mdi:camera" width="14" className="text-primary" aria-hidden="true" />
+                            {t("cameraControls")}
+                        </h3>
+                        <TooltipAction
+                            label={mediaType === "video"
+                                ? canCreateAutomaticTour ? t("autoCameraHint") : t("autoCameraNoSpace")
+                                : t("autoCameraFrameHint")}
+                            side="right"
+                        >
+                            <span
+                                tabIndex={!canCreateAutomaticTour && mediaType === "video" ? 0 : -1}
+                                className="inline-flex rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                            >
+                                <button
+                                    type="button"
+                                    onClick={onApplyAutomaticCamera}
+                                    disabled={!onApplyAutomaticCamera || !canCreateAutomaticTour}
+                                    aria-label={mediaType === "video" ? t("autoCamera") : t("autoCameraFrame")}
+                                    className="flex size-8 items-center justify-center rounded-md border border-primary/25 bg-primary/10 text-primary transition-colors hover:bg-primary/20 disabled:cursor-not-allowed disabled:opacity-45 focus-visible:outline-none"
+                                >
+                                    <Icon icon="lucide:sparkles" width="16" aria-hidden="true" />
+                                </button>
+                            </span>
+                        </TooltipAction>
+                    </div>
+
+                    {mediaType === "video" && !canCreateAutomaticTour && (
+                        <p className="flex items-center gap-1.5 px-1 text-[9px] leading-snug text-amber-600 dark:text-amber-400">
+                            <Icon icon="lucide:circle-alert" width="13" className="shrink-0" aria-hidden="true" />
+                            {t("autoCameraNoSpace")}
+                        </p>
+                    )}
+
+                    {mediaType === "video" && (
+                        <div className="flex items-center gap-1 px-1">
+                            {mockupCameraKeyframes.length > 0 && (
+                                <span className="mr-auto font-mono text-[9px] text-muted-foreground" aria-label={`${t("cameraKeyframes")}: ${mockupCameraKeyframes.length}`}>
+                                    {mockupCameraKeyframes.length} · {t("cameraKeyframes")}
+                                    {selectedCameraKeyframe && ` · ${selectedCameraKeyframe.time.toFixed(1)}s`}
+                                </span>
+                            )}
+                            {selectedCameraKeyframe && hasNextCameraKeyframe && (
+                                <TooltipAction label={t("cameraPreviewSegment")}>
+                                    <button
+                                        type="button"
+                                        onClick={onPreviewCameraSegment}
+                                        disabled={!onPreviewCameraSegment || isPlaying}
+                                        aria-label={t("cameraPreviewSegment")}
+                                        className="flex size-7 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:border-primary/40 hover:bg-primary/10 hover:text-primary disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                                    >
+                                        <Icon icon="lucide:play" width="13" aria-hidden="true" />
+                                    </button>
+                                </TooltipAction>
+                            )}
+                            <TooltipAction label={t("cameraKeyframeAdd")}>
+                                <button
+                                    type="button"
+                                    onClick={onAddCameraKeyframe}
+                                    disabled={!onAddCameraKeyframe}
+                                    aria-label={t("cameraKeyframeAdd")}
+                                    className="flex size-7 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:border-primary/40 hover:bg-primary/10 hover:text-primary disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                                >
+                                    <Icon icon="lucide:plus" width="14" aria-hidden="true" />
+                                </button>
+                            </TooltipAction>
+                            {mockupCameraKeyframes.length > 0 && (
+                                <TooltipAction label={t("cameraKeyframeRemove")}>
+                                    <button
+                                        type="button"
+                                        onClick={() => selectedCameraKeyframe && onDeleteCameraKeyframe?.(selectedCameraKeyframe.id)}
+                                        disabled={!selectedCameraKeyframe || !onDeleteCameraKeyframe}
+                                        aria-label={t("cameraKeyframeRemove")}
+                                        className="flex size-7 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                                    >
+                                        <Icon icon="lucide:trash-2" width="13" aria-hidden="true" />
+                                    </button>
+                                </TooltipAction>
+                            )}
+                        </div>
+                    )}
+
+                    {(mediaType !== "video" || mockupCameraKeyframes.length > 0) && (
+                    <details className="group rounded-lg border border-border/70 bg-muted/20">
+                        <summary className="flex cursor-pointer list-none items-center gap-2 px-2.5 py-2 text-[10px] font-medium text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary [&::-webkit-details-marker]:hidden">
+                            <Icon icon="lucide:sliders-horizontal" width="14" className="text-primary" aria-hidden="true" />
+                            <span>{t("cameraAdvanced")}</span>
+                            <Icon icon="lucide:chevron-down" width="13" className="ml-auto transition-transform group-open:rotate-180" aria-hidden="true" />
+                        </summary>
+                        <div className="space-y-3 border-t border-border/70 p-2.5">
+                    {mediaType === "video" && selectedCameraKeyframe && (
+                        <div className="space-y-1.5">
+                            <span className="text-[10px] font-medium text-muted-foreground">
+                                {t("cameraTransition.label")}
+                            </span>
+                            <Select
+                                value={selectedCameraKeyframe.transition ?? "smooth"}
+                                onValueChange={(value) => {
+                                    if (value === "smooth" || value === "linear" || value === "hold") {
+                                        onUpdateCameraKeyframe?.({ transition: value });
+                                    }
+                                }}
+                            >
+                                <SelectTrigger className="h-8 bg-background text-xs">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="smooth">{t("cameraTransition.smooth")}</SelectItem>
+                                    <SelectItem value="linear">{t("cameraTransition.linear")}</SelectItem>
+                                    <SelectItem value="hold">{t("cameraTransition.hold")}</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    )}
+                    <div className="grid grid-cols-3 gap-1 rounded-lg border border-border bg-muted/30 p-1" role="group" aria-label={t("cameraControls")}>
+                        {([
+                            ["orbit", "mdi:orbit-variant", "orbit"],
+                            ["trackXY", "mdi:move", "trackXY"],
+                            ["trackZ", "mdi:arrow-expand-vertical", "trackZ"],
+                        ] as const).map(([mode, icon, label]) => (
+                            <button
+                                key={mode}
+                                type="button"
+                                onClick={() => setCameraNavigationMode(mode)}
+                                aria-pressed={cameraNavigationMode === mode}
+                                aria-label={`${t(label)}: ${t(mode === "orbit" ? "orbitHint" : mode === "trackXY" ? "trackXYHint" : "trackZHint")}`}
+                                title={`${t(label)}: ${t(mode === "orbit" ? "orbitHint" : mode === "trackXY" ? "trackXYHint" : "trackZHint")}`}
+                                className={`flex h-9 min-w-0 items-center justify-center gap-1.5 rounded-md px-2 text-[10px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                                    cameraNavigationMode === mode
+                                        ? "bg-primary text-primary-foreground shadow-sm"
+                                        : "text-muted-foreground hover:bg-background hover:text-foreground"
+                                }`}
+                            >
+                                <Icon icon={icon} width="15" aria-hidden="true" />
+                                <span className="leading-tight">{mode === "orbit" ? t(label) : mode === "trackXY" ? "XY" : "Z"}</span>
+                            </button>
+                        ))}
+                    </div>
+                    <TooltipAction label={t("cameraDragHint")} side="right">
+                        <button
+                            type="button"
+                            aria-label={t("cameraDragHint")}
+                            className="ml-auto flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                        >
+                            <Icon icon="lucide:circle-help" width="14" aria-hidden="true" />
+                        </button>
+                    </TooltipAction>
+
+                    <div className="space-y-2 border-t border-border/70 pt-2.5">
+                        <h4 className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                            <Icon icon="mdi:crosshairs-gps" width="13" aria-hidden="true" />
+                            {t("cameraTarget")}
+                        </h4>
+                        <CameraTargetPad
+                            x={mockupCamera.target[0]}
+                            y={mockupCamera.target[1]}
+                            range={cameraTargetRange}
+                            label={t("cameraTargetPosition")}
+                            hint={t("cameraTargetPadHint")}
+                            backgroundUrl={backgroundUrl}
+                            backgroundColorCss={backgroundColorCss}
+                            presets={mediaType === "video" ? [] : MOCKUP_CAMERA_PRESETS}
+                            onApplyPreset={onApplyCameraPreset}
+                            reviewGuides={cameraReviewGuides}
+                            onToggleReviewGuide={handleToggleReviewGuide}
+                            onChange={(x, y) => {
+                                const target: [number, number, number] = [x, y, mockupCamera.target[2]];
+                                handleCameraChange({ ...mockupCamera, target });
+                            }}
+                        />
+                        <SliderControl
+                            icon="mdi:camera-metering-center"
+                            label={t("fieldOfView")}
+                            value={mockupCamera.fov ?? (imagePhoneDevice === "iphone-duo" ? 30 : 40)}
+                            min={20}
+                            max={80}
+                            step={1}
+                            onChange={(fov) => handleCameraChange({ ...mockupCamera, fov })}
+                            suffix="°"
+                        />
+                    </div>
+
+                    <div className="space-y-2 border-t border-border/70 pt-2.5">
+                        <SliderControl
+                            icon="mdi:arrow-expand-vertical"
+                            label={t("dolly")}
+                            value={Math.round(mockupCamera.distance * 100)}
+                            min={25}
+                            max={400}
+                            step={1}
+                            onChange={(value) => handleCameraChange({ ...mockupCamera, distance: value / 100 })}
+                            suffix="%"
+                        />
+                        <SliderControl
+                            icon="mdi:crosshairs-gps"
+                            label={`${t("target")} Z`}
+                            value={Math.round((mockupCamera.target[2] / cameraTargetRange) * 100)}
+                            min={-100}
+                            max={100}
+                            step={1}
+                            onChange={(value) => {
+                                const target: [number, number, number] = [
+                                    mockupCamera.target[0],
+                                    mockupCamera.target[1],
+                                    (value / 100) * cameraTargetRange,
+                                ];
+                                handleCameraChange({ ...mockupCamera, target });
+                            }}
+                        />
+                    </div>
+                        </div>
+                    </details>
+                    )}
+                </section>
 
                 <div className="flex flex-col gap-3 pt-4 border-t border-border">
                     <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">

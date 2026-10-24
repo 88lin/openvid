@@ -3,7 +3,12 @@
 import type { ImageDeviceId } from "@/types/mockup.types";
 import { createContext, useContext, useState, useEffect, useRef, useMemo, type ReactNode } from "react";
 import { DEVICE_VIEWER_DEFAULTS } from "@/lib/phone3d.utils";
-import type { EnvironmentPreset } from "@/lib/viewer-controls3d";
+import {
+  DEFAULT_MOCKUP_CAMERA,
+  type CameraNavigationMode,
+  type EnvironmentPreset,
+  type MockupCameraConfig,
+} from "@/lib/viewer-controls3d";
 
 interface Mockup3dState {
   selectedTemplateId: string | null;
@@ -38,6 +43,16 @@ interface Mockup3dState {
   /** Perspective (px) for the 3D transform on the phone mockup */
   imagePhonePerspective: number;
   setImagePhonePerspective: (v: number) => void;
+  mockupCamera: MockupCameraConfig;
+  setMockupCamera: (v: MockupCameraConfig) => void;
+  cameraNavigationMode: CameraNavigationMode;
+  setCameraNavigationMode: (v: CameraNavigationMode) => void;
+  cameraReviewGuides: {
+    thirds: boolean;
+    center: boolean;
+    safeArea: boolean;
+  };
+  setCameraReviewGuides: (v: Mockup3dState["cameraReviewGuides"] | ((previous: Mockup3dState["cameraReviewGuides"]) => Mockup3dState["cameraReviewGuides"])) => void;
   /** Active device from the shared 3D catalogue */
   imagePhoneDevice: ImageDeviceId;
   setImagePhoneDevice: (d: ImageDeviceId) => void;
@@ -79,6 +94,13 @@ export function Mockup3dProvider({ children }: { children: ReactNode }) {
   const [imagePhoneRotY, setImagePhoneRotY] = useState(0);
   const [imagePhoneRotZ, setImagePhoneRotZ] = useState(0);
   const [imagePhonePerspective, setImagePhonePerspective] = useState(600);
+  const [mockupCamera, setMockupCamera] = useState<MockupCameraConfig>(DEFAULT_MOCKUP_CAMERA);
+  const [cameraNavigationMode, setCameraNavigationMode] = useState<CameraNavigationMode>("orbit");
+  const [cameraReviewGuides, setCameraReviewGuides] = useState({
+    thirds: false,
+    center: false,
+    safeArea: false,
+  });
   const [imagePhoneDevice, setImagePhoneDevice] = useState<ImageDeviceId>('phone');
   const [imagePhonePresetId, setImagePhonePresetId] = useState('custom');
   const [imagePhoneOpening, setImagePhoneOpening] = useState(1);
@@ -113,6 +135,9 @@ export function Mockup3dProvider({ children }: { children: ReactNode }) {
     imagePhoneRotY, setImagePhoneRotY,
     imagePhoneRotZ, setImagePhoneRotZ,
     imagePhonePerspective, setImagePhonePerspective,
+    mockupCamera, setMockupCamera,
+    cameraNavigationMode, setCameraNavigationMode,
+    cameraReviewGuides, setCameraReviewGuides,
     imagePhoneDevice, setImagePhoneDevice,
     imagePhonePresetId, setImagePhonePresetId,
     imagePhoneOpening, setImagePhoneOpening,
@@ -127,6 +152,7 @@ export function Mockup3dProvider({ children }: { children: ReactNode }) {
     selectedTemplateId, motionImageUrl, motionIntensity,
     imagePhoneActive, imagePhoneX, imagePhoneY, imagePhoneScale,
     imagePhoneRotX, imagePhoneRotY, imagePhoneRotZ, imagePhonePerspective,
+    mockupCamera, cameraNavigationMode, cameraReviewGuides,
     imagePhoneDevice, imagePhonePresetId, imagePhoneOpening,
     imagePhoneShadow, imagePhoneShadowColor, imagePhoneRefWidth,
     viewer3DAutoRotate, viewer3DRotationSpeed, viewer3DGlow, viewer3DEnvironment,

@@ -1,20 +1,19 @@
 <div align="center">
 
-   <picture>
-     <source
-       media="(prefers-color-scheme: dark)"
-       srcset="https://openvid.dev/images/pages/openvid-animation.svg"
-     />
-     <source
-       media="(prefers-color-scheme: light)"
-       srcset="https://github.com/user-attachments/assets/c8fb0340-e05d-403e-9805-b1006a6218cc"
-     />
-     <img
-       width="50%"
-       alt="openvid"
-       src="https://openvid.dev/images/pages/openvid-animation-light.svg"
-     />
-   </picture>
+   
+<picture>
+  <source
+    media="(prefers-color-scheme: dark)"
+    srcset="https://github.com/user-attachments/assets/c8fb0340-e05d-403e-9805-b1006a6218cc"
+  />
+
+  <img
+    width="50%"
+    alt="openvid"
+    src="https://openvid.dev/images/pages/openvid-animation.svg"
+  />
+</picture>
+
 
   ## 在浏览器中，几秒钟创建专业的演示与设备样机
   **录制屏幕或上传视频，添加平滑缩放、设备模型、3D 效果和自定义背景，一键导出电影级演示视频。**

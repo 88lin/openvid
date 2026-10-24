@@ -185,9 +185,11 @@ export function VideosMenu({
         <span>{t("title")}</span>
       </div>
 
-      <div className="bg-muted border border-border squircle-element p-3 shrink-0 mb-1">
+      <div className="bg-muted/70 border border-border squircle-element p-3 shrink-0 mb-1 space-y-2">
         <TickSliderControl
           label={t("speed")}
+          helperText={t("speedExport")}
+          icon="solar:play-speed-bold"
           value={globalSpeed}
           min={0.5}
           max={3}
@@ -196,6 +198,24 @@ export function VideosMenu({
           suffix="x"
           onChange={(val) => onGlobalSpeedChange?.(val)}
         />
+        <div className="flex items-center justify-end gap-1.5" role="group" aria-label={t("speedPresets")}>
+          {[1, 1.5, 2, 3].map((speed) => (
+            <button
+              key={speed}
+              type="button"
+              onClick={() => onGlobalSpeedChange?.(speed)}
+              aria-label={`${speed}x ${t("speed")}`}
+              aria-pressed={Math.abs(globalSpeed - speed) < 0.001}
+              className={`rounded-md border px-2 py-1 text-[10px] font-mono transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                Math.abs(globalSpeed - speed) < 0.001
+                  ? "border-primary/40 bg-primary/10 text-primary"
+                  : "border-border bg-background/60 text-muted-foreground hover:bg-background hover:text-foreground"
+              }`}
+            >
+              {speed}x
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto custom-scrollbar -mx-1 px-1">

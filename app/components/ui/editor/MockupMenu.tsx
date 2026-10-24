@@ -20,6 +20,10 @@ import { getWallpaperUrl } from "@/lib/wallpaper.utils";
 import { Mockup2dMenu } from "./Mockup2dMenu";
 import { Mockup3dMenu, type ActiveDeviceTpl } from "./Mockup3dMenu";
 import { DeviceCard } from "@/components/ui/DeviceCard";
+import type {
+  MockupCameraKeyframe,
+  MockupCameraPreset,
+} from "@/lib/viewer-controls3d";
 
 export interface MockupMenuProps {
   mockupId?: string;
@@ -33,6 +37,17 @@ export interface MockupMenuProps {
   selectedImageUrl?: string;
   initialPage?: MenuPage;
   mediaType?: "video" | "image";
+  isPlaying?: boolean;
+  currentTime?: number;
+  mockupCameraKeyframes?: MockupCameraKeyframe[];
+  selectedMockupCameraKeyframeId?: string | null;
+  onApplyCameraPreset?: (preset: MockupCameraPreset) => void;
+  onApplyAutomaticCamera?: () => void;
+  onPreviewCameraSegment?: () => void;
+  onUpdateCameraKeyframe?: (updates: Partial<MockupCameraKeyframe>) => void;
+  onAddCameraKeyframe?: () => void;
+  onDeleteCameraKeyframe?: (id: string) => void;
+  videoDuration?: number;
 }
 
 export function MockupMenu({
@@ -47,6 +62,17 @@ export function MockupMenu({
   selectedImageUrl,
   initialPage = "home",
   mediaType = "image",
+  isPlaying = false,
+  currentTime = 0,
+  mockupCameraKeyframes = [],
+  selectedMockupCameraKeyframeId = null,
+  onApplyCameraPreset,
+  onApplyAutomaticCamera,
+  onPreviewCameraSegment,
+  onUpdateCameraKeyframe,
+  onAddCameraKeyframe,
+  onDeleteCameraKeyframe,
+  videoDuration = 0,
 }: MockupMenuProps) {
   const t = useTranslations("mockupMenu");
 
@@ -74,6 +100,8 @@ export function MockupMenu({
     imagePhoneOpening, setImagePhoneOpening,
     imagePhoneShadow, setImagePhoneShadow,
     imagePhoneShadowColor,
+    mockupCamera, setMockupCamera,
+    cameraNavigationMode, setCameraNavigationMode,
     imagePhonePresetId, setImagePhonePresetId,
     setImagePhoneShadowColor,
     viewer3DAutoRotate, setViewer3DAutoRotate,
@@ -276,6 +304,7 @@ export function MockupMenu({
         imagePhoneDevice={imagePhoneDevice}
         isLaptop={isLaptop}
         mediaType={mediaType}
+        isPlaying={isPlaying}
         imagePhoneScale={imagePhoneScale}
         setImagePhoneScale={setImagePhoneScale}
         imagePhoneOpening={imagePhoneOpening}
@@ -295,6 +324,20 @@ export function MockupMenu({
         onRemove={handleRemoveAll}
         imagePhoneRotX={imagePhoneRotX}
         imagePhoneRotY={imagePhoneRotY}
+        mockupCamera={mockupCamera}
+        setMockupCamera={setMockupCamera}
+        cameraNavigationMode={cameraNavigationMode}
+        setCameraNavigationMode={setCameraNavigationMode}
+        currentTime={currentTime}
+        mockupCameraKeyframes={mockupCameraKeyframes}
+        selectedMockupCameraKeyframeId={selectedMockupCameraKeyframeId}
+        onApplyCameraPreset={onApplyCameraPreset}
+        onApplyAutomaticCamera={onApplyAutomaticCamera}
+        onPreviewCameraSegment={onPreviewCameraSegment}
+        onUpdateCameraKeyframe={onUpdateCameraKeyframe}
+        onAddCameraKeyframe={onAddCameraKeyframe}
+        onDeleteCameraKeyframe={onDeleteCameraKeyframe}
+        videoDuration={videoDuration}
         imagePhoneRotZ={imagePhoneRotZ}
         setImagePhoneRotZ={setImagePhoneRotZ}
         imagePhonePresetId={imagePhonePresetId}

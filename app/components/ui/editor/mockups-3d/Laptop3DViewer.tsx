@@ -13,7 +13,16 @@ import {
   applyTextureCover
 } from "@/lib/phone3d.utils";
 import type { OrbitControls as OrbitControlsType } from 'three-stdlib';
-import { EnvironmentPreset, HDRI_FILES, sphericalCameraPos } from "@/lib/viewer-controls3d";
+import {
+  DEFAULT_MOCKUP_CAMERA,
+  EnvironmentPreset,
+  HDRI_FILES,
+  type CameraNavigationMode,
+  type MockupCameraConfig,
+  getCameraNavigationOptions,
+  getMockupCameraPosition,
+  reportMockupCameraChange,
+} from "@/lib/viewer-controls3d";
 import { GetMediaMaskStyles } from "@/lib/media-mask.utils";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
@@ -53,6 +62,9 @@ interface Props {
   initialRotationY?: number;
   initialRotationZ?: number;
   onRotationChange?: (rx: number, ry: number) => void;
+  cameraConfig?: MockupCameraConfig;
+  cameraNavigationMode?: CameraNavigationMode;
+  onCameraChange?: (camera: MockupCameraConfig) => void;
   onMount?: (canvas: HTMLCanvasElement) => void;
   onApi?: (api: Laptop3DApi | null) => void;
   scale?: number;
@@ -86,7 +98,7 @@ function loadLaptopGltf(): Promise<THREE.Group> {
 }
 
 export function LaptopScene({
-  imageUrl, imageMaskConfig, cropArea, openingProgress = 1, initialRotationX = 43.23, initialRotationY = -37.82, initialRotationZ = 0, onRotationChange, rootRef, cameraRef, zoom = 1, onApi, onLoaded, videoElement, autoRotate = false, rotationSpeed = 3.5, glow = 1.0, environment = "forest", isSelected = false, isHovered = false, shadowIntensity = 0,
+  imageUrl, imageMaskConfig, cropArea, openingProgress = 1, initialRotationX = 43.23, initialRotationY = -37.82, initialRotationZ = 0, onRotationChange, cameraConfig = DEFAULT_MOCKUP_CAMERA, cameraNavigationMode = "orbit", onCameraChange, rootRef, cameraRef, zoom = 1, onApi, onLoaded, videoElement, autoRotate = false, rotationSpeed = 3.5, glow = 1.0, environment = "forest", isSelected = false, isHovered = false, shadowIntensity = 0,
 }: Props & { rootRef: React.MutableRefObject<THREE.Group | null>; cameraRef: React.MutableRefObject<THREE.PerspectiveCamera | null>; onLoaded?: () => void; }) {
   const { gl, scene, camera, invalidate, size } = useThree();
   const orbitRef = useRef<OrbitControlsType | null>(null);
@@ -485,16 +497,13 @@ export function LaptopScene({
       if (isUserInteractingRef.current) return;
       const orbit = orbitRef.current;
       if (!orbit) return;
-      const radius = CAM_RADIUS / zoom;
-      const phi = Math.PI / 2 - initialRotationX * DEG;
-      const theta = initialRotationY * DEG;
-      orbit.object.position.setFromSphericalCoords(radius, phi, theta);
+      orbit.object.position.fromArray(getMockupCameraPosition(initialRotationX, initialRotationY, cameraConfig.distance / zoom, cameraConfig.target, CAM_RADIUS));
       orbit.update();
       invalidateRef.current();
       prevRotationRef.current = { x: initialRotationX, y: initialRotationY };
     }, 0);
     return () => clearTimeout(id);
-  }, [initialRotationX, initialRotationY, zoom]);
+  }, [initialRotationX, initialRotationY, zoom, cameraConfig.distance, cameraConfig.target]);
 
   useEffect(() => {
     if (rootRef.current) {
@@ -571,11 +580,11 @@ export function LaptopScene({
 
   return (
     <>
-      <PerspectiveCamera ref={cameraRef} makeDefault fov={CAM_FOV} near={10} far={1000} position={sphericalCameraPos(initialRotationX, initialRotationY, CAM_RADIUS / zoom)} />
+      <PerspectiveCamera ref={cameraRef} makeDefault fov={cameraConfig.fov ?? CAM_FOV} near={10} far={1000} position={getMockupCameraPosition(initialRotationX, initialRotationY, cameraConfig.distance / zoom, cameraConfig.target, CAM_RADIUS)} />
       <OrbitControls
         ref={orbitRef}
-        enableZoom={false}
-        enablePan={false}
+        {...getCameraNavigationOptions(cameraNavigationMode)}
+        target={cameraConfig.target}
         enableDamping
         dampingFactor={0.08}
         autoRotate={autoRotate}
@@ -585,11 +594,7 @@ export function LaptopScene({
         }}
         onEnd={() => {
           isUserInteractingRef.current = false;
-          const orbit = orbitRef.current;
-          if (!orbit || !onRotationChange) return;
-          const ry = orbit.getAzimuthalAngle() * (180 / Math.PI);
-          const rx = (Math.PI / 2 - orbit.getPolarAngle()) * (180 / Math.PI);
-          onRotationChange(rx, ry);
+          reportMockupCameraChange(orbitRef.current, CAM_RADIUS / zoom, onCameraChange, onRotationChange, cameraConfig.fov);
         }}
       />
       <Environment files={HDRI_FILES[environment as EnvironmentPreset]} environmentIntensity={glow} background={false} />

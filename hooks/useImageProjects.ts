@@ -18,6 +18,7 @@ import type { MockupConfig } from "@/types/mockup.types";
 import type { Preview3DConfig, ImageMaskConfig } from "@/types/photo.types";
 import { DEFAULT_MOCKUP_CONFIG } from "@/types/mockup.types";
 import { DEFAULT_MASK_CONFIG, PREVIEW_CONFIGS } from "@/types/photo.types";
+import { DEFAULT_MOCKUP_CAMERA, type MockupCameraConfig } from "@/lib/viewer-controls3d";
 
 interface ImageProjectState {
     backgroundTab: BackgroundTab;
@@ -51,6 +52,7 @@ interface ImageProjectState {
     imagePhoneRotY: number;
     imagePhoneRotZ: number;
     imagePhonePerspective: number;
+    mockupCamera: MockupCameraConfig;
     imagePhoneDevice: ImageDeviceId;
     imagePhonePresetId: string;
     imagePhoneOpening: number;
@@ -92,6 +94,7 @@ const DEFAULT_PROJECT_STATE: ImageProjectState = {
     imagePhoneRotY: 0,
     imagePhoneRotZ: 0,
     imagePhonePerspective: 600,
+    mockupCamera: DEFAULT_MOCKUP_CAMERA,
     imagePhoneDevice: 'phone',
     imagePhonePresetId: 'front',
     imagePhoneOpening: 1,

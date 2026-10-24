@@ -8,7 +8,13 @@ import type { OrbitControls as OrbitControlsType } from "three-stdlib";
 import { createScreenMaterial } from "@/lib/iphone-duo/screen-material";
 import { foldChoreography } from "@/lib/iphone-duo/fold-choreography";
 import { applyTextureCover } from "@/lib/phone3d.utils";
-import { HDRI_FILES, sphericalCameraPos } from "@/lib/viewer-controls3d";
+import {
+  DEFAULT_MOCKUP_CAMERA,
+  HDRI_FILES,
+  getCameraNavigationOptions,
+  getMockupCameraPosition,
+  reportMockupCameraChange,
+} from "@/lib/viewer-controls3d";
 import type { Mockup3DStageProps } from "./Mockup3DStage";
 import type { Phone3DApi } from "@/lib/phone3d-composite-draw.utils";
 import type { Mockup3DMotionTransform } from "@/lib/mockup-motion-3d";
@@ -20,6 +26,7 @@ const CAMERA_RADIUS = 1.7;
 export function IPhoneDuoScene({
   imageUrl, videoElement, cropArea, openingProgress = 1,
   initialRotationX = 6, initialRotationY = -12, initialRotationZ = 0,
+  cameraConfig = DEFAULT_MOCKUP_CAMERA, cameraNavigationMode = "orbit", onCameraChange,
   zoom = 1, autoRotate = false, rotationSpeed = 3.5,
   environment = "studio", glow = 1.2, shadowIntensity = 0,
   motionTransform, onRotationChange, onApi, onLoaded, rootRef, cameraRef,
@@ -165,11 +172,13 @@ export function IPhoneDuoScene({
   useEffect(() => {
     const cam = cameraRef.current;
     if (!cam) return;
-    cam.position.set(...sphericalCameraPos(initialRotationX, initialRotationY, CAMERA_RADIUS / zoom));
-    cam.lookAt(0, 0, 0);
+    cam.position.set(...getMockupCameraPosition(initialRotationX, initialRotationY, cameraConfig.distance / zoom, cameraConfig.target, CAMERA_RADIUS));
+    cam.fov = cameraConfig.fov ?? 30;
+    cam.updateProjectionMatrix();
+    cam.lookAt(...cameraConfig.target);
     orbitRef.current?.update();
     invalidate();
-  }, [initialRotationX, initialRotationY, zoom, cameraRef, invalidate]);
+  }, [initialRotationX, initialRotationY, zoom, cameraRef, invalidate, cameraConfig]);
 
   useEffect(() => {
     const callback = callbacks.current.onApi;
@@ -213,13 +222,12 @@ export function IPhoneDuoScene({
 
   return (
     <>
-      <PerspectiveCamera ref={cameraRef} makeDefault fov={30} near={0.01} far={100}
-        position={sphericalCameraPos(initialRotationX, initialRotationY, CAMERA_RADIUS / zoom)} />
-      <OrbitControls ref={orbitRef} enableZoom={false} enablePan={false} enableDamping
+      <PerspectiveCamera ref={cameraRef} makeDefault fov={cameraConfig.fov ?? 30} near={0.01} far={100}
+        position={getMockupCameraPosition(initialRotationX, initialRotationY, cameraConfig.distance / zoom, cameraConfig.target, CAMERA_RADIUS)} />
+      <OrbitControls ref={orbitRef} {...getCameraNavigationOptions(cameraNavigationMode)} target={cameraConfig.target} enableDamping
         autoRotate={autoRotate} autoRotateSpeed={rotationSpeed}
         onEnd={() => {
-          const orbit = orbitRef.current;
-          if (orbit) onRotationChange?.(90 - orbit.getPolarAngle() / DEG, orbit.getAzimuthalAngle() / DEG);
+          reportMockupCameraChange(orbitRef.current, CAMERA_RADIUS / zoom, onCameraChange, onRotationChange, cameraConfig.fov);
         }} />
       <Environment files={HDRI_FILES[environment]} environmentIntensity={glow} />
       <ambientLight intensity={1.5} />

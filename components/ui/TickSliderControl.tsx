@@ -1,8 +1,11 @@
 "use client";
 import { useRef, useState, useEffect, useCallback, useMemo } from "react";
+import { Icon } from "@iconify/react";
 
 interface TickSliderControlProps {
     label: string;
+    helperText?: string;
+    icon?: string;
     value: number;
     min?: number;
     max?: number;
@@ -15,6 +18,8 @@ interface TickSliderControlProps {
 
 export function TickSliderControl({
     label,
+    helperText,
+    icon,
     value,
     min = 0.5,      
     max = 3,        
@@ -24,6 +29,7 @@ export function TickSliderControl({
     onChange,
     onChangeEnd,
 }: TickSliderControlProps) {
+    const [isHelperOpen, setIsHelperOpen] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     
     const formatValue = useCallback((val: number) => {
@@ -128,9 +134,26 @@ export function TickSliderControl({
 
     return (
         <div className="flex w-full flex-col gap-3 select-none touch-none font-sans">
-            <span className="flex items-center gap-1.5 text-[11px] uppercase tracking-widest text-muted-foreground font-bold">
-                {label}
-            </span>
+            <div className="flex items-start justify-between gap-2">
+                <span className="flex items-center gap-1.5 text-[11px] uppercase tracking-widest text-muted-foreground font-bold">
+                    {icon && <Icon icon={icon} width="15" className="text-primary" aria-hidden="true" />}
+                    {label}
+                </span>
+                {helperText && (
+                    <button
+                        type="button"
+                        aria-label={helperText}
+                        aria-expanded={isHelperOpen}
+                        onClick={() => setIsHelperOpen((open) => !open)}
+                        className="inline-flex shrink-0 items-center gap-1 text-[10px] text-muted-foreground/80 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-sm"
+                    >
+                        <Icon icon="mdi:export-variant" width="14" aria-hidden="true" />
+                    </button>
+                )}
+            </div>
+            {helperText && isHelperOpen && (
+                <p className="text-[10px] leading-tight text-muted-foreground">{helperText}</p>
+            )}
 
             <div className="flex items-center gap-6">
                 <div

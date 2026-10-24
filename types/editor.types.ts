@@ -6,6 +6,8 @@ import type { MockupConfig } from "./mockup.types";
 import type { CameraConfig } from "./camera.types";
 import { MockupMotionFragment } from "@/lib/mockup-motion";
 import type { VideoTrackClip } from "./video-track.types";
+import type { MockupCameraKeyframe } from "@/lib/viewer-controls3d";
+import type { CameraOverlayKeyframe } from "@/lib/camera-overlay-animation";
 
 export type Tool = "screenshot" | "elements" | "audio" | "zoom" | "mockup" | "cursor" | "video" | "camera" | "history" | "motion";
 export type BackgroundTab = "wallpaper" | "image" | "color";
@@ -36,7 +38,7 @@ export interface EditorState {
 
 export interface VideoCanvasHandle {
   getExportCanvas: () => HTMLCanvasElement | null;
-  drawFrame: (highQuality?: boolean, explicitTimelineTime?: number, frameOverride?: VideoFrame) => Promise<void>;
+  drawFrame: (highQuality?: boolean, explicitTimelineTime?: number, frameOverride?: CanvasImageSource | VideoFrame) => Promise<void>;
   getPreviewContainer: () => HTMLDivElement | null;
   clearAllSelection: () => { multiIds: string[]; videoSelected: boolean };
   restoreSelectionState: (state: { multiIds: string[]; videoSelected: boolean }) => void;
@@ -99,6 +101,7 @@ export interface VideoCanvasProps {
   cameraUrl?: string | null;
   cameraSourceUrl?: string | null;
   cameraConfig?: CameraConfig | null;
+  cameraOverlayKeyframes?: CameraOverlayKeyframe[];
   onCameraConfigChange?: (partial: Partial<CameraConfig>) => void;
   onCameraClick?: () => void;
   layersPanelToolbar?: React.ReactNode;
@@ -115,6 +118,9 @@ export interface VideoCanvasProps {
   onImageZoomScaleChange?: (scale: number) => void;
   otherSelectionActive?: boolean;
   mockupMotionFragments?: MockupMotionFragment[];
+  mockupCameraKeyframes?: MockupCameraKeyframe[];
+  selectedMockupCameraKeyframeId?: string | null;
+  onUpdateMockupCameraKeyframe?: (id: string, updates: Partial<MockupCameraKeyframe>) => void;
   videoDuration?: number;
   onMockupConfigChange?: (config: Partial<MockupConfig>) => void;
   selectedZoomFragment?: ZoomFragment | null;
