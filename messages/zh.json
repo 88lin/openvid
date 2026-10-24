@@ -737,7 +737,51 @@
     },
     "modelProperties": "模型属性",
     "lightingAndEnvironment": "光照与环境",
-    "presentation": "动画与显示"
+    "presentation": "动画与显示",
+    "cameraControls": "3D 摄像机",
+    "cameraFraming": "构图控制",
+    "cameraPresets": "摄像机视角",
+    "cameraPreset": {
+      "front": "正面视角",
+      "threeQuarter": "四分之三视角",
+      "top": "俯视视角",
+      "detail": "特写视角"
+    },
+    "cameraKeyframes": "摄像机关键帧",
+    "autoCamera": "自动运镜",
+    "autoCameraHint": "生成平滑、贴合设备的摄像机运镜。",
+    "autoCameraNoSpace": "请先在时间轴留出至少 0.8 秒的空档。",
+    "autoCameraFrame": "自动构图",
+    "autoCameraFrameHint": "为当前设备设置一个精致的角度。",
+    "cameraAdvanced": "微调",
+    "cameraDragHint": "选择模式后，拖动 3D 预览进行调整。",
+    "cameraReviewGuides": {
+      "title": "构图参考线",
+      "thirds": "三分法",
+      "center": "中心十字",
+      "safeArea": "安全区域"
+    },
+    "cameraTarget": "注视点",
+    "cameraTargetPosition": "XY 目标点",
+    "cameraTargetPadHint": "移动实际摄像机目标点。拖动圆点或使用方向键，按 Home 键回中。",
+    "cameraKeyframeAdd": "在当前时间保存摄像机状态",
+    "cameraKeyframeRemove": "删除所选关键帧",
+    "cameraPreviewSegment": "预览这段运镜",
+    "cameraTransition": {
+      "label": "过渡到下一关键帧",
+      "smooth": "平滑",
+      "linear": "匀速",
+      "hold": "先保持，再切换"
+    },
+    "orbit": "环绕",
+    "trackXY": "平移 XY",
+    "trackZ": "推移 Z",
+    "orbitHint": "拖动以围绕设备旋转。",
+    "trackXYHint": "拖动以平移视角。",
+    "trackZHint": "拖动或滚动以拉近、拉远。",
+    "dolly": "摄像机距离",
+    "fieldOfView": "视野",
+    "target": "目标"
   },
   "videosMenu": {
     "title": "视频",
@@ -758,7 +802,9 @@
       "unmute": "取消静音",
       "delete": "删除视频"
     },
-    "footer": "视频本地存储在你的浏览器中"
+    "footer": "视频本地存储在你的浏览器中",
+    "speedExport": "Applies to preview and export",
+    "speedPresets": "Playback speed presets"
   },
   "elementsMenu": {
     "title": "元素",
@@ -897,6 +943,19 @@
       "top-right": "右上",
       "bottom-left": "左下",
       "bottom-right": "右下"
+    },
+    "zoom": "Zoom",
+    "animation": "Webcam animation",
+    "startAnimation": "Animate webcam",
+    "savePose": "Save pose",
+    "poseCount": "{count} poses",
+    "removePose": "Remove selected pose",
+    "threeD": {
+      "title": "3D depth",
+      "enable": "Enable 3D effect",
+      "tilt": "Vertical tilt",
+      "turn": "Horizontal tilt",
+      "perspective": "Perspective"
     }
   },
   "editor": {
@@ -1197,7 +1256,13 @@
     "trimmedStart": "已从起点修剪 {seconds} 秒 · 双击可还原",
     "trimmedEnd": "已从终点修剪 {seconds} 秒 · 双击可还原",
     "restore": "还原",
-    "restoreTitle": "还原片段的原始时长"
+    "restoreTitle": "还原片段的原始时长",
+    "cameraKeyframe": "摄像机关键帧",
+    "cameraTrackClickHint": "点击空白处添加摄像机关键帧。",
+    "webcamKeyframe": "摄像头姿势",
+    "webcamTrackClickHint": "点击空白处添加摄像头姿势。",
+    "cameraKeyframeMarkerHint": "拖动移动；双击删除。",
+    "cameraKeyframeDragHint": "拖动移动；用方向键微调，Delete 键删除。"
   },
   "audioMenu": {
     "title": "音频",
@@ -1499,7 +1564,9 @@
     "elements": "对象",
     "audio": "音频",
     "motion": "动效",
-    "movement": "移动"
+    "movement": "移动",
+    "camera": "Camera",
+    "webcam": "Webcam"
   },
   "heroPreview": {
     "sidebar": {
